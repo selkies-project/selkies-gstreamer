@@ -1,0 +1,33 @@
+FROM ubuntu:20.04
+
+RUN \
+    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        build-essential \
+        python3-pip \
+        python3-dev \
+        python3-gi \
+        tzdata \
+        sudo \
+        udev \
+        xclip \
+        x11-utils \
+        xdotool \
+        wmctrl \
+        jq \
+        gdebi-core \
+        x11-xserver-utils \
+        xvfb
+
+# Install selkies-gstreamer
+WORKDIR /opt/selkies-gstreamer
+ADD selkies-gstreamer-latest.tgz .
+RUN bash selkies-gstreamer-install.sh
+
+COPY dist/ /opt/
+
+RUN pip3 install /opt/selkies_gstreamer_disla-1.0.0rc0-py3-none-any.whl
+
+ENV PYTHONPATH=/usr/local/lib/python3.8/dist-packages:/usr/lib/python3.8/site-packages
+ENV DISPLAY=:0.0
+
+CMD (/usr/bin/Xvfb :0 -screen 0 1024x768x24 &) && selkies-gstreamer

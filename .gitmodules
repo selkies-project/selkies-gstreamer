@@ -1,0 +1,3 @@
+[submodule "images/gst-web/guacamole-client"]
+	path = images/gst-web/guacamole-client
+	url = https://github.com/selkies-project/guacamole-client.git

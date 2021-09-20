@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: selkies-gstreamer-disla
+Version: 1.0.0rc0
+Summary: Selkies GStreamer app for Python
+Home-page: https://github.com/selkies-project/selkies-gstreamer
+Author: Dan Isla
+Author-email: dan.isla@gmail.com
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/selkies-project/selkies-gstreamer/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3.6
+Requires-Python: >=3.6
+License-File: LICENSE
+
+
+Selkies GStreamer is a WebRTC desktop streaming application for Python.
+

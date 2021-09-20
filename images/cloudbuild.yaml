@@ -1,0 +1,113 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+timeout: 3600s
+
+substitutions:
+  _USE_CACHE: "true"
+  _IMAGE_PREFIX: selkies-gstreamer
+  _IMAGE_TAG: latest
+
+tags:
+  - selkies-gstreamer-images
+
+images: [
+  # gst-web
+  'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-gst-web:${_IMAGE_TAG}',
+  'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-gst-web:latest',
+  # signaling
+  'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-signaling:${_IMAGE_TAG}',
+  'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-signaling:latest',
+]
+
+steps:
+###
+# Selkies GStreamer image
+###
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: selkies-gstreamer-image
+  dir: "gst-base"
+  args:
+    - builds
+    - submit
+    - --substitutions=_USE_CACHE=${_USE_CACHE}
+  waitFor: ["-"]
+
+###
+# Selkies GStreamer Python app image
+###
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: selkies-gstreamer-app-image
+  dir: "gst-webrtc-app"
+  args:
+    - builds
+    - submit
+    - --substitutions=_USE_CACHE=${_USE_CACHE}
+  waitFor: ["selkies-gstreamer-image"]
+
+###
+# Selkies GStreamer web app image
+###
+- name: 'gcr.io/cloud-builders/docker'
+  id: gst-web-pull
+  entrypoint: 'bash'
+  args: ["-c", "if [[ '${_USE_CACHE}' == 'true' ]]; then (docker pull gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-gst-web:latest || exit 0); fi"]
+  waitFor: ["-"]
+- name: 'gcr.io/cloud-builders/docker'
+  id: gst-web
+  args: [
+            'build',
+            '-t', 'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-gst-web:${_IMAGE_TAG}',
+            '--cache-from', 'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-gst-web:latest',
+            'gst-web'
+        ]
+  waitFor:
+    - gst-web-pull
+- name: 'gcr.io/cloud-builders/docker'
+  id: gst-web-tags
+  args: [
+            'tag',
+            'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-gst-web:${_IMAGE_TAG}',
+            'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-gst-web:latest',
+        ]
+  waitFor:
+    - gst-web
+
+###
+# Selkies GStreamer signaling image
+###
+- name: 'gcr.io/cloud-builders/docker'
+  id: signaling-pull
+  entrypoint: 'bash'
+  args: ["-c", "if [[ '${_USE_CACHE}' == 'true' ]]; then (docker pull gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-signaling:latest || exit 0); fi"]
+  waitFor: ["-"]
+- name: 'gcr.io/cloud-builders/docker'
+  id: signaling
+  args: [
+            'build',
+            '-t', 'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-signaling:${_IMAGE_TAG}',
+            '--cache-from', 'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-signaling:latest',
+            'signaling'
+        ]
+  waitFor:
+    - signaling-pull
+- name: 'gcr.io/cloud-builders/docker'
+  id: signaling-tags
+  args: [
+            'tag',
+            'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-signaling:${_IMAGE_TAG}',
+            'gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-signaling:latest',
+        ]
+  waitFor:
+    - signaling

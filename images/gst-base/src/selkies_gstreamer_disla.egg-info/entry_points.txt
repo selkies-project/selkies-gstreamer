@@ -1,0 +1,3 @@
+[console_scripts]
+selkies-gstreamer = selkies_gstreamer.__main__:main
+

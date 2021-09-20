@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link href="css/vuetify.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+  <meta name="theme-color" content="black"/>
+
+  <style>
+    html {
+      font-family: Roboto, Arial, sans;
+    }
+
+    .scrolly textarea {
+      min-height: 300px;
+      white-space: pre;
+      overflow: scroll;
+    }
+
+    .fab-container {
+      top: 50%;
+      right: -40px;
+      opacity: 50%;
+    }
+
+    .fab-container:hover {
+      opacity: 100%;
+      right: -25px;
+    }
+
+    .video-container {
+      background-color: black;
+      width: 100%;
+      height: 100%;
+    }
+
+    .video {
+      position: absolute;
+    }
+
+    .scale {
+      width: 100%;
+      height: 100%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      text-align: center;
+      color: #E0E0E0;
+    }
+
+    .loading-text {
+      margin-top: 1em;
+    }
+
+    canvas {
+      background: black;
+    }
+
+    @font-face {
+      font-family: 'Material Icons';
+      font-style: normal;
+      font-weight: 400;
+      src: url(css/font/flUhRq6tzZclQEJ-Vdg-IuiaDsNZ.ttf) format('truetype');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 100;
+      src: url(css/font/KFOkCnqEu92Fr1MmgWxP.ttf) format('truetype');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 300;
+      src: url(css/font/KFOlCnqEu92Fr1MmSU5vAw.ttf) format('truetype');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 400;
+      src: url(css/font/KFOmCnqEu92Fr1Me5Q.ttf) format('truetype');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 500;
+      src: url(css/font/KFOlCnqEu92Fr1MmEU9vAw.ttf) format('truetype');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 700;
+      src: url(css/font/KFOlCnqEu92Fr1MmWUlvAw.ttf) format('truetype');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 900;
+      src: url(css/font/KFOlCnqEu92Fr1MmYUtvAw.ttf) format('truetype');
+    }
+
+    .material-icons {
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+    }
+  </style>
+  <title>WebRTC</title>
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-navigation-drawer v-model="showDrawer" app fixed right temporary width="600">
+        <v-container fluid grid-list-lg>
+          <v-layout row wrap>
+            <v-flex xs12>
+              <p>
+                <v-toolbar>
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-progress-circular class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                        :width="4"
+                        :value="videoBitRate === 0 ? 0 : (connectionVideoBitrate / (videoBitRate / 1000))*100"
+                        color="teal">
+                        {{ connectionVideoBitrate }}
+                      </v-progress-circular>
+                    </template>
+                    <span>Current video bit rate in mbps vs selected bit rate {{ (videoBitRate / 1000).toFixed(0) }}
+                      mbps</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-progress-circular class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                        :width="4" :value="(connectionFrameRate / 60)*100" color="blue-grey">
+                        {{ connectionFrameRate }}
+                      </v-progress-circular>
+                    </template>
+                    <span>Current FPS vs 60 FPS</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-progress-circular class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                        :width="4" :value="(connectionLatency / 1000)*100" color="red">
+                        {{ connectionLatency }}
+                      </v-progress-circular>
+                    </template>
+                    <span>Current max(video, audio) latency in milliseconds</span>
+                  </v-tooltip>
+
+                  <v-divider class="mr-1" vertical></v-divider>
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-progress-circular v-if="encoderName === 'hardware'" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                        :width="4" :value="gpuLoad" color="blue">
+                        {{ gpuLoad }}
+                      </v-progress-circular>
+                      <v-progress-circular v-else class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                        :width="4" :value="serverCPUUsage" color="blue">
+                        {{ serverCPUUsage }}
+                      </v-progress-circular>
+                    </template>
+                    <span v-if="encoderName === 'hardware'">Current GPU load</span>
+                    <span v-else>Server CPU Usage</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-progress-circular v-if="encoderName === 'hardware'" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                        :width="4" :value="gpuMemoryTotal === 0 ? 0 : (gpuMemoryUsed / gpuMemoryTotal) * 100"
+                        color="blue-grey">
+                        {{ (gpuMemoryUsed / 1024).toFixed(2) }}
+                      </v-progress-circular>
+                      <v-progress-circular v-else class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                        :width="4" :value="serverMemoryTotal === 0 ? 0 : (serverMemoryUsed / serverMemoryTotal) * 100"
+                        color="blue-grey">
+                        {{ (serverMemoryUsed / 1024 / 1024 / 1024).toFixed(2) }}
+                      </v-progress-circular>
+                    </template>
+                    <span v-if="encoderName === 'hardware'">Current GPU memory GB used of the {{ (gpuMemoryTotal / 1024).toFixed(0) }}GB available</span>
+                    <span v-else>Server Memory GB used of the {{ (serverMemoryTotal / 1024 / 1024 / 1024).toFixed(0) }}GB available</span>
+                  </v-tooltip>
+
+                  <v-divider class="mr-1" vertical></v-divider>
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-btn icon v-on:click="enterFullscreen()">
+                        <v-icon color="black" v-on="on">fullscreen</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Enter fullscreen mode (CTRL+SHIFT+F)</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom v-if="clipboardStatus === 'enabled'">
+                    <template v-slot:activator="{ on }">
+                      <v-btn block icon>
+                        <v-icon color="black" v-on="on">file_copy</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Clipboard status: {{ clipboardStatus }}</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom v-else>
+                    <template v-slot:activator="{ on }">
+                      <v-btn block icon v-on:click="enableClipboard()">
+                        <v-icon color="blue" v-on="on">file_copy</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Enable clipboard access</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-btn icon href="/">
+                        <v-icon color="black" v-on="on">home</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Return to launcher</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom v-if="gamepadState === 'connected'">
+                    <template v-slot:activator="{ on }">
+                      <v-icon color="black" v-on="on">videogame_asset</v-icon>
+                    </template>
+                    <span>Gamepad connected: {{ gamepadName }}</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom v-else>
+                    <template v-slot:activator="{ on }">
+                      <v-icon color="grey" v-on="on">videogame_asset</v-icon>
+                    </template>
+                    <span>Gamepad disconnected</span>
+                  </v-tooltip>
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-icon class="ml-2" color="black" v-on="on">account_circle</v-icon>
+                    </template>
+                    <span>Logged in as {{ getUsername() }} </span>
+                  </v-tooltip>
+                </v-toolbar>
+              </p>
+              <p>
+                <v-select :items="videoBitRateOptions" label="Video bit rate" menu-props="left" v-model="videoBitRate"
+                  hint="Dynamic bit rate selection for hardware encoder on server" persistent-hint></v-select>
+              </p>
+              <p>
+                <v-select :items="videoFramerateOptions" label="Video frame rate" menu-props="left"
+                  v-model="videoFramerate" hint="Frame rate selection, will reload window on change" persistent-hint>
+                </v-select>
+              </p>
+              <p>
+                <v-select :items="audioBitRateOptions" label="Audio bit rate" menu-props="left" v-model="audioBitRate"
+                  :disabled="!audioEnabled" hint="Dynamic bit rate selection for audio encoder on server"
+                  persistent-hint>
+                </v-select>
+              </p>
+              <p>
+              <ul>
+                <li>Peer connection state: <b>{{ status }}</b></li>
+                <li>Peer connection type: <b>{{ connectionStatType }}</b></li>
+                <li>Packets received: <b>{{ connectionPacketsReceived }}</b></li>
+                <li>Packets lost: <b>{{ connectionPacketsLost }}</b></li>
+                <li>Bytes received: <b>{{ connectionBytesReceived }}</b></li>
+                <li>Bytes sent: <b>{{ connectionBytesSent }}</b></li>
+              </ul>
+              Video Stats
+              <ul>
+                <li>Latency: <b>{{ connectionVideoLatency }} ms</b></li>
+                <li>Video: <b>{{ connectionCodec }} {{ connectionResolution }}</b></li>
+                <li>Video encoder: <b>{{ encoderName }}</b></li>
+                <li>Window size: <b>{{ windowResolution[0] }}x{{ windowResolution[1] }}</b></li>
+                <li>Video decoder: <b>{{ connectionVideoDecoder }}</b></li>
+                <li>Frame rate: <b>{{ connectionFrameRate }} fps</b></li>
+                <li>Bit rate: <b>{{ connectionVideoBitrate }} mbps</b></li>
+                <li>Available receive bandwith: <b>{{ connectionAvailableBandwidth }}</b></li>
+              </ul>
+              Audio Stats
+              <ul>
+                <li>Latency: <b>{{ connectionAudioLatency }} ms</b></li>
+                <li>Codec: <b>{{ connectionAudioCodecName }}</b></li>
+                <li>Bit rate: <b>{{ connectionAudioBitrate }} kbps</b></li>
+              </ul>
+              </p>
+              <hr />
+              <v-textarea bottom class="scrolly" label="Status Logs" readonly :value="logEntries.join('\n\n')">
+              </v-textarea>
+              <v-textarea bottom class="scrolly" label="Debug Logs" readonly :value="debugEntries.join('\n\n')">
+              </v-textarea>
+              <p>
+                <v-btn color="primary" v-if="!audioEnabled" small v-on:click="audioEnabled=true">Enable Audio</v-btn>
+                <v-btn color="primary" v-else small v-on:click="audioEnabled=false">Disable Audio</v-btn>
+                <v-switch v-model="resizeRemote" :label="`Resize remote to fit window: ${resizeRemote.toString()}`"></v-switch>
+                <v-switch v-model="scaleLocal" :label="`Scale to fit window: ${scaleLocal.toString()}`"></v-switch>
+              </p>
+              <p>
+                Debugging
+                <v-switch v-model="debug" :label="`Debug logs: ${debug.toString()}`"></v-switch>
+                <v-switch v-model="turnSwitch" :label="`Force relay connection: ${turnSwitch.toString()}`"></v-switch>
+              </p>
+
+              <p v-if="publishingAllowed">
+                Publishing
+
+              <div v-if="publishingIdle">
+                <v-form v-model="publishingValid">
+                  <v-text-field label="New app name" :placeholder="`${app.appName}-sandbox`"
+                    :rules="[rules.required, rules.validname]" v-model="publishingAppName">
+                  </v-text-field>
+
+                  <v-text-field label="New app display name" :placeholder="`${app.appName}-sandbox`"
+                    v-model="publishingAppDisplayName">
+                  </v-text-field>
+
+                  <v-text-field label="New app description" :placeholder="`Created from ${app.appName}`"
+                    v-model="publishingAppDescription">
+                  </v-text-field>
+
+                  <v-text-field label="URL to app icon" v-model="publishingAppIcon">
+                  </v-text-field>
+                </v-form>
+
+                <v-btn color="primary" small v-on:click="publish()" :disabled="!publishingValid">Publish</v-btn>
+              </div>
+              <div v-else>
+                <v-progress-circular v-if="publishingAllowed" indeterminate :size="50" :width="4" color="primary">
+                </v-progress-circular>
+              </div>
+              </p>
+            </v-flex>
+          </v-layout>
+        </v-container>
+      </v-navigation-drawer>
+
+      <div id="video_container" class="video-container">
+        <video id="stream" class="video" preload="none" playsinline>
+          Your browser doesn't support video
+        </video>
+      </div>
+
+      <canvas id="capture"></canvas>
+
+      <v-btn class="fab-container" v-on:click="showDrawer=!showDrawer" color="grey" fab dark fixed right>
+      </v-btn>
+
+      <div class="loading">
+        <div v-if="status === 'failed'">
+          <v-btn v-on:click="location.reload()" color="#E0E0E0">
+            reload</v-btn>
+          <div class="loading-text">Connection failed.</div>
+        </div>
+        <div v-else>
+          <scale-loader size="200px" :loading="(status !== 'connected')" color="#E0E0E0"></scale-loader>
+          <div v-if="(status !== 'connected')" class="loading-text">{{ loadingText }}</div>
+          <v-btn v-if="(status === 'connected' && showStart)" v-on:click="playVideo()" color="#E0E0E0">
+            start</v-btn>
+        </div>
+      </div>
+    </v-app>
+  </div>
+</body>
+
+<script type="text/javascript">
+// Handle messages from the ServiceWorker
+navigator.serviceWorker.addEventListener('message', event => {
+    console.log("Message from service worker: ", event.data);
+    if (event.data.msg === "reload") {
+        setTimeout(() => {
+            // Unregister service worker then force reload.
+            navigator.serviceWorker.getRegistration().then( (reg) => {
+                if (reg) {
+                    reg.unregister().then( () => window.location.reload());
+                } else {
+                    window.location.reload();
+                }
+                })
+                .catch( (err) => {
+                    window.location.reload();
+                })
+        }, 400);
+    }
+});
+</script>
+<script src="lib/webrtc-adapter-v7.7.1.js?ts=1"></script>
+<script src="lib/vue-v2.6.9.min.js?ts=1"></script>
+<script src="lib/vuetify-1.5.14.min.js?ts=1"></script>
+<script src="lib/vue-spinner-v1.0.3.min.js?ts=1"></script>
+<script src="lib/guacamole-keyboard-selkies.js?ts=1"></script>
+<script src="gamepad.js?ts=1"></script>
+<script src="input.js?ts=1"></script>
+<script src="signalling.js?ts=1"></script>
+<script src="webrtc.js?ts=1"></script>
+<script src="app.js?ts=1"></script>
+
+</html>
