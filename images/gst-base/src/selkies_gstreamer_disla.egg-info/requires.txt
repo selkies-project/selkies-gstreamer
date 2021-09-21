@@ -1,8 +1,0 @@
-websockets
-xlib
-gputil
-python-uinput
-prometheus_client
-msgpack
-pynput
-psutil

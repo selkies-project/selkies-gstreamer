@@ -1,0 +1,47 @@
+#cloud-config
+
+write_files:
+- path: /var/lib/docker/daemon.json
+  permissions: 0644
+  owner: root
+  content: |
+    {
+      "live-restore": true,
+      "storage-driver": "overlay2",
+      "log-opts": {
+        "max-size": "1024m"
+      }
+    }
+# coturn systemd unit
+- path: /etc/systemd/system/coturn.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=COTURN server
+    After=docker.service
+    Requires=docker.service
+    [Service]
+    TimeoutStartSec=0
+    Restart=always
+    Environment="HOME=/home/cloudservice"
+    ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
+    ExecStartPre=-/usr/bin/docker kill %n
+    ExecStartPre=-/usr/bin/docker rm %n
+    ExecStartPre=/usr/bin/docker pull ${element(split(",", custom_var), 2)}
+    ExecStart=/usr/bin/docker run --rm --name %n \
+      --net=host \
+      --env TURN_SHARED_SECRET="${element(split(",", custom_var), 0)}" \
+      --env TURN_REALM="${element(split(",", custom_var), 1)}" \
+      --env TURN_PORT="3478" \
+      --env TURN_MIN_PORT="25000" \
+      --env TURN_MAX_PORT="25100" \
+      ${element(split(",", custom_var), 2)}
+    ExecStop=/usr/bin/docker stop -t 2 %n
+    [Install]
+    WantedBy=multi-user.target
+runcmd:
+- docker-credential-gcr configure-docker
+- iptables -I INPUT -j ACCEPT
+- systemctl daemon-reload
+- systemctl enable coturn.service && systemctl start coturn.service

@@ -1,0 +1,54 @@
+timeout: 3600s
+substitutions:
+  _ACTION: apply
+  _NAME: selkies
+  _TURN_WEB_REGION: us-central1
+  # Colon separated list of regions to create managed instance groups
+  _TURN_VM_REGIONS: us-west2
+tags:
+  - selkies-deploy
+steps:
+  ###
+  # Cleanup any existing sub-jobs to prevent overlapping executions.
+  ###
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: cleanup-sub-jobs
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gcloud builds list --ongoing --filter='tags[]~selkies-setup' --format='value(id)' | \
+          xargs --no-run-if-empty gcloud builds cancel
+  ###
+  # Deploy base infrastructure
+  ###
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: "infra-base"
+    dir: "base"
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gcloud builds submit --substitutions=_ACTION=${_ACTION},_NAME=${_NAME}
+  ###
+  # Deploy web service infrastructure
+  ###
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: "infra-turn-web"
+    dir: "turn-web"
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gcloud builds submit --substitutions=_ACTION=${_ACTION},_NAME=${_NAME},_REGION=${_TURN_WEB_REGION}
+  ###
+  # Deploy VM instance groups
+  ###
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: "infra-turn-vm"
+    dir: "turn-vm"
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        echo $_TURN_VM_REGIONS | tr ':' '\n' | xargs -P4 -I {} gcloud builds submit --substitutions=_ACTION=${_ACTION},_NAME=${_NAME},_REGION={}

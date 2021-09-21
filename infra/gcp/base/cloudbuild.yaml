@@ -1,0 +1,31 @@
+timeout: 7200s
+substitutions:
+  _ACTION: apply
+  _NAME: selkies
+tags:
+  - selkies-infra-base
+  - selkies-setup
+steps:
+  ###
+  # Create GCS bucket to store terraform state
+  ###
+  - name: "gcr.io/cloud-builders/gsutil"
+    id: "create-tf-state-bucket"
+    entrypoint: "/bin/bash"
+    args:
+      - "-xe"
+      - "-c"
+      - |
+        gsutil mb gs://${PROJECT_ID}-${_NAME}-tf-state || true
+    waitFor: ["-"]
+
+  ###
+  # Apply terraform to create cluster
+  ###
+  - name: ghcr.io/selkies-project/selkies-gstreamer/infra-installer:latest
+    id: "terraform-apply"
+    env:
+      - TF_VAR_project_id=${PROJECT_ID}
+      - TF_VAR_name=${_NAME}
+      - TERRAFORM_WORKSPACE_NAME=base
+      - ACTION=${_ACTION}

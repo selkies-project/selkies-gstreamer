@@ -1,0 +1,334 @@
+/*
+ Copyright 2019 Google Inc. All rights reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package main
+
+import (
+	"context"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"regexp"
+	"strings"
+	"time"
+
+	metadata "cloud.google.com/go/compute/metadata"
+	htpasswd "github.com/tg123/go-htpasswd"
+)
+
+type rtcConfigResponse struct {
+	LifetimeDuration   string              `json:"lifetimeDuration"`
+	IceServers         []iceServerResponse `json:"iceServers"`
+	BlockStatus        string              `json:"blockStatus"`
+	IceTransportPolicy string              `json:"iceTransportPolicy"`
+}
+
+type iceServerResponse struct {
+	URLs       []string `json:"urls"`
+	Username   string   `json:"username,omitempty"`
+	Credential string   `json:"credential,omitempty"`
+}
+
+func main() {
+	externalIP := popVarFromEnv("EXTERNAL_IP", false, getMyExternalIP())
+	turnPort := popVarFromEnv("TURN_PORT", false, "3478")
+	sharedSecret := popVarFromEnv("TURN_SHARED_SECRET", true, "")
+	htpasswdFilePath := popVarFromEnv("TURN_HTPASSWD_FILE", false, "")
+	listenPort := popVarFromEnv("PORT", false, "8080")
+	authHeaderName := strings.ToLower(popVarFromEnv("AUTH_HEADER_NAME", false, "x-auth-user"))
+
+	// Env vars for running in aggregator mode.
+	discoveryDNSName := popVarFromEnv("DISCOVERY_DNS_NAME", false, "")
+	discoveryPortName := popVarFromEnv("DISCOVERY_PORT_NAME", false, "turn")
+
+	// Env vars to run in managed instance group aggregator mode.
+	migFilterPattern := popVarFromEnv("MIG_DISCO_FILTER", false, "")
+	migDiscoveryProjectID := popVarFromEnv("MIG_DISCO_PROJECT_ID", false, "")
+
+	// Make sure at least one external IP method was found.
+	if len(externalIP) == 0 && len(discoveryDNSName) == 0 && len(migFilterPattern) == 0 {
+		log.Fatalf("ERROR: no EXTERNAL_IP, DISCOVERY_DNS_NAME, or MIG_DISCO_FILTER was not found, cannot continue.")
+	}
+
+	// Start background file watcher for MIG discovery method.
+	migDiscoIPs := &migDiscoIPsSync{}
+	if len(migFilterPattern) > 0 {
+		var err error
+		if len(migDiscoveryProjectID) == 0 {
+			migDiscoveryProjectID, err = metadata.ProjectID()
+			if err != nil {
+				log.Fatalf("%v", err)
+			}
+		}
+		migDiscoIPs.ProjectID = migDiscoveryProjectID
+		migDiscoIPs.FilterPattern = regexp.MustCompile(migFilterPattern)
+
+		// Perform initial check
+		migDiscoIPs.Update()
+	}
+
+	// Parse optional htpasswd file for authorization.
+	var htpasswdFile *htpasswd.File
+	if len(htpasswdFilePath) > 0 {
+		if _, err := os.Stat(htpasswdFilePath); os.IsNotExist(err) {
+			log.Fatalf("htaccess file not found: %s", htpasswdFilePath)
+		}
+		log.Printf("INFO: using htaccess file from: %s", htpasswdFilePath)
+		var err error
+		htpasswdFile, err = htpasswd.New(htpasswdFilePath, htpasswd.DefaultSystems, nil)
+		if err != nil {
+			log.Fatalf("ERROR: failed to read htpasswd file: %v", err)
+		}
+		log.Printf("INFO: forcing auth header to: 'authorization' for Basic auth with htaccess file")
+		authHeaderName = "authorization"
+	}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Get user from auth header.
+		authHeaderValue := r.Header.Get(authHeaderName)
+		user := ""
+
+		// Perform basic auth
+		if authHeaderName == "authorization" {
+			if strings.Contains(authHeaderValue, "Basic") {
+				username, password, authOK := r.BasicAuth()
+				if authOK == false {
+					writeStatusResponse(w, http.StatusUnauthorized, "Invalid Basic Auth credential.")
+					return
+				}
+				// Authorize user from htpasswd file.
+				if ok := htpasswdFile.Match(username, password); !ok {
+					writeStatusResponse(w, http.StatusUnauthorized, "Unauthorized")
+					return
+				}
+				user = username
+			} else {
+				w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+				writeStatusResponse(w, http.StatusUnauthorized, "Missing Authorization")
+				return
+			}
+		} else if authHeaderName == "x-goog-authenticated-user-email" {
+			// IAP uses a prefix of accounts.google.com:email, remove this to just get the email
+			userToks := strings.Split(authHeaderValue, ":")
+			if len(userToks) > 1 {
+				user = userToks[len(userToks)-1]
+			}
+		} else {
+			user = authHeaderValue
+		}
+		if len(user) == 0 {
+			writeStatusResponse(w, http.StatusUnauthorized, fmt.Sprintf("Failed to get user from auth header: '%s'", authHeaderName))
+			return
+		}
+
+		ips := make([]string, 0)
+
+		if len(migFilterPattern) > 0 {
+			// MIG discovery mode, use IPs found on MIG instnaces.
+			migDiscoIPs.Update()
+			migDiscoIPs.Lock()
+			for _, ip := range migDiscoIPs.ExternalIPs {
+				ips = append(ips, ip)
+			}
+			migDiscoIPs.Unlock()
+		} else if len(discoveryDNSName) > 0 {
+			// K8S endpoint aggregator mode, use DNS SRV records to build RTC config.
+			// Fetch all service host and ports using SRV record of headless discovery service.
+			// NOTE: The SRV record returns resolvable aliases to the endpoints, so do another lookup should return the IP.
+			_, srvs, err := net.LookupSRV(discoveryPortName, "tcp", discoveryDNSName)
+			if err != nil {
+				log.Printf("ERROR: failed to query SRV record from %v %v: %v", discoveryDNSName, discoveryPortName, err)
+				writeStatusResponse(w, http.StatusInternalServerError, "Internal server error")
+				return
+			}
+			for _, srv := range srvs {
+				addrs, err := net.LookupHost(srv.Target)
+				if err != nil {
+					log.Printf("ERROR: failed to query A record from %v: %v", srv.Target, err)
+					writeStatusResponse(w, http.StatusInternalServerError, "Internal server error")
+					return
+				}
+				ips = append(ips, addrs[0])
+			}
+		} else if len(externalIP) > 0 {
+			// Standard mode, use own external IP to return single server.
+			ips = []string{externalIP}
+		} else {
+			log.Printf("ERROR: failed to match aggregator mode.")
+			writeStatusResponse(w, http.StatusInternalServerError, "Internal server error")
+			return
+		}
+
+		// Create the RTC config from the list of IPs
+		resp, err := makeRTCConfig(ips, turnPort, user, sharedSecret)
+		if err != nil {
+			log.Printf("ERROR: failed to make RTC config: %v", err)
+			writeStatusResponse(w, http.StatusInternalServerError, "Internal server error")
+			return
+		}
+		writeJSONResponse(w, http.StatusOK, resp)
+		return
+	})
+
+	log.Println(fmt.Sprintf("Listening on port %s", listenPort))
+	http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", listenPort), nil)
+}
+
+func makeRTCConfig(ips []string, port, user, secret string) (rtcConfigResponse, error) {
+	var resp rtcConfigResponse
+	var err error
+
+	if len(ips) == 0 {
+		return resp, fmt.Errorf("No RTC config IPs available")
+	}
+
+	username, credential := makeCredential(secret, user)
+
+	stunURLs := []string{}
+	turnURLs := []string{}
+
+	for _, ip := range ips {
+		stunURLs = append(stunURLs, fmt.Sprintf("stun:%s:%s", ip, port))
+		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=udp", ip, port))
+	}
+
+	resp.LifetimeDuration = "86400s"
+	resp.BlockStatus = "NOT_BLOCKED"
+	resp.IceTransportPolicy = "all"
+	resp.IceServers = []iceServerResponse{
+		iceServerResponse{
+			URLs: stunURLs,
+		},
+		iceServerResponse{
+			URLs:       turnURLs,
+			Username:   username,
+			Credential: credential,
+		},
+	}
+
+	return resp, err
+}
+
+// Creates credential per coturn REST API docs
+// https://github.com/coturn/coturn/wiki/turnserver#turn-rest-api
+// [START makeCredential]
+func makeCredential(secret, user string) (string, string) {
+	var username string
+	var credential string
+
+	ttlOneDay := 24 * 3600 * time.Second
+	nowPlusTTL := time.Now().Add(ttlOneDay).Unix()
+	// Make sure to set --rest-api-separator="-" in the coturn config.
+	username = fmt.Sprintf("%d-%s", nowPlusTTL, user)
+
+	mac := hmac.New(sha1.New, []byte(secret))
+	mac.Write([]byte(username))
+	credential = base64.StdEncoding.EncodeToString(mac.Sum(nil))
+
+	return username, credential
+}
+
+// [END makeCredential]
+
+func writeStatusResponse(w http.ResponseWriter, statusCode int, message string) {
+	type statusResponse struct {
+		Status string
+	}
+	status := statusResponse{
+		Status: message,
+	}
+	writeJSONResponse(w, statusCode, status)
+}
+
+func writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(data)
+}
+
+func getInstanceExternalIP(uri, accessToken string) (string, error) {
+	ip := ""
+	type accessConfig struct {
+		NatIP string `json:"natIP"`
+	}
+	type networkInterface struct {
+		AccessConfigs []accessConfig `json:"accessConfigs"`
+	}
+	type getInstanceReponse struct {
+		NetworkInterfaces []networkInterface `json:"networkInterfaces"`
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", uri, nil)
+	req.Header.Set("User-Agent", "Selkies_Controller/1.0")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	resp, err := client.Do(req)
+	if err != nil {
+		return ip, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return ip, err
+	}
+
+	var getResp getInstanceReponse
+	if err := json.Unmarshal(body, &getResp); err != nil {
+		return ip, err
+	}
+	if len(getResp.NetworkInterfaces) > 0 && len(getResp.NetworkInterfaces[0].AccessConfigs) > 0 && len(getResp.NetworkInterfaces[0].AccessConfigs[0].NatIP) > 0 {
+		ip = getResp.NetworkInterfaces[0].AccessConfigs[0].NatIP
+	}
+
+	return ip, nil
+}
+
+func getMyExternalIP() string {
+	// Obtain external IP from Google DNS TXT record.
+	r := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: time.Millisecond * time.Duration(10000),
+			}
+			return d.DialContext(ctx, network, "ns1.google.com:53")
+		},
+	}
+	ips, _ := r.LookupTXT(context.Background(), "o-o.myaddr.l.google.com")
+	if len(ips) > 0 {
+		return ips[0]
+	}
+	return ""
+}
+
+func popVarFromEnv(envName string, isRequired bool, defaultValue string) string {
+	value := os.Getenv(envName)
+	if isRequired && len(value) == 0 {
+		log.Fatalf("Missing environment variable: %s", envName)
+	} else if len(value) == 0 {
+		value = defaultValue
+	}
+	return value
+}
