@@ -8,14 +8,27 @@ jobs:
   detect_image_source_changes:
     runs-on: ubuntu-latest
     outputs:
-      addons-coturn_changed: ${{ steps.changes_to_addons_coturn.outputs.any_changed == 'true' || steps.changes_to_addons_coturn.outputs.any_deleted == 'true' }}
-      addons-coturn-web_changed: ${{ steps.changes_to_addons_coturn-web.outputs.any_changed == 'true' || steps.changes_to_addons_coturn-web.outputs.any_deleted == 'true' }}
-      addons-gst-web_changed: ${{ steps.changes_to_addons_gst-web.outputs.any_changed == 'true' || steps.changes_to_addons_gst-web.outputs.any_deleted == 'true' }}
-      addons-gstreamer_changed: ${{ steps.changes_to_addons_gstreamer.outputs.any_changed == 'true' || steps.changes_to_addons_gstreamer.outputs.any_deleted == 'true' }}
+      infra_gcp_installer_changed: ${{ steps.changes_to_infra_gcp_installer.outputs.any_changed == 'true' || steps.changes_to_infra_gcp_installer.outputs.any_deleted == 'true' }}
+      addons_coturn_changed: ${{ steps.changes_to_addons_coturn.outputs.any_changed == 'true' || steps.changes_to_addons_coturn.outputs.any_deleted == 'true' }}
+      addons_coturn-web_changed: ${{ steps.changes_to_addons_coturn-web.outputs.any_changed == 'true' || steps.changes_to_addons_coturn-web.outputs.any_deleted == 'true' }}
+      addons_gst-web_changed: ${{ steps.changes_to_addons_gst-web.outputs.any_changed == 'true' || steps.changes_to_addons_gst-web.outputs.any_deleted == 'true' }}
+      addons_gstreamer_changed: ${{ steps.changes_to_addons_gstreamer.outputs.any_changed == 'true' || steps.changes_to_addons_gstreamer.outputs.any_deleted == 'true' }}
+      py_build_changed: ${{ steps.changes_to_py_build.outputs.any_changed == 'true' || steps.changes_to_py_build.outputs.any_deleted == 'true' }}
+      gst_py_test_changed: ${{ steps.changes_to_gst_py_test.outputs.any_changed == 'true' || steps.changes_to_gst_py_test.outputs.any_deleted == 'true' }}
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2 # This is for changed-files.
+    ###
+    # Detect changes to infra/gcp/installer-image
+    ###
+    - id: changes_to_addons_coturn
+      uses: tj-actions/changed-files@v1.1.2
+      with:
+        files: infra/gcp/installer-image
+    - run: |
+        echo '${{ toJSON(steps.changes_to_infra_gcp_installer) }}'
+
     ###
     # Detect changes to addons/coturn
     ###
@@ -25,6 +38,7 @@ jobs:
         files: addons/coturn
     - run: |
         echo '${{ toJSON(steps.changes_to_addons_coturn) }}'
+
     ###
     # Detect changes to addons/coturn-web
     ###
@@ -34,6 +48,17 @@ jobs:
         files: addons/coturn-web
     - run: |
         echo '${{ toJSON(steps.changes_to_addons_coturn-web) }}'
+
+    ###
+    # Detect changes to addons/gst-web
+    ###
+    - id: changes_to_addons_gst-web
+      uses: tj-actions/changed-files@v1.1.2
+      with:
+        files: addons/gst-web
+    - run: |
+        echo '${{ toJSON(steps.changes_to_addons_gst-web) }}'
+
     ###
     # Detect changes to addons/gstreamer
     ###
@@ -43,3 +68,146 @@ jobs:
         files: addons/gstreamer
     - run: |
         echo '${{ toJSON(steps.changes_to_addons_gstreamer) }}'
+
+    ###
+    # Detect changes to python build image
+    ###
+    - id: changes_to_py_build
+      uses: tj-actions/changed-files@v1.1.2
+      with:
+        files: |
+          src
+          Dockerfile
+          pyproject.toml
+          setup.cfg
+    - run: |
+        echo '${{ toJSON(steps.changes_to_py_build) }}'
+    
+    ###
+    # Detect changes to test image
+    ###
+    - id: changes_to_gst_py_test
+      uses: tj-actions/changed-files@v1.1.2
+      with:
+        files: |
+          addons
+          src
+          Dockerfile
+          Dockerfile.test
+          pyproject.toml
+          setup.cfg
+    - run: |
+        echo '${{ toJSON(steps.changes_to_gst_py_test) }}'
+
+  ###
+  # GCP infrastructure installer image
+  ###
+  build_and_publish_infra_gcp_installer:
+    if: ${{ needs.detect_image_source_changes.outputs.infra_gcp_installer_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: infra/gcp/installer-image
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:latest
+
+  ###
+  # Coturn image
+  ###
+  build_and_publish_addons_coturn:
+    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
+
+  ###
+  # Coturn Web image
+  ###
+  build_and_publish_addons_coturn-web:
+    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn-web_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn-web
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
+
+  ###
+  # gst-web image
+  ###
+  build_and_publish_addons_gst-web:
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gst-web_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gst-web
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:latest
+
+  ###
+  # Gstreamer image
+  ###
+  build_and_publish_addons_gstreamer:
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gstreamer
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
+
+  ###
+  # Python package image
+  ###
+  build_and_publish_py_build:
+    if: ${{ needs.detect_image_source_changes.outputs.py_build_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: .
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
+
+  ###
+  # Test image
+  ###
+  build_and_publish_gst-py-test:
+    if: ${{ needs.detect_image_source_changes.outputs.gst_py_test_changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        dockerfile: Dockerfile.test
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: .
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-test:latest

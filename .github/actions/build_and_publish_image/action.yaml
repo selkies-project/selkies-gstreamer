@@ -1,4 +1,9 @@
 inputs:
+  use_cache:
+    required: false
+  dockerfile:
+    required: false
+    default: 'Dockerfile'
   github_personal_access_token:
     required: true
   github_username:
@@ -16,8 +21,14 @@ runs:
   - shell: bash
     run: |
       echo ${{ inputs.github_personal_access_token }} | docker login ghcr.io -u ${{ inputs.github_username }} --password-stdin
-      docker build -t ${{ inputs.image_tag_1 }} ${{ inputs.image_source_directory }}
+      if [[ "${{ inputs.use_cache }}" == "true" ]]; then
+        docker pull ${{ inputs.image_tag_1 }} || true
+        (cd ${{ inputs.image_source_directory }} && docker build -f ${{ inputs.dockerfile }} --cache-from ${{ inputs.image_tag_1 }} -t ${{ inputs.image_tag_1 }} .)
+      else
+        (cd ${{ inputs.image_source_directory }} && docker build -f ${{ inputs.dockerfile }} -t ${{ inputs.image_tag_1 }} .)
+      fi
       docker push ${{ inputs.image_tag_1 }}
+
       if [ '${{ inputs.image_tag_2 }}' != '' ]; then
         docker tag ${{ inputs.image_tag_1 }} ${{ inputs.image_tag_2 }}
         docker push ${{ inputs.image_tag_2 }}
