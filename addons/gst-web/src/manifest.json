@@ -1,0 +1,21 @@
+{
+    "name": "PWA_APP_NAME",
+    "short_name": "PWA_APP_SHORT_NAME",
+    "lang": "en-US",
+    "start_url": "PWA_START_URL",
+    "display": "minimal-ui",
+    "background_color": "black",
+    "theme_color": "black",
+    "icons": [
+        {
+          "src": "icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": "icon-512x512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+    ]
+}

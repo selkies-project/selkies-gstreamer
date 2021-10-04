@@ -1,0 +1,128 @@
+ARG GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-base:latest
+ARG BUILD_IMAGE=selkies-gstreamer-build:latest
+ARG WEB_IMAGE=gst-web:latest
+ARG RUNTIME_IMAGE=selkies-gstreamer-runtime:latest
+FROM ${GSTREAMER_IMAGE} as gstreamer
+FROM ${BUILD_IMAGE} as build
+FROM ${WEB_IMAGE} as web
+FROM ${RUNTIME_IMAGE}
+
+LABEL maintainer "https://github.com/danisla"
+
+WORKDIR /opt
+
+# Install test dependencies
+RUN \
+    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        vim \
+        curl \
+        jq \
+        xvfb \
+        icewm \
+        xterm \
+        x11-apps \
+        firefox && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configure pulseaudio to allow TCP access for gstreamer pipeline
+# NOTE: adding to system.pa for newer debian based distros.
+RUN echo "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1" >> /etc/pulse/system.pa
+
+# Add Tini init script - take care of runaway processes
+ENV TINI_VERSION v0.7.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
+# Install gstreamer distribution
+COPY --from=gstreamer /opt/gstreamer ./gstreamer
+
+# Install web app
+COPY --from=web /usr/share/nginx/html ./gst-web
+
+# Update PWA manifest.json with app info and route.
+ARG PWA_APP_NAME="Selkies WebRTC"
+ARG PWA_APP_SHORT_NAME="selkies"
+ARG PWA_START_URL="/index.html"
+RUN \
+    sed -i \
+        -e "s|PWA_APP_NAME|${PWA_APP_NAME}|g" \
+        -e "s|PWA_APP_SHORT_NAME|${PWA_APP_SHORT_NAME}|g" \
+        -e "s|PWA_START_URL|${PWA_START_URL}|g" \
+    /opt/gst-web/manifest.json && \
+    sed -i \
+        -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
+    /opt/gst-web/sw.js
+
+# Install selkies-gstreamer python app
+ARG PYPI_PACKAGE=selkies_gstreamer_disla
+ARG BUILD_VERSION=1.0.0rc0
+COPY --from=build /opt/pypi/dist/${PYPI_PACKAGE}-${BUILD_VERSION}-py3-none-any.whl .
+RUN pip3 install /opt/${PYPI_PACKAGE}-${BUILD_VERSION}-py3-none-any.whl
+
+# Setup global bashrc to configure gstreamer environment
+RUN echo 'export DISPLAY=:0' \
+        >> /etc/bash.bashrc && \
+    echo 'export GST_DEBUG=*:2' \
+        >> /etc/bash.bashrc && \
+    echo 'source /opt/gstreamer/gst-env' \
+        >> /etc/bash.bashrc
+
+# Write startup script
+RUN echo "\
+Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
+until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
+sudo /usr/bin/pulseaudio --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -F /etc/pulse/system.pa &\n\
+icewm-session &\n\
+export WEBRTC_ENCODER=x264enc\n\
+export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}\n\
+export PULSE_SERVER=127.0.0.1:4713\n\
+export JSON_CONFIG=/tmp/selkies.json\n\
+echo '{}' > \$JSON_CONFIG\n\
+selkies-gstreamer-resize 1280x720\n\
+selkies-gstreamer &\n\
+" > /usr/local/bin/start && chmod +x /usr/local/bin/start
+
+# Configure bashrc to show /etc/motd and /etc/issue
+RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/issue && cat /etc/motd' \
+    >> /etc/bash.bashrc \
+    ; echo "\
+===================================================================\n\
+= Selkies GStreamer test Docker container                         =\n\
+===================================================================\n\
+\n\
+To test the package:\n\
+\n\
+/usr/local/bin/start\n\
+\n\
+Or start each process separately:\n\
+\n\
+$(cat /usr/local/bin/start)\n\
+\n\
+To test the signaling server standalone:\n\
+\n\
+python3 signalling_web.py --disable-ssl --port 8080 --web_root=/opt/gst-web &\n\
+\n\
+"\
+    > /etc/motd
+
+# Add login user
+ARG TZ=UTC
+ARG PASSWD=mypasswd
+RUN groupadd -g 1000 user && \
+    useradd -ms /bin/bash user -u 1000 -g 1000 && \
+    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,input,plugdev,sudo,tape,tty,video,voice user && \
+    echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    chown -R user:user /home/user && \
+    echo "user:${PASSWD}" | chpasswd && \
+    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
+
+USER user
+RUN touch ${HOME}/.sudo_as_admin_successful
+
+# Set default icewm theme
+RUN mkdir -p ${HOME}/.icewm && echo 'Theme="NanoBlue/default.theme"' > ${HOME}/.icewm/theme
+
+WORKDIR /usr/local/lib/python3.8/dist-packages/selkies_gstreamer
+
+ENTRYPOINT ["/tini", "--"]
+CMD ["bash"]

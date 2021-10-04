@@ -1,0 +1,44 @@
+name: Build & publish changed images
+on:
+  push:
+    branches:
+      - master
+jobs:
+  detect_image_source_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      addons-coturn_changed: ${{ steps.changes_to_addons_coturn.outputs.any_changed == 'true' || steps.changes_to_addons_coturn.outputs.any_deleted == 'true' }}
+      addons-coturn-web_changed: ${{ steps.changes_to_addons_coturn-web.outputs.any_changed == 'true' || steps.changes_to_addons_coturn-web.outputs.any_deleted == 'true' }}
+      addons-gst-web_changed: ${{ steps.changes_to_addons_gst-web.outputs.any_changed == 'true' || steps.changes_to_addons_gst-web.outputs.any_deleted == 'true' }}
+      addons-gstreamer_changed: ${{ steps.changes_to_addons_gstreamer.outputs.any_changed == 'true' || steps.changes_to_addons_gstreamer.outputs.any_deleted == 'true' }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 2 # This is for changed-files.
+    ###
+    # Detect changes to addons/coturn
+    ###
+    - id: changes_to_addons_coturn
+      uses: tj-actions/changed-files@v1.1.2
+      with:
+        files: addons/coturn
+    - run: |
+        echo '${{ toJSON(steps.changes_to_addons_coturn) }}'
+    ###
+    # Detect changes to addons/coturn-web
+    ###
+    - id: changes_to_addons_coturn-web
+      uses: tj-actions/changed-files@v1.1.2
+      with:
+        files: addons/coturn-web
+    - run: |
+        echo '${{ toJSON(steps.changes_to_addons_coturn-web) }}'
+    ###
+    # Detect changes to addons/gstreamer
+    ###
+    - id: changes_to_addons_gstreamer
+      uses: tj-actions/changed-files@v1.1.2
+      with:
+        files: addons/gstreamer
+    - run: |
+        echo '${{ toJSON(steps.changes_to_addons_gstreamer) }}'

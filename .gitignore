@@ -1,1 +1,4 @@
+addons/_archive
 dist
+coturn_env
+src/*.egg-info

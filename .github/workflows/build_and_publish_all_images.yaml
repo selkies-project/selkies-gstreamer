@@ -1,0 +1,46 @@
+name: Build & publish all images
+
+on: workflow_dispatch
+
+jobs:
+  ###
+  # Coturn image
+  ###
+  build_and_publish_addons_coturn:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addmons/coturn
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
+
+  ###
+  # Coturn Web image
+  ###
+  build_and_publish_addons_coturn-web:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn-web
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
+
+  ###
+  # Gstreamer image
+  ###
+  build_and_publish_node-16-on-ubuntu-focal:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gstreamer
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest

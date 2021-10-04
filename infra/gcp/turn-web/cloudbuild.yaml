@@ -1,0 +1,20 @@
+timeout: 7200s
+substitutions:
+  _ACTION: apply
+  _NAME: selkies
+  _REGION: us-west1
+tags:
+  - selkies-infra-turn-web
+  - selkies-setup
+steps:
+  ###
+  # Apply terraform to create cluster
+  ###
+  - name: ghcr.io/selkies-project/selkies-gstreamer/infra-installer:latest
+    id: "terraform-apply"
+    env:
+      - TF_VAR_project_id=${PROJECT_ID}
+      - TF_VAR_name=${_NAME}
+      - TF_VAR_region=${_REGION}
+      - TERRAFORM_WORKSPACE_NAME=turn-web-${_REGION}
+      - ACTION=${_ACTION}
