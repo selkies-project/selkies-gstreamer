@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   dist:
-    image: selkies-gstreamer-build
+    image: selkies-gstreamer-py-build
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,19 +13,14 @@ services:
     build:
       context: ./addons/gst-web
       dockerfile: Dockerfile
-  runtime:
-    image: selkies-gstreamer-runtime
-    build:
-      context: .
-      dockerfile: Dockerfile.runtime
   test:
     image: selkies-gstreamer-test
     build:
       context: .
       dockerfile: Dockerfile.test
       args:
-        GSTREAMER_IMAGE: ghcr.io/selkies-project/selkies-gstreamer/gst-base:latest
-        BUILD_IMAGE: selkies-gstreamer-build:latest
+        GSTREAMER_IMAGE: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
+        PY_BUILD_IMAGE: selkies-gstreamer-py-build:latest
         WEB_IMAGE: gst-web:latest
         PYPI_PACKAGE: selkies_gstreamer_disla
         BUILD_VERSION: 1.0.0rc0

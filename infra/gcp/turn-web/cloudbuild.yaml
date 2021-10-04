@@ -10,7 +10,7 @@ steps:
   ###
   # Apply terraform to create cluster
   ###
-  - name: ghcr.io/selkies-project/selkies-gstreamer/infra-installer:latest
+  - name: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:latest
     id: "terraform-apply"
     env:
       - TF_VAR_project_id=${PROJECT_ID}

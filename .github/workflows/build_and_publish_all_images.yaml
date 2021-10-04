@@ -4,53 +4,107 @@ on: workflow_dispatch
 
 jobs:
   ###
+  # GCP infrastructure installer image
+  ###
+  build_and_publish_infra_gcp_installer:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: infra/gcp/installer-image
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:latest
+
+  ###
   # Coturn image
   ###
   build_and_publish_addons_coturn:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-    - name: Login to Github Packages
-      uses: docker/login-action@v1
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
       with:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and push
-      uses: docker/build-push-action@v2
-      with:
-        context: addons/coturn
-        push: true
-        tags: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
-        cache-from: type=registry,ref=selkies-project/selkies-gstreamer/coturn:buildcache
-        cache-to: type=registry,ref=selkies-project/selkies-gstreamer/coturn:buildcache,mode=max
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
 
   ###
   # Coturn Web image
   ###
-#  build_and_publish_addons_coturn-web:
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: actions/checkout@v2
-#    - uses: ./.github/actions/build_and_publish_image
-#      with:
-#        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-#        github_username: ${{ github.actor }}
-#        image_source_directory: addons/coturn-web
-#        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
+  build_and_publish_addons_coturn-web:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn-web
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
+
+  ###
+  # gst-web image
+  ###
+  build_and_publish_addons_gst-web:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gst-web
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:latest
 
   ###
   # Gstreamer image
   ###
-#  build_and_publish_addons_gstreamer:
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: actions/checkout@v2
-#    - uses: ./.github/actions/build_and_publish_image
-#      with:
-#        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-#        github_username: ${{ github.actor }}
-#        image_source_directory: addons/gstreamer
-#        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
+  build_and_publish_addons_gstreamer:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gstreamer
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
+
+  ###
+  # Python package image
+  ###
+  build_and_publish_py_build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: .
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
+
+  ###
+  # Test image
+  ###
+  build_and_publish_gst-py-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        dockerfile: Dockerfile.test
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: .
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-test:latest
