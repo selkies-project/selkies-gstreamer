@@ -97,6 +97,10 @@ jobs:
   # Test image
   ###
   build_and_publish_gst-py-test:
+    needs:
+    - build_and_publish_addons_gst-web
+    - build_and_publish_addons_gstreamer
+    - build_and_publish_py_build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
