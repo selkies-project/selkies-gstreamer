@@ -94,7 +94,7 @@ jobs:
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
 
   ###
-  # Test image
+  # Example image
   ###
   build_and_publish_gst-py-test:
     needs:
@@ -107,8 +107,8 @@ jobs:
     - uses: ./.github/actions/build_and_publish_image
       with:
         use_cache: "true"
-        dockerfile: Dockerfile.test
+        dockerfile: Dockerfile.example
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-test:latest
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest

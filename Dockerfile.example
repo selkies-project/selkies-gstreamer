@@ -109,8 +109,8 @@ export PULSE_SERVER=127.0.0.1:4713\n\
 export JSON_CONFIG=/tmp/selkies.json\n\
 echo '{}' > \$JSON_CONFIG\n\
 selkies-gstreamer-resize 1280x720\n\
-selkies-gstreamer &\n\
-" > /usr/local/bin/start && chmod +x /usr/local/bin/start
+selkies-gstreamer\n\
+" > /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Configure bashrc to show /etc/motd and /etc/issue
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/issue && cat /etc/motd' \
@@ -122,11 +122,11 @@ RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/issue && cat /etc/motd' \
 \n\
 To test the package:\n\
 \n\
-/usr/local/bin/start\n\
+/entrypoint.sh\n\
 \n\
 Or start each process separately:\n\
 \n\
-$(cat /usr/local/bin/start)\n\
+$(cat /entrypoint.sh)\n\
 \n\
 To test the signaling server standalone:\n\
 \n\
@@ -155,4 +155,4 @@ RUN mkdir -p ${HOME}/.icewm && echo 'Theme="NanoBlue/default.theme"' > ${HOME}/.
 WORKDIR /usr/local/lib/python3.8/dist-packages/selkies_gstreamer
 
 ENTRYPOINT ["/tini", "--"]
-CMD ["bash"]
+CMD ["/entrypoint.sh"]

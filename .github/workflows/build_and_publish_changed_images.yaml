@@ -93,7 +93,7 @@ jobs:
           addons
           src
           Dockerfile
-          Dockerfile.test
+          Dockerfile.example
           pyproject.toml
           setup.cfg
     - run: |
@@ -210,7 +210,7 @@ jobs:
     - uses: ./.github/actions/build_and_publish_image
       with:
         use_cache: "true"
-        dockerfile: Dockerfile.test
+        dockerfile: Dockerfile.example
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: .
