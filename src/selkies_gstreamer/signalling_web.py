@@ -20,6 +20,11 @@ import argparse
 import http
 import concurrent
 import functools
+import json
+
+from hashlib import sha1
+import hmac
+import base64
 
 from pathlib import Path
 from http import HTTPStatus
@@ -33,6 +38,42 @@ MIME_TYPES = {
     "css": "text/css",
     "ico": "image/x-icon"
 }
+
+def generate_rtc_config(turn_host, turn_port, shared_secret, user):
+    # use shared secret to generate hmac credential.
+
+    # Sanitize user for credential compatibility
+    user = user.replace(":", "-")
+
+    # credential expires in 24hrs
+    exp = int(time.time()) + 24*3600
+    username = "{}-{}".format(exp, user)
+
+    # Generate HMAC credential.
+    key = bytes(shared_secret, "ascii")
+    raw = bytes(username, "ascii")
+    hashed = hmac.new(key, raw, sha1)
+    password = base64.b64encode(hashed.digest()).decode()
+
+    rtc_config = {}
+    rtc_config["lifetimeDuration"] = "{}s".format(24 * 3600)
+    rtc_config["blockStatus"] = "NOT_BLOCKED"
+    rtc_config["iceTransportPolicy"] = "all"
+    rtc_config["iceServers"] = []
+    rtc_config["iceServers"].append({
+        "urls": [
+            "stun:{}:{}".format(turn_host, turn_port)
+        ]
+    })
+    rtc_config["iceServers"].append({
+        "urls": [
+            "turn:{}:{}?transport=udp".format(turn_host, turn_port)
+        ],
+        "username": username,
+        "credential": password
+    })
+
+    return json.dumps(rtc_config, indent=2)
 
 class WebRTCSimpleServer(object):
 
@@ -72,6 +113,11 @@ class WebRTCSimpleServer(object):
         self.cache_ttl = 60
         self.http_cache = {}
 
+        self.turn_shared_secret = options.turn_shared_secret
+        self.turn_host = options.turn_host
+        self.turn_port = options.turn_port
+        self.turn_auth_header_name = options.turn_auth_header_name
+
         self.rtc_config = options.rtc_config
         if os.path.exists(options.rtc_config_file):
             logger.info("parsing rtc_config_file: {}".format(options.rtc_config_file))
@@ -108,7 +154,17 @@ class WebRTCSimpleServer(object):
             return http.HTTPStatus.OK, [], b"OK\n"
 
         if path == '/turn/':
-            if self.rtc_config:
+            if self.turn_shared_secret:
+                # Get username from auth header.
+                auth_user = request_headers.get(self.turn_auth_header_name,"")
+                if not auth_user:
+                    web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(self.turn_auth_header_name))
+                    return HTTPStatus.UNAUTHORIZED, [], b'401 Unauthorized - missing auth header'
+                web_logger.info("Generating HMAC credential for user: {}".format(auth_user))
+                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, auth_user)
+                return http.HTTPStatus.OK, [], str.encode(rtc_config)
+
+            elif self.rtc_config:
                 data = self.rtc_config
                 if type(data) == str:
                     data = str.encode(data)
@@ -410,6 +466,10 @@ def main():
     parser.add_argument('--web_root', default=os.getcwd(), type=str, help='Path to web root')
     parser.add_argument('--rtc_config_file', default="/tmp/rtc.json", type=str, help='Path to json rtc config file')
     parser.add_argument('--rtc_config', default="", type=str, help='JSON rtc config data')
+    parser.add_argument('--turn_shared_secret', default="", type=str, help='shared secret for generating TURN HMAC credentials')
+    parser.add_argument('--turn_host', default="", type=str, help='TURN host when generating RTC config with shared secret')
+    parser.add_argument('--turn_port', default="", type=str, help='TURN port whne generating RTC config with shared secret')
+    parser.add_argument('--turn_auth_header_name', default="x-auth-user", type=str, help='auth header for turn credentials')
     parser.add_argument('--keepalive-timeout', dest='keepalive_timeout', default=30, type=int, help='Timeout for keepalive (in seconds)')
     parser.add_argument('--cert-path', default=os.path.dirname(__file__))
     parser.add_argument('--disable-ssl', default=False, help='Disable ssl', action='store_true')

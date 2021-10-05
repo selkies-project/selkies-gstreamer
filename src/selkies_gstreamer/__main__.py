@@ -32,7 +32,7 @@ from gpu_monitor import GPUMonitor
 from system_monitor import SystemMonitor
 from metrics import Metrics
 from resize import resize_display, get_new_res
-from signalling_web import WebRTCSimpleServer
+from signalling_web import WebRTCSimpleServer, generate_rtc_config
 
 logger = logging.getLogger("main")
 logger.setLevel(logging.INFO)
@@ -67,8 +67,11 @@ class CoturnRTCMonitor:
         self.running = True
         while self.running:
             if self.enabled:
-                stun_servers, turn_servers, rtc_config = fetch_coturn(self.coturn_web_uri, self.coturn_web_username, self.coturn_auth_header_name)
-                self.on_rtc_config(stun_servers, turn_servers, rtc_config)
+                try:
+                    stun_servers, turn_servers, rtc_config = fetch_coturn(self.coturn_web_uri, self.coturn_web_username, self.coturn_auth_header_name)
+                    self.on_rtc_config(stun_servers, turn_servers, rtc_config)
+                except Exception as e:
+                    logger.warning("could not fetch coturn config in periodic monitor: {}".format(e))
             time.sleep(self.period)
 
     def stop(self):
@@ -121,6 +124,7 @@ def parse_rtc_config(data):
                     stun_host,
                     stun_port
                 )
+                stun_uris.append(stun_uri)
             elif url.startswith("turn:"):
                 turn_host = url.split(':')[1]
                 turn_port = url.split(':')[2].split('?')[0]
@@ -243,6 +247,18 @@ def main():
                         default=os.environ.get(
                             'RTC_CONFIG_JSON', '/tmp/rtc.json'),
                         help='JSON file with RTC config to use as alternative to coturn service, read periodically')
+    parser.add_argument('--turn_shared_secret',
+                        default=os.environ.get(
+                            'TURN_SHARED_SECRET', ''),
+                        help='shared TURN secret used to generate HMAC credentials.')
+    parser.add_argument('--turn_host',
+                        default=os.environ.get(
+                            'TURN_HOST', ''),
+                        help='TURN host when generating RTC config from shared secret.')
+    parser.add_argument('--turn_port',
+                        default=os.environ.get(
+                            'TURN_PORT', ''),
+                        help='TURN port when generating RTC config from shared secret.')
     parser.add_argument('--uinput_mouse_socket',
                         default=os.environ.get('UINPUT_MOUSE_SOCKET', ''),
                         help='path to uinput mouse socket provided by uinput-device-plugin, if not provided, uinput is used directly.')
@@ -352,14 +368,22 @@ def main():
             stun_servers, turn_servers, rtc_config = parse_rtc_config(f.read())
         using_rtc_config_json = True
     else:
-        try:
-            stun_servers, turn_servers, rtc_config = fetch_coturn(
-                args.coturn_web_uri, args.coturn_web_username, args.coturn_auth_header_name)
+        if args.turn_shared_secret:
+            # Get HMAC credentials from built-in web server.
             using_coturn = True
-        except Exception as e:
-            logger.warning("error fetching coturn RTC config: {}".format(str(e)))
-            logger.warning("using default RTC config: {}".format(DEFAULT_RTC_CONFIG))
-            stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
+            args.coturn_web_uri = "http://localhost:{}/turn/".format(args.port)
+            data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, args.coturn_web_username)
+            stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
+        else:
+            # Use existing coturn-web infrastructure.
+            try:
+                stun_servers, turn_servers, rtc_config = fetch_coturn(
+                    args.coturn_web_uri, args.coturn_web_username, args.coturn_auth_header_name)
+                using_coturn = True
+            except Exception as e:
+                logger.warning("error fetching coturn RTC config: {}".format(str(e)))
+                logger.warning("using default RTC config: {}".format(DEFAULT_RTC_CONFIG))
+                stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
 
     # Extract args
     enable_audio = args.enable_audio == "true"
@@ -518,6 +542,10 @@ def main():
     options.cert_restart = False
     options.rtc_config_file = args.rtc_config_json
     options.rtc_config = rtc_config
+    options.turn_shared_secret = args.turn_shared_secret
+    options.turn_host = args.turn_host
+    options.turn_port = args.turn_port
+    options.turn_auth_header_name = args.coturn_auth_header_name
     server = WebRTCSimpleServer(loop, options)
 
     # Callback method to update turn servers of a running pipeline.
