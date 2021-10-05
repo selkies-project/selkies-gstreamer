@@ -1,9 +1,9 @@
 ARG GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
 ARG PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
 ARG WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:latest
-FROM ${GSTREAMER_IMAGE} as gstreamer
-FROM ${PY_BUILD_IMAGE} as build
-FROM ${WEB_IMAGE} as web
+FROM ${GSTREAMER_IMAGE} as selkies-gstreamer
+FROM ${PY_BUILD_IMAGE} as selkies-build
+FROM ${WEB_IMAGE} as selkies-web
 FROM ubuntu:20.04
 
 LABEL maintainer "https://github.com/danisla"
@@ -64,10 +64,10 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
 # Install gstreamer distribution
-COPY --from=gstreamer /opt/gstreamer ./gstreamer
+COPY --from=selkies-gstreamer /opt/gstreamer ./gstreamer
 
 # Install web app
-COPY --from=web /usr/share/nginx/html ./gst-web
+COPY --from=selkies-web /usr/share/nginx/html ./gst-web
 
 # Update PWA manifest.json with app info and route.
 ARG PWA_APP_NAME="Selkies WebRTC"
@@ -86,7 +86,7 @@ RUN \
 # Install selkies-gstreamer python app
 ARG PYPI_PACKAGE=selkies_gstreamer_disla
 ARG BUILD_VERSION=1.0.0rc0
-COPY --from=build /opt/pypi/dist/${PYPI_PACKAGE}-${BUILD_VERSION}-py3-none-any.whl .
+COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${BUILD_VERSION}-py3-none-any.whl .
 RUN pip3 install /opt/${PYPI_PACKAGE}-${BUILD_VERSION}-py3-none-any.whl
 
 # Setup global bashrc to configure gstreamer environment
