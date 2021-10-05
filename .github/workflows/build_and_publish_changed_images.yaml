@@ -198,7 +198,7 @@ jobs:
   ###
   # Test image
   ###
-  build_and_publish_gst-py-test:
+  build_and_publish_gst-py-example:
     if: ${{ needs.detect_image_source_changes.outputs.gst_py_test_changed == 'true' }}
     needs:
     - build_and_publish_addons_gst-web
@@ -214,4 +214,4 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-test:latest
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest

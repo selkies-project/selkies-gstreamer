@@ -96,7 +96,7 @@ jobs:
   ###
   # Example image
   ###
-  build_and_publish_gst-py-test:
+  build_and_publish_gst-py-example:
     needs:
     - build_and_publish_addons_gst-web
     - build_and_publish_addons_gstreamer
