@@ -22,7 +22,7 @@ jobs:
     ###
     # Detect changes to infra/gcp/installer-image
     ###
-    - id: changes_to_addons_coturn
+    - id: changes_to_infra_gcp_installer
       uses: tj-actions/changed-files@v1.1.2
       with:
         files: infra/gcp/installer-image
