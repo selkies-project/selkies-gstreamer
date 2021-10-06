@@ -162,6 +162,7 @@ class WebRTCSimpleServer(object):
             ('Connection', 'close'),
         ]
 
+        username = ''
         if self.basic_auth_user:
             if "basic" in request_headers.get("authorization", "").lower():
                 username, passwd = basicauth.decode(request_headers.get("authorization"))
@@ -180,12 +181,13 @@ class WebRTCSimpleServer(object):
         if path == '/turn/':
             if self.turn_shared_secret:
                 # Get username from auth header.
-                auth_user = request_headers.get(self.turn_auth_header_name,"")
-                if not auth_user:
-                    web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
-                    return HTTPStatus.UNAUTHORIZED, response_headers, b'401 Unauthorized - missing auth header'
-                web_logger.info("Generating HMAC credential for user: {}".format(auth_user))
-                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, auth_user)
+                if not username:
+                    username = request_headers.get(self.turn_auth_header_name,"")
+                    if not username:
+                        web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
+                        return HTTPStatus.UNAUTHORIZED, response_headers, b'401 Unauthorized - missing auth header'
+                web_logger.info("Generating HMAC credential for user: {}".format(username))
+                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, username)
                 return http.HTTPStatus.OK, response_headers, str.encode(rtc_config)
 
             elif self.rtc_config:
