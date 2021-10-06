@@ -50,6 +50,35 @@ DEFAULT_RTC_CONFIG = """{
   "iceTransportPolicy": "all"
 }"""
 
+class HMACRTCMonitor:
+    def __init__(self, turn_host, turn_port, turn_shared_secret, turn_username, period=60, enabled=True):
+        self.turn_host = turn_host
+        self.turn_port = turn_port
+        self.turn_username = turn_username
+        self.turn_shared_secret = turn_shared_secret
+        self.period = period
+        self.enabled = enabled
+
+        self.running = False
+
+        self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning(
+            "unhandled on_rtc_config")
+
+    def start(self):
+        self.running = True
+        while self.running:
+            if self.enabled:
+                try:
+                    data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username)
+                    stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
+                    self.on_rtc_config(stun_servers, turn_servers, rtc_config)
+                except Exception as e:
+                    logger.warning("could not fetch coturn config in periodic monitor: {}".format(e))
+            time.sleep(self.period)
+
+    def stop(self):
+        self.running = False
+
 class CoturnRTCMonitor:
     def __init__(self, coturn_web_uri, coturn_web_username, coturn_auth_header_name, period=60, enabled=True):
         self.period = period
@@ -227,10 +256,14 @@ def main():
                         default=os.environ.get(
                             'LISTEN_PORT', '8080'),
                         help='Port to listen on for the signaling and web server, default: "8080"')
+    parser.add_argument('--enable_basic_auth',
+                        default=os.environ.get(
+                            'ENABLE_BASIC_AUTH', 'false'),
+                        help='Enable Basic authentication on server. Must set basic_auth_user and basic_auth_password to enforce Basic auth.')
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
-                            'BASIC_AUTH_USER', ''),
-                        help='Username for basic auth, if not set, no authorization will be enforced.')
+                            'BASIC_AUTH_USER', os.environ.get('USER', '')),
+                        help='Username for basic auth, default is to use the USER env var. Must also set basic_auth_password to enforce Basic auth.')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
                             'BASIC_AUTH_PASSWORD', ''),
@@ -241,11 +274,11 @@ def main():
                         help='Path to directory containing web app source, default: "/opt/gst-web"')
     parser.add_argument('--coturn_web_uri',
                         default=os.environ.get(
-                            'COTURN_WEB_URI', 'http://localhost:8081'),
+                            'COTURN_WEB_URI', ''),
                         help='URI for coturn REST API service, example: http://localhost:8081')
     parser.add_argument('--coturn_web_username',
                         default=os.environ.get(
-                            'COTURN_WEB_USERNAME', socket.gethostname()),
+                            'COTURN_WEB_USERNAME', "selkies-{}".format(socket.gethostname())),
                         help='URI for coturn REST API service, default is the system hostname')
     parser.add_argument('--coturn_auth_header_name',
                         default=os.environ.get(
@@ -347,7 +380,10 @@ def main():
     metrics = Metrics(int(args.metrics_port))
 
     # Initialize the signalling client
-    signalling = WebRTCSignalling('ws://127.0.0.1:%s/ws' % args.port, my_id, peer_id)
+    signalling = WebRTCSignalling('ws://127.0.0.1:%s/ws' % args.port, my_id, peer_id,
+        enable_basic_auth=args.enable_basic_auth.lower() == 'true',
+        basic_auth_user=args.basic_auth_user,
+        basic_auth_password=args.basic_auth_password)
 
     # Handle errors from the signalling server.
     async def on_signalling_error(e):
@@ -369,6 +405,7 @@ def main():
     # Fetch the turn server and credentials
     rtc_config = None
     using_coturn = False
+    using_hmac_turn = False
     using_rtc_config_json = False
     if os.path.exists(args.rtc_config_json):
         logger.warning("Using file for RTC config: %s", args.rtc_config_json)
@@ -378,8 +415,7 @@ def main():
     else:
         if args.turn_shared_secret:
             # Get HMAC credentials from built-in web server.
-            using_coturn = True
-            args.coturn_web_uri = "http://localhost:{}/turn/".format(args.port)
+            using_hmac_turn = True
             data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, args.coturn_web_username)
             stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
         else:
@@ -389,9 +425,10 @@ def main():
                     args.coturn_web_uri, args.coturn_web_username, args.coturn_auth_header_name)
                 using_coturn = True
             except Exception as e:
-                logger.warning("error fetching coturn RTC config: {}".format(str(e)))
-                logger.warning("using default RTC config: {}".format(DEFAULT_RTC_CONFIG))
+                logger.warning("error fetching coturn RTC config, using DEFAULT_RTC_CONFIG: {}".format(str(e)))
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
+
+    logger.info("initial server RTC config: {}".format(rtc_config))
 
     # Extract args
     enable_audio = args.enable_audio == "true"
@@ -542,6 +579,7 @@ def main():
     options = argparse.Namespace()
     options.addr = args.addr
     options.port = args.port
+    options.enable_basic_auth = args.enable_basic_auth
     options.basic_auth_user = args.basic_auth_user
     options.basic_auth_password = args.basic_auth_password
     options.disable_ssl = True
@@ -565,6 +603,15 @@ def main():
                 app.webrtcbin.emit("add-turn-server", turn_server)
         server.set_rtc_config(rtc_config)
 
+    # Initialize periodic montior to refresh TURN RTC config when using shared secret.
+    hmac_turn_mon = HMACRTCMonitor(
+        args.turn_host,
+        args.turn_port,
+        args.turn_shared_secret,
+        args.coturn_web_username,
+        enabled=using_hmac_turn, period=60)
+    hmac_turn_mon.on_rtc_config = mon_rtc_config
+
     # Initialize coturn RTC config monitor to periodically refresh the coturn RTC config.
     coturn_mon = CoturnRTCMonitor(
         args.coturn_web_uri,
@@ -585,6 +632,7 @@ def main():
         loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
         loop.run_in_executor(None, lambda: gpu_mon.start())
+        loop.run_in_executor(None, lambda: hmac_turn_mon.start())
         loop.run_in_executor(None, lambda: coturn_mon.start())
         loop.run_in_executor(None, lambda: rtc_file_mon.start())
         loop.run_in_executor(None, lambda: system_mon.start())

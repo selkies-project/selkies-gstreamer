@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
+import base64
 import json
 import logging
-import time
 import websockets
 
 logger = logging.getLogger("signalling")
@@ -44,7 +43,7 @@ class WebRTCSignallingErrorNoPeer(Exception):
 
 
 class WebRTCSignalling:
-    def __init__(self, server, id, peer_id):
+    def __init__(self, server, id, peer_id, enable_basic_auth=False, basic_auth_user=None, basic_auth_password=None):
         """Initialize the signalling instnance
 
         Arguments:
@@ -56,6 +55,9 @@ class WebRTCSignalling:
         self.server = server
         self.id = id
         self.peer_id = peer_id
+        self.enable_basic_auth = enable_basic_auth
+        self.basic_auth_user = basic_auth_user
+        self.basic_auth_password = basic_auth_password
         self.conn = None
 
         self.on_ice = lambda mlineindex, candidate: logger.warn(
@@ -83,7 +85,13 @@ class WebRTCSignalling:
 
         """
         try:
-            self.conn = await websockets.connect(self.server)
+            headers = None
+            if self.enable_basic_auth:
+                auth64 = base64.b64encode(bytes("{}:{}".format(self.basic_auth_user, self.basic_auth_password), "ascii")).decode("ascii")
+                headers = [
+                    ("Authorization", "Basic {}".format(auth64))
+                ]
+            self.conn = await websockets.connect(self.server, extra_headers=headers)
             await self.conn.send('HELLO %d' % self.id)
         except websockets.ConnectionClosed:
             self.on_disconnect()

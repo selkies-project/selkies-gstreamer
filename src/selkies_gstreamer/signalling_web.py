@@ -121,6 +121,7 @@ class WebRTCSimpleServer(object):
         self.turn_auth_header_name = options.turn_auth_header_name
 
         # Basic Auth options.
+        self.enable_basic_auth = str(options.enable_basic_auth).lower() == 'true'
         self.basic_auth_user = options.basic_auth_user
         self.basic_auth_password = options.basic_auth_password
 
@@ -139,8 +140,9 @@ class WebRTCSimpleServer(object):
                 raise Exception("missing turn_host and turn_port options with turn_shared_secret")
 
         # Validate basic auth args
-        if self.basic_auth_user and not self.basic_auth_password:
-            raise Exception("missing basic_auth_password when using basic_auth_user option.")
+        if self.enable_basic_auth:
+            if not (self.basic_auth_user and self.basic_auth_password):
+                raise Exception("missing basic_auth_password when using basic_auth_user option.")
 
     ############### Helper functions ###############
 
@@ -163,7 +165,7 @@ class WebRTCSimpleServer(object):
         ]
 
         username = ''
-        if self.basic_auth_user:
+        if self.enable_basic_auth:
             if "basic" in request_headers.get("authorization", "").lower():
                 username, passwd = basicauth.decode(request_headers.get("authorization"))
                 if not (username == self.basic_auth_user and passwd == self.basic_auth_password):
@@ -501,6 +503,7 @@ def main():
     parser.add_argument('--disable-ssl', default=False, help='Disable ssl', action='store_true')
     parser.add_argument('--health', default='/health', help='Health check route')
     parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the SSL certificate changes')
+    parser.add_argument('--enable_basic_auth', default="false", help="Use basic auth, must also set basic_auth_user, and basic_auth_password args")
     parser.add_argument('--basic_auth_user', default="", help='Username for basic auth, if not set, no authorization will be enforced.')
     parser.add_argument('--basic_auth_password', default="", help='Password for basic auth, if not set, no authorization will be enforced.')
 
@@ -515,7 +518,6 @@ def main():
         r.run()
         loop.run_forever()
         print('Restarting server...')
-    print("Goodbye!")
 
 if __name__ == "__main__":
     main()

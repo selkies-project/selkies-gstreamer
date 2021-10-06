@@ -26,10 +26,17 @@ services:
         PYPI_PACKAGE: selkies_gstreamer_disla
         BUILD_VERSION: 1.0.0rc0
     environment:
+      # Basic authentication
+      ENABLE_BASIC_AUTH: ${ENABLE_BASIC_AUTH}
+      BASIC_AUTH_USER: ${BASIC_AUTH_USER}
+      BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD}
+
+      # TURN with shared secret
       TURN_SHARED_SECRET: ${TURN_SHARED_SECRET}
       TURN_HOST: ${TURN_HOST}
       TURN_PORT: ${TURN_PORT}
-      COTURN_AUTH_HEADER_NAME: ${COTURN_AUTH_HEADER_NAME}
+
+      # Additional server-side settings.
       WEBRTC_ENABLE_RESIZE: ${WEBRTC_ENABLE_RESIZE}
     ports:
       - "8080:8080"
