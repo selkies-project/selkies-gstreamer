@@ -32,7 +32,7 @@ jobs:
       addons_coturn-web_changed: ${{ steps.changes_to_addons_coturn-web.outputs.any_changed == 'true' || steps.changes_to_addons_coturn-web.outputs.any_deleted == 'true' }}
       addons_gst-web_changed: ${{ steps.changes_to_addons_gst-web.outputs.any_changed == 'true' || steps.changes_to_addons_gst-web.outputs.any_deleted == 'true' }}
       addons_gstreamer_changed: ${{ steps.changes_to_addons_gstreamer.outputs.any_changed == 'true' || steps.changes_to_addons_gstreamer.outputs.any_deleted == 'true' }}
-      py_build_changed: steps.changes_to_py_build.outputs.any_changed || steps.changes_to_py_build.outputs.any_deleted
+      py_build_changed: ${{ steps.changes_to_py_build.outputs.any_changed == 'true' || steps.changes_to_py_build.outputs.any_deleted == 'true' }}
       gst_py_test_changed: ${{ steps.changes_to_gst_py_example.outputs.any_changed == 'true' || steps.changes_to_gst_py_example.outputs.any_deleted == 'true' }}
     steps:
     - uses: actions/checkout@v2
@@ -132,7 +132,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.infra_gcp_installer_changed == 'true'
+    if: ${{ needs.detect_image_source_changes.outputs.infra_gcp_installer_changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -152,7 +152,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_coturn_changed == 'true'
+    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn_changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -172,7 +172,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_coturn-web_changed == 'true'
+    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn-web_changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -192,7 +192,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_gst-web_changed == 'true'
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gst-web_changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -212,7 +212,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true'
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true '}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -232,7 +232,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.py_build_changed == 'true'
+    if: ${{ needs.detect_image_source_changes.outputs.py_build_changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
