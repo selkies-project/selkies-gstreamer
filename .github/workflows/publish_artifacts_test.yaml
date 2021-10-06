@@ -1,0 +1,36 @@
+name: Publish artifacts to GCS
+
+on: workflow_dispatch
+
+jobs:
+  ###
+  # Get release version from build context
+  ###
+  release_version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.vars.outputs.tag }}
+    steps:
+    - name: Set output
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+    - name: Check output
+      env:
+        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+      run: |
+        echo $RELEASE_VERSION
+        echo ${{ steps.vars.outputs.tag }}
+
+  ###
+  # Publish artifacts to GCS
+  ###
+  publish_artifacts_to_gcs:
+    needs:
+    - release_version
+    runs-on: ubuntu-latest
+    steps:
+    - name: Publish GStreamer
+      env:
+        RELEASE_VERSION: ${{ needs.release_version.outputs.tag }}
+      run: |
+        docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${RELEASE_VERSION}
