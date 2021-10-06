@@ -15,6 +15,7 @@ import ssl
 import logging
 import asyncio
 import websockets
+import basicauth
 import time
 import argparse
 import http
@@ -113,10 +114,15 @@ class WebRTCSimpleServer(object):
         self.cache_ttl = 60
         self.http_cache = {}
 
+        # TURN options
         self.turn_shared_secret = options.turn_shared_secret
         self.turn_host = options.turn_host
         self.turn_port = options.turn_port
         self.turn_auth_header_name = options.turn_auth_header_name
+
+        # Basic Auth options.
+        self.basic_auth_user = options.basic_auth_user
+        self.basic_auth_password = options.basic_auth_password
 
         self.rtc_config = options.rtc_config
         if os.path.exists(options.rtc_config_file):
@@ -126,6 +132,15 @@ class WebRTCSimpleServer(object):
         # Perform initial cache of web_root files
         for f in Path(self.web_root).rglob('*.*'):
             self.cache_file(f)
+
+        # Validate TURN args
+        if self.turn_shared_secret:
+            if not self.turn_host and self.turn_port:
+                raise Exception("missing turn_host and turn_port options with turn_shared_secret")
+
+        # Validate basic auth args
+        if self.basic_auth_user and not self.basic_auth_password:
+            raise Exception("missing basic_auth_password when using basic_auth_user option.")
 
     ############### Helper functions ###############
 
@@ -147,11 +162,20 @@ class WebRTCSimpleServer(object):
             ('Connection', 'close'),
         ]
 
+        if self.basic_auth_user:
+            if "basic" in request_headers.get("authorization", "").lower():
+                username, passwd = basicauth.decode(request_headers.get("authorization"))
+                if not (username == self.basic_auth_user and passwd == self.basic_auth_password):
+                    return http.HTTPStatus.UNAUTHORIZED, response_headers, b'Unauthorized'
+            else:
+                response_headers.append(('WWW-Authenticate', 'Basic realm="restricted, charset="UTF-8"'))
+                return http.HTTPStatus.UNAUTHORIZED, response_headers, b'Authorization required'
+
         if path == "/ws" or path == "/webrtc/signalling/":
             return None
 
         if path == self.health_path:
-            return http.HTTPStatus.OK, [], b"OK\n"
+            return http.HTTPStatus.OK, response_headers, b"OK\n"
 
         if path == '/turn/':
             if self.turn_shared_secret:
@@ -159,20 +183,20 @@ class WebRTCSimpleServer(object):
                 auth_user = request_headers.get(self.turn_auth_header_name,"")
                 if not auth_user:
                     web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
-                    return HTTPStatus.UNAUTHORIZED, [], b'401 Unauthorized - missing auth header'
+                    return HTTPStatus.UNAUTHORIZED, response_headers, b'401 Unauthorized - missing auth header'
                 web_logger.info("Generating HMAC credential for user: {}".format(auth_user))
                 rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, auth_user)
-                return http.HTTPStatus.OK, [], str.encode(rtc_config)
+                return http.HTTPStatus.OK, response_headers, str.encode(rtc_config)
 
             elif self.rtc_config:
                 data = self.rtc_config
                 if type(data) == str:
                     data = str.encode(data)
                 response_headers.append(('Content-Type', 'application/json'))
-                return http.HTTPStatus.OK, [], data
+                return http.HTTPStatus.OK, response_headers, data
             else:
                 web_logger.warning("HTTP GET {} 404 NOT FOUND - Missing RTC config".format(path))
-                return HTTPStatus.NOT_FOUND, [], b'404 NOT FOUND'    
+                return HTTPStatus.NOT_FOUND, response_headers, b'404 NOT FOUND'
         
         path = path.split("?")[0]
         if path == '/':
@@ -186,7 +210,7 @@ class WebRTCSimpleServer(object):
                 not os.path.exists(full_path) or not os.path.isfile(full_path):
             response_headers.append(('Content-Type', 'text/html'))
             web_logger.info("HTTP GET {} 404 NOT FOUND".format(path))
-            return HTTPStatus.NOT_FOUND, [], b'404 NOT FOUND'
+            return HTTPStatus.NOT_FOUND, response_headers, b'404 NOT FOUND'
 
         # Guess file content type
         extension = full_path.split(".")[-1]
@@ -475,6 +499,8 @@ def main():
     parser.add_argument('--disable-ssl', default=False, help='Disable ssl', action='store_true')
     parser.add_argument('--health', default='/health', help='Health check route')
     parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the SSL certificate changes')
+    parser.add_argument('--basic_auth_user', default="", help='Username for basic auth, if not set, no authorization will be enforced.')
+    parser.add_argument('--basic_auth_password', default="", help='Password for basic auth, if not set, no authorization will be enforced.')
 
     options = parser.parse_args(sys.argv[1:])
 

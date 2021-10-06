@@ -227,6 +227,14 @@ def main():
                         default=os.environ.get(
                             'LISTEN_PORT', '8080'),
                         help='Port to listen on for the signaling and web server, default: "8080"')
+    parser.add_argument('--basic_auth_user',
+                        default=os.environ.get(
+                            'BASIC_AUTH_USER', ''),
+                        help='Username for basic auth, if not set, no authorization will be enforced.')
+    parser.add_argument('--basic_auth_password',
+                        default=os.environ.get(
+                            'BASIC_AUTH_PASSWORD', ''),
+                        help='Password used when basic_auth_user is set.')
     parser.add_argument('--web_root',
                         default=os.environ.get(
                             'WEB_ROOT', '/opt/gst-web'),
@@ -534,6 +542,8 @@ def main():
     options = argparse.Namespace()
     options.addr = args.addr
     options.port = args.port
+    options.basic_auth_user = args.basic_auth_user
+    options.basic_auth_password = args.basic_auth_password
     options.disable_ssl = True
     options.health = "/health"
     options.web_root = args.web_root
