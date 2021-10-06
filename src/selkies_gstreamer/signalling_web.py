@@ -158,7 +158,7 @@ class WebRTCSimpleServer(object):
                 # Get username from auth header.
                 auth_user = request_headers.get(self.turn_auth_header_name,"")
                 if not auth_user:
-                    web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(self.turn_auth_header_name))
+                    web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
                     return HTTPStatus.UNAUTHORIZED, [], b'401 Unauthorized - missing auth header'
                 web_logger.info("Generating HMAC credential for user: {}".format(auth_user))
                 rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, auth_user)
