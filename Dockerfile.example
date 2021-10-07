@@ -85,9 +85,9 @@ RUN \
 
 # Install selkies-gstreamer python app
 ARG PYPI_PACKAGE=selkies_gstreamer_disla
-ARG BUILD_VERSION=1.0.0rc0
-COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${BUILD_VERSION}-py3-none-any.whl .
-RUN pip3 install /opt/${PYPI_PACKAGE}-${BUILD_VERSION}-py3-none-any.whl
+ARG PACKAGE_VERSION=1.0.0.dev0
+COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
+RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 
 # Setup global bashrc to configure gstreamer environment
 RUN echo 'export DISPLAY=:0' \

@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - master
-    tags:
-    - 'v*.*.*'
+
 jobs:
   ###
   # Get release version from build context
@@ -244,6 +243,7 @@ jobs:
         image_source_directory: .
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
         image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }}
+        build_args: PACKAGE_VERSION=1.0.0-dev
 
   ###
   # Test image
@@ -268,3 +268,4 @@ jobs:
         image_source_directory: .
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest
         image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
+        build_args: PACKAGE_VERSION=1.0.0.dev0

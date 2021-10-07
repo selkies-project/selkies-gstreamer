@@ -14,18 +14,26 @@ inputs:
     required: true
   image_tag_2:
     required: false
+  build_args:
+    required: false
 
 runs:
   using: composite
   steps:
   - shell: bash
     run: |
+      set -x
       echo ${{ inputs.github_personal_access_token }} | docker login ghcr.io -u ${{ inputs.github_username }} --password-stdin
+      export BUILD_ARGS=""
+      if [[ -n "${{ inputs.build_args }}" ]]; then
+        IFS=";" read -ra args <<< "${{ inputs.build_args }}"
+        for arg in ${args[@]}; do BUILD_ARGS+="--build-arg $arg "; done
+      fi
       if [[ "${{ inputs.use_cache }}" == "true" ]]; then
         docker pull ${{ inputs.image_tag_1 }} || true
-        (cd ${{ inputs.image_source_directory }} && docker build -f ${{ inputs.dockerfile }} --cache-from ${{ inputs.image_tag_1 }} -t ${{ inputs.image_tag_1 }} .)
+        (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} --cache-from ${{ inputs.image_tag_1 }} -t ${{ inputs.image_tag_1 }} .)
       else
-        (cd ${{ inputs.image_source_directory }} && docker build -f ${{ inputs.dockerfile }} -t ${{ inputs.image_tag_1 }} .)
+        (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} -t ${{ inputs.image_tag_1 }} .)
       fi
       docker push ${{ inputs.image_tag_1 }}
 

@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        PYPI_PACKAGE: selkies-gstreamer-disla
-        PACKAGE_VERSION: 1.0.0-rc0
+        PYPI_PACKAGE: selkies-gstreamer
+        PACKAGE_VERSION: 1.0.0-dev
   web:
     image: gst-web
     build:
@@ -23,8 +23,8 @@ services:
         GSTREAMER_IMAGE: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
         PY_BUILD_IMAGE: selkies-gstreamer-py-build:latest
         WEB_IMAGE: gst-web:latest
-        PYPI_PACKAGE: selkies_gstreamer_disla
-        BUILD_VERSION: 1.0.0rc0
+        PYPI_PACKAGE: selkies_gstreamer
+        PACKAGE_VERSION: 1.0.0.dev0
     environment:
       # Basic authentication
       ENABLE_BASIC_AUTH: ${ENABLE_BASIC_AUTH}
