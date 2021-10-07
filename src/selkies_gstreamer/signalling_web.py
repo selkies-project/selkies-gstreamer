@@ -441,7 +441,10 @@ class WebRTCSimpleServer(object):
         logger.setLevel(logging.INFO)
         web_logger.setLevel(logging.WARN)
 
-        logger.info("Listening on https://{}:{}".format(self.addr, self.port))
+        if self.disable_ssl:
+            logger.info("Listening on http://{}:{}".format(self.addr, self.port))
+        else:
+            logger.info("Listening on https://{}:{}".format(self.addr, self.port))
         # Websocket and HTTP server
         http_handler = functools.partial(self.process_request, self.web_root)
         wsd = websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,

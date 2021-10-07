@@ -251,7 +251,7 @@ def main():
     parser.add_argument('--addr',
                         default=os.environ.get(
                             'LISTEN_HOST', '0.0.0.0'),
-                        help='Host to listen on for the signaling and web server, default: "127.0.0.1"')
+                        help='Host to listen on for the signaling and web server, default: "0.0.0.0"')
     parser.add_argument('--port',
                         default=os.environ.get(
                             'LISTEN_PORT', '8080'),
