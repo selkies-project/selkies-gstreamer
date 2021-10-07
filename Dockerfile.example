@@ -84,7 +84,7 @@ RUN \
     /opt/gst-web/sw.js
 
 # Install selkies-gstreamer python app
-ARG PYPI_PACKAGE=selkies_gstreamer_disla
+ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=1.0.0.dev0
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl

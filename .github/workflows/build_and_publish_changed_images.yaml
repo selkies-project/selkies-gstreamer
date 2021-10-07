@@ -101,7 +101,7 @@ jobs:
       with:
         files: |
           src
-          Dockerfile
+          ^Dockerfile$
           pyproject.toml
           setup.cfg
     - run: |

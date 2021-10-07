@@ -79,7 +79,7 @@ jobs:
         docker rm copy
 
         # Copy to GCS
-        gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}.tgz gs://selkies-project-releases/selkies-gstreamer/
+        gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
 
         echo ::set-output name=asset_path::/tmp/selkies-gstreamer-${RELEASE_VERSION}.tgz
         echo ::set-output name=asset_name::selkies-gstreamer-${RELEASE_VERSION}.tgz
@@ -158,7 +158,7 @@ jobs:
         docker rm copy
 
         # Copy to GCS
-        gsutil cp /tmp/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl gs://selkies-project-releases/selkies-gstreamer/
+        gsutil cp /tmp/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
 
         echo ::set-output name=asset_path::/tmp/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
         echo ::set-output name=asset_name::${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
@@ -227,7 +227,7 @@ jobs:
         docker rm copy
 
         # Copy to GCS
-        gsutil cp /tmp/selkies-gstreamer-web-${RELEASE_VERSION}.tgz gs://selkies-project-releases/selkies-gstreamer/
+        gsutil cp /tmp/selkies-gstreamer-web-${RELEASE_VERSION}.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
 
         echo ::set-output name=asset_path::/tmp/selkies-gstreamer-web-${RELEASE_VERSION}.tgz
         echo ::set-output name=asset_name::selkies-gstreamer-web-${RELEASE_VERSION}.tgz
