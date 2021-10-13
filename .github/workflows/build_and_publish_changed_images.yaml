@@ -100,7 +100,7 @@ jobs:
       uses: tj-actions/changed-files@v1.1.2
       with:
         files: |
-          src
+          ^src
           ^Dockerfile$
           pyproject.toml
           setup.cfg
