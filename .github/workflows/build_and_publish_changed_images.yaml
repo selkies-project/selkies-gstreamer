@@ -141,8 +141,7 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: infra/gcp/installer-image
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
 
   ###
   # Coturn image
@@ -161,8 +160,7 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: addons/coturn
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
 
   ###
   # Coturn Web image
@@ -181,8 +179,7 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: addons/coturn-web
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
 
   ###
   # gst-web image
@@ -201,8 +198,7 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: addons/gst-web
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
 
   ###
   # Gstreamer image
@@ -221,8 +217,7 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: addons/gstreamer
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}
 
   ###
   # Python package image
@@ -241,9 +236,8 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }}
-        build_args: PACKAGE_VERSION=1.0.0-dev
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }}
+        build_args: PACKAGE_VERSION=0.0.0-dev
 
   ###
   # Test image
@@ -266,6 +260,5 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
-        build_args: PACKAGE_VERSION=1.0.0.dev0
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
+        build_args: PACKAGE_VERSION=0.0.0.dev0;GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
