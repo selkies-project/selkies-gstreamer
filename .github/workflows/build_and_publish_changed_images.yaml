@@ -104,6 +104,7 @@ jobs:
           ^Dockerfile$
           pyproject.toml
           setup.cfg
+          .github/workflows/build_and_publish_changed_images.yaml
     - run: |
         echo '${{ toJSON(steps.changes_to_py_build) }}'
     
@@ -121,6 +122,7 @@ jobs:
           Dockerfile.example
           pyproject.toml
           setup.cfg
+          .github/workflows/build_and_publish_changed_images.yaml
     - run: |
         echo '${{ toJSON(steps.changes_to_gst_py_example) }}'
 
