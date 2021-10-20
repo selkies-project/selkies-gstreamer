@@ -213,6 +213,40 @@ jobs:
         build_args: PACKAGE_VERSION=${{ needs.release_version.outputs.tag }};GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
 
   ###
+  # Coturn image
+  ###
+  build_and_publish_addons_coturn:
+    needs: release_version
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
+        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
+
+  ###
+  # Coturn Web image
+  ###
+  build_and_publish_addons_coturn-web:
+    needs: release_version
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn-web
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
+        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
+
+  ###
   # Publish gst-web artifacts to GCS
   ###
   publish_gst_web_artifacts_to_gcs:

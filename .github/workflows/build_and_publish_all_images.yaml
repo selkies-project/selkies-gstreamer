@@ -51,8 +51,7 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: addons/coturn
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
 
   ###
   # Coturn Web image
