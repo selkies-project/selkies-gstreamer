@@ -190,6 +190,29 @@ jobs:
         image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
 
   ###
+  # Example image
+  ###
+  build_and_publish_gst-py-example:
+    needs:
+    - release_version
+    - build_and_publish_addons_gst-web
+    - build_and_publish_addons_gstreamer
+    - build_and_publish_py_build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        dockerfile: Dockerfile.example
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: .
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest
+        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
+        build_args: PACKAGE_VERSION=${{ needs.release_version.outputs.tag }};GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+
+  ###
   # Publish gst-web artifacts to GCS
   ###
   publish_gst_web_artifacts_to_gcs:
@@ -241,7 +264,7 @@ jobs:
         key: gst-web-asset
 
   ###
-  # Create GithubRelease
+  # Create Github Release
   ###
   create_release:
     runs-on: ubuntu-latest
