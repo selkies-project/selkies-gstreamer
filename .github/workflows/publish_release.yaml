@@ -25,9 +25,60 @@ jobs:
         echo ${{ steps.vars.outputs.tag }}
 
   ###
+  # GCP infrastructure installer image
+  ###
+  build_infra_gcp_installer:
+    needs: release_version
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: infra/gcp/installer-image
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
+        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
+
+  ###
+  # Coturn image
+  ###
+  build_addons_coturn:
+    needs: release_version
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
+        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
+
+  ###
+  # Coturn Web image
+  ###
+  build_addons_coturn-web:
+    needs: release_version
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/coturn-web
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
+        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
+
+  ###
   # Build gstreamer image
   ###
-  build_and_publish_addons_gstreamer:
+  build_addons_gstreamer:
     runs-on: ubuntu-latest
     needs: release_version
     steps:
@@ -44,11 +95,11 @@ jobs:
   ###
   # Publish gstreamer artifacts to GCS
   ###
-  publish_gstreamer_artifacts_to_gcs:
+  publish_gstreamer_gcs:
     runs-on: ubuntu-latest
     needs:
     - release_version
-    - build_and_publish_addons_gstreamer
+    - build_addons_gstreamer
     outputs:
       asset_path: ${{ steps.extract_asset.outputs.asset_path }}
       asset_name: ${{ steps.extract_asset.outputs.asset_name }}
@@ -95,7 +146,7 @@ jobs:
   ###
   # Python package image
   ###
-  build_and_publish_py_build:
+  build_py_build:
     runs-on: ubuntu-latest
     needs: release_version
     outputs:
@@ -121,11 +172,11 @@ jobs:
   ###
   # Publish gst-py artifacts to GCS
   ###
-  publish_gst_py_artifacts_to_gcs:
+  publish_gst_py_gcs:
     runs-on: ubuntu-latest
     needs:
     - release_version
-    - build_and_publish_py_build
+    - build_py_build
     outputs:
       asset_path: ${{ steps.extract_asset.outputs.asset_path }}
       asset_name: ${{ steps.extract_asset.outputs.asset_name }}
@@ -137,7 +188,7 @@ jobs:
         RELEASE_VERSION: ${{ needs.release_version.outputs.tag }}
         GCS_SA_KEY: ${{ secrets.GCP_ACTIONS_SA_KEY }}
         PYPI_PACKAGE: selkies_gstreamer
-        PACKAGE_VERSION: ${{ needs.build_and_publish_py_build.outputs.package_version }}
+        PACKAGE_VERSION: ${{ needs.build_py_build.outputs.package_version }}
       run: |
         # GHCR Login
         echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -174,7 +225,7 @@ jobs:
   ###
   # gst-web image
   ###
-  build_and_publish_addons_gst-web:
+  build_addons_gst-web:
     runs-on: ubuntu-latest
     needs:
     - release_version
@@ -192,12 +243,12 @@ jobs:
   ###
   # Example image
   ###
-  build_and_publish_gst-py-example:
+  build_gst-py-example:
     needs:
     - release_version
-    - build_and_publish_addons_gst-web
-    - build_and_publish_addons_gstreamer
-    - build_and_publish_py_build
+    - build_addons_gst-web
+    - build_addons_gstreamer
+    - build_py_build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -213,47 +264,13 @@ jobs:
         build_args: PACKAGE_VERSION=${{ needs.release_version.outputs.tag }};GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
 
   ###
-  # Coturn image
-  ###
-  build_and_publish_addons_coturn:
-    needs: release_version
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/coturn
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
-
-  ###
-  # Coturn Web image
-  ###
-  build_and_publish_addons_coturn-web:
-    needs: release_version
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/coturn-web
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
-
-  ###
   # Publish gst-web artifacts to GCS
   ###
-  publish_gst_web_artifacts_to_gcs:
+  publish_gst_web_gcs:
     runs-on: ubuntu-latest
     needs:
     - release_version
-    - build_and_publish_addons_gst-web
+    - build_addons_gst-web
     outputs:
       asset_path: ${{ steps.extract_asset.outputs.asset_path }}
       asset_name: ${{ steps.extract_asset.outputs.asset_name }}
@@ -303,9 +320,9 @@ jobs:
   create_release:
     runs-on: ubuntu-latest
     needs:
-    - publish_gstreamer_artifacts_to_gcs
-    - publish_gst_py_artifacts_to_gcs
-    - publish_gst_web_artifacts_to_gcs
+    - publish_gstreamer_gcs
+    - publish_gst_py_gcs
+    - publish_gst_web_gcs
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
@@ -313,19 +330,19 @@ jobs:
       id: gstreamer_cache_asset
       uses: actions/cache@v2
       with:
-        path: ${{ needs.publish_gstreamer_artifacts_to_gcs.outputs.asset_path }}
+        path: ${{ needs.publish_gstreamer_gcs.outputs.asset_path }}
         key: gstreamer-asset
     - name: Cache Asset, gst-py
       id: gst_py_cache_asset
       uses: actions/cache@v2
       with:
-        path: ${{ needs.publish_gst_py_artifacts_to_gcs.outputs.asset_path }}
+        path: ${{ needs.publish_gst_py_gcs.outputs.asset_path }}
         key: gst-py-asset
     - name: Cache Asset, gst-web
       id: gst_web_cache_asset
       uses: actions/cache@v2
       with:
-        path: ${{ needs.publish_gst_web_artifacts_to_gcs.outputs.asset_path }}
+        path: ${{ needs.publish_gst_web_gcs.outputs.asset_path }}
         key: gst-web-asset
 
     - name: Create Release
@@ -345,9 +362,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ needs.publish_gstreamer_artifacts_to_gcs.outputs.asset_path }}
-        asset_name: ${{ needs.publish_gstreamer_artifacts_to_gcs.outputs.asset_name }}
-        asset_content_type: ${{ needs.publish_gstreamer_artifacts_to_gcs.outputs.asset_mimetype }}
+        asset_path: ${{ needs.publish_gstreamer_gcs.outputs.asset_path }}
+        asset_name: ${{ needs.publish_gstreamer_gcs.outputs.asset_name }}
+        asset_content_type: ${{ needs.publish_gstreamer_gcs.outputs.asset_mimetype }}
 
     - name: Upload gst-py Asset to Release
       uses: actions/upload-release-asset@v1
@@ -355,9 +372,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ needs.publish_gst_py_artifacts_to_gcs.outputs.asset_path }}
-        asset_name: ${{ needs.publish_gst_py_artifacts_to_gcs.outputs.asset_name }}
-        asset_content_type: ${{ needs.publish_gst_py_artifacts_to_gcs.outputs.asset_mimetype }}
+        asset_path: ${{ needs.publish_gst_py_gcs.outputs.asset_path }}
+        asset_name: ${{ needs.publish_gst_py_gcs.outputs.asset_name }}
+        asset_content_type: ${{ needs.publish_gst_py_gcs.outputs.asset_mimetype }}
     
     - name: Upload gst-web Asset to Release
       uses: actions/upload-release-asset@v1
@@ -365,6 +382,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ needs.publish_gst_web_artifacts_to_gcs.outputs.asset_path }}
-        asset_name: ${{ needs.publish_gst_web_artifacts_to_gcs.outputs.asset_name }}
-        asset_content_type: ${{ needs.publish_gst_web_artifacts_to_gcs.outputs.asset_mimetype }}
+        asset_path: ${{ needs.publish_gst_web_gcs.outputs.asset_path }}
+        asset_name: ${{ needs.publish_gst_web_gcs.outputs.asset_name }}
+        asset_content_type: ${{ needs.publish_gst_web_gcs.outputs.asset_mimetype }}

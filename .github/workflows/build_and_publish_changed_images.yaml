@@ -129,7 +129,7 @@ jobs:
   ###
   # GCP infrastructure installer image
   ###
-  build_and_publish_infra_gcp_installer:
+  build_infra_gcp_installer:
     needs:
     - release_version
     - detect_image_source_changes
@@ -148,7 +148,7 @@ jobs:
   ###
   # Coturn image
   ###
-  build_and_publish_addons_coturn:
+  build_addons_coturn:
     needs:
     - release_version
     - detect_image_source_changes
@@ -167,7 +167,7 @@ jobs:
   ###
   # Coturn Web image
   ###
-  build_and_publish_addons_coturn-web:
+  build_addons_coturn-web:
     needs:
     - release_version
     - detect_image_source_changes
@@ -186,7 +186,7 @@ jobs:
   ###
   # gst-web image
   ###
-  build_and_publish_addons_gst-web:
+  build_addons_gst-web:
     needs:
     - release_version
     - detect_image_source_changes
@@ -205,7 +205,7 @@ jobs:
   ###
   # Gstreamer image
   ###
-  build_and_publish_addons_gstreamer:
+  build_addons_gstreamer:
     needs:
     - release_version
     - detect_image_source_changes
@@ -224,7 +224,7 @@ jobs:
   ###
   # Python package image
   ###
-  build_and_publish_py_build:
+  build_py_build:
     needs:
     - release_version
     - detect_image_source_changes
@@ -244,13 +244,13 @@ jobs:
   ###
   # Test image
   ###
-  build_and_publish_gst-py-example:
+  build_gst-py-example:
     needs:
     - release_version
     - detect_image_source_changes
-    - build_and_publish_addons_gst-web
-    - build_and_publish_addons_gstreamer
-    - build_and_publish_py_build
+    - build_addons_gst-web
+    - build_addons_gstreamer
+    - build_py_build
     if: always()
     runs-on: ubuntu-latest
     steps:

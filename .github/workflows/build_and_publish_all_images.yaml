@@ -24,7 +24,7 @@ jobs:
   ###
   # GCP infrastructure installer image
   ###
-  build_and_publish_infra_gcp_installer:
+  infra_gcp_installer:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +40,7 @@ jobs:
   ###
   # Coturn image
   ###
-  build_and_publish_addons_coturn:
+  build_addons_coturn:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
@@ -56,7 +56,7 @@ jobs:
   ###
   # Coturn Web image
   ###
-  build_and_publish_addons_coturn-web:
+  build_addons_coturn-web:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
@@ -72,7 +72,7 @@ jobs:
   ###
   # gst-web image
   ###
-  build_and_publish_addons_gst-web:
+  build_addons_gst-web:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
@@ -88,7 +88,7 @@ jobs:
   ###
   # Gstreamer image
   ###
-  build_and_publish_addons_gstreamer:
+  build_addons_gstreamer:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
@@ -104,7 +104,7 @@ jobs:
   ###
   # Python package image
   ###
-  build_and_publish_py_build:
+  build_py_build:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
@@ -121,12 +121,12 @@ jobs:
   ###
   # Example image
   ###
-  build_and_publish_gst-py-example:
+  build_gst-py-example:
     needs:
     - release_version
-    - build_and_publish_addons_gst-web
-    - build_and_publish_addons_gstreamer
-    - build_and_publish_py_build
+    - build_addons_gst-web
+    - build_addons_gstreamer
+    - build_py_build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
