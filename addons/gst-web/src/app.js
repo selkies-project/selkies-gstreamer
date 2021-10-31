@@ -320,7 +320,8 @@ if (videoElement === null) {
 
 // WebRTC entrypoint, connect to the signalling server
 /*global WebRTCDemoSignalling, WebRTCDemo*/
-var signalling = new WebRTCDemoSignalling(new URL("wss://" + window.location.host + "/" + app.appName + "/signalling/"), 1);
+var protocol = (location.protocol == "http:" ? "ws://" : "wss://");
+var signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + "/" + app.appName + "/signalling/"), 1);
 var webrtc = new WebRTCDemo(signalling, videoElement);
 
 // Function to add timestamp to logs.
