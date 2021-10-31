@@ -261,7 +261,7 @@ jobs:
         image_source_directory: .
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest
         image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
-        build_args: PACKAGE_VERSION=${{ needs.release_version.outputs.tag }};GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+        build_args: PACKAGE_VERSION=${{ needs.build_py_build.outputs.package_version }};GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
 
   ###
   # Publish gst-web artifacts to GCS
