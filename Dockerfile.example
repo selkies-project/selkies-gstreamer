@@ -98,7 +98,7 @@ RUN echo 'export DISPLAY=:0' \
         >> /etc/bash.bashrc
 
 # Write startup script
-RUN echo "\
+RUN echo "#!/bin/bash\n\
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
 sudo /usr/bin/pulseaudio --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -F /etc/pulse/system.pa &\n\
@@ -126,7 +126,7 @@ To test the package:\n\
 \n\
 Or start each process separately:\n\
 \n\
-$(cat /entrypoint.sh)\n\
+$(tail -n +2 /entrypoint.sh)\n\
 \n\
 To test the signaling server standalone:\n\
 \n\
