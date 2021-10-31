@@ -2,6 +2,8 @@
 
 ![Build](https://github.com/selkies-project/selkies-gstreamer/actions/workflows/build_and_publish_all_images.yaml/badge.svg)
 
+[![Discord](https://img.shields.io/discord/798699922223398942?logo=discord)](https://discord.gg/wDNGDeSW5F)
+
 ## What is `selkies-gstreamer`?
 
 `selkies-gstreamer` is a [`gst-python`](https://gitlab.freedesktop.org/gstreamer/gst-python) application for streaming a Linux X11 desktop to a web browser using WebRTC.
