@@ -23,3 +23,27 @@ module "turn-cos-nodes" {
   cloud_init_custom_var = "${local.turn_shared_secret},${local.turn_realm},${local.coturn_image},"
   vm_tags               = ["selkies-turn"]
 }
+
+data "google_compute_region_instance_group" "turn-cos-nodes" {
+  self_link = replace(module.turn-cos-nodes.instance_group, "instanceGroupManagers", "instanceGroups")
+}
+
+data "google_compute_instance" "turn-cos-nodes" {
+  for_each  = toset(data.google_compute_region_instance_group.turn-cos-nodes.instances[*].instance)
+  self_link = each.key
+}
+
+// Save shared secret to Secret Manager
+resource "google_secret_manager_secret" "turn_secret" {
+  project   = var.project_id
+  secret_id = "selkies-turn-shared-secret"
+
+  replication {
+    automatic = true
+  }
+}
+
+resource "google_secret_manager_secret_version" "turn_secret" {
+  secret      = google_secret_manager_secret.turn_secret.id
+  secret_data = local.turn_shared_secret
+}
