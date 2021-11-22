@@ -140,6 +140,27 @@ class RTCConfigFileMonitor:
         self.observer.stop()
         self.running = False
 
+def make_turn_rtc_config_json(host, port, username, password):
+    return """{
+  "lifetimeDuration": "86400s",
+  "iceServers": [
+    {
+      "urls": [
+        "stun:%s:%s"
+      ]
+    },
+    {
+      "urls": [
+        "turn:%s:%s?transport=udp"
+      ],
+      "username": "%s",
+      "credential": "%s"
+    }
+  ],
+  "blockStatus": "NOT_BLOCKED",
+  "iceTransportPolicy": "all"
+}""" % (host, port, host, port, username, password)
+
 def parse_rtc_config(data):
     ice_servers = json.loads(data)['iceServers']
     stun_uris = []
@@ -291,15 +312,23 @@ def main():
     parser.add_argument('--turn_shared_secret',
                         default=os.environ.get(
                             'TURN_SHARED_SECRET', ''),
-                        help='shared TURN secret used to generate HMAC credentials.')
+                        help='shared TURN secret used to generate HMAC credentials, also requires TURN_HOST and TURN_PORT.')
+    parser.add_argument('--turn_username',
+                        default=os.environ.get(
+                            'TURN_USERNAME', ''),
+                        help='Legacy non-HMAC TURN credential username, also requires TURN_HOST and TURN_PORT.')
+    parser.add_argument('--turn_password',
+                        default=os.environ.get(
+                            'TURN_PASSWORD', ''),
+                        help='Legacy non-HMAC TURN credential password, also requires TURN_HOST and TURN_PORT.')
     parser.add_argument('--turn_host',
                         default=os.environ.get(
                             'TURN_HOST', ''),
-                        help='TURN host when generating RTC config from shared secret.')
+                        help='TURN host when generating RTC config from shared secret or legacy credentials.')
     parser.add_argument('--turn_port',
                         default=os.environ.get(
                             'TURN_PORT', ''),
-                        help='TURN port when generating RTC config from shared secret.')
+                        help='TURN port when generating RTC config from shared secret or legacy credentials.')
     parser.add_argument('--uinput_mouse_socket',
                         default=os.environ.get('UINPUT_MOUSE_SOCKET', ''),
                         help='path to uinput mouse socket provided by uinput-device-plugin, if not provided, uinput is used directly.')
@@ -418,6 +447,13 @@ def main():
             using_hmac_turn = True
             data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, args.coturn_web_username)
             stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
+        elif args.turn_username and args.turn_password:
+            if not args.turn_host and args.turn_port:
+                logger.error("missing turn host and turn port")
+                sys.exit(1)
+            logger.warning("using legacy non-HMAC TURN credentials.")
+            config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password)
+            stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
         else:
             # Use existing coturn-web infrastructure.
             try:

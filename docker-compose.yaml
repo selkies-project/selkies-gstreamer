@@ -31,10 +31,17 @@ services:
       BASIC_AUTH_USER: ${BASIC_AUTH_USER}
       BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD}
 
-      # TURN with shared secret
+      # TURN with shared secret or user/pass
       TURN_SHARED_SECRET: ${TURN_SHARED_SECRET}
       TURN_HOST: ${TURN_HOST}
       TURN_PORT: ${TURN_PORT}
+      TURN_USERNAME: ${TURN_USERNAME}
+      TURN_PASSWORD: ${TURN_PASSWORD}
+
+      # Turn with coTURN web
+      COTURN_WEB_URI: ${COTURN_WEB_URI}
+      COTURN_WEB_USERNAME: ${COTURN_WEB_USERNAME}
+      COTURN_AUTH_HEADER_NAME: ${COTURN_AUTH_HEADER_NAME}
 
       # Additional server-side settings.
       WEBRTC_ENABLE_RESIZE: ${WEBRTC_ENABLE_RESIZE}
