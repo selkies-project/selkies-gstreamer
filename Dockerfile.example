@@ -101,6 +101,7 @@ RUN echo 'export DISPLAY=:0' \
 RUN echo "#!/bin/bash\n\
 export DISPLAY=:0\n\
 export GST_DEBUG=*:2\n\
+export PULSE_SERVER=127.0.0.1:4713\n\
 source /opt/gstreamer/gst-env\n\
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
@@ -108,7 +109,6 @@ sudo /usr/bin/pulseaudio --system --verbose --log-target=file:/tmp/pulseaudio.lo
 icewm-session &\n\
 export WEBRTC_ENCODER=x264enc\n\
 export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}\n\
-export PULSE_SERVER=127.0.0.1:4713\n\
 export JSON_CONFIG=/tmp/selkies.json\n\
 echo '{}' > \$JSON_CONFIG\n\
 selkies-gstreamer-resize 1280x720\n\
