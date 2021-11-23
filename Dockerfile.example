@@ -1,10 +1,15 @@
+# Supported base images: ubuntu:20.04, ubuntu:18.04
+ARG BASE_IMAGE=ubuntu:20.04
+
+# Use the master-ubuntu18.04 tag or latest-ubuntu18.04 tag if base image is ubuntu:18.04
 ARG GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
+
 ARG PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
 ARG WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:latest
 FROM ${GSTREAMER_IMAGE} as selkies-gstreamer
 FROM ${PY_BUILD_IMAGE} as selkies-build
 FROM ${WEB_IMAGE} as selkies-web
-FROM ubuntu:20.04
+FROM ${BASE_IMAGE}
 
 LABEL maintainer "https://github.com/danisla"
 
@@ -15,6 +20,7 @@ RUN \
         python3-pip \
         python3-dev \
         python3-gi \
+        python3-setuptools \
         tzdata \
         sudo \
         udev \
@@ -53,10 +59,6 @@ RUN \
         x11-apps \
         firefox && \
     rm -rf /var/lib/apt/lists/*
-
-# Configure pulseaudio to allow TCP access for gstreamer pipeline
-# NOTE: adding to system.pa for newer debian based distros.
-RUN echo "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1" >> /etc/pulse/system.pa
 
 # Add Tini init script - take care of runaway processes
 ENV TINI_VERSION v0.7.0
@@ -105,7 +107,8 @@ export PULSE_SERVER=127.0.0.1:4713\n\
 source /opt/gstreamer/gst-env\n\
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
-sudo /usr/bin/pulseaudio --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -F /etc/pulse/system.pa &\n\
+sudo /usr/bin/pulseaudio -k >/dev/null 2>&1\n\
+sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
 icewm-session &\n\
 export WEBRTC_ENCODER=x264enc\n\
 export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}\n\
