@@ -133,7 +133,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: ${{ needs.detect_image_source_changes.outputs.infra_gcp_installer_changed == 'true' }}
+    if: ${{ needs.detect_image_source_changes.outputs.infra_gcp_installer_changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -152,7 +152,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn_changed == 'true' }}
+    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn_changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -171,7 +171,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn-web_changed == 'true' }}
+    if: ${{ needs.detect_image_source_changes.outputs.addons_coturn-web_changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -190,7 +190,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: ${{ needs.detect_image_source_changes.outputs.addons_gst-web_changed == 'true' }}
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gst-web_changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -209,7 +209,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: ${{ needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true '}}
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gstreamer_changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -229,7 +229,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: ${{ needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true '}}
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gstreamer_changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -249,7 +249,7 @@ jobs:
     needs:
     - release_version
     - detect_image_source_changes
-    if: ${{ needs.detect_image_source_changes.outputs.py_build_changed == 'true' }}
+    if: ${{ needs.detect_image_source_changes.outputs.py_build_changed }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
