@@ -203,7 +203,7 @@ jobs:
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
 
   ###
-  # Gstreamer image
+  # Gstreamer image, latest and ubuntu 20.04
   ###
   build_addons_gstreamer:
     needs:
@@ -220,6 +220,27 @@ jobs:
         github_username: ${{ github.actor }}
         image_source_directory: addons/gstreamer
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}
+        build_args: BASE_IMAGE=ubuntu:20.04;
+
+  ###
+  # Gstreamer image, ubuntu 18.04
+  ###
+  build_addons_gstreamer_ubuntu1804:
+    needs:
+    - release_version
+    - detect_image_source_changes
+    if: ${{ needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true '}}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gstreamer
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu18.04
+        build_args: BASE_IMAGE=ubuntu:18.04;
 
   ###
   # Python package image

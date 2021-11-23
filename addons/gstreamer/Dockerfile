@@ -1,4 +1,5 @@
-FROM ubuntu:20.04 as build
+ARG BASE_IMAGE=ubuntu:20.04
+FROM ${BASE_IMAGE} as build
 
 # Install essentials
 RUN \
