@@ -334,7 +334,7 @@ jobs:
   ###
   # Example image, Ubuntu 20.04
   ###
-  build_gst-py-example:
+  build_gst-py-example_ubuntu2004:
     needs:
     - release_version
     - build_addons_gst-web
