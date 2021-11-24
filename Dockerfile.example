@@ -1,15 +1,13 @@
 # Supported base images: ubuntu:20.04, ubuntu:18.04
-ARG BASE_IMAGE=ubuntu:20.04
-
-# Use the master-ubuntu18.04 tag or latest-ubuntu18.04 tag if base image is ubuntu:18.04
-ARG GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
-
+ARG UBUNTU_RELEASE=20.04
+ARG GSTREAMER_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer
+ARG GSTREAMER_BASE_IMAGE_RELEASE=latest
 ARG PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
 ARG WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:latest
-FROM ${GSTREAMER_IMAGE} as selkies-gstreamer
+FROM ${GSTREAMER_BASE_IMAGE}:${GSTREAMER_BASE_IMAGE_RELEASE}-ubuntu${UBUNTU_RELEASE} as selkies-gstreamer
 FROM ${PY_BUILD_IMAGE} as selkies-build
 FROM ${WEB_IMAGE} as selkies-web
-FROM ${BASE_IMAGE}
+FROM ubuntu:${UBUNTU_RELEASE}
 
 LABEL maintainer "https://github.com/danisla"
 

@@ -14,13 +14,15 @@ services:
       context: ./addons/gst-web
       dockerfile: Dockerfile
   test:
-    image: selkies-gstreamer-example
+    image: selkies-gstreamer-example:latest-ubuntu20.04
     entrypoint: ["/tini", "--", "/bin/bash"]
     build:
       context: .
       dockerfile: Dockerfile.example
       args:
-        GSTREAMER_IMAGE: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
+        UBUNTU_RELEASE: 20.04
+        GSTREAMER_BASE_IMAGE: ghcr.io/selkies-project/selkies-gstreamer/gstreamer
+        GSTREAMER_BASE_IMAGE_RELEASE: latest
         PY_BUILD_IMAGE: selkies-gstreamer-py-build:latest
         WEB_IMAGE: gst-web:latest
         PYPI_PACKAGE: selkies_gstreamer
