@@ -76,24 +76,7 @@ jobs:
         image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
 
   ###
-  # Build gstreamer image, latest, Ubuntu 20.04
-  ###
-  build_addons_gstreamer:
-    runs-on: ubuntu-latest
-    needs: release_version
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/gstreamer
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
-        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}
-
-  ###
-  # Build gstreamer image, latest, Ubuntu 18.04
+  # Build gstreamer image, Ubuntu 18.04
   ###
   build_addons_gstreamer_ubuntu1804:
     runs-on: ubuntu-latest
@@ -110,58 +93,24 @@ jobs:
         image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu18.04
 
   ###
-  # Publish gstreamer artifacts to GCS
+  # Build gstreamer image, Ubuntu 20.04
   ###
-  publish_gstreamer_gcs:
+  build_addons_gstreamer_ubuntu2004:
     runs-on: ubuntu-latest
-    needs:
-    - release_version
-    - build_addons_gstreamer
-    outputs:
-      asset_path: ${{ steps.extract_asset.outputs.asset_path }}
-      asset_name: ${{ steps.extract_asset.outputs.asset_name }}
-      asset_mimetype: ${{ steps.extract_asset.outputs.asset_mimetype }}
+    needs: release_version
     steps:
-    - name: Extract and Upload Asset to GCS
-      id: extract_asset
-      env:
-        RELEASE_VERSION: ${{ needs.release_version.outputs.tag }}
-        GCS_SA_KEY: ${{ secrets.GCP_ACTIONS_SA_KEY }}
-      run: |
-        # GHCR Login
-        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-        # GCS Login
-        cat - > /tmp/sa_key.json <<EOF
-        ${{ secrets.GCP_ACTIONS_SA_KEY }}
-        EOF
-        gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
-
-        # Docker create
-        docker create --name copy ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${RELEASE_VERSION}
-        
-        # Docker copy and create tarball
-        docker cp copy:/opt/selkies-gstreamer-latest.tgz /tmp/selkies-gstreamer-${RELEASE_VERSION}.tgz
-
-        # Docker rm
-        docker rm copy
-
-        # Copy to GCS
-        gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
-
-        echo ::set-output name=asset_path::/tmp/selkies-gstreamer-${RELEASE_VERSION}.tgz
-        echo ::set-output name=asset_name::selkies-gstreamer-${RELEASE_VERSION}.tgz
-        echo ::set-output name=asset_mimetype::application/tar+gzip
-
-    - name: Cache Asset
-      id: cache_asset
-      uses: actions/cache@v2
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
       with:
-        path: ${{ steps.extract_asset.outputs.asset_path }}
-        key: gstreamer-asset
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gstreamer
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest-ubuntu20.04
+        image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu20.04
 
   ###
-  # Publish gstreamer ubuntu 18.04 artifacts to GCS
+  # Publish gstreamer Ubuntu 18.04 artifacts to GCS
   ###
   publish_gstreamer_gcs_ubuntu1804:
     runs-on: ubuntu-latest
@@ -192,16 +141,16 @@ jobs:
         docker create --name copy ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${RELEASE_VERSION}-ubuntu18.04
 
         # Docker copy and create tarball
-        docker cp copy:/opt/selkies-gstreamer-latest.tgz /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu1804.tgz
+        docker cp copy:/opt/selkies-gstreamer-latest.tgz /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz
 
         # Docker rm
         docker rm copy
 
         # Copy to GCS
-        gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu1804.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
+        gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
 
-        echo ::set-output name=asset_path::/tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu1804.tgz
-        echo ::set-output name=asset_name::selkies-gstreamer-${RELEASE_VERSION}-ubuntu1804.tgz
+        echo ::set-output name=asset_path::/tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz
+        echo ::set-output name=asset_name::selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz
         echo ::set-output name=asset_mimetype::application/tar+gzip
 
     - name: Cache Asset
@@ -210,6 +159,57 @@ jobs:
       with:
         path: ${{ steps.extract_asset.outputs.asset_path }}
         key: gstreamer-asset-ubuntu1804
+
+  ###
+  # Publish gstreamer Ubuntu 20.04 artifacts to GCS
+  ###
+  publish_gstreamer_gcs_ubuntu2004:
+    runs-on: ubuntu-latest
+    needs:
+    - release_version
+    - build_addons_gstreamer_ubuntu2004
+    outputs:
+      asset_path: ${{ steps.extract_asset.outputs.asset_path }}
+      asset_name: ${{ steps.extract_asset.outputs.asset_name }}
+      asset_mimetype: ${{ steps.extract_asset.outputs.asset_mimetype }}
+    steps:
+    - name: Extract and Upload Asset to GCS
+      id: extract_asset
+      env:
+        RELEASE_VERSION: ${{ needs.release_version.outputs.tag }}
+        GCS_SA_KEY: ${{ secrets.GCP_ACTIONS_SA_KEY }}
+      run: |
+        # GHCR Login
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+        # GCS Login
+        cat - > /tmp/sa_key.json <<EOF
+        ${{ secrets.GCP_ACTIONS_SA_KEY }}
+        EOF
+        gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
+
+        # Docker create
+        docker create --name copy ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${RELEASE_VERSION}-ubuntu20.04
+
+        # Docker copy and create tarball
+        docker cp copy:/opt/selkies-gstreamer-latest.tgz /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz
+
+        # Docker rm
+        docker rm copy
+
+        # Copy to GCS
+        gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
+
+        echo ::set-output name=asset_path::/tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz
+        echo ::set-output name=asset_name::selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz
+        echo ::set-output name=asset_mimetype::application/tar+gzip
+
+    - name: Cache Asset
+      id: cache_asset
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.extract_asset.outputs.asset_path }}
+        key: gstreamer-asset
 
   ###
   # Python package image
@@ -315,7 +315,7 @@ jobs:
     needs:
     - release_version
     - build_addons_gst-web
-    - build_addons_gstreamer
+    - build_addons_gstreamer_ubuntu2004
     - build_py_build
     runs-on: ubuntu-latest
     steps:

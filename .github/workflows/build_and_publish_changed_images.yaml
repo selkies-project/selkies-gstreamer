@@ -203,26 +203,6 @@ jobs:
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
 
   ###
-  # Gstreamer image, latest and ubuntu 20.04
-  ###
-  build_addons_gstreamer:
-    needs:
-    - release_version
-    - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/gstreamer
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}
-        build_args: BASE_IMAGE=ubuntu:20.04;
-
-  ###
   # Gstreamer image, ubuntu 18.04
   ###
   build_addons_gstreamer_ubuntu1804:
@@ -241,6 +221,26 @@ jobs:
         image_source_directory: addons/gstreamer
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu18.04
         build_args: BASE_IMAGE=ubuntu:18.04;
+
+  ###
+  # Gstreamer image, latest and ubuntu 20.04
+  ###
+  build_addons_gstreamer_ubuntu2004:
+    needs:
+    - release_version
+    - detect_image_source_changes
+    if: needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: addons/gstreamer
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu20.04
+        build_args: BASE_IMAGE=ubuntu:20.04;
 
   ###
   # Python package image
@@ -263,31 +263,7 @@ jobs:
         build_args: PACKAGE_VERSION=0.0.0-dev
 
   ###
-  # Test image, latest, Ubuntu 20.04
-  ###
-  build_gst-py-example:
-    needs:
-    - release_version
-    - detect_image_source_changes
-    - build_addons_gst-web
-    - build_addons_gstreamer
-    - build_py_build
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        dockerfile: Dockerfile.example
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
-        build_args: PACKAGE_VERSION=0.0.0.dev0;GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
-
-  ###
-  # Test image, latest, Ubuntu 20.04
+  # Test image, Ubuntu 18.04
   ###
   build_gst-py-example_ubuntu1804:
     needs:
@@ -309,3 +285,27 @@ jobs:
         image_source_directory: .
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}-ubuntu18.04
         build_args: PACKAGE_VERSION=0.0.0.dev0;BASE_IMAGE=ubuntu:18.04;GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu18.04;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+
+  ###
+  # Test image, Ubuntu 20.04
+  ###
+  build_gst-py-example_ubuntu2004:
+    needs:
+    - release_version
+    - detect_image_source_changes
+    - build_addons_gst-web
+    - build_addons_gstreamer_ubuntu2004
+    - build_py_build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/build_and_publish_image
+      with:
+        use_cache: "true"
+        dockerfile: Dockerfile.example
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: ${{ github.actor }}
+        image_source_directory: .
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
+        build_args: PACKAGE_VERSION=0.0.0.dev0;GSTREAMER_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu20.04;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
