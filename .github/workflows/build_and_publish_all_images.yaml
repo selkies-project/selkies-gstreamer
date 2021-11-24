@@ -165,7 +165,7 @@ jobs:
     needs:
     - release_version
     - build_addons_gst-web
-    - build_addons_gstreamer
+    - build_addons_gstreamer_ubuntu1804
     - build_py_build
     runs-on: ubuntu-latest
     steps:
