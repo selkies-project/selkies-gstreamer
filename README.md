@@ -23,7 +23,7 @@ A [`coturn`](addons/coturn) and [`coturn-web`](addons/coturn-web) image are also
 Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example):
 
 ```bash
-docker run --name selkies --net=host ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest
+docker run --name selkies --net=host ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04
 ```
 
 > Now connect to your docker host on port `8080` to access the web interface.
@@ -33,7 +33,7 @@ docker run --name selkies --net=host ghcr.io/selkies-project/selkies-gstreamer/g
 1. Copy the gstreamer build tarball from the docker image and extract it to `/opt/gstreamer`:
 
 ```bash
-docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest
+docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest-ubuntu20.04
 docker cp gstreamer:/opt/selkies-gstreamer-latest.tgz /opt/selkies-gstreamer-latest.tgz
 docker rm gstreamer
 cd /opt && tar zxvf selkies-gstreamer-latest.tgz
@@ -61,14 +61,15 @@ docker rm gst-web
 ```bash
 export DISPLAY=:0
 export GST_DEBUG=*:2
+export PULSE_SERVER=127.0.0.1:4713
 source /opt/gstreamer/gst-env
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
-sudo /usr/bin/pulseaudio --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -F /etc/pulse/system.pa &
+sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
+sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
 icewm-session &
 export WEBRTC_ENCODER=x264enc
 export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}
-export PULSE_SERVER=127.0.0.1:4713
 export JSON_CONFIG=/tmp/selkies.json
 echo '{}' > \$JSON_CONFIG
 selkies-gstreamer-resize 1280x720
