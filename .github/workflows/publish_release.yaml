@@ -211,7 +211,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ steps.extract_asset.outputs.asset_path }}
-        key: gstreamer-asset
+        key: gstreamer-asset-ubuntu2004
 
   ###
   # Python package image
@@ -421,11 +421,11 @@ jobs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
     - name: Cache Asset, gstreamer
-      id: gstreamer_cache_asset
+      id: gstreamer_cache_asset_ubuntu2004
       uses: actions/cache@v2
       with:
         path: ${{ needs.publish_gstreamer_gcs_ubuntu2004.outputs.asset_path }}
-        key: gstreamer-asset
+        key: gstreamer-asset-ubuntu2004
     - name: Cache Asset, gstreamer-ubuntu1804
       id: gstreamer_cache_asset_ubuntu1804
       uses: actions/cache@v2
