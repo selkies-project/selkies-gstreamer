@@ -1,6 +1,10 @@
+data "google_secret_manager_secret_version" "turn-shared-secret" {
+  secret = "selkies-turn-shared-secret"
+}
+
 locals {
   coturn_image       = var.coturn_image
-  turn_shared_secret = data.terraform_remote_state.base.outputs.turn_shared_secret
+  turn_shared_secret = data.google_secret_manager_secret_version.turn-shared-secret.secret_data
 
   // Default the REALM to the Cloud Endpoints DNS name
   turn_realm = length(var.turn_realm) == 0 ? data.terraform_remote_state.turn-web.outputs.endpoint : var.turn_realm
@@ -26,24 +30,4 @@ module "turn-cos-nodes" {
 
 data "google_compute_region_instance_group" "turn-cos-nodes" {
   self_link = replace(module.turn-cos-nodes.instance_group, "instanceGroupManagers", "instanceGroups")
-}
-
-data "google_compute_instance" "turn-cos-nodes" {
-  for_each  = toset(data.google_compute_region_instance_group.turn-cos-nodes.instances[*].instance)
-  self_link = each.key
-}
-
-// Save shared secret to Secret Manager
-resource "google_secret_manager_secret" "turn_secret" {
-  project   = var.project_id
-  secret_id = "selkies-turn-shared-secret"
-
-  replication {
-    automatic = true
-  }
-}
-
-resource "google_secret_manager_secret_version" "turn_secret" {
-  secret      = google_secret_manager_secret.turn_secret.id
-  secret_data = local.turn_shared_secret
 }

@@ -1,0 +1,56 @@
+timeout: 7200s
+substitutions:
+  _ACTION: apply
+  _NAME: selkies
+  _REGION: us-west1
+  _GHCR_IMAGE: ghcr.io/selkies-project/selkies-gstreamer/coturn-web
+  _GCR_IMAGE_NAME: selkies-gstreamer-coturn-web
+  _IMAGE_TAG: latest
+tags:
+  - selkies-infra-turn-web
+  - selkies-setup
+steps:
+  ###
+  # Get gcloud auth token for copying images
+  ###
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: gcloud-token
+    entrypoint: 'bash'
+    args:
+      - -exc
+      - |
+        if [[ -z "$(gcloud -q container images list-tags gcr.io/${PROJECT_ID}/${_GCR_IMAGE_NAME} --filter='tags~${_IMAGE_TAG}' --format='value(tags[0])')" ]]; then
+          echo "INFO: coturn-web image not found in project GCR, fetching access token to copy from GHCR"
+          gcloud auth print-access-token > /workspace/access_token
+        fi
+  ###
+  # Copy docker image from GHCR to project if it does not exist.
+  ###
+  - name: 'gcr.io/cloud-builders/docker'
+    id: docker-copy
+    entrypoint: 'bash'
+    args:
+      - -exc
+      - |
+        if [[ -e /workspace/access_token ]]; then
+          echo "INFO: Copying coturn-web image from GCHR to project GCR so it can be used with Cloud Run"
+          cat /workspace/access_token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
+          docker pull ${_GHCR_IMAGE}:${_IMAGE_TAG}
+          docker tag ${_GHCR_IMAGE}:${_IMAGE_TAG} gcr.io/${PROJECT_ID}/${_GCR_IMAGE_NAME}:${_IMAGE_TAG}
+          docker push gcr.io/${PROJECT_ID}/${_GCR_IMAGE_NAME}:${_IMAGE_TAG}
+        else
+          echo "INFO: skipping image copy."
+        fi
+  ###
+  # Apply terraform to create cluster
+  ###
+  - name: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:latest
+    id: "terraform-apply"
+    env:
+      - TF_VAR_project_id=${PROJECT_ID}
+      - TF_VAR_name=${_NAME}
+      - TF_VAR_region=${_REGION}
+      - TF_VAR_image_repo=gcr.io/${PROJECT_ID}/${_GCR_IMAGE_NAME}
+      - TF_VAR_image_tag=${_IMAGE_TAG}
+      - TERRAFORM_WORKSPACE_NAME=turn-web-${_REGION}
+      - ACTION=${_ACTION}

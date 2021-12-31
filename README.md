@@ -18,7 +18,7 @@ A [`coturn`](addons/coturn) and [`coturn-web`](addons/coturn-web) image are also
 
 ### Example Docker container
 
-> NOTE: you will need to use an external STUN/TURN server capable of srflx or relay type ICE connections if you use this in a container WITHOUT host networking. An example GCP deployment of coturn is in the [`infra/gcp`](infra/gcp) directory.
+> NOTE: you will need to use an external STUN/TURN server capable of srflx or relay type ICE connections if you use this in a container WITHOUT host networking. An example Google Compute Engine deployment of coturn is in the [`infra/gce`](infra/gce) directory.
 
 Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example):
 

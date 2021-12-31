@@ -3,10 +3,13 @@
 set -e
 set -x
 
-# Save basic auth htpasswd to file.
-cat - > "${TURN_HTPASSWD_FILE:-"/etc/htpasswd"}" <<EOF
+if [[ -n "${HTPASSWD_DATA64}" ]]; then
+    # Save basic auth htpasswd to file.
+    export TURN_HTPASSWD_FILE="${TURN_HTPASSWD_FILE:-"/etc/htpasswd"}"
+    cat - > ${TURN_HTPASSWD_FILE} <<EOF
 $(echo $HTPASSWD_DATA64 | base64 -d)
 EOF
+fi
 
 if [[ "${CLOUD_RUN:-false}" == true ]]; then
     export PROJECT_ID=$(curl "http://metadata.google.internal/computeMetadata/v1/project/project-id" -H "Metadata-Flavor: Google")
