@@ -8,22 +8,21 @@ provider "docker" {
   }
 }
 
+
+data "google_secret_manager_secret_version" "selkies-turn-shared-secret" {
+  secret = "selkies-turn-shared-secret"
+}
+
 data "google_secret_manager_secret_version" "selkies-turn-htpasswd" {
   secret = var.htpasswd_secret_name
 }
 
-data "google_container_registry_image" "coturn-web-tagged" {
-  name = "selkies-gstreamer-coturn-web"
-  tag  = var.image_tag
-}
-
 data "docker_registry_image" "coturn-web" {
-  name = "${data.google_container_registry_image.coturn-web-tagged.image_url}"
+  name = "${var.image_repo}:${var.image_tag}"
 }
 
-data "google_container_registry_image" "coturn-web" {
-  name   = "selkies-gstreamer-coturn-web"
-  digest = length(var.image_digest) == 0 ? data.docker_registry_image.coturn-web.sha256_digest : var.image_digest
+locals {
+  image = "${var.image_repo}@${data.docker_registry_image.coturn-web.sha256_digest}"
 }
 
 resource "google_cloud_run_service" "turn-web" {
@@ -35,7 +34,7 @@ resource "google_cloud_run_service" "turn-web" {
   template {
     spec {
       containers {
-        image = data.google_container_registry_image.coturn-web.image_url
+        image = local.image
         env {
           name  = "CLOUD_RUN"
           value = "true"
@@ -46,11 +45,7 @@ resource "google_cloud_run_service" "turn-web" {
         }
         env {
           name  = "TURN_SHARED_SECRET"
-          value = data.terraform_remote_state.base.outputs.turn_shared_secret
-        }
-        env {
-          name  = "TURN_HTPASSWD_FILE"
-          value = "/etc/htpasswd"
+          value = data.google_secret_manager_secret_version.selkies-turn-shared-secret.secret_data
         }
         env {
           name  = "HTPASSWD_DATA64"

@@ -1,5 +1,5 @@
 output image {
-  value = data.google_container_registry_image.coturn-web.image_url
+  value = local.image
 }
 
 output service_id {

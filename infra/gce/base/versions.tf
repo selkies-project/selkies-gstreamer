@@ -6,5 +6,8 @@ terraform {
     google-beta = "~> 3.51, <4.0.0"
     template    = "~> 2.1"
     random      = "~> 2.2"
+    htpasswd = {
+      source = "loafoe/htpasswd"
+    }
   }
 }
