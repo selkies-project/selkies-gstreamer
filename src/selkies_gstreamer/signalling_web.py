@@ -174,7 +174,7 @@ class WebRTCSimpleServer(object):
                 response_headers.append(('WWW-Authenticate', 'Basic realm="restricted, charset="UTF-8"'))
                 return http.HTTPStatus.UNAUTHORIZED, response_headers, b'Authorization required'
 
-        if path == "/ws" or path == "/webrtc/signalling/":
+        if path == "/ws" or path.endswith("/signalling/"):
             return None
 
         if path == self.health_path:
