@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coturn
+spec:
+  selector:
+    matchLabels:
+      app: coturn
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: coturn
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 10
+      hostNetwork: true
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - coturn
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+        ###
+        # coturn container
+        ###
+        - name: coturn
+          image: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
+          imagePullPolicy: Always
+          env:
+            - name: TURN_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: turn-shared-secret
+                  key: TURN_SHARED_SECRET
+            - name: TURN_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: turn-shared-secret
+                  key: TURN_REALM
+            # Firewall rules on the node pool instances must be created manually on these port ranges.
+            - name: TURN_PORT
+              value: "3478"
+            - name: TURN_MIN_PORT
+              value: "25000"
+            - name: TURN_MAX_PORT
+              value: "25100"
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 265Mi
+            limits:
+              cpu: 2000m
+              memory: 1Gi

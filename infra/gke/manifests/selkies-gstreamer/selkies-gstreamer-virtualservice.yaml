@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: selkies-gstreamer
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - selkies-gstreamer
+  http:
+    - match:
+        - uri:
+            prefix: /selkies-gstreamer/
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: selkies-gstreamer
+            port:
+              number: 8080

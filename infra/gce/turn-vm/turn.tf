@@ -5,9 +5,6 @@ data "google_secret_manager_secret_version" "turn-shared-secret" {
 locals {
   coturn_image       = var.coturn_image
   turn_shared_secret = data.google_secret_manager_secret_version.turn-shared-secret.secret_data
-
-  // Default the REALM to the Cloud Endpoints DNS name
-  turn_realm = length(var.turn_realm) == 0 ? data.terraform_remote_state.turn-web.outputs.endpoint : var.turn_realm
 }
 
 module "turn-cos-nodes" {
@@ -24,7 +21,7 @@ module "turn-cos-nodes" {
   disk_type             = var.turn_pool_disk_type
   scopes                = ["https://www.googleapis.com/auth/cloud-platform"]
   service_account       = data.terraform_remote_state.base.outputs.service_account
-  cloud_init_custom_var = "${local.turn_shared_secret},${local.turn_realm},${local.coturn_image},"
+  cloud_init_custom_var = "${local.turn_shared_secret},${var.turn_realm},${local.coturn_image},"
   vm_tags               = ["selkies-turn"]
 }
 

@@ -36,6 +36,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -80,18 +81,50 @@ func main() {
 	// Env var for running in aggregator mode with K8s Endpoints discovery.
 	endpointsDiscoveryName := popVarFromEnv("DISCOVERY_ENDPOINTS_NAME", false, "")
 	endpointsDiscoveryNamespace := popVarFromEnv("DISCOVERY_ENDPOINTS_NAMESPACE", false, "")
-
-	// Env vars for running in aggregator mode.
-	discoveryDNSName := popVarFromEnv("DISCOVERY_DNS_NAME", false, "")
-	discoveryPortName := popVarFromEnv("DISCOVERY_PORT_NAME", false, "turn")
+	endpointsDiscoverySrvServiceName := popVarFromEnv("DISCOVERY_ENDPOINTS_SRV_SERVICE_NAME", false, "")
 
 	// Env vars to run in managed instance group aggregator mode.
 	migFilterPattern := popVarFromEnv("MIG_DISCO_FILTER", false, "")
 	migDiscoveryProjectID := popVarFromEnv("MIG_DISCO_PROJECT_ID", false, "")
 
 	// Make sure at least one external IP method was found.
-	if len(externalIP) == 0 && len(discoveryDNSName) == 0 && len(migFilterPattern) == 0 {
+	if len(externalIP) == 0 && len(endpointsDiscoveryName) == 0 && len(migFilterPattern) == 0 {
 		log.Fatalf("ERROR: no EXTERNAL_IP, DISCOVERY_DNS_NAME, or MIG_DISCO_FILTER was not found, cannot continue.")
+	}
+
+	// Flags used for connecting out-of-cluster.
+	var kubeconfig *string
+	if home := homedir.HomeDir(); home != "" {
+		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	}
+	flag.Parse()
+
+	// Kubernetes client config to watch service Endpoints
+	// Try in-cluster config
+	running_on_k8s := true
+	config, err := rest.InClusterConfig()
+	if err == nil {
+		log.Printf("using in-cluster-config")
+	} else {
+		// Try out-of-cluster config
+		outOfClusterConfig, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+		if err != nil {
+			running_on_k8s = false
+		}
+		log.Printf("using out-of-cluster-config")
+		config = outOfClusterConfig
+	}
+
+	var clientset *kubernetes.Clientset
+	if running_on_k8s {
+		// Create the Kubernetes client
+		clientset, err = kubernetes.NewForConfig(config)
+		if err != nil {
+			log.Panic(err.Error())
+			os.Exit(1)
+		}
 	}
 
 	// Start background file watcher for MIG discovery method.
@@ -107,8 +140,13 @@ func main() {
 		migDiscoIPs.ProjectID = migDiscoveryProjectID
 		migDiscoIPs.FilterPattern = regexp.MustCompile(migFilterPattern)
 
+		log.Printf("Discovering TURN ips from GCE Managed Instance Group named: %s in project %s", migFilterPattern, migDiscoveryProjectID)
+
 		// Perform initial check
 		migDiscoIPs.Update()
+
+		// Update discovery SRV service.
+		updateDiscoverySRVService(clientset, endpointsDiscoverySrvServiceName, endpointsDiscoveryNamespace, migDiscoIPs.ExternalIPs)
 	}
 
 	// Parse optional htpasswd file for authorization.
@@ -143,37 +181,6 @@ func main() {
 		// Running in endpoints discovery mode.
 		// This mode runs in a kubernetes cluster and watches changes to the Endpoints and Nodes.
 		// coturn pods added to the endpoints are matched to a node and the node External IP is used as the advertised TURN host.
-
-		// Flags used for connecting out-of-cluster.
-		var kubeconfig *string
-		if home := homedir.HomeDir(); home != "" {
-			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		} else {
-			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-		}
-		flag.Parse()
-
-		// Kubernetes client config to watch service Endpoints
-		// Try in-cluster config
-		config, err := rest.InClusterConfig()
-		if err == nil {
-			log.Printf("using in-cluster-config")
-		} else {
-			// Try out-of-cluster config
-			outOfClusterConfig, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-			if err != nil {
-				panic(err.Error())
-			}
-			log.Printf("using out-of-cluster-config")
-			config = outOfClusterConfig
-		}
-
-		// Create the Kubernetes client
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			log.Panic(err.Error())
-			os.Exit(1)
-		}
 
 		nodeInformer := StartNodesInformer(clientset,
 			// Add func
@@ -255,6 +262,7 @@ func main() {
 
 					// Reset the list of IPs.
 					endpointsIPsSync.items = make([]interface{}, 0)
+					ips := make([]string, 0)
 
 					// Add all node IPs to the list of endpoints IPs.
 					for _, nodeName := range nodeNames {
@@ -262,8 +270,11 @@ func main() {
 							// Add IP to the list.
 							log.Printf("Adding external IP: %s", nodeIP)
 							endpointsIPsSync.items = append(endpointsIPsSync.items, nodeIP)
+							ips = append(ips, nodeIP.(string))
 						}
 					}
+					// Update discovery SRV service.
+					updateDiscoverySRVService(clientset, endpointsDiscoverySrvServiceName, endpointsDiscoveryNamespace, ips)
 				} else {
 					log.Printf("Endpoint found but has no subsets or nodes")
 				}
@@ -278,6 +289,8 @@ func main() {
 				// Reset the list of IPs.
 				log.Printf("Removing all external IPs because Endpoint was deleted.")
 				endpointsIPsSync.items = make([]interface{}, 0)
+				// Update discovery SRV service.
+				updateDiscoverySRVService(clientset, endpointsDiscoverySrvServiceName, endpointsDiscoveryNamespace, []string{})
 			},
 			// Update func
 			func(oldep *corev1.Endpoints, newep *corev1.Endpoints) {
@@ -295,6 +308,7 @@ func main() {
 
 				// Reset the list of IPs.
 				endpointsIPsSync.items = make([]interface{}, 0)
+				ips := make([]string, 0)
 
 				// Add all node IPs to the list of endpoints IPs.
 				for _, nodeName := range nodeNames {
@@ -302,8 +316,11 @@ func main() {
 						// Add IP to the list.
 						log.Printf("Adding external IP: %s", nodeIP)
 						endpointsIPsSync.items = append(endpointsIPsSync.items, nodeIP)
+						ips = append(ips, nodeIP.(string))
 					}
 				}
+				// Update discovery SRV service.
+				updateDiscoverySRVService(clientset, endpointsDiscoverySrvServiceName, endpointsDiscoveryNamespace, ips)
 			},
 		)
 		defer close(epInformer)
@@ -356,26 +373,10 @@ func main() {
 			for _, ip := range migDiscoIPs.ExternalIPs {
 				ips = append(ips, ip)
 			}
+			// Update discovery SRV service.
+			updateDiscoverySRVService(clientset, endpointsDiscoverySrvServiceName, endpointsDiscoveryNamespace, migDiscoIPs.ExternalIPs)
+
 			migDiscoIPs.Unlock()
-		} else if len(discoveryDNSName) > 0 {
-			// K8S endpoint aggregator mode, use DNS SRV records to build RTC config.
-			// Fetch all service host and ports using SRV record of headless discovery service.
-			// NOTE: The SRV record returns resolvable aliases to the endpoints, so do another lookup should return the IP.
-			_, srvs, err := net.LookupSRV(discoveryPortName, "tcp", discoveryDNSName)
-			if err != nil {
-				log.Printf("ERROR: failed to query SRV record from %v %v: %v", discoveryDNSName, discoveryPortName, err)
-				writeStatusResponse(w, http.StatusInternalServerError, "Internal server error")
-				return
-			}
-			for _, srv := range srvs {
-				addrs, err := net.LookupHost(srv.Target)
-				if err != nil {
-					log.Printf("ERROR: failed to query A record from %v: %v", srv.Target, err)
-					writeStatusResponse(w, http.StatusInternalServerError, "Internal server error")
-					return
-				}
-				ips = append(ips, addrs[0])
-			}
 		} else if len(endpointsDiscoveryName) > 0 && len(endpointsDiscoveryNamespace) > 0 {
 			// Kubernetes endpoints discovery mode, get ips from concurent slice.
 			ips = make([]string, 0)
@@ -396,8 +397,7 @@ func main() {
 		// Create the RTC config from the list of IPs
 		resp, err := makeRTCConfig(ips, turnPort, user, sharedSecret)
 		if err != nil {
-			log.Printf("ERROR: failed to make RTC config: %v", err)
-			writeStatusResponse(w, http.StatusInternalServerError, "Internal server error")
+			writeStatusResponse(w, http.StatusInternalServerError, fmt.Sprintf("failed to make RTC config: %v", err))
 			return
 		}
 		writeJSONResponse(w, http.StatusOK, resp)
@@ -463,6 +463,50 @@ func makeCredential(secret, user string) (string, string) {
 }
 
 // [END makeCredential]
+
+// Authoritative update of the Endpoints of a given Kubernetes Service with the provided list of external IPs.
+func updateDiscoverySRVService(clientset *kubernetes.Clientset, serviceName, namespace string, ips []string) {
+	if len(serviceName) == 0 {
+		return
+	}
+
+	log.Printf("Updating discovery service: %s/%s with %d ips", namespace, serviceName, len(ips))
+
+	epClient := clientset.CoreV1().Endpoints(namespace)
+
+	endpoints := &corev1.Endpoints{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: namespace,
+		},
+		Subsets: []corev1.EndpointSubset{},
+	}
+
+	for _, ip := range ips {
+		subset := corev1.EndpointSubset{
+			Addresses: []corev1.EndpointAddress{
+				corev1.EndpointAddress{
+					IP: ip,
+				},
+			},
+			Ports: []corev1.EndpointPort{
+				corev1.EndpointPort{
+					Name:     "turn",
+					Protocol: corev1.ProtocolUDP,
+					Port:     3478,
+				},
+			},
+		}
+		endpoints.Subsets = append(endpoints.Subsets, subset)
+	}
+
+	context := context.TODO()
+
+	_, err := epClient.Update(context, endpoints, metav1.UpdateOptions{})
+	if err != nil {
+		log.Printf("ERROR: failed to update endpoints on service %s/%s: %v", namespace, serviceName, err)
+	}
+}
 
 func writeStatusResponse(w http.ResponseWriter, statusCode int, message string) {
 	type statusResponse struct {

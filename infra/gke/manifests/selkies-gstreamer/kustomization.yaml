@@ -1,0 +1,11 @@
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+namespace: selkies-gstreamer
+
+resources:
+  - namespace.yaml
+  - selkies-gstreamer-gateway.yaml
+  - selkies-gstreamer-service.yaml
+  - selkies-gstreamer-statefulset.yaml
+  - selkies-gstreamer-virtualservice.yaml

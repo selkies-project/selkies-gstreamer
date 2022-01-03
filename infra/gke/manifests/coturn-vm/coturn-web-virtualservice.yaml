@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: coturn-web
+spec:
+  hosts:
+    - "*"
+  gateways:
+    # If running cluster on a Selkies GKE cluster, set this to "pod-broker-system/pod-broker-gateway"
+    - coturn
+  http:
+    - match:
+        - uri:
+            prefix: /turn/
+      route:
+        - destination:
+            host: coturn-web
+            port:
+              number: 8080
