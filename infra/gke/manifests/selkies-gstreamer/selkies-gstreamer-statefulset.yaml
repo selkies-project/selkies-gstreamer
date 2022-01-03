@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: selkies-gstreamer
+spec:
+  serviceName: selkies-gstreamer
+  selector:
+    matchLabels:
+      app: selkies-gstreamer
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: selkies-gstreamer
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 10
+      containers:
+        ###
+        # selkies-gstreamer selkies-gstreamer container
+        ###
+        - name: selkies-gstreamer
+          image: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04
+          imagePullPolicy: Always
+          env:
+            - name: COTURN_WEB_URI
+              value: "http://coturn-web.coturn.svc.cluster.local:8080"
+            - name: COTURN_AUTH_HEADER_NAME
+              value: "x-goog-authenticated-user-email"
+            - name: COTURN_WEB_USERNAME
+              value: "local:selkies-server"
+          ports:
+            - name: http-web
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 265Mi

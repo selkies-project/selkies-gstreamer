@@ -1,0 +1,16 @@
+# Headless and selector-less service.
+# Endpoints are added dynamically by the coturn-web container.
+# This allows other in-cluster services to discover the TURN external IPs using a DNS SRV query.
+apiVersion: v1
+kind: Service
+metadata:
+  name: coturn-discovery
+spec:
+  clusterIP: None
+  type: ClusterIP
+  ports:
+    - name: turn
+      port: 3478
+      protocol: UDP
+      targetPort: 3478
+  selector: {}

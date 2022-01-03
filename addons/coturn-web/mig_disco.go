@@ -178,6 +178,9 @@ func listInstanceGroups(filterPattern *regexp.Regexp, projectID, accessToken str
 	if err != nil {
 		return groupList, err
 	}
+	if resp.StatusCode != 200 {
+		return groupList, fmt.Errorf("failed to list instance groups, status code: %d", resp.StatusCode)
+	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

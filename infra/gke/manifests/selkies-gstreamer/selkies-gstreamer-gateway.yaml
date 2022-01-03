@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: selkies-gstreamer
+spec:
+  selector:
+    asm: ingressgateway-xlb
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      # Default gateway handles all hosts
+      hosts:
+        - "*"

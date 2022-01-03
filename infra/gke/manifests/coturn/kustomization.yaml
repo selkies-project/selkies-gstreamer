@@ -1,0 +1,22 @@
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+namespace: coturn
+
+secretGenerator:
+- name: turn-shared-secret
+  files:
+  - TURN_SHARED_SECRET
+  - TURN_REALM
+
+resources:
+  - namespace.yaml
+  - coturn-deploy.yaml
+  - coturn-discovery-service.yaml
+  - coturn-gateway.yaml
+  - coturn-hpa.yaml
+  - coturn-service.yaml
+  - coturn-web-rbac.yaml
+  - coturn-web-deploy.yaml
+  - coturn-web-service.yaml
+  - coturn-web-virtualservice.yaml

@@ -34,8 +34,9 @@ variable coturn_image {
   default = "ghcr.io/selkies-project/selkies-gstreamer/coturn:latest"
 }
 variable turn_realm {
-  // realm to return for TURN host. If not set, will lookup the endpoing for the turn-web Cloud run service.
-  default = ""
+  // realm to return for TURN host.
+  // If using the Cloud Run hosted coturn-web, provide the service URL.
+  // If using the default Selkies cluster for hosting coturn-web, use: "broker.endpoints.${PROJECT_ID}.cloud.goog"
 }
 
 variable turn_web_region {

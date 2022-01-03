@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coturn-web
+  labels:
+    app: coturn-web
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: coturn-web
+  labels:
+    app: coturn-web
+subjects:
+  - kind: ServiceAccount
+    name: coturn-web
+    namespace: coturn
+roleRef:
+  kind: ClusterRole
+  name: coturn-web
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: coturn-web
+  namespace: coturn
+  labels:
+    app: coturn-web
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - "endpoints"
+    verbs:
+      - "*"

@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coturn-web
+  namespace: pod-broker-system
+  labels:
+    app: coturn-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coturn-web
+  template:
+    metadata:
+      labels:
+        app: coturn-web
+    spec:
+      serviceAccount: coturn-web
+      terminationGracePeriodSeconds: 10
+      containers:
+        ###
+        # HTTP api for serving json RTC configs.
+        ###
+        - name: coturn-web
+          image: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:latest
+          imagePullPolicy: Always
+          env:
+            - name: TURN_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: turn-shared-secret
+                  key: TURN_SHARED_SECRET
+            - name: TURN_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: turn-shared-secret
+                  key: TURN_REALM
+            - name: "PORT"
+              value: "8080"
+            - name: MIG_DISCO_FILTER
+              valueFrom:
+                configMapKeyRef:
+                  name: coturn-web-config
+                  key: MIG_DISCO_FILTER
+            - name: DISCOVERY_ENDPOINTS_SRV_SERVICE_NAME
+              value: "coturn-discovery"
+            - name: DISCOVERY_ENDPOINTS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: TURN_PORT
+              value: "3478"
+            # Name of the auth header to get user name from
+            - name: AUTH_HEADER_NAME
+              value: "x-goog-authenticated-user-email"
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi

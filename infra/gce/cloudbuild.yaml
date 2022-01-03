@@ -51,4 +51,6 @@ steps:
     args:
       - -c
       - |
-        echo $_TURN_VM_REGIONS | tr ':' '\n' | xargs -P4 -I {} gcloud builds submit --substitutions=_ACTION=${_ACTION},_NAME=${_NAME},_REGION={}
+        CLOUD_RUN_URL=$(gcloud run services describe selkies-turn-web --region ${_TURN_WEB_REGION} --format='value(status.url)')
+        TURN_REALM=$${CLOUD_RUN_URL/https:\/\/}
+        echo $_TURN_VM_REGIONS | tr ':' '\n' | xargs -P4 -I {} gcloud builds submit --substitutions=_ACTION=${_ACTION},_NAME=${_NAME},_REGION={},_TURN_REALM=$$TURN_REALM
