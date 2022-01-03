@@ -75,3 +75,28 @@ echo '{}' > \$JSON_CONFIG
 selkies-gstreamer-resize 1280x720
 selkies-gstreamer &
 ```
+
+# Debugging
+
+## Manually generating a TURN credential using a Shared Secret
+
+1. Run the test container:
+
+```bash
+docker-compose run --service-ports test
+```
+
+2. From inside the test container, source the gst-env and call the `generate_rtc_config` method.
+
+```bash
+. /opt/gstreamer/gst-env
+
+export TURN_HOST="your turn host"
+export TURN_PORT="your turn port"
+export TURN_SECRET="your shared secret"
+export TURN_USER="user"
+
+python3 -c 'import os;from selkies_gstreamer.signalling_web import generate_rtc_config; print(generate_rtc_config(os.environ["TURN_HOST"], os.environ["TURN_PORT"], os.environ["TURN_SECRET"], os.environ["TURN_USER"]))'
+```
+
+> You can then test your TURN server configuration on the Trickle ICE page: https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
