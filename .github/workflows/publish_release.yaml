@@ -38,7 +38,7 @@ jobs:
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
         image_source_directory: infra/gcp/installer-image
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
+        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:latest
         image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
 
   ###
