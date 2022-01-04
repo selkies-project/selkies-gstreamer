@@ -22,15 +22,25 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
+
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
 
 	metadata "cloud.google.com/go/compute/metadata"
 	htpasswd "github.com/tg123/go-htpasswd"
@@ -49,6 +59,16 @@ type iceServerResponse struct {
 	Credential string   `json:"credential,omitempty"`
 }
 
+type ConcurrentSlice struct {
+	sync.RWMutex
+	items []interface{}
+}
+
+type ConcurrentMap struct {
+	sync.RWMutex
+	items map[string]interface{}
+}
+
 func main() {
 	externalIP := popVarFromEnv("EXTERNAL_IP", false, getMyExternalIP())
 	turnPort := popVarFromEnv("TURN_PORT", false, "3478")
@@ -56,6 +76,10 @@ func main() {
 	htpasswdFilePath := popVarFromEnv("TURN_HTPASSWD_FILE", false, "")
 	listenPort := popVarFromEnv("PORT", false, "8080")
 	authHeaderName := strings.ToLower(popVarFromEnv("AUTH_HEADER_NAME", false, "x-auth-user"))
+
+	// Env var for running in aggregator mode with K8s Endpoints discovery.
+	endpointsDiscoveryName := popVarFromEnv("DISCOVERY_ENDPOINTS_NAME", false, "")
+	endpointsDiscoveryNamespace := popVarFromEnv("DISCOVERY_ENDPOINTS_NAMESPACE", false, "")
 
 	// Env vars for running in aggregator mode.
 	discoveryDNSName := popVarFromEnv("DISCOVERY_DNS_NAME", false, "")
@@ -101,6 +125,188 @@ func main() {
 		}
 		log.Printf("INFO: forcing auth header to: 'authorization' for Basic auth with htaccess file")
 		authHeaderName = "authorization"
+	}
+
+	// Slice of external IPs in use by coturn pods.
+	// Updated by informer handlers.
+	endpointsIPsSync := ConcurrentSlice{
+		items: make([]interface{}, 0),
+	}
+
+	// Map of K8S node names to external IPs.
+	// Updated by informer handlers.
+	nodeIPsSync := ConcurrentMap{
+		items: make(map[string]interface{}, 0),
+	}
+
+	if len(endpointsDiscoveryName) > 0 && len(endpointsDiscoveryNamespace) > 0 {
+		// Running in endpoints discovery mode.
+		// This mode runs in a kubernetes cluster and watches changes to the Endpoints and Nodes.
+		// coturn pods added to the endpoints are matched to a node and the node External IP is used as the advertised TURN host.
+
+		// Flags used for connecting out-of-cluster.
+		var kubeconfig *string
+		if home := homedir.HomeDir(); home != "" {
+			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		} else {
+			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		}
+		flag.Parse()
+
+		// Kubernetes client config to watch service Endpoints
+		// Try in-cluster config
+		config, err := rest.InClusterConfig()
+		if err == nil {
+			log.Printf("using in-cluster-config")
+		} else {
+			// Try out-of-cluster config
+			outOfClusterConfig, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+			if err != nil {
+				panic(err.Error())
+			}
+			log.Printf("using out-of-cluster-config")
+			config = outOfClusterConfig
+		}
+
+		// Create the Kubernetes client
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			log.Panic(err.Error())
+			os.Exit(1)
+		}
+
+		nodeInformer := StartNodesInformer(clientset,
+			// Add func
+			func(node *corev1.Node) {
+				externalIP := ""
+				for _, address := range node.Status.Addresses {
+					if address.Type == corev1.NodeExternalIP {
+						externalIP = address.Address
+						break
+					}
+				}
+				if len(externalIP) > 0 {
+					log.Printf("Found new node with external IP: %s: %s", node.Name, externalIP)
+					nodeIPsSync.Lock()
+					defer nodeIPsSync.Unlock()
+					nodeIPsSync.items[node.Name] = externalIP
+				} else {
+					log.Printf("WARN: Node has no external IP: %s", node.Name)
+				}
+			},
+			// Delete func
+			func(node *corev1.Node) {
+				log.Printf("Node was deleted: %s", node.Name)
+				nodeIPsSync.Lock()
+				defer nodeIPsSync.Unlock()
+				delete(nodeIPsSync.items, node.Name)
+			},
+			// Update func
+			func(oldNode, newNode *corev1.Node) {
+				externalIP := ""
+				for _, address := range newNode.Status.Addresses {
+					if address.Type == corev1.NodeExternalIP {
+						externalIP = address.Address
+						break
+					}
+				}
+				if len(externalIP) > 0 {
+					if ip, ok := nodeIPsSync.items[newNode.Name]; ok {
+						if ip == externalIP {
+							// IP didn't change.
+							return
+						}
+					}
+					log.Printf("Found new node with external IP: %s: %s", newNode.Name, externalIP)
+					nodeIPsSync.Lock()
+					defer nodeIPsSync.Unlock()
+					nodeIPsSync.items[newNode.Name] = externalIP
+				} else {
+					log.Printf("WARN: Node has no external IP: %s", newNode.Name)
+				}
+			},
+		)
+		defer close(nodeInformer)
+
+		getNodesFromEP := func(ep *corev1.Endpoints) []string {
+			nodeNames := []string{}
+			for _, subset := range ep.Subsets {
+				for _, address := range subset.Addresses {
+					if address.NodeName != nil {
+						nodeNames = append(nodeNames, *address.NodeName)
+					}
+				}
+			}
+			return nodeNames
+		}
+
+		epInformer := StartEndpointsInformer(clientset,
+			// Add func
+			func(ep *corev1.Endpoints) {
+				if ep.Namespace != endpointsDiscoveryNamespace || ep.Name != endpointsDiscoveryName {
+					return
+				}
+				nodeNames := getNodesFromEP(ep)
+				if len(nodeNames) > 0 {
+					endpointsIPsSync.Lock()
+					defer endpointsIPsSync.Unlock()
+					nodeIPsSync.Lock()
+					defer nodeIPsSync.Unlock()
+
+					// Reset the list of IPs.
+					endpointsIPsSync.items = make([]interface{}, 0)
+
+					// Add all node IPs to the list of endpoints IPs.
+					for _, nodeName := range nodeNames {
+						if nodeIP, ok := nodeIPsSync.items[nodeName]; ok {
+							// Add IP to the list.
+							log.Printf("Adding external IP: %s", nodeIP)
+							endpointsIPsSync.items = append(endpointsIPsSync.items, nodeIP)
+						}
+					}
+				} else {
+					log.Printf("Endpoint found but has no subsets or nodes")
+				}
+			},
+			// Delete func
+			func(ep *corev1.Endpoints) {
+				if ep.Namespace != endpointsDiscoveryNamespace || ep.Name != endpointsDiscoveryName {
+					return
+				}
+				log.Printf("Endpoint was deleted: %s", ep.Name)
+
+				// Reset the list of IPs.
+				log.Printf("Removing all external IPs because Endpoint was deleted.")
+				endpointsIPsSync.items = make([]interface{}, 0)
+			},
+			// Update func
+			func(oldep *corev1.Endpoints, newep *corev1.Endpoints) {
+				if oldep.Namespace != endpointsDiscoveryNamespace || oldep.Name != endpointsDiscoveryName {
+					return
+				}
+				log.Printf("Endpoint was updated: %s", newep.Name)
+
+				nodeNames := getNodesFromEP(newep)
+
+				endpointsIPsSync.Lock()
+				defer endpointsIPsSync.Unlock()
+				nodeIPsSync.Lock()
+				defer nodeIPsSync.Unlock()
+
+				// Reset the list of IPs.
+				endpointsIPsSync.items = make([]interface{}, 0)
+
+				// Add all node IPs to the list of endpoints IPs.
+				for _, nodeName := range nodeNames {
+					if nodeIP, ok := nodeIPsSync.items[nodeName]; ok {
+						// Add IP to the list.
+						log.Printf("Adding external IP: %s", nodeIP)
+						endpointsIPsSync.items = append(endpointsIPsSync.items, nodeIP)
+					}
+				}
+			},
+		)
+		defer close(epInformer)
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -170,6 +376,14 @@ func main() {
 				}
 				ips = append(ips, addrs[0])
 			}
+		} else if len(endpointsDiscoveryName) > 0 && len(endpointsDiscoveryNamespace) > 0 {
+			// Kubernetes endpoints discovery mode, get ips from concurent slice.
+			ips = make([]string, 0)
+			endpointsIPsSync.Lock()
+			for _, ip := range endpointsIPsSync.items {
+				ips = append(ips, ip.(string))
+			}
+			endpointsIPsSync.Unlock()
 		} else if len(externalIP) > 0 {
 			// Standard mode, use own external IP to return single server.
 			ips = []string{externalIP}
@@ -330,5 +544,5 @@ func popVarFromEnv(envName string, isRequired bool, defaultValue string) string 
 	} else if len(value) == 0 {
 		value = defaultValue
 	}
-	return value
+	return strings.TrimSpace(value)
 }
