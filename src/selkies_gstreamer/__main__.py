@@ -359,7 +359,7 @@ def main():
     parser.add_argument('--encoder',
                         default=os.environ.get('WEBRTC_ENCODER', 'nvh264enc'),
                         help='gstreamer encoder plugin to use')
-    parser.add_argument('--enable_resize', action='store_true',
+    parser.add_argument('--enable_resize',
                         default=os.environ.get('WEBRTC_ENABLE_RESIZE', 'true'),
                         help='Enable dynamic resizing to match browser size')
     parser.add_argument('--metrics_port',
