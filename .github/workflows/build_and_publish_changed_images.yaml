@@ -38,13 +38,13 @@ jobs:
       with:
         fetch-depth: 2 # This is for changed-files.
     ###
-    # Detect changes to infra/gcp/installer-image
+    # Detect changes to infra/gce/installer-image
     ###
     - id: changes_to_infra_gcp_installer
       name: Check for GCP installer changes
       uses: tj-actions/changed-files@v1.1.2
       with:
-        files: infra/gcp/installer-image
+        files: infra/gce/installer-image
     - run: |
         echo '${{ toJSON(steps.changes_to_infra_gcp_installer) }}'
 
@@ -142,7 +142,7 @@ jobs:
         use_cache: "true"
         github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
         github_username: ${{ github.actor }}
-        image_source_directory: infra/gcp/installer-image
+        image_source_directory: infra/gce/installer-image
         image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
 
   ###
