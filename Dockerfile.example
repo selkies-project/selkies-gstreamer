@@ -109,8 +109,8 @@ until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1\n\
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
 icewm-session &\n\
-export WEBRTC_ENCODER=x264enc\n\
-export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}\n\
+export WEBRTC_ENCODER=\${WEBRTC_ENCODER:-x264enc}\n\
+export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-true}\n\
 export JSON_CONFIG=/tmp/selkies.json\n\
 echo '{}' > \$JSON_CONFIG\n\
 selkies-gstreamer-resize 1280x720\n\
