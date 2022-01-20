@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: coturn-web
-  namespace: pod-broker-system
   labels:
     app: coturn-web
 spec:
