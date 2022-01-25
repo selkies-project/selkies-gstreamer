@@ -11,16 +11,16 @@ jobs:
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
     steps:
-    - name: Set output
-      id: vars
-      run: |
-        echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-    - name: Check output
-      env:
-        RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-      run: |
-        echo $RELEASE_VERSION
-        echo ${{ steps.vars.outputs.tag }}
+      - name: Set output
+        id: vars
+        run: |
+          echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.vars.outputs.tag }}
   ###
   # GCP infrastructure installer image
   ###
@@ -28,14 +28,14 @@ jobs:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: infra/gce/installer-image
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: infra/gce/installer-image
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
+          use_cache: "true"
 
   ###
   # Coturn image
@@ -44,14 +44,14 @@ jobs:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/coturn
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: addons/coturn
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
+          use_cache: "true"
 
   ###
   # Coturn Web image
@@ -60,14 +60,14 @@ jobs:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/coturn-web
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: addons/coturn-web
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
+          use_cache: "true"
 
   ###
   # gst-web image
@@ -76,14 +76,14 @@ jobs:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/gst-web
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: addons/gst-web
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+          use_cache: "true"
 
   ###
   # Gstreamer image, Ubuntu 18.04.
@@ -92,15 +92,15 @@ jobs:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/gstreamer
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu18.04
-        build_args: BASE_IMAGE=ubuntu:18.04;
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          build_args: BASE_IMAGE=ubuntu:18.04;
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: addons/gstreamer
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu18.04
+          use_cache: "true"
 
   ###
   # Gstreamer image, Ubuntu 20.04.
@@ -109,15 +109,15 @@ jobs:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: addons/gstreamer
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu20.04
-        build_args: BASE_IMAGE=ubuntu:20.04;
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          build_args: BASE_IMAGE=ubuntu:20.04;
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: addons/gstreamer
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu20.04
+          use_cache: "true"
 
   ###
   # Python package image
@@ -126,56 +126,56 @@ jobs:
     needs: release_version
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }}
-        build_args: PACKAGE_VERSION=0.0.0.dev0
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          build_args: PACKAGE_VERSION=0.0.0.dev0
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: .
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }}
+          use_cache: "true"
 
   ###
   # Example image, Ubuntu 18.04
   ###
   build_gst-py-example_ubuntu1804:
     needs:
-    - release_version
-    - build_addons_gst-web
-    - build_addons_gstreamer_ubuntu1804
-    - build_py_build
+      - release_version
+      - build_addons_gst-web
+      - build_addons_gstreamer_ubuntu1804
+      - build_py_build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        dockerfile: Dockerfile.example
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}-ubuntu18.04
-        build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=18.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=18.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+          dockerfile: Dockerfile.example
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: .
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}-ubuntu18.04
+          use_cache: "true"
 
   ###
   # Example image, Ubuntu 20.04
   ###
   build_gst-py-example_ubuntu2004:
     needs:
-    - release_version
-    - build_addons_gst-web
-    - build_addons_gstreamer_ubuntu2004
-    - build_py_build
+      - release_version
+      - build_addons_gst-web
+      - build_addons_gstreamer_ubuntu2004
+      - build_py_build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/build_and_publish_image
-      with:
-        use_cache: "true"
-        dockerfile: Dockerfile.example
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: ${{ github.actor }}
-        image_source_directory: .
-        image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
-        build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/build_and_publish_image
+        with:
+          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
+          dockerfile: Dockerfile.example
+          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+          github_username: ${{ github.actor }}
+          image_source_directory: .
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
+          use_cache: "true"
