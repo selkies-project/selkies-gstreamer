@@ -6,306 +6,95 @@ on:
       - master
 
 jobs:
-  ###
-  # Get release version from build context
-  ###
-  release_version:
+  # Note: When modifying this job, copy modifications to all other workflows' image jobs.
+  changed_images:
     runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.vars.outputs.tag }}
-    steps:
-      - name: Set output
-        id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-      - name: Check output
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-        run: |
-          echo $RELEASE_VERSION
-          echo ${{ steps.vars.outputs.tag }}
-  detect_image_source_changes:
-    runs-on: ubuntu-latest
-    outputs:
-      infra_gcp_installer_changed: ${{ steps.changes_to_infra_gcp_installer.outputs.any_changed == 'true' || steps.changes_to_infra_gcp_installer.outputs.any_deleted == 'true' }}
-      addons_coturn_changed: ${{ steps.changes_to_addons_coturn.outputs.any_changed == 'true' || steps.changes_to_addons_coturn.outputs.any_deleted == 'true' }}
-      addons_coturn-web_changed: ${{ steps.changes_to_addons_coturn-web.outputs.any_changed == 'true' || steps.changes_to_addons_coturn-web.outputs.any_deleted == 'true' }}
-      addons_gst-web_changed: ${{ steps.changes_to_addons_gst-web.outputs.any_changed == 'true' || steps.changes_to_addons_gst-web.outputs.any_deleted == 'true' }}
-      addons_gstreamer_changed: ${{ steps.changes_to_addons_gstreamer.outputs.any_changed == 'true' || steps.changes_to_addons_gstreamer.outputs.any_deleted == 'true' }}
-      py_build_changed: ${{ steps.changes_to_py_build.outputs.any_changed == 'true' || steps.changes_to_py_build.outputs.any_deleted == 'true' }}
-      gst_py_test_changed: ${{ steps.changes_to_gst_py_example.outputs.any_changed == 'true' || steps.changes_to_gst_py_example.outputs.any_deleted == 'true' }}
+    strategy:
+      matrix:
+        include:
+          - name: coturn
+            source_directory: addons/coturn
+            source_files_for_diff: addons/coturn
+
+          - name: coturn-web
+            source_directory: addons/coturn-web
+            source_files_for_diff: addons/coturn-web
+
+          - name: gst-py-example
+            version_suffix: -ubuntu18.04
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=18.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
+            dockerfile: Dockerfile.example
+            source_directory: .
+            source_files_for_diff: |
+              addons
+              src
+              Dockerfile
+              Dockerfile.example
+              pyproject.toml
+              setup.cfg
+              .github/workflows/build_and_publish_changed_images.yaml
+
+          - name: gst-py-example
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
+            dockerfile: Dockerfile.example
+            source_directory: .
+            source_files_for_diff: |
+              addons
+              src
+              Dockerfile
+              Dockerfile.example
+              pyproject.toml
+              setup.cfg
+              .github/workflows/build_and_publish_changed_images.yaml
+
+          - name: gst-web
+            source_directory: addons/gst-web
+            source_files_for_diff: addons/gst-web
+
+          - name: gstreamer
+            version_suffix: -ubuntu18.04
+            build_args: BASE_IMAGE=ubuntu:18.04;
+            source_directory: addons/gstreamer
+            source_files_for_diff: addons/streamer
+
+          - name: gstreamer
+            version_suffix: -ubuntu20.04
+            build_args: BASE_IMAGE=ubuntu:20.04;
+            source_directory: addons/gstreamer
+            source_files_for_diff: addons/gstreamer
+
+          - name: infra-gcp-installer
+            source_directory: infra/gce/installer-image
+            source_files_for_diff: infra/gce/installer-image
+
+          - name: py-build
+            build_args: PACKAGE_VERSION=0.0.0.dev0
+            source_directory: .
+            source_files_for_diff: |
+              ^src
+              ^Dockerfile$
+              pyproject.toml
+              setup.cfg
+              .github/workflows/build_and_publish_changed_images.yaml
+
+    name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 2 # This is for changed-files.
-      ###
-      # Detect changes to infra/gce/installer-image
-      ###
-      - id: changes_to_infra_gcp_installer
-        name: Check for GCP installer changes
+
+      - name: Check for changes to image source
+        id: check
         uses: tj-actions/changed-files@v1.1.2
         with:
-          files: infra/gce/installer-image
-      - run: |
-          echo '${{ toJSON(steps.changes_to_infra_gcp_installer) }}'
+          files: ${{ matrix.source_files_for_diff }}
 
-      ###
-      # Detect changes to addons/coturn
-      ###
-      - id: changes_to_addons_coturn
-        name: Check for coTURN changes
-        uses: tj-actions/changed-files@v1.1.2
-        with:
-          files: addons/coturn
-      - run: |
-          echo '${{ toJSON(steps.changes_to_addons_coturn) }}'
-
-      ###
-      # Detect changes to addons/coturn-web
-      ###
-      - id: changes_to_addons_coturn-web
-        name: Check for coTURN web changes
-        uses: tj-actions/changed-files@v1.1.2
-        with:
-          files: addons/coturn-web
-      - run: |
-          echo '${{ toJSON(steps.changes_to_addons_coturn-web) }}'
-
-      ###
-      # Detect changes to addons/gst-web
-      ###
-      - id: changes_to_addons_gst-web
-        name: Check for gst-web changes
-        uses: tj-actions/changed-files@v1.1.2
-        with:
-          files: addons/gst-web
-      - run: |
-          echo '${{ toJSON(steps.changes_to_addons_gst-web) }}'
-
-      ###
-      # Detect changes to addons/gstreamer
-      ###
-      - id: changes_to_addons_gstreamer
-        name: Check for gstreamer changes
-        uses: tj-actions/changed-files@v1.1.2
-        with:
-          files: addons/gstreamer
-      - run: |
-          echo '${{ toJSON(steps.changes_to_addons_gstreamer) }}'
-
-      ###
-      # Detect changes to python build image
-      ###
-      - id: changes_to_py_build
-        name: Check for python dist changes
-        uses: tj-actions/changed-files@v1.1.2
-        with:
-          files: |
-            ^src
-            ^Dockerfile$
-            pyproject.toml
-            setup.cfg
-            .github/workflows/build_and_publish_changed_images.yaml
-      - run: |
-          echo '${{ toJSON(steps.changes_to_py_build) }}'
-
-      ###
-      # Detect changes to example image
-      ###
-      - id: changes_to_gst_py_example
-        name: Check for example changes
-        uses: tj-actions/changed-files@v1.1.2
-        with:
-          files: |
-            addons
-            src
-            Dockerfile
-            Dockerfile.example
-            pyproject.toml
-            setup.cfg
-            .github/workflows/build_and_publish_changed_images.yaml
-      - run: |
-          echo '${{ toJSON(steps.changes_to_gst_py_example) }}'
-
-  ###
-  # GCP infrastructure installer image
-  ###
-  build_infra_gcp_installer:
-    needs:
-      - release_version
-      - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.infra_gcp_installer_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
+      - name: Build & publish ${{ matrix.name }} image
+        if: steps.check.outputs.any_changed == 'true' || steps.check.outputs.any_deleted == 'true'
+        uses: ./.github/actions/build_and_publish_image
         with:
           github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: infra/gce/installer-image
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/infra-gcp-installer:${{ needs.release_version.outputs.tag }}
-          use_cache: "true"
-
-  ###
-  # Coturn image
-  ###
-  build_addons_coturn:
-    needs:
-      - release_version
-      - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_coturn_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: addons/coturn
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn:${{ needs.release_version.outputs.tag }}
-          use_cache: "true"
-
-  ###
-  # Coturn Web image
-  ###
-  build_addons_coturn-web:
-    needs:
-      - release_version
-      - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_coturn-web_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: addons/coturn-web
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/coturn-web:${{ needs.release_version.outputs.tag }}
-          use_cache: "true"
-
-  ###
-  # gst-web image
-  ###
-  build_addons_gst-web:
-    needs:
-      - release_version
-      - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_gst-web_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: addons/gst-web
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
-          use_cache: "true"
-
-  ###
-  # Gstreamer image, ubuntu 18.04
-  ###
-  build_addons_gstreamer_ubuntu1804:
-    needs:
-      - release_version
-      - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: BASE_IMAGE=ubuntu:18.04;
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: addons/gstreamer
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu18.04
-          use_cache: "true"
-
-  ###
-  # Gstreamer image, latest and ubuntu 20.04
-  ###
-  build_addons_gstreamer_ubuntu2004:
-    needs:
-      - release_version
-      - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.addons_gstreamer_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: BASE_IMAGE=ubuntu:20.04;
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: addons/gstreamer
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ needs.release_version.outputs.tag }}-ubuntu20.04
-          use_cache: "true"
-
-  ###
-  # Python package image
-  ###
-  build_py_build:
-    needs:
-      - release_version
-      - detect_image_source_changes
-    if: needs.detect_image_source_changes.outputs.py_build_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: PACKAGE_VERSION=0.0.0-dev
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: .
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }}
-          use_cache: "true"
-
-  ###
-  # Test image, Ubuntu 18.04
-  ###
-  build_gst-py-example_ubuntu1804:
-    needs:
-      - release_version
-      - detect_image_source_changes
-      - build_addons_gst-web
-      - build_addons_gstreamer_ubuntu1804
-      - build_py_build
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=18.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
-          dockerfile: Dockerfile.example
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: .
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}-ubuntu18.04
-          use_cache: "true"
-
-  ###
-  # Test image, Ubuntu 20.04
-  ###
-  build_gst-py-example_ubuntu2004:
-    needs:
-      - release_version
-      - detect_image_source_changes
-      - build_addons_gst-web
-      - build_addons_gstreamer_ubuntu2004
-      - build_py_build
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ needs.release_version.outputs.tag }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ needs.release_version.outputs.tag }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ needs.release_version.outputs.tag }}
-          dockerfile: Dockerfile.example
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: ${{ github.actor }}
-          image_source_directory: .
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:${{ needs.release_version.outputs.tag }}
+          github_username: $GITHUB_ACTOR
+          image_source_directory: ${{ matrix.source_directory }}
+          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/${{ matrix.name }}:$GITHUB_REF_NAME${{ matrix.version_suffix }}
           use_cache: "true"
