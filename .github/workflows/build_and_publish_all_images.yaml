@@ -57,4 +57,3 @@ jobs:
           github_username: $GITHUB_ACTOR
           image_source_directory: ${{ matrix.source_directory }}
           image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/${{ matrix.name }}:$GITHUB_REF_NAME${{ matrix.version_suffix }}
-          use_cache: "true"

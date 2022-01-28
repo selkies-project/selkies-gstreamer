@@ -26,6 +26,7 @@ inputs:
     description: A tag for the image, such as "ghcr.io/user/repo/foo:bar"
     required: false
   use_cache:
+    default: "true"
     description: Use cached layers from pre-published image with version 1 (true/false)
     required: false
 
