@@ -130,7 +130,7 @@ def generate_xrandr_gtf_modeline(res):
     else:
         raise Exception("unsupported input resolution format: {}".format(res))
 
-    with os.popen('cvt ' + gtf_res) as pipe:
+    with os.popen('cvt -r ' + gtf_res) as pipe:
         for line in pipe:
             modeline_ma = re.match(modeline_pat, line.strip())
             if modeline_ma:
