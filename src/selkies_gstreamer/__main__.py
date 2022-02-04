@@ -362,6 +362,9 @@ def main():
     parser.add_argument('--enable_resize',
                         default=os.environ.get('WEBRTC_ENABLE_RESIZE', 'true'),
                         help='Enable dynamic resizing to match browser size')
+    parser.add_argument('--enable_cursors',
+                        default=os.environ.get('WEBRTC_ENABLE_CURSORS', 'true'),
+                        help='Enable passing remote cursors to client')
     parser.add_argument('--metrics_port',
                         default=os.environ.get('METRICS_PORT', '8000'),
                         help='port to start metrics server on')
@@ -472,6 +475,7 @@ def main():
     curr_fps = int(args.framerate)
     curr_video_bitrate = int(args.video_bitrate)
     curr_audio_bitrate = int(args.audio_bitrate)
+    enable_cursors = args.enable_cursors.lower() == "true"
 
     # Create instance of app
     app = GSTWebRTCApp(stun_servers, turn_servers, enable_audio, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
@@ -494,7 +498,10 @@ def main():
     signalling.on_session = app.start_pipeline
 
     # Initialize the Xinput instance
-    webrtc_input = WebRTCInput(args.uinput_mouse_socket, args.uinput_js_socket, args.enable_clipboard.lower())
+    webrtc_input = WebRTCInput(args.uinput_mouse_socket, args.uinput_js_socket, args.enable_clipboard.lower(), enable_cursors)
+
+    # Handle changed cursors
+    webrtc_input.on_cursor_change = lambda data: app.send_cursor_data(data)
 
     # Log message when data channel is open
     def data_channel_ready():
@@ -507,6 +514,7 @@ def main():
         app.send_audio_enabled(app.audio)
         app.send_resize_enabled(enable_resize)
         app.send_encoder(app.encoder)
+        app.send_cursor_data(app.last_cursor_sent)
 
     app.on_data_open = lambda: data_channel_ready()
 
@@ -667,6 +675,7 @@ def main():
         metrics.start()
         loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
+        loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
         loop.run_in_executor(None, lambda: gpu_mon.start())
         loop.run_in_executor(None, lambda: hmac_turn_mon.start())
         loop.run_in_executor(None, lambda: coturn_mon.start())
@@ -682,6 +691,7 @@ def main():
         sys.exit(1)
     finally:
         webrtc_input.stop_clipboard()
+        webrtc_input.stop_cursor_monitor()
         webrtc_input.disconnect()
         gpu_mon.stop()
         coturn_mon.stop()

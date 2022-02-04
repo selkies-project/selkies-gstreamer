@@ -158,6 +158,8 @@ class Input {
         ];
 
         this.send(toks.join(","));
+
+        event.preventDefault();
     }
 
     /**

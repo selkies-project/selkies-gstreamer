@@ -12,20 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from Xlib import X, XK, display, ext
+from Xlib import display
+from Xlib.ext import xfixes
 import base64
 import pynput
+import io
 import uinput
-import os
 import msgpack
 import re
+import os
 import subprocess
 from subprocess import Popen, PIPE, STDOUT
 import socket
 import time
+from PIL import Image
 
 import logging
 logger = logging.getLogger("webrtc_input")
+logger.setLevel(logging.INFO)
 
 JS_BTNS = (
     uinput.BTN_GAMEPAD,
@@ -85,7 +89,7 @@ class WebRTCInputError(Exception):
 
 
 class WebRTCInput:
-    def __init__(self, uinput_mouse_socket_path="", uinput_js_socket_path="", enable_clipboard=""):
+    def __init__(self, uinput_mouse_socket_path="", uinput_js_socket_path="", enable_clipboard="", enable_cursors=True):
         """Initializes WebRTC input instance
         """
         self.clipboard_running = False
@@ -96,6 +100,13 @@ class WebRTCInput:
         self.uinput_js_socket = None
 
         self.enable_clipboard = enable_clipboard
+
+        self.enable_cursors = enable_cursors
+        self.cursors_running = False
+        self.cursor_cache = {}
+        self.cursor_resize_width = 24
+        self.cursor_resize_height = 24
+        self.cursor_debug = os.environ.get("DEBUG_CURSORS", "false").lower() == "true"
 
         self.keyboard = None
         self.mouse = None
@@ -127,6 +138,8 @@ class WebRTCInput:
             'unhandled on_resize')
         self.on_ping_response = lambda latency: logger.warn(
             'unhandled on_ping_response')
+        self.on_cursor_change = lambda msg: logger.warn(
+            'unhandled on_cursor_change')
 
     def __keyboard_connect(self):
         self.keyboard = pynput.keyboard.Controller()
@@ -378,6 +391,80 @@ class WebRTCInput:
     def stop_clipboard(self):
         logger.info("stopping clipboard monitor")
         self.clipboard_running = False
+
+    def start_cursor_monitor(self):
+        if not self.xdisplay.has_extension('XFIXES'):
+            if self.xdisplay.query_extension('XFIXES') is None:
+                logger.error('XFIXES extension not supported, cannot watch cursor changes')
+                return
+        xfixes_version = self.xdisplay.xfixes_query_version()
+        logger.info('Found XFIXES version %s.%s' % (
+            xfixes_version.major_version,
+            xfixes_version.minor_version,
+        ))
+
+        logger.info("starting cursor monitor")
+        self.cursor_cache = {}
+        self.cursors_running = True
+        screen = self.xdisplay.screen()
+        self.xdisplay.xfixes_select_cursor_input(screen.root, xfixes.XFixesDisplayCursorNotifyMask)
+        logger.info("watching for cursor changes")
+
+        # Fetch initial cursor
+        image = self.xdisplay.xfixes_get_cursor_image(screen.root)
+        self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
+        self.on_cursor_change(self.cursor_cache[image.cursor_serial])
+
+        while self.cursors_running:
+            e = self.xdisplay.next_event()
+            if (e.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
+                image = self.xdisplay.xfixes_get_cursor_image(screen.root)
+                cached = False
+                if self.cursor_cache.get(image.cursor_serial):
+                    cached = True
+                else:
+                    self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
+
+                if self.cursor_debug:
+                    logger.info("Cursor changed: position={},{}, size={}x{}, xyhot={},{}, cursor_serial={}, cached={}".format(image.x, image.y, image.width,image.height, image.xhot, image.yhot, image.cursor_serial, cached))
+                self.on_cursor_change(self.cursor_cache.get(image.cursor_serial))
+        logger.info("exiting cursor monitor")
+
+    def stop_cursor_monitor(self):
+        logger.info("stopping cursor monitor")
+        self.cursors_running = False
+
+    def cursor_to_msg(self, cursor, target_width, target_height):
+        png_data_b64 = base64.b64encode(self.cursor_to_png(cursor, target_width, target_height))
+        return {
+            "curdata": png_data_b64.decode(),
+            "handle": cursor.cursor_serial,
+            "hotspot": {
+                "x": cursor.xhot,
+                "y": cursor.yhot,
+            },
+        }
+
+    def cursor_to_png(self, cursor, resize_width, resize_height):
+        with io.BytesIO() as f:
+            # Extract each component to RGBA bytes.
+            s = [((i >> b) & 0xFF) for i in cursor.cursor_image for b in [16,8,0,24]]
+
+            # Create raw image from pixel bytes
+            im = Image.frombytes('RGBA', (cursor.width,cursor.height), bytes(s), 'raw')
+
+            if cursor.width != resize_width or cursor.height != resize_height:
+                # Resize cursor to target size.
+                im = im.resize((resize_width, resize_height))
+
+            # Save image as PNG
+            im.save(f, "PNG")
+            data = f.getvalue()
+
+            if self.cursor_debug:
+                with open("/tmp/cursor_%d.png" % cursor.cursor_serial, 'wb') as debugf:
+                    debugf.write(data)
+            return data
 
     def on_message(self, msg):
         """Handles incoming input messages

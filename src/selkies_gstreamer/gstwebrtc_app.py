@@ -75,6 +75,7 @@ class GSTWebRTCApp:
 
         self.pipeline = None
         self.ximagesrc = None
+        self.last_cursor_sent = None
 
     def stop_ximagesrc(self):
         """Helper function to stop the ximagesrc, useful when resizing
@@ -746,6 +747,11 @@ class GSTWebRTCApp:
     def send_clipboard_data(self, data):
         self.__send_data_channel_message(
             "clipboard", {"content": base64.b64encode(data.encode()).decode("utf-8")})
+
+    def send_cursor_data(self, data):
+        self.last_cursor_sent = data
+        self.__send_data_channel_message(
+            "cursor", data)
 
     def send_gpu_stats(self, load, memory_total, memory_used):
         """Sends GPU stats to the data channel
