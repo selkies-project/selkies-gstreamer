@@ -501,6 +501,17 @@ webrtc.onclipboardcontent = (content) => {
     }
 }
 
+var _cursor_cache = new Map();
+webrtc.oncursorchange = (handle, curdata, hotspot) => {
+    if (!_cursor_cache.has(handle)) {
+        // Add cursor to cache.
+        const cursor_url = "url('data:image/png;base64," + curdata + "')";
+        this._cursor_cache.set(handle, cursor_url);
+    }
+    var cursor_url = this._cursor_cache.get(handle);
+    videoElement.style.cursor = cursor_url + ", auto";
+}
+
 webrtc.onsystemaction = (action) => {
     webrtc._setStatus("Executing system action: " + action);
     if (action === 'reload') {

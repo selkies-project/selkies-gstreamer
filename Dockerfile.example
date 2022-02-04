@@ -41,7 +41,8 @@ RUN \
         pulseaudio \
         libpulse0 \
         libpangocairo-1.0-0 \
-        libgirepository1.0-dev && \
+        libgirepository1.0-dev \
+        git && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
