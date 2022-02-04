@@ -16,14 +16,17 @@ inputs:
   github_username:
     description: GitHub username, for authentication
     required: true
+  image_name:
+    description: The name for the image (i.e. "image" in "ghcr.io/user/repo/image:foo")
+    required: true
   image_source_directory:
     description: Image source directory path
     required: true
-  image_tag_1:
-    description: A tag for the image, such as "ghcr.io/user/repo/foo:bar"
+  image_version_1:
+    description: A tag for the image (i.e. "foo" in "ghcr.io/user/repo/image:foo")
     required: true
-  image_tag_2:
-    description: A tag for the image, such as "ghcr.io/user/repo/foo:bar"
+  image_version_2:
+    description: Another tag for the image (i.e. "bar" in "ghcr.io/user/repo/image:bar")
     required: false
   use_cache:
     default: "true"
@@ -42,15 +45,19 @@ runs:
           IFS=";" read -ra args <<< "${{ inputs.build_args }}"
           for arg in ${args[@]}; do BUILD_ARGS+="--build-arg $arg "; done
         fi
-        if [[ "${{ inputs.use_cache }}" == "true" ]]; then
-          docker pull ${{ inputs.image_tag_1 }} || true
-          (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} --cache-from ${{ inputs.image_tag_1 }} -t ${{ inputs.image_tag_1 }} .)
-        else
-          (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} -t ${{ inputs.image_tag_1 }} .)
-        fi
-        docker push ${{ inputs.image_tag_1 }}
 
-        if [ '${{ inputs.image_tag_2 }}' != '' ]; then
-          docker tag ${{ inputs.image_tag_1 }} ${{ inputs.image_tag_2 }}
-          docker push ${{ inputs.image_tag_2 }}
+        export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-vdi/
+        export IMAGE_TAG_1="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_1 }}"
+        if [[ "${{ inputs.use_cache }}" == "true" ]]; then
+          docker pull $IMAGE_TAG_1 || true
+          (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} --cache-from $IMAGE_TAG_1 -t $IMAGE_TAG_1 .)
+        else
+          (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} -t $IMAGE_TAG_1 .)
+        fi
+        docker push $IMAGE_TAG_1
+
+        if [ '${{ inputs.image_version_2 }}' != '' ]; then
+          export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}${{ inputs.image_version_suffix }}"
+          docker tag $IMAGE_TAG_1 $IMAGE_TAG_2
+          docker push $IMAGE_TAG_2
         fi

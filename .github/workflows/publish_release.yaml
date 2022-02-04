@@ -59,9 +59,10 @@ jobs:
           build_args: ${{ matrix.build_args }}
           github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
           github_username: $GITHUB_ACTOR
+          image_name: ${{ matrix.name }}
           image_source_directory: ${{ matrix.source_directory }}
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/${{ matrix.name }}:$GITHUB_REF_NAME${{ matrix.version_suffix }}
-          image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/${{ matrix.name }}:latest${{ matrix.version_suffix }}
+          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+          image_version_2: latest${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   all_example_images:
@@ -93,9 +94,10 @@ jobs:
           build_args: ${{ matrix.build_args }}
           github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
           github_username: $GITHUB_ACTOR
+          image_name: ${{ matrix.name }}
           image_source_directory: ${{ matrix.source_directory }}
-          image_tag_1: ghcr.io/selkies-project/selkies-gstreamer/${{ matrix.name }}:$GITHUB_REF_NAME${{ matrix.version_suffix }}
-          image_tag_2: ghcr.io/selkies-project/selkies-gstreamer/${{ matrix.name }}:latest${{ matrix.version_suffix }}
+          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+          image_version_2: latest${{ matrix.version_suffix }}
 
   # TODO: Refactor asset jobs with matrix syntax.
   asset_gstreamer_ubuntu1804:
