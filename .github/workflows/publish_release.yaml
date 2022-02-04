@@ -99,227 +99,136 @@ jobs:
           image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
           image_version_2: latest${{ matrix.version_suffix }}
 
-  # TODO: Refactor asset jobs with matrix syntax.
-  asset_gstreamer_ubuntu1804:
-    name: Publish gstreamer-ubuntu1804 asset to GCS
-    runs-on: ubuntu-latest
-    needs: all_component_images
-    outputs:
-      path: ${{ steps.extract.outputs.path }}
-      name: ${{ steps.extract.outputs.name }}
-      mimetype: ${{ steps.extract.outputs.mimetype }}
-    steps:
-      - name: Extract and upload to GCS
-        id: extract
-        env:
-          GCS_SA_KEY: ${{ secrets.GCP_ACTIONS_SA_KEY }}
-          RELEASE_VERSION: ${{ github.ref_name }}
-        run: |
-          # GHCR Login
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-          # GCS Login
-          cat - > /tmp/sa_key.json <<EOF
-          ${{ secrets.GCP_ACTIONS_SA_KEY }}
-          EOF
-          gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
-
-          # Docker create
-          docker create --name copy ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${RELEASE_VERSION}-ubuntu18.04
-
-          # Docker copy and create tarball
-          docker cp copy:/opt/selkies-gstreamer-latest.tgz /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz
-
-          # Docker rm
-          docker rm copy
-
-          # Copy to GCS
-          gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
-
-          echo ::set-output name=path::/tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz
-          echo ::set-output name=name::selkies-gstreamer-${RELEASE_VERSION}-ubuntu18.04.tgz
-          echo ::set-output name=mimetype::application/tar+gzip
-
-      - uses: actions/cache@v2
-        with:
-          key: gstreamer-asset-ubuntu1804
-          path: ${{ steps.extract.outputs.path }}
-
-  asset_gstreamer_ubuntu2004:
-    name: Publish gstreamer-ubuntu2004 asset to GCS
-    runs-on: ubuntu-latest
-    needs: all_component_images
-    outputs:
-      path: ${{ steps.extract.outputs.path }}
-      name: ${{ steps.extract.outputs.name }}
-      mimetype: ${{ steps.extract.outputs.mimetype }}
-    steps:
-      - name: Extract and upload to GCS
-        id: extract
-        env:
-          GCS_SA_KEY: ${{ secrets.GCP_ACTIONS_SA_KEY }}
-          RELEASE_VERSION: ${{ github.ref_name }}
-        run: |
-          # GHCR Login
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-          # GCS Login
-          cat - > /tmp/sa_key.json <<EOF
-          ${{ secrets.GCP_ACTIONS_SA_KEY }}
-          EOF
-          gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
-
-          # Docker create
-          docker create --name copy ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${RELEASE_VERSION}-ubuntu20.04
-
-          # Docker copy and create tarball
-          docker cp copy:/opt/selkies-gstreamer-latest.tgz /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz
-
-          # Docker rm
-          docker rm copy
-
-          # Copy to GCS
-          gsutil cp /tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
-
-          echo ::set-output name=path::/tmp/selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz
-          echo ::set-output name=name::selkies-gstreamer-${RELEASE_VERSION}-ubuntu20.04.tgz
-          echo ::set-output name=mimetype::application/tar+gzip
-
-      - uses: actions/cache@v2
-        with:
-          key: gstreamer-asset-ubuntu2004
-          path: ${{ steps.extract.outputs.path }}
-
-  asset_gst_py:
-    name: Publish gst-py asset to GCS
-    runs-on: ubuntu-latest
+  all_assets:
     needs:
-      - get_semver
       - all_component_images
-    outputs:
-      path: ${{ steps.extract.outputs.path }}
-      name: ${{ steps.extract.outputs.name }}
-      mimetype: ${{ steps.extract.outputs.mimetype }}
-    steps:
-      - name: Extract and upload to GCS
-        id: extract
-        env:
-          GCS_SA_KEY: ${{ secrets.GCP_ACTIONS_SA_KEY }}
-          PACKAGE_VERSION: ${{ needs.get_semver.outputs.semver }}
-          PYPI_PACKAGE: selkies_gstreamer
-          RELEASE_VERSION: ${{ github.ref_name }}
-        run: |
-          # TODO: Assert that all env vars are set.
-
-          # GHCR Login
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-          # GCS Login
-          cat - > /tmp/sa_key.json <<EOF
-          ${{ secrets.GCP_ACTIONS_SA_KEY }}
-          EOF
-          gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
-
-          # Docker create
-          docker create --name copy ghcr.io/selkies-project/selkies-gstreamer/py-build:${RELEASE_VERSION}
-
-          # Docker copy and create tarball
-          docker cp copy:/opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl /tmp/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
-
-          # Docker rm
-          docker rm copy
-
-          # Copy to GCS
-          gsutil cp /tmp/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
-
-          echo ::set-output name=path::/tmp/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
-          echo ::set-output name=name::${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
-          echo ::set-output name=mimetype::application/x-pywheel+zip
-
-      - uses: actions/cache@v2
-        with:
-          key: gst-py-asset
-          path: ${{ steps.extract.outputs.path }}
-
-  asset_gst_web:
-    name: Publish gst-web asset to GCS
+      - get_semver
     runs-on: ubuntu-latest
-    needs: all_component_images
     outputs:
-      path: ${{ steps.extract.outputs.path }}
-      name: ${{ steps.extract.outputs.name }}
-      mimetype: ${{ steps.extract.outputs.mimetype }}
-    steps:
-      - name: Extract and upload to GCS
-        id: extract
-        env:
-          GCS_SA_KEY: ${{ secrets.GCP_ACTIONS_SA_KEY }}
-          RELEASE_VERSION: ${{ github.ref_name }}
-        run: |
-          # GHCR Login
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      gst18_cache_key: ${{ steps.extract.outputs.gst18_cache_key }}
+      gst18_mimetype: ${{ steps.extract.outputs.gst18_mimetype }}
+      gst18_name: ${{ steps.extract.outputs.gst18_name }}
+      gst18_path: ${{ steps.extract.outputs.gst18_path }}
+      gst20_cache_key: ${{ steps.extract.outputs.gst20_cache_key }}
+      gst20_mimetype: ${{ steps.extract.outputs.gst20_mimetype }}
+      gst20_name: ${{ steps.extract.outputs.gst20_name }}
+      gst20_path: ${{ steps.extract.outputs.gst20_path }}
+      py_cache_key: ${{ steps.extract.outputs.py_cache_key }}
+      py_mimetype: ${{ steps.extract.outputs.py_mimetype }}
+      py_name: ${{ steps.extract.outputs.py_name }}
+      py_path: ${{ steps.extract.outputs.py_path }}
+      web_cache_key: ${{ steps.extract.outputs.web_cache_key }}
+      web_mimetype: ${{ steps.extract.outputs.web_mimetype }}
+      web_name: ${{ steps.extract.outputs.web_name }}
+      web_path: ${{ steps.extract.outputs.web_path }}
+    strategy:
+      matrix:
+        include:
+          - id: gst18
+            cache_key: gstreamer-asset-ubuntu1804
+            description: Ubuntu 18.04
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu18.04
+            mimetype: application/tar+gzip
+            source_path: /opt/selkies-gstreamer-latest.tgz
+            target_directory: /tmp
+            target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu18.04.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
 
-          # GCS Login
+          - id: gst20
+            cache_key: gstreamer-asset-ubuntu2004
+            description: Ubuntu 20.04
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu20.04
+            mimetype: application/tar+gzip
+            source_path: /opt/selkies-gstreamer-latest.tgz
+            target_directory: /tmp
+            target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu20.04.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+          
+          - id: py
+            cache_key: gst-py-asset
+            description: Python
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }}
+            mimetype: application/x-pywheel+zip
+            source_path: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
+            target_directory: /tmp
+            target_name: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+          
+          - id: web
+            cache_key: gst-web-asset
+            description: Web
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
+            mimetype: application/tar+gzip
+            source_path: /usr/share/nginx/html
+            target_directory: /tmp
+            target_name: selkies-gstreamer-web-${{ github.ref_name }}.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+
+    name: ${{ matrix.description }} asset extraction
+    steps:
+      - id: extract
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cat - > /tmp/sa_key.json <<EOF
           ${{ secrets.GCP_ACTIONS_SA_KEY }}
           EOF
           gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
 
-          # Docker create
-          docker create --name copy ghcr.io/selkies-project/selkies-gstreamer/gst-web:${RELEASE_VERSION}
-
-          # Docker copy and create tarball
-          (cd /tmp && docker cp copy:/usr/share/nginx/html ./gst-web && tar zcvf /tmp/selkies-gstreamer-web-${RELEASE_VERSION}.tgz gst-web)
-
-          # Docker rm
+          docker create --name copy ${{ matrix.image_tag }}
+          TARGET_PATH=${{ matrix.target_directory }}/${{ matrix.target_name }}
+          if [[ ${{ matrix.source_path }} == *\.whl || ${{ matrix.source_path }} == *\.tgz ]]
+          then
+            docker cp copy:${{ matrix.source_path }} $TARGET_PATH
+          else
+            (
+              cd ${{ matrix.target_directory }} &&
+              docker cp copy:${{ matrix.source_path }} ./temp &&
+              tar zcvf $TARGET_PATH temp
+            )
+          fi
           docker rm copy
+          gsutil cp $TARGET_PATH ${{ matrix.upload_bucket_path }}
 
-          # Copy to GCS
-          gsutil cp /tmp/selkies-gstreamer-web-${RELEASE_VERSION}.tgz gs://selkies-project-releases/selkies-gstreamer/${RELEASE_VERSION}/
-
-          echo ::set-output name=path::/tmp/selkies-gstreamer-web-${RELEASE_VERSION}.tgz
-          echo ::set-output name=name::selkies-gstreamer-web-${RELEASE_VERSION}.tgz
-          echo ::set-output name=mimetype::application/tar+gzip
+          echo ::set-output name=${{ matrix.id }}_cache_key::${{ matrix.cache_key }}
+          echo ::set-output name=${{ matrix.id }}_mimetype::${{ matrix.mimetype }}
+          echo ::set-output name=${{ matrix.id }}_name::${{ matrix.target_name }}
+          echo ::set-output name=${{ matrix.id }}_path::$TARGET_PATH
 
       - uses: actions/cache@v2
         with:
-          key: gst-web-asset
-          path: ${{ steps.extract.outputs.path }}
+          key: ${{ matrix.cache_key }}
+          path: ${{ matrix.target_directory }}/${{ matrix.target_name }}
 
   create_release:
     runs-on: ubuntu-latest
     needs:
       - all_component_images
-      - asset_gst_py
-      - asset_gst_web
-      - asset_gstreamer_ubuntu1804
-      - asset_gstreamer_ubuntu2004
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      - all_example_images
+      - all_assets
     steps:
-      - name: Cache gstreamer-ubuntu2004 asset
+      - name: Ubuntu 18.04 cache read
         uses: actions/cache@v2
         with:
-          key: gstreamer-asset-ubuntu2004
-          path: ${{ needs.asset_gstreamer_ubuntu2004.outputs.path }}
+          key: ${{ needs.all_assets.outputs.gst18_cache_key }}
+          path: ${{ needs.all_assets.outputs.gst18_path }}
 
-      - name: Cache gstreamer-ubuntu1804 asset
+      - name: Ubuntu 20.04 cache read
         uses: actions/cache@v2
         with:
-          key: gstreamer-asset-ubuntu1804
-          path: ${{ needs.asset_gstreamer_ubuntu1804.outputs.path }}
+          key: ${{ needs.all_assets.outputs.gst20_cache_key }}
+          path: ${{ needs.all_assets.outputs.gst20_path }}
 
-      - name: Cache gst-py asset
+      - name: Python cache read
         uses: actions/cache@v2
         with:
-          key: gst-py-asset
-          path: ${{ needs.asset_gst_py.outputs.path }}
+          key: ${{ needs.all_assets.outputs.py_cache_key }}
+          path: ${{ needs.all_assets.outputs.py_path }}
 
-      - name: Cache gst-web asset
+      - name: Web cache read
         uses: actions/cache@v2
         with:
-          path: ${{ needs.asset_gst_web.outputs.path }}
-          key: gst-web-asset
+          key: ${{ needs.all_assets.outputs.web_cache_key }}
+          path: ${{ needs.all_assets.outputs.web_path }}
 
       - id: create_release
         uses: actions/create-release@v1
@@ -331,42 +240,42 @@ jobs:
           release_name: Release ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
 
-      - name: Upload gstreamer-ubuntu2004 asset to release
+      - name: Ubuntu 18.04 upload
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_content_type: ${{ needs.asset_gstreamer_ubuntu2004.outputs.mimetype }}
-          asset_name: ${{ needs.asset_gstreamer_ubuntu2004.outputs.name }}
-          asset_path: ${{ needs.asset_gstreamer_ubuntu2004.outputs.path }}
+          asset_content_type: ${{ needs.all_assets.outputs.gst18_mimetype }}
+          asset_name: ${{ needs.all_assets.outputs.gst18_name }}
+          asset_path: ${{ needs.all_assets.outputs.gst18_path }}
           upload_url: ${{ steps.create_release.outputs.upload_url }}
 
-      - name: Upload gstreamer-ubuntu1804 asset to release
+      - name: Ubuntu 20.04 upload
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_content_type: ${{ needs.asset_gstreamer_ubuntu1804.outputs.mimetype }}
-          asset_name: ${{ needs.asset_gstreamer_ubuntu1804.outputs.name }}
-          asset_path: ${{ needs.asset_gstreamer_ubuntu1804.outputs.path }}
+          asset_content_type: ${{ needs.all_assets.outputs.gst20_mimetype }}
+          asset_name: ${{ needs.all_assets.outputs.gst20_name }}
+          asset_path: ${{ needs.all_assets.outputs.gst20_path }}
           upload_url: ${{ steps.create_release.outputs.upload_url }}
 
-      - name: Upload gst-py asset to release
+      - name: Python upload
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_content_type: ${{ needs.asset_gst_py.outputs.mimetype }}
-          asset_name: ${{ needs.asset_gst_py.outputs.name }}
-          asset_path: ${{ needs.asset_gst_py.outputs.path }}
+          asset_content_type: ${{ needs.all_assets.outputs.py_mimetype }}
+          asset_name: ${{ needs.all_assets.outputs.py_name }}
+          asset_path: ${{ needs.all_assets.outputs.py_path }}
           upload_url: ${{ steps.create_release.outputs.upload_url }}
 
-      - name: Upload gst-web asset to release
+      - name: Web upload
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_content_type: ${{ needs.asset_gst_web.outputs.mimetype }}
-          asset_name: ${{ needs.asset_gst_web.outputs.name }}
-          asset_path: ${{ needs.asset_gst_web.outputs.path }}
+          asset_content_type: ${{ needs.all_assets.outputs.web_mimetype }}
+          asset_name: ${{ needs.all_assets.outputs.web_name }}
+          asset_path: ${{ needs.all_assets.outputs.web_path }}
           upload_url: ${{ steps.create_release.outputs.upload_url }}
