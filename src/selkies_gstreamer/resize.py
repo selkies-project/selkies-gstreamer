@@ -113,20 +113,24 @@ def resize_display(res):
     return True
 
 def generate_xrandr_gtf_modeline(res):
-    mode = modeline = ""
+    mode = ""
+    modeline = ""
     modeline_pat = re.compile(r'^.*Modeline\s+"(.*?)"\s+(.*)')
     if len(res.split("x")) == 2:
         # have WxH format
         toks = res.split("x")
         gtf_res = "{} {} 60".format(toks[0], toks[1])
+        mode = res
     elif len(res.split(" ")) == 2:
         # have W H format
         toks = res.split(" ")
         gtf_res = "{} {} 60".format(toks[0], toks[1])
+        mode = "{}x{}".format(toks[0], toks[1])
     elif len(res.split(" ")) == 3:
         # have W H refresh format
         toks = res.split(" ")
         gtf_res = res
+        mode = "{}x{}".format(toks[0], toks[1])
     else:
         raise Exception("unsupported input resolution format: {}".format(res))
 
@@ -134,7 +138,7 @@ def generate_xrandr_gtf_modeline(res):
         for line in pipe:
             modeline_ma = re.match(modeline_pat, line.strip())
             if modeline_ma:
-                mode, modeline = modeline_ma.groups()
+                _, modeline = modeline_ma.groups()
     return mode, modeline
 
 def main():
