@@ -1,4 +1,4 @@
-FROM python:3-buster
+FROM python:3-jessie
 
 LABEL maintainer "https://github.com/danisla"
 

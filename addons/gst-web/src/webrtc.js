@@ -138,6 +138,11 @@ class WebRTCDemo {
         /**
          * @type {function}
          */
+         this.oncursorchange = null;
+
+        /**
+         * @type {function}
+         */
         this.onsystemstats = null;
 
         // Bind signalling server callbacks.
@@ -348,6 +353,14 @@ class WebRTCDemo {
                 if (this.onclipboardcontent !== null) {
                     this.onclipboardcontent(content);
                 }
+            }
+        } else if (msg.type === 'cursor') {
+            if (this.oncursorchange !== null && msg.data !== null) {
+                var curdata = msg.data.curdata;
+                var handle = msg.data.handle;
+                var hotspot = msg.data.hotspot;
+                this._setDebug(`received new cursor contents, handle: ${handle}, hotspot: ${JSON.stringify(hotspot)} image length: ${curdata.length}`);
+                this.oncursorchange(handle, curdata, hotspot);
             }
         } else if (msg.type === 'system') {
             if (msg.action !== null) {
