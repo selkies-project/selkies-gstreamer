@@ -1,43 +1,63 @@
+name: Build & publish an image
+
+description: Build an image from source, then publish it to GHCR
+
 inputs:
-  use_cache:
+  build_args:
+    description: "`ARG=value`s to pass to `docker build`"
     required: false
   dockerfile:
+    default: "Dockerfile"
+    description: Image source file name
     required: false
-    default: 'Dockerfile'
   github_personal_access_token:
+    description: GitHub personal access token (PAT), for authentication
     required: true
   github_username:
+    description: GitHub username, for authentication
+    required: true
+  image_name:
+    description: The name for the image (i.e. "image" in "ghcr.io/user/repo/image:foo")
     required: true
   image_source_directory:
+    description: Image source directory path
     required: true
-  image_tag_1:
+  image_version_1:
+    description: A tag for the image (i.e. "foo" in "ghcr.io/user/repo/image:foo")
     required: true
-  image_tag_2:
+  image_version_2:
+    description: Another tag for the image (i.e. "bar" in "ghcr.io/user/repo/image:bar")
     required: false
-  build_args:
+  use_cache:
+    default: "true"
+    description: Use cached layers from pre-published image with version 1 (true/false)
     required: false
 
 runs:
   using: composite
   steps:
-  - shell: bash
-    run: |
-      set -x
-      echo ${{ inputs.github_personal_access_token }} | docker login ghcr.io -u ${{ inputs.github_username }} --password-stdin
-      export BUILD_ARGS=""
-      if [[ -n "${{ inputs.build_args }}" ]]; then
-        IFS=";" read -ra args <<< "${{ inputs.build_args }}"
-        for arg in ${args[@]}; do BUILD_ARGS+="--build-arg $arg "; done
-      fi
-      if [[ "${{ inputs.use_cache }}" == "true" ]]; then
-        docker pull ${{ inputs.image_tag_1 }} || true
-        (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} --cache-from ${{ inputs.image_tag_1 }} -t ${{ inputs.image_tag_1 }} .)
-      else
-        (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} -t ${{ inputs.image_tag_1 }} .)
-      fi
-      docker push ${{ inputs.image_tag_1 }}
+    - shell: bash
+      run: |
+        set -x
+        echo ${{ inputs.github_personal_access_token }} | docker login ghcr.io -u ${{ inputs.github_username }} --password-stdin
+        export BUILD_ARGS=""
+        if [[ -n "${{ inputs.build_args }}" ]]; then
+          IFS=";" read -ra args <<< "${{ inputs.build_args }}"
+          for arg in ${args[@]}; do BUILD_ARGS+="--build-arg $arg "; done
+        fi
 
-      if [ '${{ inputs.image_tag_2 }}' != '' ]; then
-        docker tag ${{ inputs.image_tag_1 }} ${{ inputs.image_tag_2 }}
-        docker push ${{ inputs.image_tag_2 }}
-      fi
+        export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-vdi/
+        export IMAGE_TAG_1="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_1 }}"
+        if [[ "${{ inputs.use_cache }}" == "true" ]]; then
+          docker pull $IMAGE_TAG_1 || true
+          (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} --cache-from $IMAGE_TAG_1 -t $IMAGE_TAG_1 .)
+        else
+          (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} -t $IMAGE_TAG_1 .)
+        fi
+        docker push $IMAGE_TAG_1
+
+        if [ '${{ inputs.image_version_2 }}' != '' ]; then
+          export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}${{ inputs.image_version_suffix }}"
+          docker tag $IMAGE_TAG_1 $IMAGE_TAG_2
+          docker push $IMAGE_TAG_2
+        fi
