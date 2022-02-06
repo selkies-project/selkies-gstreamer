@@ -46,7 +46,7 @@ runs:
           for arg in ${args[@]}; do BUILD_ARGS+="--build-arg $arg "; done
         fi
 
-        export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-vdi/
+        export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-gstreamer/
         export IMAGE_TAG_1="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_1 }}"
         if [[ "${{ inputs.use_cache }}" == "true" ]]; then
           docker pull $IMAGE_TAG_1 || true
