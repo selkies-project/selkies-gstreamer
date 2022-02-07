@@ -1,6 +1,12 @@
 name: Build & publish all images
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ".github/**"
+  workflow_dispatch:
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
