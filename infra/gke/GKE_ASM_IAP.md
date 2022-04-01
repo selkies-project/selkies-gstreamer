@@ -61,18 +61,22 @@ gcloud compute networks create ${NETWORK_NAME?} \
 
 ```bash
 gcloud container clusters create ${CLUSTER?} \
---project ${PROJECT_ID?} \
---release-channel=stable \
---region=${CLUSTER_REGION?} \
---node-locations=${CLUSTER_ZONES?} \
---network=${NETWORK_NAME?} \
---machine-type "e2-standard-4" \
---num-nodes "1" --min-nodes "1" --max-nodes "5" \
---monitoring=SYSTEM \
---logging=SYSTEM,WORKLOAD \
---enable-ip-alias \
---enable-autoscaling \
---workload-pool=${WORKLOAD_POOL?}
+  --project ${PROJECT_ID?} \
+  --release-channel "stable" \
+  --region=${CLUSTER_REGION?} \
+  --machine-type "e2-medium" \
+  --node-locations=${CLUSTER_ZONES?} \
+  --num-nodes 1 \
+  --network=${NETWORK_NAME?} \
+  --create-subnetwork name=${CLUSTER?} \
+  --max-pods-per-node "110" \
+  --enable-private-nodes \
+  --master-ipv4-cidr "172.16.16.0/28" \
+  --no-enable-master-authorized-networks \
+  --enable-ip-alias \
+  --monitoring=SYSTEM \
+  --logging=SYSTEM,WORKLOAD \
+  --workload-pool=${WORKLOAD_POOL?}
 ```
 
 3. Connect to the cluster:
@@ -113,7 +117,7 @@ kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v0.3.0"
 Once the feature is enabled the Gateway Controller classes will be available in the config cluster
 
 ```bash
-kubectl get gatewayclasses
+watch kubectl get gatewayclasses
 ```
 
 The output should look like:
@@ -123,6 +127,7 @@ NAME             CONTROLLER
 gke-l7-gxlb      networking.gke.io/gateway
 gke-l7-rilb      networking.gke.io/gateway
 ```
+> This can take 1-2 minutes.
 
 # Configure DNS and Google managed certificates
 

@@ -1,14 +1,23 @@
 # Coturn on GKE deployment
 
-# Create firewall rule
+# Create Shared Static IP
 
-1. Create a firewall rule to allow traffic to the coturn nodes.
+1. Create shared static IP that will be used by the TCP and UDP load balancers:
 
 ```bash
-gcloud compute firewall-rules create allow-turn \
-    --project ${PROJECT_ID?} \
-    --network ${NETWORK_NAME?} \
-    --allow tcp:3478,tcp:25000-25100,udp:3478,udp:25000-25100
+gcloud compute addresses create coturn-${CLUSTER_REGION?} \
+    --project=${PROJECT_ID?} \
+    --region=${CLUSTER_REGION?}
+```
+
+2. Get the address of the static IP:
+
+```bash
+STATIC_IP=$(gcloud compute addresses describe coturn-${CLUSTER_REGION?} --region ${CLUSTER_REGION?} --format='value(address)')
+```
+
+```bash
+echo -n "${STATIC_IP?}" > manifests/coturn/TURN_EXTERNAL_IP
 ```
 
 # Deploy manifests
@@ -33,7 +42,9 @@ echo -n "${CLUSTER?}.endpoints.${PROJECT_ID?}.cloud.goog" > manifests/coturn/TUR
 2. Apply the manifests using the kustomization:
 
 ```bash
-kubectl apply -k manifests/coturn
+kubectl kustomize manifests/coturn | \
+  sed -e 's/${LB_IP}/'${STATIC_IP?}'/g' | \
+    kubectl apply -f -
 ```
 
 3. Verify the deployment by visiting the `/turn/` route:
@@ -66,5 +77,6 @@ Example output:
 }
 ```
 
-> NOTE: The `iceServers` list should contain all of the external IPs of the nodes that the coturn pods are running on.
-> If you have 2 coturn pods, you should have 2 servers listed.
+> NOTE: The `iceServers` list should contain the IP of the LoadBalancer and static IP provisioned earlier.
+
+> Test the stun and turn servers at the Trickle ICE page: https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/

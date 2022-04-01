@@ -16,7 +16,6 @@ spec:
     spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 10
-      hostNetwork: true
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -35,6 +34,12 @@ spec:
           image: ghcr.io/selkies-project/selkies-gstreamer/coturn:latest
           imagePullPolicy: Always
           env:
+            # User external IP from LoadBalancer
+            - name: EXTERNAL_IP
+              valueFrom:
+                secretKeyRef:
+                  name: turn-shared-secret
+                  key: TURN_EXTERNAL_IP
             - name: TURN_SHARED_SECRET
               valueFrom:
                 secretKeyRef:
@@ -54,7 +59,7 @@ spec:
               value: "25100"
           resources:
             requests:
-              cpu: 1000m
+              cpu: 500m
               memory: 265Mi
             limits:
               cpu: 2000m

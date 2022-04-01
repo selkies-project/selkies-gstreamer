@@ -8,6 +8,7 @@ secretGenerator:
   files:
   - TURN_SHARED_SECRET
   - TURN_REALM
+  - TURN_EXTERNAL_IP
 
 resources:
   - namespace.yaml
@@ -15,6 +16,7 @@ resources:
   - coturn-discovery-service.yaml
   - coturn-gateway.yaml
   - coturn-hpa.yaml
+  - coturn-lb-service.yaml
   - coturn-service.yaml
   - coturn-web-rbac.yaml
   - coturn-web-deploy.yaml
