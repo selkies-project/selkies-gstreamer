@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: coturn-lb-tcp
+  namespace: coturn
+spec:
+  type: LoadBalancer
+  loadBalancerIP: ${LB_IP}
+  sessionAffinity: ClientIP
+  externalTrafficPolicy: Local
+  selector:
+    app: coturn
+  ports:
+    - name: turn-tcp
+      protocol: TCP
+      port: 3478
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coturn-lb-udp
+  namespace: coturn
+spec:
+  type: LoadBalancer
+  loadBalancerIP: ${LB_IP}
+  externalTrafficPolicy: Local
+  selector:
+    app: coturn
+  ports:
+    - name: turn-udp
+      protocol: UDP
+      port: 3478
+    - name: turn0-udp
+      protocol: UDP
+      port: 25000
+    - name: turn1-udp
+      protocol: UDP
+      port: 25001
+    - name: turn2-udp
+      protocol: UDP
+      port: 25002
+    - name: turn3-udp
+      protocol: UDP
+      port: 25003
+    - name: turn4-udp
+      protocol: UDP
+      port: 25004
+    - name: turn5-udp
+      protocol: UDP
+      port: 25100

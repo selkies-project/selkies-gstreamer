@@ -36,15 +36,12 @@ spec:
                   key: TURN_REALM
             - name: "PORT"
               value: "8080"
-            # Used to monitor active pod endpoints.
-            - name: DISCOVERY_ENDPOINTS_NAME
-              value: "coturn"
-            - name: DISCOVERY_ENDPOINTS_NAMESPACE
+            # Use external IP of LoadBalancer
+            - name: EXTERNAL_IP
               valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: DISCOVERY_ENDPOINTS_SRV_SERVICE_NAME
-              value: "coturn-discovery"
+                secretKeyRef:
+                  name: turn-shared-secret
+                  key: TURN_EXTERNAL_IP
             - name: TURN_PORT
               value: "3478"
             # Name of the auth header to get user name from
