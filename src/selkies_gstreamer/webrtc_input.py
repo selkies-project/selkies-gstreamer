@@ -436,12 +436,14 @@ class WebRTCInput:
 
     def cursor_to_msg(self, cursor, target_width, target_height):
         png_data_b64 = base64.b64encode(self.cursor_to_png(cursor, target_width, target_height))
+        xhot_scaled = int(target_width/cursor.width * cursor.xhot)
+        yhot_scaled = int(target_height/cursor.height * cursor.yhot)
         return {
             "curdata": png_data_b64.decode(),
             "handle": cursor.cursor_serial,
             "hotspot": {
-                "x": cursor.xhot,
-                "y": cursor.yhot,
+                "x": xhot_scaled,
+                "y": yhot_scaled,
             },
         }
 
