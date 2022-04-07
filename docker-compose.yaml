@@ -51,6 +51,9 @@ services:
 
       # Additional server-side settings.
       WEBRTC_ENABLE_RESIZE: ${WEBRTC_ENABLE_RESIZE}
+
+      # DEBUG remote cursors
+      DEBUG_CURSORS: ${DEBUG_CURSORS:-false}
     ports:
       - "8080:8080"
     volumes:
