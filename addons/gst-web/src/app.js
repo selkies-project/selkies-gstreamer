@@ -509,7 +509,12 @@ webrtc.oncursorchange = (handle, curdata, hotspot) => {
         this._cursor_cache.set(handle, cursor_url);
     }
     var cursor_url = this._cursor_cache.get(handle);
-    videoElement.style.cursor = cursor_url + ", auto";
+    if (hotspot) {
+        cursor_url += ` ${hotspot.x} ${hotspot.y}, auto`;
+    } else {
+        cursor_url += ", auto";
+    }
+    videoElement.style.cursor = cursor_url;
 }
 
 webrtc.onsystemaction = (action) => {
@@ -648,7 +653,7 @@ var checkPublishing = () => {
             }
         });
 }
-checkPublishing();
+// checkPublishing();
 
 // Fetch RTC configuration containing STUN/TURN servers.
 fetch("/turn/")
