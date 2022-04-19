@@ -250,7 +250,8 @@ class WebRTCInput:
         if action == MOUSE_POSITION:
             # data is a tuple of (x, y)
             # using X11 mouse even when virtual mouse is enabled for non-relative actions.
-            self.mouse.position = data
+            if self.mouse:
+                self.mouse.position = data
         elif action == MOUSE_MOVE:
             # data is a tuple of (x, y)
             x, y = data
@@ -511,7 +512,12 @@ class WebRTCInput:
             relative = False
             if toks[0] == "m2":
                 relative = True
-            self.send_x11_mouse(*[int(i) for i in toks[1:]], relative)
+            try:
+                x, y, button_mask = [int(i) for i in toks[1:]]
+            except:
+                x, y, button_mask = 0, 0, self.button_mask
+                relative = False
+            self.send_x11_mouse(x, y, button_mask, relative)
         elif toks[0] == "p":
             # toggle mouse pointer visibility
             visible = bool(int(toks[1]))
