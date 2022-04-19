@@ -1,0 +1,11 @@
+--- gstreamer/subprojects/gst-plugins-bad/ext/webrtc/gstwebrtcbin.c.orig        2022-04-14 20:48:20.800615949 +0200
++++ gstreamer/subprojects/gst-plugins-bad/ext/webrtc/gstwebrtcbin.c     2022-04-15 00:17:46.560747338 +0200
+@@ -2676,7 +2676,7 @@
+     gst_sdp_media_add_attribute (media, "rtpmap", str);
+     g_free (str);
+
+-    str = g_strdup_printf ("%u apt=%d", pt, target_pt);
++    str = g_strdup_printf ("%u apt=%d;rtx-time=125", pt, target_pt);
+     gst_sdp_media_add_attribute (media, "fmtp", str);
+     g_free (str);
+   }

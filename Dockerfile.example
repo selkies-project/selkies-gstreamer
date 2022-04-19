@@ -42,6 +42,7 @@ RUN \
         libpulse0 \
         libpangocairo-1.0-0 \
         libgirepository1.0-dev \
+        x264 \
         git && \
     rm -rf /var/lib/apt/lists/*
 
