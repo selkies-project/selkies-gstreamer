@@ -957,6 +957,10 @@ class GSTWebRTCApp:
         self.data_channel.connect(
             'on-message-string', lambda _, msg: self.on_data_message(msg))
 
+        # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
+        transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        transceiver.set_property("do-nack", True)
+
         logger.info("pipeline started")
 
     def stop_pipeline(self):
