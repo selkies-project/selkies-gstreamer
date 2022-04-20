@@ -290,6 +290,9 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
 
+            # Set aggregate-mode to reduce RTP packetization overhead
+            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
+
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
@@ -327,6 +330,7 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
             rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
 
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
