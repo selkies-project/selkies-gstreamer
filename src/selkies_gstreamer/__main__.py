@@ -562,6 +562,9 @@ def main():
             if not app.last_resize_success:
                 logger.warning("skipping resize because last resize failed.")
                 return
+
+            # TODO: remove the ximagesrc stop/start after this MR is merged:
+            #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/merge_requests/1562
             logger.warning("stopping ximagesrc")
             app.stop_ximagesrc()
             logger.warning("resizing display from {} to {}".format(curr_res, new_res))
