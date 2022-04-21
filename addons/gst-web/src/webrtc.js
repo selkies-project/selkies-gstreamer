@@ -138,7 +138,12 @@ class WebRTCDemo {
         /**
          * @type {function}
          */
-         this.oncursorchange = null;
+        this.oncursorchange = null;
+
+         /**
+          * @type {Map}
+          */
+        this.cursor_cache = new Map();
 
         /**
          * @type {function}
@@ -359,8 +364,9 @@ class WebRTCDemo {
                 var curdata = msg.data.curdata;
                 var handle = msg.data.handle;
                 var hotspot = msg.data.hotspot;
+                var override = msg.data.override;
                 this._setDebug(`received new cursor contents, handle: ${handle}, hotspot: ${JSON.stringify(hotspot)} image length: ${curdata.length}`);
-                this.oncursorchange(handle, curdata, hotspot);
+                this.oncursorchange(handle, curdata, hotspot, override);
             }
         } else if (msg.type === 'system') {
             if (msg.action !== null) {
@@ -654,6 +660,9 @@ class WebRTCDemo {
      *   3. Reconnecting to the signaling server.
      */
     reset() {
+        // Clear cursor cache.
+        this.cursor_cache = new Map();
+
         var signalState = this.peerConnection.signalingState;
         if (this._send_channel !== null && this._send_channel.readyState === "open") {
             this._send_channel.close();
