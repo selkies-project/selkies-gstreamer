@@ -3391,7 +3391,7 @@ p {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-height: 100%;
+  max-height: -webkit-fill-available;
   max-width: 100%;
   position: relative;
 }
