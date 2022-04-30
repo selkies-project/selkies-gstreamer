@@ -2177,7 +2177,7 @@
 }
 html {
   box-sizing: border-box;
-  overflow-y: scroll; /* All browsers without overlaying scrollbars */
+  overflow-y: hidden; /* All browsers without overlaying scrollbars */
   -webkit-text-size-adjust: 100%; /* iOS 8+ */
 }
 *,
@@ -3390,7 +3390,8 @@ p {
           backface-visibility: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  max-height: -webkit-fill-available;
   max-width: 100%;
   position: relative;
 }

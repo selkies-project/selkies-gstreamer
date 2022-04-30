@@ -618,21 +618,24 @@ webrtc.onsystemstats = (stats) => {
     if (stats.mem_used !== undefined) app.serverMemoryUsed = stats.mem_used;
 }
 
-navigator.permissions.query({
-    name: 'clipboard-read'
-}).then(permissionStatus => {
-    // Will be 'granted', 'denied' or 'prompt':
-    if (permissionStatus.state === 'granted') {
-        app.clipboardStatus = 'enabled';
-    }
-
-    // Listen for changes to the permission state
-    permissionStatus.onchange = () => {
+// Safari withou Permission-Api enabled fails here
+if (navigator.permissions) {
+    navigator.permissions.query({
+        name: 'clipboard-read'
+    }).then(permissionStatus => {
+        // Will be 'granted', 'denied' or 'prompt':
         if (permissionStatus.state === 'granted') {
             app.clipboardStatus = 'enabled';
         }
-    };
-});
+
+        // Listen for changes to the permission state
+        permissionStatus.onchange = () => {
+            if (permissionStatus.state === 'granted') {
+                app.clipboardStatus = 'enabled';
+            }
+        };
+    });
+}
 
 // Check if editing is allowed.
 var checkPublishing = () => {
