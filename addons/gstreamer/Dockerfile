@@ -31,7 +31,8 @@ RUN \
         libgirepository1.0-dev \
         libwebrtc-audio-processing-dev \
         libssl-dev \
-        libsrtp2-dev && \
+        libsrtp2-dev \
+        libx264-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install meson and ninja
@@ -43,29 +44,20 @@ RUN \
     rm -rf /var/lib/apt/lists/* && \
     pip3 install meson
 
-WORKDIR /opt
+WORKDIR /src
 
-# Clone gst-build repo
-ENV GST_BUILD_VERSION=f75713f07038762f6fd09e199886dd4b6c00284c
-RUN git clone https://gitlab.freedesktop.org/gstreamer/gst-build.git && cd gst-build && git checkout ${GST_BUILD_VERSION}
-
-# Add usrsctp patch to gst-build
-COPY config/usrsctp.wrap /opt/gst-build/subprojects/
-COPY config/gst-build-add-usrsctp.patch /opt/gst-build/
-RUN cd /opt/gst-build && patch -p1 < gst-build-add-usrsctp.patch
-
-ENV GST_VERSION=1.19.1
-
-WORKDIR /opt/gst-build
-
-# Check out the gstreamer version and build
-RUN ./gst-worktree.py add gst-build-${GST_VERSION} ${GST_VERSION} && \
+###
+# GStreamer monorepo build with prefix for standalone install.
+###
+ENV GSTREAMER_VERSION=1.20
+RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
+COPY config/gstwebrtcbin-rtx-time.patch /src/gstreamer/
+RUN cd /src/gstreamer && patch -p1 < gstwebrtcbin-rtx-time.patch
+RUN cd /src/gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson --prefix /opt/gstreamer builddir && \
+    meson --prefix /opt/gstreamer -Dgpl=enabled -Dugly=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
     ninja -C builddir && \
     meson install -C builddir
-
-WORKDIR /opt
 
 # Bundle build output to tarball
 COPY config/gst-env /opt/gstreamer/

@@ -290,6 +290,9 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
 
+            # Set aggregate-mode to reduce RTP packetization overhead
+            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
+
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
@@ -327,6 +330,7 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
             rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
 
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -956,6 +960,10 @@ class GSTWebRTCApp:
         self.data_channel.connect('on-error', lambda _: self.on_data_error())
         self.data_channel.connect(
             'on-message-string', lambda _, msg: self.on_data_message(msg))
+
+        # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
+        transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        transceiver.set_property("do-nack", True)
 
         logger.info("pipeline started")
 

@@ -341,6 +341,7 @@ signalling.onerror = (message) => { app.logEntries.push(applyTimestamp("[signall
 signalling.ondisconnect = () => {
     console.log("signalling disconnected");
     app.status = 'connecting';
+    videoElement.style.cursor = "auto";
     webrtc.reset();
 }
 
@@ -501,14 +502,21 @@ webrtc.onclipboardcontent = (content) => {
     }
 }
 
-var _cursor_cache = new Map();
-webrtc.oncursorchange = (handle, curdata, hotspot) => {
-    if (!_cursor_cache.has(handle)) {
+webrtc.oncursorchange = (handle, curdata, hotspot, override) => {
+    if (parseInt(handle) === 0) {
+        videoElement.style.cursor = "auto";
+        return;
+    }
+    if (override) {
+        videoElement.style.cursor = override;
+        return;
+    }
+    if (!webrtc.cursor_cache.has(handle)) {
         // Add cursor to cache.
         const cursor_url = "url('data:image/png;base64," + curdata + "')";
-        this._cursor_cache.set(handle, cursor_url);
+        webrtc.cursor_cache.set(handle, cursor_url);
     }
-    var cursor_url = this._cursor_cache.get(handle);
+    var cursor_url = webrtc.cursor_cache.get(handle);
     if (hotspot) {
         cursor_url += ` ${hotspot.x} ${hotspot.y}, auto`;
     } else {

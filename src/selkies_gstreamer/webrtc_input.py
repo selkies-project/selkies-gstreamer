@@ -398,6 +398,15 @@ class WebRTCInput:
             if self.xdisplay.query_extension('XFIXES') is None:
                 logger.error('XFIXES extension not supported, cannot watch cursor changes')
                 return
+        # Ensure patched python-xlib with xfixes support is installed.
+        # Remove after this PR is merged:
+        #   https://github.com/python-xlib/python-xlib/pull/218
+        try:
+            assert self.xdisplay.xfixes_select_cursor_input
+        except Exception as e:
+            logger.warning("missing patched python-xlib, remote cursors not available.")
+            return
+
         xfixes_version = self.xdisplay.xfixes_query_version()
         logger.info('Found XFIXES version %s.%s' % (
             xfixes_version.major_version,
@@ -419,16 +428,22 @@ class WebRTCInput:
         while self.cursors_running:
             e = self.xdisplay.next_event()
             if (e.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
-                image = self.xdisplay.xfixes_get_cursor_image(screen.root)
-                cached = False
-                if self.cursor_cache.get(image.cursor_serial):
-                    cached = True
+                cache_key = e.cursor_serial
+                if cache_key in self.cursor_cache:
+                    if self.cursor_debug:
+                        logger.warning("cursor changed to cached serial: {}".format(cache_key))
                 else:
-                    self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
+                    # Request the cursor image.
+                    cursor = self.xdisplay.xfixes_get_cursor_image(screen.root)
 
-                if self.cursor_debug:
-                    logger.info("Cursor changed: position={},{}, size={}x{}, xyhot={},{}, cursor_serial={}, cached={}".format(image.x, image.y, image.width,image.height, image.xhot, image.yhot, image.cursor_serial, cached))
-                self.on_cursor_change(self.cursor_cache.get(image.cursor_serial))
+                    # Convert cursor image and cache.
+                    self.cursor_cache[cache_key] = self.cursor_to_msg(cursor, self.cursor_resize_width, self.cursor_resize_height)
+
+                    if self.cursor_debug:
+                        logger.warning("New cursor: position={},{}, size={}x{}, length={}, xyhot={},{}, cursor_serial={}".format(cursor.x, cursor.y, cursor.width,cursor.height, len(cursor.cursor_image), cursor.xhot, cursor.yhot, cursor.cursor_serial))
+
+                self.on_cursor_change(self.cursor_cache.get(cache_key))
+
         logger.info("exiting cursor monitor")
 
     def stop_cursor_monitor(self):
@@ -439,9 +454,15 @@ class WebRTCInput:
         png_data_b64 = base64.b64encode(self.cursor_to_png(cursor, target_width, target_height))
         xhot_scaled = int(target_width/cursor.width * cursor.xhot)
         yhot_scaled = int(target_height/cursor.height * cursor.yhot)
+
+        override = None
+        if sum(cursor.cursor_image) == 0:
+            override = "none"
+
         return {
             "curdata": png_data_b64.decode(),
             "handle": cursor.cursor_serial,
+            "override": override,
             "hotspot": {
                 "x": xhot_scaled,
                 "y": yhot_scaled,

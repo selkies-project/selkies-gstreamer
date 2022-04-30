@@ -1,10 +1,13 @@
-timeout: 900s
+options:
+  machineType: 'E2_HIGHCPU_8'
+
+timeout: 1800s
 
 substitutions:
   _USE_CACHE: "true"
   _COMPONENT: "gstreamer"
-  _IMAGE_PREFIX: "selkies-"
-  _IMAGE_POSTFIX: "-base"
+  _IMAGE_PREFIX: "selkies"
+  _IMAGE_POSTFIX: "base"
   _PRIMARY_TAG: "latest"
   _SECONDARY_TAG: "dev"
 
