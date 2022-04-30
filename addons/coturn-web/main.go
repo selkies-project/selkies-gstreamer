@@ -423,7 +423,7 @@ func makeRTCConfig(ips []string, port, user, secret string) (rtcConfigResponse, 
 
 	for _, ip := range ips {
 		stunURLs = append(stunURLs, fmt.Sprintf("stun:%s:%s", ip, port))
-		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=udp", ip, port))
+		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=tcp", ip, port))
 	}
 
 	resp.LifetimeDuration = "86400s"
