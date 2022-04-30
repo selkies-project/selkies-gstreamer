@@ -93,6 +93,7 @@ jobs:
         uses: ./.github/actions/build_and_publish_image
         with:
           build_args: ${{ matrix.build_args }}
+          dockerfile: ${{ matrix.dockerfile }}
           github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
           github_username: $GITHUB_ACTOR
           image_name: ${{ matrix.name }}
