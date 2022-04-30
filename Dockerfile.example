@@ -42,6 +42,8 @@ RUN \
         libpulse0 \
         libpangocairo-1.0-0 \
         libgirepository1.0-dev \
+        libjpeg-dev \
+        zlib1g-dev \
         x264 \
         git && \
     rm -rf /var/lib/apt/lists/*
@@ -93,6 +95,11 @@ ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=1.0.0.dev0
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
+
+# TODO: required for remote-cursor support.
+# Remove this and uncommend line in setup.cfg after this PR is merged and in release:
+# https://github.com/python-xlib/python-xlib/pull/218
+RUN pip3 install -e git+https://github.com/selkies-project/python-xlib.git@add-xfixes-cursor#egg=python-xlib
 
 # Setup global bashrc to configure gstreamer environment
 RUN echo 'export DISPLAY=:0' \
