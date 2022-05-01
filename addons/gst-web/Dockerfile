@@ -22,6 +22,11 @@ WORKDIR /opt/gst-web
 COPY . .
 RUN INSTALL_DIR="/usr/share/nginx/html" ./install.sh
 
+# Create release tarball
+RUN cp -R /usr/share/nginx/html /tmp/gst-web && \
+    cd /tmp && tar zcvf /opt/gst-web.tgz gst-web && \
+    rm -rf /tmp/gst-web
+
 ENV GST_WEB_PORT 80
 ENV PATH_PREFIX /
 

@@ -161,7 +161,7 @@ jobs:
             description: Web
             image_tag: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
             mimetype: application/tar+gzip
-            source_path: /usr/share/nginx/html
+            source_path: /opt/gst-web.tgz
             target_directory: /tmp
             target_name: selkies-gstreamer-web-${{ github.ref_name }}.tgz
             upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
