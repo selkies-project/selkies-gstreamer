@@ -458,7 +458,7 @@ def main():
     # [START main_setup]
     # Fetch the turn server and credentials
     rtc_config = None
-    turn_protocol = 'tcp' if args.turn_protocol == 'tcp' else 'udp'
+    turn_protocol = 'tcp' if args.turn_protocol.lower() == 'tcp' else 'udp'
     using_turn_tls = args.turn_tls.lower() == 'true'
     using_coturn = False
     using_hmac_turn = False
