@@ -118,7 +118,7 @@ class WebRTCSimpleServer(object):
         self.turn_shared_secret = options.turn_shared_secret
         self.turn_host = options.turn_host
         self.turn_port = options.turn_port
-        self.turn_protocol = options.turn_protocol
+        self.turn_protocol = options.turn_protocol.lower()
         if self.turn_protocol != 'tcp':
             self.turn_protocol = 'udp'
         self.turn_tls = options.turn_tls
