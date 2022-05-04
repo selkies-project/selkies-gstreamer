@@ -51,11 +51,13 @@ DEFAULT_RTC_CONFIG = """{
 }"""
 
 class HMACRTCMonitor:
-    def __init__(self, turn_host, turn_port, turn_shared_secret, turn_username, period=60, enabled=True):
+    def __init__(self, turn_host, turn_port, turn_shared_secret, turn_username, turn_protocol='udp', turn_tls=False, period=60, enabled=True):
         self.turn_host = turn_host
         self.turn_port = turn_port
         self.turn_username = turn_username
         self.turn_shared_secret = turn_shared_secret
+        self.turn_protocol = turn_protocol
+        self.turn_tls = turn_tls
         self.period = period
         self.enabled = enabled
 
@@ -69,7 +71,7 @@ class HMACRTCMonitor:
         while self.running:
             if self.enabled:
                 try:
-                    data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username)
+                    data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls)
                     stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
                     self.on_rtc_config(stun_servers, turn_servers, rtc_config)
                 except Exception as e:
@@ -140,7 +142,7 @@ class RTCConfigFileMonitor:
         self.observer.stop()
         self.running = False
 
-def make_turn_rtc_config_json(host, port, username, password):
+def make_turn_rtc_config_json(host, port, username, password, protocol='udp', tls=False):
     return """{
   "lifetimeDuration": "86400s",
   "iceServers": [
@@ -151,7 +153,7 @@ def make_turn_rtc_config_json(host, port, username, password):
     },
     {
       "urls": [
-        "turn:%s:%s?transport=udp"
+        "%s:%s:%s?transport=%s"
       ],
       "username": "%s",
       "credential": "%s"
@@ -159,7 +161,7 @@ def make_turn_rtc_config_json(host, port, username, password):
   ],
   "blockStatus": "NOT_BLOCKED",
   "iceTransportPolicy": "all"
-}""" % (host, port, host, port, username, password)
+}""" % (host, port, 'turns' if tls else 'turn', host, port, protocol, username, password)
 
 def parse_rtc_config(data):
     ice_servers = json.loads(data)['iceServers']
@@ -181,6 +183,18 @@ def parse_rtc_config(data):
                 turn_user = server['username']
                 turn_password = server['credential']
                 turn_uri = "turn://%s:%s@%s:%s" % (
+                    urllib.parse.quote(turn_user, safe=""),
+                    urllib.parse.quote(turn_password, safe=""),
+                    turn_host,
+                    turn_port
+                )
+                turn_uris.append(turn_uri)
+            elif url.startswith("turns:"):
+                turn_host = url.split(':')[1]
+                turn_port = url.split(':')[2].split('?')[0]
+                turn_user = server['username']
+                turn_password = server['credential']
+                turn_uri = "turns://%s:%s@%s:%s" % (
                     urllib.parse.quote(turn_user, safe=""),
                     urllib.parse.quote(turn_password, safe=""),
                     turn_host,
@@ -329,6 +343,14 @@ def main():
                         default=os.environ.get(
                             'TURN_PORT', ''),
                         help='TURN port when generating RTC config from shared secret or legacy credentials.')
+    parser.add_argument('--turn_protocol',
+                        default=os.environ.get(
+                            'TURN_PROTOCOL', 'udp'),
+                        help='TURN protocol for the client to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network.')
+    parser.add_argument('--turn_tls',
+                        default=os.environ.get(
+                            'TURN_TLS', 'false'),
+                        help='enable or disable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
     parser.add_argument('--uinput_mouse_socket',
                         default=os.environ.get('UINPUT_MOUSE_SOCKET', ''),
                         help='path to uinput mouse socket provided by uinput-device-plugin, if not provided, uinput is used directly.')
@@ -389,7 +411,7 @@ def main():
                 if k == "enable_resize":
                     args.enable_resize = str((str(v).lower() == 'true')).lower()
                 if k == "encoder":
-                    args.ecoder = v.lower()
+                    args.encoder = v.lower()
         except Exception as e:
             logger.error("failed to load json config from %s: %s" % (args.json_config, str(e)))
 
@@ -402,7 +424,7 @@ def main():
         logging.basicConfig(level=logging.INFO)
 
     # Wait for streaming app to initialize
-    wait_for_app_ready(args.app_ready_file, args.app_auto_init == "true")
+    wait_for_app_ready(args.app_ready_file, args.app_auto_init.lower() == "true")
 
     # Peer id for this app, default is 0, expecting remote peer id to be 1
     my_id = 0
@@ -424,7 +446,7 @@ def main():
            time.sleep(2)
            await signalling.setup_call()
        else:
-           logger.error("signalling eror: %s", str(e))
+           logger.error("signalling error: %s", str(e))
            app.stop_pipeline()
     signalling.on_error = on_signalling_error
 
@@ -436,6 +458,8 @@ def main():
     # [START main_setup]
     # Fetch the turn server and credentials
     rtc_config = None
+    turn_protocol = 'tcp' if args.turn_protocol.lower() == 'tcp' else 'udp'
+    using_turn_tls = args.turn_tls.lower() == 'true'
     using_coturn = False
     using_hmac_turn = False
     using_rtc_config_json = False
@@ -447,15 +471,18 @@ def main():
     else:
         if args.turn_shared_secret:
             # Get HMAC credentials from built-in web server.
+            if not args.turn_host and args.turn_port:
+                logger.error("missing turn host and turn port")
+                sys.exit(1)
             using_hmac_turn = True
-            data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, args.coturn_web_username)
+            data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, args.coturn_web_username, turn_protocol, using_turn_tls)
             stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
         elif args.turn_username and args.turn_password:
             if not args.turn_host and args.turn_port:
                 logger.error("missing turn host and turn port")
                 sys.exit(1)
             logger.warning("using legacy non-HMAC TURN credentials.")
-            config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password)
+            config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
             stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
         else:
             # Use existing coturn-web infrastructure.
@@ -640,6 +667,8 @@ def main():
     options.turn_shared_secret = args.turn_shared_secret
     options.turn_host = args.turn_host
     options.turn_port = args.turn_port
+    options.turn_protocol = turn_protocol
+    options.turn_tls = using_turn_tls
     options.turn_auth_header_name = args.coturn_auth_header_name
     server = WebRTCSimpleServer(loop, options)
 
@@ -656,6 +685,8 @@ def main():
         args.turn_port,
         args.turn_shared_secret,
         args.coturn_web_username,
+        turn_protocol=turn_protocol,
+        turn_tls=using_turn_tls,
         enabled=using_hmac_turn, period=60)
     hmac_turn_mon.on_rtc_config = mon_rtc_config
 

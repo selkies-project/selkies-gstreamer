@@ -40,7 +40,7 @@ MIME_TYPES = {
     "ico": "image/x-icon"
 }
 
-def generate_rtc_config(turn_host, turn_port, shared_secret, user):
+def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp', turn_tls=False):
     # use shared secret to generate hmac credential.
 
     # Sanitize user for credential compatibility
@@ -68,7 +68,7 @@ def generate_rtc_config(turn_host, turn_port, shared_secret, user):
     })
     rtc_config["iceServers"].append({
         "urls": [
-            "turn:{}:{}?transport=udp".format(turn_host, turn_port)
+            "{}:{}:{}?transport={}".format('turns' if turn_tls else 'turn', turn_host, turn_port, protocol)
         ],
         "username": username,
         "credential": password
@@ -118,6 +118,10 @@ class WebRTCSimpleServer(object):
         self.turn_shared_secret = options.turn_shared_secret
         self.turn_host = options.turn_host
         self.turn_port = options.turn_port
+        self.turn_protocol = options.turn_protocol.lower()
+        if self.turn_protocol != 'tcp':
+            self.turn_protocol = 'udp'
+        self.turn_tls = options.turn_tls
         self.turn_auth_header_name = options.turn_auth_header_name
 
         # Basic Auth options.
@@ -184,12 +188,12 @@ class WebRTCSimpleServer(object):
             if self.turn_shared_secret:
                 # Get username from auth header.
                 if not username:
-                    username = request_headers.get(self.turn_auth_header_name,"")
+                    username = request_headers.get(self.turn_auth_header_name, "")
                     if not username:
                         web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
                         return HTTPStatus.UNAUTHORIZED, response_headers, b'401 Unauthorized - missing auth header'
                 web_logger.info("Generating HMAC credential for user: {}".format(username))
-                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, username)
+                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, username, self.turn_protocol, self.turn_tls)
                 return http.HTTPStatus.OK, response_headers, str.encode(rtc_config)
 
             elif self.rtc_config:
@@ -499,7 +503,9 @@ def main():
     parser.add_argument('--rtc_config', default="", type=str, help='JSON rtc config data')
     parser.add_argument('--turn_shared_secret', default="", type=str, help='shared secret for generating TURN HMAC credentials')
     parser.add_argument('--turn_host', default="", type=str, help='TURN host when generating RTC config with shared secret')
-    parser.add_argument('--turn_port', default="", type=str, help='TURN port whne generating RTC config with shared secret')
+    parser.add_argument('--turn_port', default="", type=str, help='TURN port when generating RTC config with shared secret')
+    parser.add_argument('--turn_protocol', default="udp", type=str, help='TURN protocol to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network.')
+    parser.add_argument('--enable_turn_tls', default=False, dest='turn_tls', action='store_true', help='enable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
     parser.add_argument('--turn_auth_header_name', default="x-auth-user", type=str, help='auth header for turn credentials')
     parser.add_argument('--keepalive-timeout', dest='keepalive_timeout', default=30, type=int, help='Timeout for keepalive (in seconds)')
     parser.add_argument('--cert-path', default=os.path.dirname(__file__))
