@@ -22,3 +22,11 @@ resources:
   - coturn-web-deploy.yaml
   - coturn-web-service.yaml
   - coturn-web-virtualservice.yaml
+
+images:
+  - name: ghcr.io/selkies-project/selkies-gstreamer/coturn
+    newName: ghcr.io/selkies-project/selkies-gstreamer/coturn
+    newTag: latest
+  - name: ghcr.io/selkies-project/selkies-gstreamer/coturn-web
+    newName: ghcr.io/selkies-project/selkies-gstreamer/coturn-web
+    newTag: latest
