@@ -25,8 +25,10 @@ export EXTERNAL_IP="${EXTERNAL_IP:-$(detect_external_ip)}"
 
 turnserver \
     --verbose \
+    --no-tls \
     --listening-ip=$(hostname -i) \
-    --listening-port=${TURN_PORT:-3478} \
+    --listening-port=${TURN_PORT:-80} \
+    --aux-server="$(hostname -i):${TURN_ALT_PORT:-443}" \
     --external-ip="${EXTERNAL_IP?missing env}" \
     --realm=${TURN_REALM:-example.com} \
     --use-auth-secret \

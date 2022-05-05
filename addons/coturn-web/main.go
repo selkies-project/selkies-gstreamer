@@ -72,7 +72,8 @@ type ConcurrentMap struct {
 
 func main() {
 	externalIP := popVarFromEnv("EXTERNAL_IP", false, getMyExternalIP())
-	turnPort := popVarFromEnv("TURN_PORT", false, "3478")
+	turnPort := popVarFromEnv("TURN_PORT", false, "80")
+	turnAltPort := popVarFromEnv("TURN_ALT_PORT", false, "443")
 	sharedSecret := popVarFromEnv("TURN_SHARED_SECRET", true, "")
 	htpasswdFilePath := popVarFromEnv("TURN_HTPASSWD_FILE", false, "")
 	listenPort := popVarFromEnv("PORT", false, "8080")
@@ -395,7 +396,7 @@ func main() {
 		}
 
 		// Create the RTC config from the list of IPs
-		resp, err := makeRTCConfig(ips, turnPort, user, sharedSecret)
+		resp, err := makeRTCConfig(ips, turnPort, turnAltPort, user, sharedSecret)
 		if err != nil {
 			writeStatusResponse(w, http.StatusInternalServerError, fmt.Sprintf("failed to make RTC config: %v", err))
 			return
@@ -408,7 +409,7 @@ func main() {
 	http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", listenPort), nil)
 }
 
-func makeRTCConfig(ips []string, port, user, secret string) (rtcConfigResponse, error) {
+func makeRTCConfig(ips []string, turnPort, turnAltPort, user, secret string) (rtcConfigResponse, error) {
 	var resp rtcConfigResponse
 	var err error
 
@@ -422,8 +423,12 @@ func makeRTCConfig(ips []string, port, user, secret string) (rtcConfigResponse, 
 	turnURLs := []string{}
 
 	for _, ip := range ips {
-		stunURLs = append(stunURLs, fmt.Sprintf("stun:%s:%s", ip, port))
-		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=tcp", ip, port))
+		stunURLs = append(stunURLs, fmt.Sprintf("stun:%s:%s", ip, turnPort))
+		stunURLs = append(stunURLs, fmt.Sprintf("stun:%s:%s", ip, turnAltPort))
+		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=tcp", ip, turnPort))
+		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=tcp", ip, turnAltPort))
+		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=udp", ip, turnPort))
+		turnURLs = append(turnURLs, fmt.Sprintf("turn:%s:%s?transport=udp", ip, turnAltPort))
 	}
 
 	resp.LifetimeDuration = "86400s"

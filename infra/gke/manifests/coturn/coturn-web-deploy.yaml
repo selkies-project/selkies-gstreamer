@@ -43,7 +43,9 @@ spec:
                   name: turn-shared-secret
                   key: TURN_EXTERNAL_IP
             - name: TURN_PORT
-              value: "3478"
+              value: "80"
+            - name: TURN_ALT_PORT
+              value: "443"
             # Name of the auth header to get user name from
             - name: AUTH_HEADER_NAME
               value: "x-goog-authenticated-user-email"
