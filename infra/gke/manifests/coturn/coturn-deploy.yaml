@@ -52,7 +52,9 @@ spec:
                   key: TURN_REALM
             # Firewall rules on the node pool instances must be created manually on these port ranges.
             - name: TURN_PORT
-              value: "3478"
+              value: "80"
+            - name: TURN_ALT_PORT
+              value: "443"
             - name: TURN_MIN_PORT
               value: "25000"
             - name: TURN_MAX_PORT
