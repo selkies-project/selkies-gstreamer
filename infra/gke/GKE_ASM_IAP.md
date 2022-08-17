@@ -62,7 +62,7 @@ gcloud compute networks create ${NETWORK_NAME?} \
 ```bash
 gcloud container clusters create ${CLUSTER?} \
   --project ${PROJECT_ID?} \
-  --release-channel "stable" \
+  --release-channel "regular" \
   --region=${CLUSTER_REGION?} \
   --machine-type "e2-medium" \
   --node-locations=${CLUSTER_ZONES?} \
@@ -71,7 +71,7 @@ gcloud container clusters create ${CLUSTER?} \
   --create-subnetwork name=${CLUSTER?} \
   --max-pods-per-node "110" \
   --enable-private-nodes \
-  --master-ipv4-cidr "172.16.16.0/28" \
+  --master-ipv4-cidr "172.16.0.32/28" \
   --no-enable-master-authorized-networks \
   --enable-ip-alias \
   --monitoring=SYSTEM \
@@ -110,8 +110,7 @@ gke-ingress-us-west1  7317db05-6de1-44d8-959c-3403f12eda73
 1. Install Gateway API CRDs. Before using Gateway resources in GKE you must install the Gateway API Custom Resource Definitions (CRDs) in your cluster.
 
 ```bash
-kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v0.3.0" \
-| kubectl apply -f -
+kubectl apply -k "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v0.5.0"
 ```
 
 Once the feature is enabled the Gateway Controller classes will be available in the config cluster
@@ -164,7 +163,7 @@ gcloud endpoints services deploy ${WORKDIR?}/dns-openapi.yaml
 
 ```
 cat <<EOF > ${WORKDIR?}/managed-cert.yaml
-apiVersion: networking.gke.io/v1beta2
+apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
   name: ${CLUSTER?}-managed-cert
@@ -198,26 +197,26 @@ echo -e ${MANAGED_CERT?}
 ```
 cat <<EOF > ${WORKDIR?}/gke-gateway.yaml
 kind: Gateway
-apiVersion: networking.x-k8s.io/v1alpha1
+apiVersion: gateway.networking.k8s.io/v1beta1
 metadata:
   name: external-http
   namespace: istio-system
 spec:
   gatewayClassName: gke-l7-gxlb
   listeners:
-  - protocol: HTTPS
+  - name: ingress-https
+    protocol: HTTPS
     port: 443
-    routes:
-      kind: HTTPRoute
-      namespaces:
-        from: "All"
-      selector:
-        matchLabels:
-          gateway: external-http
+    hostname: ${CLUSTER?}.endpoints.${PROJECT_ID?}.cloud.goog
     tls:
       mode: Terminate
       options:
         networking.gke.io/pre-shared-certs: ${MANAGED_CERT?}
+    allowedRoutes:
+      kinds:
+      - kind: HTTPRoute
+      namespaces:
+        from: All
   addresses: 
     - value: "${GCLB_IP?}"
 EOF
@@ -228,7 +227,7 @@ kubectl apply -f ${WORKDIR?}/gke-gateway.yaml
 2. Wait until you get a GCLB IP from the Gateway resource. CTRL-C to exit once you have an IP.
 
 ```bash
-watch kubectl -n istio-system get Gateway -o jsonpath='{.items[*].status.addresses[0].value}'
+watch kubectl -n istio-system get gateways -o jsonpath='{.items[*].status.addresses[0].value}'
 ```
 
 Note that it will take several minutes for the GCLB and the SSL Managed Certificate to be created.
@@ -264,7 +263,7 @@ metadata:
   labels:
     istio.io/rev: ${ASM_LABEL?}
 ---
-apiVersion: mesh.cloud.google.com/v1alpha1
+apiVersion: mesh.cloud.google.com/v1beta1
 kind: ControlPlaneRevision
 metadata:
   name: asm-managed
@@ -368,20 +367,23 @@ EOF
 
 cat <<EOF > ${WORKDIR?}/asm-ingressgateway-external-httproute.yaml
 kind: HTTPRoute
-apiVersion: networking.x-k8s.io/v1alpha1
+apiVersion: gateway.networking.k8s.io/v1beta1
 metadata:
   name: asm-ingressgateway-xlb
   namespace: asm-gateways
   labels:
     gateway: external-http
 spec:
-  gateways:
-    allow: All
+  parentRefs:
+  - kind: Gateway
+    name: external-http
+    namespace: istio-system
   hostnames:
   - "${CLUSTER?}.endpoints.${PROJECT_ID?}.cloud.goog"
   rules:
-  - forwardTo:
-    - serviceName: asm-ingressgateway-xlb
+  - backendRefs:
+    - kind: Service
+      name: asm-ingressgateway-xlb
       port: 80
 EOF
 
@@ -397,7 +399,7 @@ kubectl apply -f ${WORKDIR?}/asm-ingressgateway-external-httproute.yaml
 
 ```
 cat <<EOF > ${WORKDIR?}/default-service.yaml
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: default
@@ -413,7 +415,7 @@ spec:
       hosts:
         - "*"
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: default

@@ -61,7 +61,7 @@ spec:
               value: "25100"
           resources:
             requests:
-              cpu: 500m
+              cpu: 100m
               memory: 265Mi
             limits:
               cpu: 2000m

@@ -61,15 +61,19 @@ Example output:
   "iceServers": [
     {
       "urls": [
-        "stun:xx.xxx.xxx.xx:3478"
+        "stun:xxx.xxx.xxx.xxx:80",
+        "stun:xxx.xxx.xxx.xxx:443"
       ]
     },
     {
       "urls": [
-        "turn:xx.xxx.xxx.xx:3478?transport=udp"
+        "turn:xxx.xxx.xxx.xxx:80?transport=tcp",
+        "turn:xxx.xxx.xxx.xxx:443?transport=tcp",
+        "turn:xxx.xxx.xxx.xxx:80?transport=udp",
+        "turn:xxx.xxx.xxx.xxx:443?transport=udp"
       ],
-      "username": "1642106590-user@example.com",
-      "credential": "hHqE7YmBUpvVrIrYOeUQQ/VcP4k="
+      "username": "1660844019-user@example.com",
+      "credential": "DeadBeef94xRwpiQz4bxey7N/M="
     }
   ],
   "blockStatus": "NOT_BLOCKED",
