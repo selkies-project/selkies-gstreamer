@@ -33,7 +33,7 @@ class GSTWebRTCAppError(Exception):
 
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio=True, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000):
+    def __init__(self, stun_servers=None, turn_servers=None, audio=True, framerate=30, encoder=None, video_bitrate=12000, audio_bitrate=64000):
         """Initialize gstreamer webrtc app.
 
         Initializes GObjects and checks for required plugins.
@@ -76,6 +76,7 @@ class GSTWebRTCApp:
         self.pipeline = None
         self.ximagesrc = None
         self.last_cursor_sent = None
+        self.nvimagesrc = None
 
     def stop_ximagesrc(self):
         """Helper function to stop the ximagesrc, useful when resizing
@@ -135,58 +136,212 @@ class GSTWebRTCApp:
         """Adds the RTP video stream to the pipeline.
         """
 
-        # Create ximagesrc element named x11
-        # Note that when using the ximagesrc plugin, ensure that the X11 server was
-        # started with shared memory support: '+extension MIT-SHM' to achieve
-        # full frame rates.
-        # You can check if XSHM is in use with the following command:
-        #   GST_DEBUG=default:5 gst-launch-1.0 ximagesrc ! fakesink num-buffers=1 2>&1 |grep -i xshm
-        self.ximagesrc = Gst.ElementFactory.make("ximagesrc", "x11")
-        ximagesrc = self.ximagesrc
+        if self.encoder in ["nvfbch264enc"]:
+            self.nvimagesrc = Gst.ElementFactory.make("nvimagesrc", "x11")
+            self.nvimagesrc.set_property("show-pointer", 0)
+            self.nvimagesrc.set_property("bitrate", 2000000)
+            self.nvimagesrc.set_property("do-timestamp", True)
+            videoconvert_caps = Gst.caps_from_string("video/x-h264")
+            videoconvert_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
+            videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
+            videoconvert_capsfilter.set_property("caps", videoconvert_caps)
+            rtph264pay = Gst.ElementFactory.make("rtph264pay")
+            rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
+            rtph264pay_caps.set_value("media", "video")
+            rtph264pay_caps.set_value("encoding-name", "H264")
+            rtph264pay_caps.set_value("payload", 123)
+            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
+            rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
+            rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
+            self.pipeline.add(self.nvimagesrc)
+            self.pipeline.add(videoconvert_capsfilter)
+            self.pipeline.add(rtph264pay)
+            self.pipeline.add(rtph264pay_capsfilter)
+            if not Gst.Element.link(self.nvimagesrc, videoconvert_capsfilter):
+                raise GSTWebRTCAppError("Failed to link nvimagesrc -> videoconvert")
 
-        # disables display of the pointer using the XFixes extension,
-        # common when building a remote desktop interface as the clients
-        # mouse pointer can be used to give the user perceived lower latency.
-        # This can be programmatically toggled after the pipeline is started
-        # for example if the user is viewing full screen in the browser,
-        # they may want to revert to seeing the remote cursor when the
-        # client side cursor disappears.
-        ximagesrc.set_property("show-pointer", 0)
+            if not Gst.Element.link(videoconvert_capsfilter, rtph264pay):
+                raise GSTWebRTCAppError(
+                    "Failed to link videoconvert_capsfilter -> rpth264pay")
 
-        # Tells GStreamer that you are using an X11 window manager or
-        # compositor with off-screen buffer. If you are not using a
-        # window manager this can be set to 0. It's also important to
-        # make sure that your X11 server is running with the XSHM extension
-        # to ensure direct memory access to frames which will reduce latency.
-        ximagesrc.set_property("remote", 1)
+            if not Gst.Element.link(rtph264pay, rtph264pay_capsfilter):
+                raise GSTWebRTCAppError(
+                    "Failed to link rtph264pay -> rtph264pay_capsfilter")
 
-        # Defines the size in bytes to read per buffer. Increasing this from
-        # the default of 4096 bytes helps performance when capturing high
-        # resolutions like 1080P, and 2K.
-        ximagesrc.set_property("blocksize", 16384)
+            # Link the last element to the webrtcbin
+            if not Gst.Element.link(rtph264pay_capsfilter, self.webrtcbin):
+                raise GSTWebRTCAppError(
+                    "Failed to link rtph264pay_capsfilter -> webrtcbin")
+        elif self.encoder in ["nvfbchevcenc"]:
+            self.nvimagesrc = Gst.ElementFactory.make("nvimagesrchevc", "x11")
+            self.nvimagesrc.set_property("show-pointer", 0)
+            self.nvimagesrc.set_property("bitrate", 2000000)
+            self.nvimagesrc.set_property("do-timestamp", True)
+            videoconvert_caps = Gst.caps_from_string("video/x-h265")
+            videoconvert_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
+            videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
+            videoconvert_capsfilter.set_property("caps", videoconvert_caps)
+            rtph265pay = Gst.ElementFactory.make("rtph265pay")
+            rtph265pay_caps = Gst.caps_from_string("application/x-rtp")
+            rtph265pay_caps.set_value("media", "video")
+            rtph265pay_caps.set_value("encoding-name", "H265")
+            rtph265pay_caps.set_value("payload", 96)
+            rtph265pay_caps.set_value("aggregate-mode", "zero-latency")
+            rtph265pay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtph265pay_capsfilter = Gst.ElementFactory.make("capsfilter")
+            rtph265pay_capsfilter.set_property("caps", rtph265pay_caps)
+            self.pipeline.add(self.nvimagesrc)
+            self.pipeline.add(videoconvert_capsfilter)
+            self.pipeline.add(rtph265pay)
+            self.pipeline.add(rtph265pay_capsfilter)
+            if not Gst.Element.link(self.nvimagesrc, videoconvert_capsfilter):
+                raise GSTWebRTCAppError("Failed to link nvimagesrc -> videoconvert")
 
-        # The X11 XDamage extension allows the X server to indicate when a
-        # regions of the screen has changed. While this can significantly
-        # reduce CPU usage when the screen is idle, it has little effect with
-        # constant motion. This can also have a negative consequences with H.264
-        # as the video stream can drop out and take several seconds to recover
-        # until a valid I-Frame is received.
-        # Set this to 0 for most streaming use cases.
-        ximagesrc.set_property("use-damage", 0)
+            if not Gst.Element.link(videoconvert_capsfilter, rtph265pay):
+                raise GSTWebRTCAppError(
+                    "Failed to link videoconvert_capsfilter -> rpth265pay")
 
-        # Create capabilities for ximagesrc
-        ximagesrc_caps = Gst.caps_from_string("video/x-raw")
+            if not Gst.Element.link(rtph265pay, rtph265pay_capsfilter):
+                raise GSTWebRTCAppError(
+                    "Failed to link rtph265pay -> rtph265pay_capsfilter")
 
-        # Setting the framerate=60/1 capability instructs the ximagesrc element
-        # to generate buffers at 60 frames per second (FPS).
-        # The higher the FPS, the lower the latency so this parameter is one
-        # way to set the overall target latency of the pipeline though keep in
-        # mind that the pipeline may not always perfom at the full 60 FPS.
-        ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
+            # Link the last element to the webrtcbin
+            if not Gst.Element.link(rtph265pay_capsfilter, self.webrtcbin):
+                raise GSTWebRTCAppError(
+                    "Failed to link rtph265pay_capsfilter -> webrtcbin")
+        else:
+            # Create ximagesrc element named x11
+            # Note that when using the ximagesrc plugin, ensure that the X11 server was
+            # started with shared memory support: '+extension MIT-SHM' to achieve
+            # full frame rates.
+            # You can check if XSHM is in use with the following command:
+            #   GST_DEBUG=default:5 gst-launch-1.0 ximagesrc ! fakesink num-buffers=1 2>&1 |grep -i xshm
+            self.ximagesrc = Gst.ElementFactory.make("ximagesrc", "x11")
+            ximagesrc = self.ximagesrc
+    
+            # disables display of the pointer using the XFixes extension,
+            # common when building a remote desktop interface as the clients
+            # mouse pointer can be used to give the user perceived lower latency.
+            # This can be programmatically toggled after the pipeline is started
+            # for example if the user is viewing full screen in the browser,
+            # they may want to revert to seeing the remote cursor when the
+            # client side cursor disappears.
+            ximagesrc.set_property("show-pointer", 0)
+    
+            # Tells GStreamer that you are using an X11 window manager or
+            # compositor with off-screen buffer. If you are not using a
+            # window manager this can be set to 0. It's also important to
+            # make sure that your X11 server is running with the XSHM extension
+            # to ensure direct memory access to frames which will reduce latency.
+            ximagesrc.set_property("remote", 1)
+    
+            # Defines the size in bytes to read per buffer. Increasing this from
+            # the default of 4096 bytes helps performance when capturing high
+            # resolutions like 1080P, and 2K.
+            ximagesrc.set_property("blocksize", 16384)
+    
+            # The X11 XDamage extension allows the X server to indicate when a
+            # regions of the screen has changed. While this can significantly
+            # reduce CPU usage when the screen is idle, it has little effect with
+            # constant motion. This can also have a negative consequences with H.264
+            # as the video stream can drop out and take several seconds to recover
+            # until a valid I-Frame is received.
+            # Set this to 0 for most streaming use cases.
+            ximagesrc.set_property("use-damage", 0)
+    
+            # Create capabilities for ximagesrc
+            ximagesrc_caps = Gst.caps_from_string("video/x-raw")
+    
+            # Setting the framerate=60/1 capability instructs the ximagesrc element
+            # to generate buffers at 60 frames per second (FPS).
+            # The higher the FPS, the lower the latency so this parameter is one
+            # way to set the overall target latency of the pipeline though keep in
+            # mind that the pipeline may not always perfom at the full 60 FPS.
+            ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
+    
+            # Create a capability filter for the ximagesrc_caps
+            ximagesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
+            ximagesrc_capsfilter.set_property("caps", ximagesrc_caps)
 
-        # Create a capability filter for the ximagesrc_caps
-        ximagesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
-        ximagesrc_capsfilter.set_property("caps", ximagesrc_caps)
+            self.pipeline.add(ximagesrc)
+            self.pipeline.add(ximagesrc_capsfilter)
+            if not Gst.Element.link(ximagesrc, ximagesrc_capsfilter):
+                raise GSTWebRTCAppError("Failed to link ximagesrc -> ximagesrc_capsfilter")
+
+        if self.encoder.startswith("vaapi"):
+            convert = Gst.ElementFactory.make("vaapipostproc")
+            convert_caps = Gst.caps_from_string("video/x-raw")
+            convert_caps.set_value("format", "NV12")
+            convert_capsfilter = Gst.ElementFactory.make("capsfilter")
+            convert_capsfilter.set_property("caps", convert_caps)
+            self.pipeline.add(convert)
+            self.pipeline.add(convert_capsfilter)
+            if not Gst.Element.link(ximagesrc_capsfilter, convert):
+                raise GSTWebRTCAppError("Failed to link ximagesrc_capsfilter -> convert")
+            if not Gst.Element.link(convert, convert_capsfilter):
+                raise GSTWebRTCAppError("Failed to link convert -> convert_capsfilter")
+
+        if self.encoder in ["vaapih264enc"]:
+            vaapih264enc = Gst.ElementFactory.make("vaapih264enc", "vaenc")
+            vaapih264enc.set_property("bitrate", self.video_bitrate)
+            #vaapih264enc.set_property("rate-control ", "cbr")
+            vaapih264enc_caps = Gst.caps_from_string("video/x-h264")
+            vaapih264enc_caps.set_value("profile", "high")
+
+            vaapih264enc_capsfilter = Gst.ElementFactory.make("capsfilter")
+            vaapih264enc_capsfilter.set_property("caps", vaapih264enc_caps)
+            
+            rtph264pay = Gst.ElementFactory.make("rtph264pay")
+
+            # Set the capabilities for the rtph264pay element.
+            rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
+
+            # Set the payload type to video.
+            rtph264pay_caps.set_value("media", "video")
+
+            # Set the video encoding name to match our encoded format.
+            rtph264pay_caps.set_value("encoding-name", "H264")
+
+            # Set the payload type to one that matches the encoding profile.
+            # Payload number 123 corresponds to H.264 encoding with the high profile.
+            # Other payloads can be derived using WebRTC specification:
+            #   https://tools.ietf.org/html/rfc6184#section-8.2.1
+            rtph264pay_caps.set_value("payload", 123)
+
+            # Set caps that help with frame retransmits that will avoid screen freezing on packet loss.
+            rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
+            rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+
+            # Create a capability filter for the rtph264pay_caps.
+            rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
+            rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
+            self.pipeline.add(vaapih264enc)
+            self.pipeline.add(vaapih264enc_capsfilter)
+            self.pipeline.add(rtph264pay)
+            self.pipeline.add(rtph264pay_capsfilter)
+            if not Gst.Element.link(convert_capsfilter, vaapih264enc):
+                raise GSTWebRTCAppError(
+                    "Failed to link convert_capsfilter -> vaapih264enc")
+
+            if not Gst.Element.link(vaapih264enc, vaapih264enc_capsfilter):
+                raise GSTWebRTCAppError(
+                    "Failed to link vaapih264enc -> vaapih264enc_capsfilter")
+
+            if not Gst.Element.link(vaapih264enc_capsfilter, rtph264pay):
+                raise GSTWebRTCAppError(
+                    "Failed to link vaapih264enc_capsfilter -> rtph264pay")
+
+            if not Gst.Element.link(rtph264pay, rtph264pay_capsfilter):
+                raise GSTWebRTCAppError(
+                    "Failed to link rtph264pay -> rtph264pay_capsfilter")
+
+            # Link the last element to the webrtcbin
+            if not Gst.Element.link(rtph264pay_capsfilter, self.webrtcbin):
+                raise GSTWebRTCAppError(
+                    "Failed to link rtph264pay_capsfilter -> webrtcbin")
+
 
         if self.encoder in ["nvh264enc"]:
             # Upload buffers from ximagesrc directly to CUDA memory where
@@ -290,9 +445,6 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
 
-            # Set aggregate-mode to reduce RTP packetization overhead
-            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
-
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
@@ -330,7 +482,6 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
             rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
-            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
 
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -381,12 +532,10 @@ class GSTWebRTCApp:
             vpenc.set_property("auto-alt-ref", True)
             vpenc.set_property("target-bitrate", self.video_bitrate*1000)
 
+        elif self.encoder in ["nvfbch264enc", "nvfbchevcenc", "vaapih264enc"]:
+            pass
         else:
             raise GSTWebRTCAppError("Unsupported encoder for pipeline: %s" % self.encoder)
-
-        # Add all elements to the pipeline.
-        self.pipeline.add(ximagesrc)
-        self.pipeline.add(ximagesrc_capsfilter)
 
         if self.encoder == "nvh264enc":
             self.pipeline.add(cudaupload)
@@ -412,11 +561,6 @@ class GSTWebRTCApp:
             self.pipeline.add(vpenc_capsfilter)
             self.pipeline.add(rtpvppay)
             self.pipeline.add(rtpvppay_capsfilter)
-
-        # Link the pipeline elements and raise exception of linking fails
-        # due to incompatible element pad capabilities.
-        if not Gst.Element.link(ximagesrc, ximagesrc_capsfilter):
-            raise GSTWebRTCAppError("Failed to link ximagesrc -> ximagesrc_capsfilter")
 
         if self.encoder == "nvh264enc":
             if not Gst.Element.link(ximagesrc_capsfilter, cudaupload):
@@ -573,7 +717,7 @@ class GSTWebRTCApp:
         # A value of 96 is the default that most browsers use for Opus.
         # See the RFC for details:
         #   https://tools.ietf.org/html/rfc4566#section-6
-        rtpopuspay_caps.set_value("payload", 96)
+        rtpopuspay_caps.set_value("payload", 111)
 
         # Create a capability filter for the rtpopuspay_caps.
         rtpopuspay_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -617,12 +761,18 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp",
                     "rtpmanager", "ximagesrc"]
 
-        supported = ["nvh264enc", "vp8enc", "vp9enc", "x264enc"]
+        supported = ["nvfbch264enc", "nvfbchevcenc", "nvh264enc", "vp8enc", "vp9enc", "x264enc", "vaapih264enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
-        if self.encoder.startswith("nv"):
+        if self.encoder.startswith("vaapi"):
+            required.append("vaapi")
+
+        if self.encoder.startswith("nvh"):
             required.append("nvcodec")
+
+        if self.encoder.startswith("nvfbc"):
+            required.append("nvimagesrc")
 
         if self.encoder.startswith("vp"):
             required.append("vpx")
@@ -701,9 +851,12 @@ class GSTWebRTCApp:
             bitrate {integer} -- bitrate in bits per second, for example, 2000 for 2kbits/s or 10000 for 1mbit/sec.
         """
 
-        if self.encoder.startswith("nv"):
+        if self.encoder.startswith("nvh"):
             element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
             element.set_property("bitrate", bitrate)
+        elif self.encoder.startswith("nvfbc"):
+            element = Gst.Bin.get_by_name(self.pipeline, "x11")
+            element.set_property("bitrate", bitrate*1000)
         elif self.encoder.startswith("x264"):
             element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
             element.set_property("bitrate", bitrate)
@@ -719,6 +872,21 @@ class GSTWebRTCApp:
 
         self.__send_data_channel_message(
             "pipeline", {"status": "Video bitrate set to: %d" % bitrate})
+
+    def set_video_framerate(self, framerate):
+        """Set NvFBC framerate
+
+        Arguments:
+            framerate {float} -- framerate in fps.
+        """
+        if self.encoder.startswith("nvfbc"):
+            element = Gst.Bin.get_by_name(self.pipeline, "x11")
+            element.set_property("fps", framerate)
+            self.__send_data_channel_message(
+                "pipeline", {"status": "Video fps set to: %f" % framerate})
+            return True
+        else:
+            return False
 
     def set_audio_bitrate(self, bitrate):
         """Set Opus encoder target bitrate in bps
@@ -958,12 +1126,14 @@ class GSTWebRTCApp:
         self.data_channel.connect('on-open', lambda _: self.on_data_open())
         self.data_channel.connect('on-close', lambda _: self.on_data_close())
         self.data_channel.connect('on-error', lambda _: self.on_data_error())
-        self.data_channel.connect(
+        self.data_channel.connect(                
             'on-message-string', lambda _, msg: self.on_data_message(msg))
 
-        # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        #transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
+        #transceiver.set_property("fec-percentage", 25)
         transceiver.set_property("do-nack", True)
+
 
         logger.info("pipeline started")
 
