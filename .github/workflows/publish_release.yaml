@@ -43,6 +43,11 @@ jobs:
             build_args: BASE_IMAGE=ubuntu:20.04;
             source_directory: addons/gstreamer
 
+          - name: gstreamer
+            version_suffix: -ubuntu22.04
+            build_args: BASE_IMAGE=ubuntu:22.04;
+            source_directory: addons/gstreamer
+
           - name: infra-gcp-installer
             source_directory: infra/gce/installer-image
 
@@ -81,7 +86,14 @@ jobs:
             source_directory: .
 
           - name: gst-py-example
+            version_suffix: -ubuntu20.04
             build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME
+            dockerfile: Dockerfile.example
+            source_directory: .
+
+          - name: gst-py-example
+            version_suffix: -ubuntu22.04
+            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME
             dockerfile: Dockerfile.example
             source_directory: .
 
@@ -115,6 +127,10 @@ jobs:
       gst20_mimetype: ${{ steps.extract.outputs.gst20_mimetype }}
       gst20_name: ${{ steps.extract.outputs.gst20_name }}
       gst20_path: ${{ steps.extract.outputs.gst20_path }}
+      gst22_cache_key: ${{ steps.extract.outputs.gst22_cache_key }}
+      gst22_mimetype: ${{ steps.extract.outputs.gst22_mimetype }}
+      gst22_name: ${{ steps.extract.outputs.gst22_name }}
+      gst22_path: ${{ steps.extract.outputs.gst22_path }}
       py_cache_key: ${{ steps.extract.outputs.py_cache_key }}
       py_mimetype: ${{ steps.extract.outputs.py_mimetype }}
       py_name: ${{ steps.extract.outputs.py_name }}
@@ -145,7 +161,17 @@ jobs:
             target_directory: /tmp
             target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu20.04.tgz
             upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
-          
+
+          - id: gst22
+            cache_key: gstreamer-asset-ubuntu2204
+            description: Ubuntu 22.04
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu22.04
+            mimetype: application/tar+gzip
+            source_path: /opt/selkies-gstreamer-latest.tgz
+            target_directory: /tmp
+            target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu22.04.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+
           - id: py
             cache_key: gst-py-asset
             description: Python
@@ -155,7 +181,7 @@ jobs:
             target_directory: /tmp
             target_name: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
             upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
-          
+
           - id: web
             cache_key: gst-web-asset
             description: Web
@@ -220,6 +246,12 @@ jobs:
           key: ${{ needs.all_assets.outputs.gst20_cache_key }}
           path: ${{ needs.all_assets.outputs.gst20_path }}
 
+      - name: Ubuntu 22.04 cache read
+        uses: actions/cache@v2
+        with:
+          key: ${{ needs.all_assets.outputs.gst22_cache_key }}
+          path: ${{ needs.all_assets.outputs.gst22_path }}
+
       - name: Python cache read
         uses: actions/cache@v2
         with:
@@ -260,6 +292,16 @@ jobs:
           asset_content_type: ${{ needs.all_assets.outputs.gst20_mimetype }}
           asset_name: ${{ needs.all_assets.outputs.gst20_name }}
           asset_path: ${{ needs.all_assets.outputs.gst20_path }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+      - name: Ubuntu 22.04 upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: ${{ needs.all_assets.outputs.gst22_mimetype }}
+          asset_name: ${{ needs.all_assets.outputs.gst22_name }}
+          asset_path: ${{ needs.all_assets.outputs.gst22_path }}
           upload_url: ${{ steps.create_release.outputs.upload_url }}
 
       - name: Python upload

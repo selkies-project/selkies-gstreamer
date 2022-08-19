@@ -1,4 +1,6 @@
 export PATH=/opt/gstreamer/bin:${PATH}
 export LD_LIBRARY_PATH=/opt/gstreamer/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
 export GI_TYPELIB_PATH=/opt/gstreamer/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:${GI_TYPELIB_PATH}
-export PYTHONPATH=/opt/gstreamer/lib/python3.8/site-packages:/opt/gstreamer/lib/python3/dist-packages:${PYTHONPATH}
+
+GST_PY_PATH=$(find /opt/gstreamer/lib -type d -name "python3.*")
+export PYTHONPATH=${GST_PY_PATH}/site-packages:/opt/gstreamer/lib/python3/dist-packages:${PYTHONPATH}

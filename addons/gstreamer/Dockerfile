@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=ubuntu:20.04
-FROM ${BASE_IMAGE} as build
+ARG UBUNTU_RELEASE=20.04
+FROM ubuntu:${UBUNTU_RELEASE} as build
 
 # Install essentials
 RUN \
@@ -49,7 +49,7 @@ WORKDIR /src
 ###
 # GStreamer monorepo build with prefix for standalone install.
 ###
-ENV GSTREAMER_VERSION=1.20
+ENV GSTREAMER_VERSION=1.20.3
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
 COPY config/gstwebrtcbin-rtx-time.patch /src/gstreamer/
 RUN cd /src/gstreamer && patch -p1 < gstwebrtcbin-rtx-time.patch

@@ -26,7 +26,7 @@ If gstreamer is installed at /opt/gstreamer, then make sure your environment is 
 export PATH=/opt/gstreamer/bin:${PATH}
 export LD_LIBRARY_PATH=/opt/gstreamer/lib/x86_64-linux-gnu
 export GI_TYPELIB_PATH=/opt/gstreamer/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0
-export PYTHONPATH=/opt/gstreamer/lib/python3.8/site-packages:/opt/gstreamer/lib/python3/dist-packages:${PYTHONPATH}
+export PYTHONPATH=/opt/gstreamer/lib/python3.*/site-packages:/opt/gstreamer/lib/python3/dist-packages:${PYTHONPATH}
         """
         print(msg)
         sys.exit(1)

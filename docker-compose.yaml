@@ -14,20 +14,23 @@ services:
       context: ./addons/gst-web
       dockerfile: Dockerfile
   test:
-    image: selkies-gstreamer-example:latest-ubuntu20.04
-    # Uncomment below to use Ubuntu 18.04 image.
-    #image: selkies-gstreamer-example:latest-ubuntu18.04
+    ###
+    # NOTE: export the UBUNTU_RELEASE env var to change the base image during build and run.
+    ###
+
+    # TODO: privileged is only required when using Ubuntu 22.04
+    #privileged: true
+
+    image: selkies-gstreamer-example:latest-ubuntu${UBUNTU_RELEASE:-20.04}
     entrypoint: ["/tini", "--", "/bin/bash"]
     build:
       context: .
       dockerfile: Dockerfile.example
       args:
-        UBUNTU_RELEASE: 20.04
-        # Uncomment below id using Ubuntu 18.04 image.
-        #UBUNTU_RELEASE: 18.04
+        UBUNTU_RELEASE: ${UBUNTU_RELEASE:-20.04}
 
         # Testing with gstreamer build in-repo:
-        # 1. (cd addons/gstreamer && docker build -t gstreamer:latest-ubuntu20.04 .)
+        # 1. (cd addons/gstreamer && docker build --build-arg UBUNTU_RELEASE=${UBUNTU_RELEASE?} -t gstreamer:latest-ubuntu${UBUNTU_RELEASE?} .)
         # 2. export GSTREAMER_BASE_IMAGE=gstreamer
         # 3. docker-compose build test
         GSTREAMER_BASE_IMAGE: ${GSTREAMER_BASE_IMAGE:-ghcr.io/selkies-project/selkies-gstreamer/gstreamer}
