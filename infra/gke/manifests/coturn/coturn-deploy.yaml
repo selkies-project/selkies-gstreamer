@@ -61,8 +61,10 @@ spec:
               value: "25100"
           resources:
             requests:
-              cpu: 100m
-              memory: 265Mi
+              cpu: "2"
+              memory: 2Gi
+              ephemeral-storage: 1Gi
             limits:
-              cpu: 2000m
-              memory: 1Gi
+              cpu: "2"
+              memory: 2Gi
+              ephemeral-storage: 1Gi

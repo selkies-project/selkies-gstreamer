@@ -57,26 +57,18 @@ gcloud compute networks create ${NETWORK_NAME?} \
     --subnet-mode=auto
 ```
 
-2. Create cluster:
+2. Create Autopilot Cluster:
 
 ```bash
-gcloud container clusters create ${CLUSTER?} \
-  --project ${PROJECT_ID?} \
-  --release-channel "regular" \
-  --region=${CLUSTER_REGION?} \
-  --machine-type "e2-medium" \
-  --node-locations=${CLUSTER_ZONES?} \
-  --num-nodes 1 \
-  --network=${NETWORK_NAME?} \
-  --create-subnetwork name=${CLUSTER?} \
-  --max-pods-per-node "110" \
-  --enable-private-nodes \
-  --master-ipv4-cidr "172.16.0.32/28" \
-  --no-enable-master-authorized-networks \
-  --enable-ip-alias \
-  --monitoring=SYSTEM \
-  --logging=SYSTEM,WORKLOAD \
-  --workload-pool=${WORKLOAD_POOL?}
+gcloud container clusters create-auto ${CLUSTER?} \
+    --region ${CLUSTER_REGION?} \
+    --project=${PROJECT_ID?} \
+    --release-channel "regular" \
+    --network=${NETWORK_NAME?} \
+    --create-subnetwork name=${CLUSTER?} \
+    --enable-private-nodes \
+    --master-ipv4-cidr "172.16.1.32/28" \
+    --no-enable-master-authorized-networks
 ```
 
 3. Connect to the cluster:
@@ -363,6 +355,10 @@ spec:
       containers:
       - name: istio-proxy
         image: auto # The image will automatically update each time the pod starts.
+        resources:
+          requests:
+            cpu: 500m
+            memory: 256Mi
 EOF
 
 cat <<EOF > ${WORKDIR?}/asm-ingressgateway-external-httproute.yaml

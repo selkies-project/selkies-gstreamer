@@ -57,5 +57,6 @@ spec:
               containerPort: 8080
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: 1Gi
