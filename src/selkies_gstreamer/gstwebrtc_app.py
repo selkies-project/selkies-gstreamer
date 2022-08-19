@@ -33,7 +33,7 @@ class GSTWebRTCAppError(Exception):
 
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio=True, framerate=30, encoder=None, video_bitrate=12000, audio_bitrate=64000):
+    def __init__(self, stun_servers=None, turn_servers=None, audio=True, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000):
         """Initialize gstreamer webrtc app.
 
         Initializes GObjects and checks for required plugins.
@@ -313,7 +313,7 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
             rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
-
+            rtph264pay_caps.set_value("aggregate-mode", "zero-latency")
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
@@ -1130,8 +1130,6 @@ class GSTWebRTCApp:
             'on-message-string', lambda _, msg: self.on_data_message(msg))
 
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        #transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
-        #transceiver.set_property("fec-percentage", 25)
         transceiver.set_property("do-nack", True)
 
 
