@@ -188,6 +188,19 @@ class GSTWebRTCApp:
         ximagesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
         ximagesrc_capsfilter.set_property("caps", ximagesrc_caps)
 
+        if self.encoder.startswith("vaapi"):
+            convert = Gst.ElementFactory.make("vaapipostproc")
+            convert_caps = Gst.caps_from_string("video/x-raw")
+            convert_caps.set_value("format", "NV12")
+            convert_capsfilter = Gst.ElementFactory.make("capsfilter")
+            convert_capsfilter.set_property("caps", convert_caps)
+            self.pipeline.add(convert)
+            self.pipeline.add(convert_capsfilter)
+            if not Gst.Element.link(ximagesrc_capsfilter, convert):
+                raise GSTWebRTCAppError("Failed to link ximagesrc_capsfilter -> convert")
+            if not Gst.Element.link(convert, convert_capsfilter):
+                raise GSTWebRTCAppError("Failed to link convert -> convert_capsfilter")
+
         if self.encoder in ["nvh264enc"]:
             # Upload buffers from ximagesrc directly to CUDA memory where
             # the colorspace conversion will be performed.
@@ -381,6 +394,65 @@ class GSTWebRTCApp:
             vpenc.set_property("auto-alt-ref", True)
             vpenc.set_property("target-bitrate", self.video_bitrate*1000)
 
+        elif self.encoder in ["vaapih264enc"]:
+            vaapih264enc = Gst.ElementFactory.make("vaapih264enc", "vaenc")
+            vaapih264enc.set_property("bitrate", self.video_bitrate)
+            #vaapih264enc.set_property("rate-control ", "cbr")
+            vaapih264enc_caps = Gst.caps_from_string("video/x-h264")
+            vaapih264enc_caps.set_value("profile", "high")
+
+            vaapih264enc_capsfilter = Gst.ElementFactory.make("capsfilter")
+            vaapih264enc_capsfilter.set_property("caps", vaapih264enc_caps)
+
+            rtph264pay = Gst.ElementFactory.make("rtph264pay")
+
+            # Set the capabilities for the rtph264pay element.
+            rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
+
+            # Set the payload type to video.
+            rtph264pay_caps.set_value("media", "video")
+
+            # Set the video encoding name to match our encoded format.
+            rtph264pay_caps.set_value("encoding-name", "H264")
+
+            # Set the payload type to one that matches the encoding profile.
+            # Payload number 123 corresponds to H.264 encoding with the high profile.
+            # Other payloads can be derived using WebRTC specification:
+            #   https://tools.ietf.org/html/rfc6184#section-8.2.1
+            rtph264pay_caps.set_value("payload", 123)
+
+            # Set caps that help with frame retransmits that will avoid screen freezing on packet loss.
+            rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
+            rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+
+            # Create a capability filter for the rtph264pay_caps.
+            rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
+            rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
+            self.pipeline.add(vaapih264enc)
+            self.pipeline.add(vaapih264enc_capsfilter)
+            self.pipeline.add(rtph264pay)
+            self.pipeline.add(rtph264pay_capsfilter)
+            if not Gst.Element.link(convert_capsfilter, vaapih264enc):
+                raise GSTWebRTCAppError(
+                    "Failed to link convert_capsfilter -> vaapih264enc")
+
+            if not Gst.Element.link(vaapih264enc, vaapih264enc_capsfilter):
+                raise GSTWebRTCAppError(
+                    "Failed to link vaapih264enc -> vaapih264enc_capsfilter")
+
+            if not Gst.Element.link(vaapih264enc_capsfilter, rtph264pay):
+                raise GSTWebRTCAppError(
+                    "Failed to link vaapih264enc_capsfilter -> rtph264pay")
+
+            if not Gst.Element.link(rtph264pay, rtph264pay_capsfilter):
+                raise GSTWebRTCAppError(
+                    "Failed to link rtph264pay -> rtph264pay_capsfilter")
+
+            # Link the last element to the webrtcbin
+            if not Gst.Element.link(rtph264pay_capsfilter, self.webrtcbin):
+                raise GSTWebRTCAppError(
+                   "Failed to link rtph264pay_capsfilter -> webrtcbin")
         else:
             raise GSTWebRTCAppError("Unsupported encoder for pipeline: %s" % self.encoder)
 
@@ -617,9 +689,12 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp",
                     "rtpmanager", "ximagesrc"]
 
-        supported = ["nvh264enc", "vp8enc", "vp9enc", "x264enc"]
+        supported = ["nvh264enc", "vp8enc", "vp9enc", "x264enc", "vaapih264enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
+
+        if self.encoder.startswith("vaapi"):
+            required.append("vaapi")
 
         if self.encoder.startswith("nv"):
             required.append("nvcodec")
