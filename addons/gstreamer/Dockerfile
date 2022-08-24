@@ -32,7 +32,8 @@ RUN \
         libwebrtc-audio-processing-dev \
         libssl-dev \
         libsrtp2-dev \
-        libx264-dev && \
+        libx264-dev \
+        libvpx-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install meson and ninja
