@@ -189,17 +189,17 @@ class GSTWebRTCApp:
         ximagesrc_capsfilter.set_property("caps", ximagesrc_caps)
 
         if self.encoder.startswith("vaapi"):
-            convert = Gst.ElementFactory.make("vaapipostproc")
-            convert_caps = Gst.caps_from_string("video/x-raw")
-            convert_caps.set_value("format", "NV12")
-            convert_capsfilter = Gst.ElementFactory.make("capsfilter")
-            convert_capsfilter.set_property("caps", convert_caps)
-            self.pipeline.add(convert)
-            self.pipeline.add(convert_capsfilter)
-            if not Gst.Element.link(ximagesrc_capsfilter, convert):
-                raise GSTWebRTCAppError("Failed to link ximagesrc_capsfilter -> convert")
-            if not Gst.Element.link(convert, convert_capsfilter):
-                raise GSTWebRTCAppError("Failed to link convert -> convert_capsfilter")
+            vaapipostproc = Gst.ElementFactory.make("vaapipostproc")
+            vaapipostproc_caps = Gst.caps_from_string("video/x-raw")
+            vaapipostproc_caps.set_value("format", "NV12")
+            vaapipostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
+            vaapipostproc_capsfilter.set_property("caps", vaapipostproc_caps)
+            self.pipeline.add(vaapipostproc)
+            self.pipeline.add(vaapipostproc_capsfilter)
+            if not Gst.Element.link(ximagesrc_capsfilter, vaapipostproc):
+                raise GSTWebRTCAppError("Failed to link ximagesrc_capsfilter -> vaapipostproc")
+            if not Gst.Element.link(vaapipostproc, vaapipostproc_capsfilter):
+                raise GSTWebRTCAppError("Failed to link vaapipostproc -> vaapipostproc_capsfilter")
 
         if self.encoder in ["nvh264enc"]:
             # Upload buffers from ximagesrc directly to CUDA memory where
