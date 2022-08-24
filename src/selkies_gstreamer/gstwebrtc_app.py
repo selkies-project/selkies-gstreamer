@@ -901,7 +901,12 @@ class GSTWebRTCApp:
         self.webrtcbin.emit('set-local-description', offer, promise)
         promise.interrupt()
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(self.on_sdp('offer', offer.sdp.as_text()))
+        sdp_text = offer.sdp.as_text()
+        if '264' in self.encoder and 'profile-level-id' not in sdp_text:
+            # Workaround to force high h264 profile, fix for Firefox.
+            logger.warning("injecting profile-level-id to SDP")
+            sdp_text = sdp_text.replace('packetization-mode=1', 'profile-level-id=42e01f;packetization-mode=1')
+        loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
     def __on_negotiation_needed(self, webrtcbin):
         """Handles on-negotiation-needed signal, generates create-offer action
