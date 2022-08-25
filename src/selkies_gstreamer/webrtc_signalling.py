@@ -25,8 +25,8 @@ Interfaces with signalling server found at:
   https://github.com/centricular/gstwebrtc-demos/tree/master/signalling
 
     Usage example:
-    from webrtc_signalling import WebRTCSinalling
-    signalling = WebRTCSinalling(server, id, peer_id)
+    from webrtc_signalling import WebRTCSignalling
+    signalling = WebRTCSignalling(server, id, peer_id)
     signalling.on_connect = lambda: signalling.setup_call()
     signalling.connect()
     signalling.start()
