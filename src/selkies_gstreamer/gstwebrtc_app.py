@@ -901,11 +901,17 @@ class GSTWebRTCApp:
         self.webrtcbin.emit('set-local-description', offer, promise)
         promise.interrupt()
         loop = asyncio.new_event_loop()
+        # Firefox needs profile-level-id=42e01f in the offer, but webrtcbin does not add this.
+        # Remove when fixed in webrtcbin.
+        #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1106
         sdp_text = offer.sdp.as_text()
-        if '264' in self.encoder and 'profile-level-id' not in sdp_text:
-            # Workaround to force high h264 profile, fix for Firefox.
-            logger.warning("injecting profile-level-id to SDP")
-            sdp_text = sdp_text.replace('packetization-mode=1', 'profile-level-id=42e01f;packetization-mode=1')
+        if '264' in self.encoder:
+            if 'profile-level-id' not in sdp_text:
+                logger.warning("injecting profile-level-id to SDP")
+                sdp_text = sdp_text.replace('packetization-mode=1', 'profile-level-id=42e01f;packetization-mode=1')
+            if 'level-asymmetry-allowed' not in sdp_text:
+                logger.warning("injecting level-asymmetry-allowed to SDP")
+                sdp_text = sdp_text.replace('packetization-mode=1', 'level-asymmetry-allowed=1;packetization-mode=1')
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
     def __on_negotiation_needed(self, webrtcbin):
