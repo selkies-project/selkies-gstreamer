@@ -43,7 +43,14 @@ runs:
         export BUILD_ARGS=""
         if [[ -n "${{ inputs.build_args }}" ]]; then
           IFS=";" read -ra args <<< "${{ inputs.build_args }}"
-          for arg in ${args[@]}; do BUILD_ARGS+="--build-arg $arg "; done
+          for arg in ${args[@]}; do
+            BUILD_ARGS+="--build-arg $arg "
+            if [[ $arg =~ UBUNTU_RELEASE ]]; then
+              # pull latest base image
+              eval "export $arg"
+              docker pull ubuntu:${UBUNTU_RELEASE?}
+            fi
+          done
         fi
 
         export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-gstreamer/
