@@ -497,8 +497,8 @@ def main():
     logger.info("initial server RTC config: {}".format(rtc_config))
 
     # Extract args
-    enable_audio = args.enable_audio == "true"
-    enable_resize = args.enable_resize == "true"
+    enable_audio = args.enable_audio.lower() == "true"
+    enable_resize = args.enable_resize.lower() == "true"
     curr_fps = int(args.framerate)
     curr_video_bitrate = int(args.video_bitrate)
     curr_audio_bitrate = int(args.audio_bitrate)
