@@ -20,7 +20,7 @@ Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as 
 
 Third, `selkies-gstreamer` was designed not only for desktops and bare metal servers, but also for unprivileged Docker and Kubernetes containers. Unlike other similar Linux solutions, there are no dependencies that require access to special devices not available inside containers by default, and is also not dependent on `systemd`. This enables virtual desktop infrastructure (VDI) using containers instead of virtual machines (VMs) which have high overhead.
 
-Fourth, `selkies-gstreamer` is easy to use and expand to various usage cases, attracting users and developers from diverse backgrounds, as it uses [GStreamer](https://gstreamer.freedesktop.org). GStreamer allows pluggable components to be mixed and matched like LEGO blocks to form arbitrary pipelines, providing an easier interface with more comprehensive documentation compared to [FFmpeg](https://ffmpeg.org). Therefore, `selkies-gstreamer` is meant from the start to be a community-built project, where developers from all backgrounds can easily contribute to or expand upon. `selkies-gstreamer` mainly uses [`gst-python`](https://gitlab.freedesktop.org/gstreamer/gstreamer/-/tree/main/subprojects/gst-python), the [Python](https://www.python.org) bindings for GStreamer, [`gstwebrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html), which provides the ability to send a WebRTC remote desktop stream to web browsers from GStreamer, and many more community plugins provided by GStreamer.
+Fourth, `selkies-gstreamer` is easy to use and expand to various usage cases, attracting users and developers from diverse backgrounds, as it uses [GStreamer](https://gstreamer.freedesktop.org). GStreamer allows pluggable components to be mixed and matched like LEGO blocks to form arbitrary pipelines, providing an easier interface with more comprehensive documentation compared to [FFmpeg](https://ffmpeg.org). Therefore, `selkies-gstreamer` is meant from the start to be a community-built project, where developers from all backgrounds can easily contribute to or expand upon. `selkies-gstreamer` mainly uses [`gst-python`](https://gitlab.freedesktop.org/gstreamer/gstreamer/-/tree/main/subprojects/gst-python), the [Python](https://www.python.org) bindings for GStreamer, [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html), which provides the ability to send a WebRTC remote desktop stream to web browsers from GStreamer, and many more community plugins provided by GStreamer.
 
 ## How do I get started?
 
@@ -34,17 +34,15 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 ### Example Docker container
 
-**NOTE: You will need to use an external STUN/TURN server capable of srflx or relay type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker command to enable host networking and work around this requirement if your server is not behind NAT). Follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
+**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker command to enable host networking and work around this requirement if your server is not behind NAT). Follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [Dockerfile](./Dockerfile.example). 
 
-Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example):
+Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface:
 
 ```bash
 docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest
 ```
-
-> Now connect to your docker host on port `8080` to access the web interface.
 
 Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or [`selkies-examples`](https://github.com/selkies-project/selkies-examples) from the [Selkies Project](https://github.com/selkies-project) provide containerized virtual desktop infrastructure (VDI) templates.
 
@@ -52,7 +50,7 @@ Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or 
 
 ### Install the packaged version on a standalone machine or cloud instance
 
-**NOTE: You will need to use an external STUN/TURN server capable of srflx or relay type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
+**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
@@ -86,7 +84,7 @@ cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/r
 cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web-v${SELKIES_VERSION}.tgz" | sudo tar -zxf -
 ```
 
-This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command line option `--web_root` to `selkies-gstreamer`.
+This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`.
 
 5. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
 
@@ -103,7 +101,7 @@ export PULSE_SERVER=127.0.0.1:4713
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your gstreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
-# Start a virtual X server, skip this line if an X server already exists
+# Start a virtual X server, skip this line if an X server already exists or you are already using a display
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
@@ -140,7 +138,7 @@ selkies-gstreamer &
 
 Docker (or an equivalent) is required if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` instruction instead of using the `docker` CLI.
 
-**NOTE: You will need to use an external STUN/TURN server capable of srflx or relay type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
+**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
@@ -182,7 +180,7 @@ cd /opt && docker cp gst-web:/usr/share/nginx/html ./gst-web
 docker rm gst-web
 ```
 
-This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command line option `--web_root` to `selkies-gstreamer`.
+This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`.
 
 5. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
 
@@ -199,7 +197,7 @@ export PULSE_SERVER=127.0.0.1:4713
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your gstreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
-# Start a virtual X server, skip this line if an X server already exists
+# Start a virtual X server, skip this line if an X server already exists or you are already using a display
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
@@ -232,9 +230,53 @@ selkies-gstreamer-resize 1280x720
 selkies-gstreamer &
 ```
 
-### Command line options and environment variables
+### Command-line options and environment variables
 
-Use `selkies-gstreamer --help` for all command line options, after sourcing `gst-env`. Environment variables for each of the command line options are available within [`__main__.py`](src/selkies_gstreamer/__main__.py). 
+Use `selkies-gstreamer --help` for all command-line options, after sourcing `gst-env`. Environment variables for each of the command-line options are available within [`__main__.py`](src/selkies_gstreamer/__main__.py). 
+
+#### GStreamer components
+
+Below are GStreamer components which are implemented and therefore may be used with `selkies-gstreamer`. Some include environment variables or command-line options which may be used select one type of component, and others are chosen automatically based on the operating system or configuration. This section is to be continuously updated.
+
+This table specifies the currently supported transport protocol components.
+
+| Plugin | Protocols | Operating Systems | Browsers | Main Dependencies | Notes |
+|---|---|---|---|---|---|
+| [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html) | [WebRTC](https://webrtc.org) | All | All Major | Various | N/A |
+
+This table specifies the currently implemented video encoders and their corresponding codecs, which may be set using the environment variable `WEBRTC_ENCODER` or the command-line option `--encoder`.
+
+| Plugin (set `WEBRTC_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
+|---|---|---|---|---|---|---|
+| [`x264enc`](https://gstreamer.freedesktop.org/documentation/x264/index.html) | H.264 AVC | Software | All | All Major | `x264` | N/A |
+| [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
+| [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | Chromium-based, Firefox | `libvpx` | N/A |
+| [`nvh264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvh264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+
+This table specifies the currently implemented video frame converters used to convert the YUV formats from `BGRx` to `I420`, which are automatically decided based on the encoder types.
+
+| Plugin | Encoders | Acceleration | Operating Systems | Main Dependencies | Notes |
+|---|---|---|---|---|---|
+| [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `vp8enc`, `vp9enc` | Software | All | Various | N/A |
+| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvh264enc` | NVIDIA GPU | Linux | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | N/A |
+
+This table specifies the currently supported display interfaces and how each plugin selects each video device.
+
+| Plugin | Device Selector | Display Interfaces | Operating Systems | Main Dependencies | Notes |
+|---|---|---|---|---|---|
+| [`ximagesrc`](https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html) | `DISPLAY` environment | X.Org / X11 | Linux | Various | N/A |
+
+This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only media codec supported in web browsers by specification.
+
+| Plugin | Codec | Browsers | Operating Systems | Main Dependencies | Notes |
+|---|---|---|---|---|---|
+| [`opusenc`](https://gstreamer.freedesktop.org/documentation/opus/opusenc.html) | Opus | All Major | All | `libopus` | N/A |
+
+This table specifies the currently supported audio interfaces and how each plugin selects each audio device.
+
+| Plugin | Device Selector | Audio Interfaces | Operating Systems | Main Dependencies | Notes |
+|---|---|---|---|---|---|
+| [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` environment | PulseAudio | Linux | `libpulse` | N/A |
 
 ### Using a TURN server
 
@@ -260,7 +302,7 @@ The `cert=` and `pkey=` options, which lead to the certificate and the private k
 
 #### Deploy coTURN with Docker
 
-In order to deploy a coTURN container, use the following command (consult this [example configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more options which may also be used as command line arguments). You should be able to expose these ports to the internet. Modify the relay ports `-p 49160-49200:49160-49200/udp` and `--min-port=49160 --max-port=49200` as appropriate (at least one relay port is required). Simply using `--network=host` instead of specifying `-p 49160-49200:49160-49200/udp` is also fine if possible. The relay ports and the listening port must all be open to the internet. Add the `--no-udp-relay` behind `-n` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or `--no-tcp-relay` behind `-n` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
+In order to deploy a coTURN container, use the following command (consult this [example configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more options which may also be used as command-line arguments). You should be able to expose these ports to the internet. Modify the relay ports `-p 49160-49200:49160-49200/udp` and `--min-port=49160 --max-port=49200` as appropriate (at least one relay port is required). Simply using `--network=host` instead of specifying `-p 49160-49200:49160-49200/udp` is also fine if possible. The relay ports and the listening port must all be open to the internet. Add the `--no-udp-relay` behind `-n` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or `--no-tcp-relay` behind `-n` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
 For time-limited shared secret TURN authentication:
 
@@ -274,7 +316,7 @@ For legacy long-term TURN authentication:
 docker run -d -p 3478:3478 -p 3478:3478/udp -p 49160-49200:49160-49200/udp coturn/coturn -n --min-port=49160 --max-port=49200 --lt-cred-mech --user=yourusername:yourpassword
 ```
 
-If you want to use TURN over TLS/DTLS, you must have a valid hostname, and also provision a valid certificate issued from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS), and provide the certificate and private files to the coTURN container with `-v /mylocalpath/coturncert.pem:/etc/coturncert.pem -v /mylocalpath/coturnkey.pem:/etc/coturnkey.pem`, then add the command line arguments `-n --cert=/etc/coturncert.pem --pkey=/etc/coturnkey.pem` (the specified paths are an example).
+If you want to use TURN over TLS/DTLS, you must have a valid hostname, and also provision a valid certificate issued from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS), and provide the certificate and private files to the coTURN container with `-v /mylocalpath/coturncert.pem:/etc/coturncert.pem -v /mylocalpath/coturnkey.pem:/etc/coturnkey.pem`, then add the command-line arguments `-n --cert=/etc/coturncert.pem --pkey=/etc/coturnkey.pem` (the specified paths are an example).
 
 More information available in the [coTURN container image](https://hub.docker.com/r/coturn/coturn) or the [coTURN repository](https://github.com/coturn/coturn) website.
 
@@ -294,23 +336,31 @@ More information is available in the [coTURN container image](https://hub.docker
 
 #### Start `selkies-gstreamer` with the TURN server credentials
 
-Provide the TURN server host address (the environment variable `TURN_HOST` or the command line option `--turn_host`), port (the environment variable `TURN_PORT` or the command line option `--turn_port`), and the shared secret (`TURN_SHARED_SECRET`/`--turn_shared_secret`) or the legacy long-term authentication username/password (`TURN_USERNAME`/`--turn_username` and `TURN_PASSWORD`/`--turn_password`) in order to take advantage of the TURN relay capabilities and guarantee connection success.
+Provide the TURN server host address (the environment variable `TURN_HOST` or the command-line option `--turn_host`), port (the environment variable `TURN_PORT` or the command-line option `--turn_port`), and the shared secret (`TURN_SHARED_SECRET`/`--turn_shared_secret`) or the legacy long-term authentication username/password (`TURN_USERNAME`/`--turn_username` and `TURN_PASSWORD`/`--turn_password`) in order to take advantage of the TURN relay capabilities and guarantee connection success.
 
-You may set the environment variable `TURN_PROTOCOL` to `tcp` or set the command line option `--turn_protocol=tcp` if you are unable to open the UDP listening port to the internet for the coTURN container, or if the UDP protocol is blocked or throttled in your client network.
+You may set the environment variable `TURN_PROTOCOL` to `tcp` or set the command-line option `--turn_protocol=tcp` if you are unable to open the UDP listening port to the internet for the coTURN container, or if the UDP protocol is blocked or throttled in your client network.
 
 You may also set `TURN_TLS` to `true` or set `--turn_tls=true` if TURN over TLS/DTLS was properly configured from the TURN server with a valid certificate issued from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS).
 
 ## Development
 
-This project was meant to be built upon community contributions. [GStreamer](https://gstreamer.freedesktop.org) is much easier to develop without prior experience on multimedia application development, and this project is a perfect starting point for anyone who wants to get started. Please give back with a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls) if you made modifications to the code or added new features, especially if you use this project commercially. We will be happy to help if you are stuck. As the relatively permissive license compared to similar projects is for the benefit of the community, please do not take advantage of it. If improvements are not merged, it will ultimately lead to the project becoming unsustainable. We need your help to continue maintaining performance and quality, staying competent compared to proprietary applications.
+This project was meant to be built upon community contributions. [GStreamer](https://gstreamer.freedesktop.org) is much easier to develop without prior experience on multimedia application development, and this project is a perfect starting point for anyone who wants to get started. Please give back with a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls) if you made modifications to the code or added new features, especially if you use this project commercially. We will be happy to help if you are stuck.
 
-Regardless of whether you are an experienced developer or engineer already with experience on media pipelines, internet standards, video conferencing applications using SIP or H.323, or all other multimedia projects, just getting started on multimedia development, or even getting started on Python, JavaScript, or HTML, there can be something that you may help. Our code structure enables you to focus on parts of the code that you know best without necessarily understanding the rest. Even if you are not a developer, you still can suggest various improvements including to the documentation or suggest optimized parameters for the video encoders from your experiences using live streaming or video editing software.
+Regardless of whether you are an experienced developer or engineer already with experience on media pipelines, internet standards, video conferencing applications using SIP or H.323, or all other multimedia projects, just getting started on multimedia development, or even getting started on Python, JavaScript, or HTML, there can be something that you may help. Our code structure enables you to focus on parts of the code that you know best without necessarily understanding the rest.
+
+Even if you are not a developer, you still suggest various improvements including to the documentation, suggest optimized parameters for the video encoders from your experiences using live streaming or video editing software, or become a community helper at [Discord](https://discord.gg/wDNGDeSW5F).
+
+As the relatively permissive license compared to similar projects is for the benefit of the community, please do not take advantage of it. If improvements are not merged, it will ultimately lead to the project becoming unsustainable. We need your help to continue maintaining performance and quality, staying competent compared to proprietary applications.
 
 Please join our [Discord](https://discord.gg/wDNGDeSW5F) server, then start out with the [Issues](https://github.com/selkies-project/selkies-gstreamer/issues) to see if new enhancements that you can make or things that you want solved have been already raised.
 
 We use Docker containers for building every commit. The root directory [`Dockerfile`](./Dockerfile) and Dockerfiles within the [`addons`](addons) directory provide directions for building each component, so that you may replicate the procedures in your own setup even without Docker. When contributing, please follow the overall style of the code, and the names of all variables, classes, or functions have to be unambiguous and as less generic as possible.
 
-If you want new features or improvements but if you are not a developer or lack enough time, please consider offering bounties by contacting us. If you want new features that currently are not yet available with [GStreamer](https://gstreamer.freedesktop.org), we must fund the small pool of full-time GStreamer developers capable of implementing the features in order to bring them to `selkies-gstreamer`. Such issues are tagged as requiring an upstream plugin from GStreamer. Even for features or improvements that are ready to be implemented, crowdfunding bounties motivates developers to solve them faster.
+If you want new features or improvements but if you are not a developer or lack enough time, please consider offering bounties by contacting us. If you want new features that currently are not yet available with [GStreamer](https://gstreamer.freedesktop.org), we must fund the small pool of full-time GStreamer developers capable of implementing new features in order to bring them to `selkies-gstreamer` as well. Such issues are tagged as requiring an upstream plugin from GStreamer. Even for features or improvements that are ready to be implemented, crowdfunding bounties motivates developers to solve them faster.
+
+### GStreamer advices
+
+Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](https://gstreamer.freedesktop.org/documentation/plugins_doc.html) is supposed to have a **Hierarchy** section. As all GStreamer objects are defined as **classes** used with object-oriented programming, any properties that you see in parent classes are also properties that you may use for your own classes and plugins. Therefore, all contributors implementing or modifying code relevant to GStreamer are also to carefully check parent classes as well when configuring [properties](https://gstreamer.freedesktop.org/documentation/plugin-development/basics/args.html) or [capabilities](https://gstreamer.freedesktop.org/documentation/gstreamer/gstcaps.html).
 
 ## Troubleshooting
 
