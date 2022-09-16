@@ -238,12 +238,6 @@ Use `selkies-gstreamer --help` for all command-line options, after sourcing `gst
 
 Below are GStreamer components which are implemented and therefore may be used with `selkies-gstreamer`. Some include environment variables or command-line options which may be used select one type of component, and others are chosen automatically based on the operating system or configuration. This section is to be continuously updated.
 
-This table specifies the currently supported transport protocol components.
-
-| Plugin | Protocols | Operating Systems | Browsers | Main Dependencies | Notes |
-|---|---|---|---|---|---|
-| [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html) | [WebRTC](https://webrtc.org) | All | All Major | Various | N/A |
-
 This table specifies the currently implemented video encoders and their corresponding codecs, which may be set using the environment variable `WEBRTC_ENCODER` or the command-line option `--encoder`.
 
 | Plugin (set `WEBRTC_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
@@ -277,6 +271,12 @@ This table specifies the currently supported audio interfaces and how each plugi
 | Plugin | Device Selector | Audio Interfaces | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
 | [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` environment | PulseAudio | Linux | `libpulse` | N/A |
+
+This table specifies the currently supported transport protocol components.
+
+| Plugin | Protocols | Operating Systems | Browsers | Main Dependencies | Notes |
+|---|---|---|---|---|---|
+| [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html) | [WebRTC](https://webrtc.org) | All | All Major | Various | N/A |
 
 ### Using a TURN server
 
