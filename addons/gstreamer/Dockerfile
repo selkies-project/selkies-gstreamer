@@ -52,8 +52,6 @@ WORKDIR /src
 ###
 ENV GSTREAMER_VERSION=1.20.3
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
-COPY config/gstwebrtcbin-rtx-time.patch /src/gstreamer/
-RUN cd /src/gstreamer && patch -p1 < gstwebrtcbin-rtx-time.patch
 RUN cd /src/gstreamer && \
     mkdir -p /opt/gstreamer && \
     meson --prefix /opt/gstreamer -Dgpl=enabled -Dugly=enabled -Dgst-plugins-ugly:x264=enabled builddir && \

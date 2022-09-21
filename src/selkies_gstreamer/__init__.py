@@ -21,12 +21,13 @@ while retry:
         msg = """
 ERROR: could not find working gst-python installation.
 
-If gstreamer is installed at /opt/gstreamer, then make sure your environment is set correctly:
+If GStreamer is installed at a certain location, set its path to the environment variable $GSTREAMER_PATH, then make sure your environment is set correctly using the below commands:
 
-export PATH=/opt/gstreamer/bin:${PATH}
-export LD_LIBRARY_PATH=/opt/gstreamer/lib/x86_64-linux-gnu
-export GI_TYPELIB_PATH=/opt/gstreamer/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0
-export PYTHONPATH=/opt/gstreamer/lib/python3.*/site-packages:/opt/gstreamer/lib/python3/dist-packages:${PYTHONPATH}
+export PATH=${GSTREAMER_PATH}/bin:${PATH}
+export LD_LIBRARY_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
+export GI_TYPELIB_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:${GI_TYPELIB_PATH}
+GST_PY_PATH=$(find ${GSTREAMER_PATH}/lib -type d -name "python3.*")
+export PYTHONPATH=${GST_PY_PATH}/site-packages:${GSTREAMER_PATH}/lib/python3/dist-packages:${PYTHONPATH}
         """
         print(msg)
         sys.exit(1)

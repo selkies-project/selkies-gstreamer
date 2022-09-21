@@ -66,7 +66,7 @@ RUN \
         firefox && \
     rm -rf /var/lib/apt/lists/*
 
-# Install ubuntu 22.04 specific packages
+# Install Ubuntu 22.04 specific packages
 RUN if [ "${UBUNTU_RELEASE}" = "22.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
     rm -rf /var/lib/apt/lists/*
 

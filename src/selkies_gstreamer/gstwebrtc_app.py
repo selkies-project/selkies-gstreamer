@@ -16,6 +16,7 @@ import asyncio
 import base64
 import json
 import logging
+import re
 
 import gi
 gi.require_version("Gst", "1.0")
@@ -901,10 +902,17 @@ class GSTWebRTCApp:
         self.webrtcbin.emit('set-local-description', offer, promise)
         promise.interrupt()
         loop = asyncio.new_event_loop()
+        sdp_text = offer.sdp.as_text()
+        # rtx-time needs to be set to 125 milliseconds for optimal performance
+        if 'rtx-time' not in sdp_text:
+            logger.warning("injecting rtx-time to SDP")
+            sdp_text = re.sub(r'(apt=\d+)', r'\1;rtx-time=125', sdp_text)
+        elif 'rtx-time=125' not in sdp_text:
+            logger.warning("injecting modified rtx-time to SDP")
+            sdp_text = re.sub(r'rtx-time=\d+', r'rtx-time=125', sdp_text)
         # Firefox needs profile-level-id=42e01f in the offer, but webrtcbin does not add this.
         # Remove when fixed in webrtcbin.
         #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1106
-        sdp_text = offer.sdp.as_text()
         if '264' in self.encoder:
             if 'profile-level-id' not in sdp_text:
                 logger.warning("injecting profile-level-id to SDP")
