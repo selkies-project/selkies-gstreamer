@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine:3.9
+FROM coturn/coturn:alpine
 
-RUN apk add -u --no-cache coturn bind-tools
+USER root
+
+RUN apk add -u --no-cache bind-tools
 
 COPY detect_external_ip.sh /usr/bin/detect_external_ip
 RUN chmod +x /usr/bin/detect_external_ip
 
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
+
+USER nobody:nogroup
 
 ENTRYPOINT ["/entrypoint.sh"]

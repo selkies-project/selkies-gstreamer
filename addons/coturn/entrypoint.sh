@@ -36,4 +36,5 @@ turnserver \
     --rest-api-separator="-" \
     --channel-lifetime=${TURN_CHANNEL_LIFETIME:-"-1"} \
     --min-port=${TURN_MIN_PORT:-25000} \
-    --max-port=${TURN_MAX_PORT:-25004} ${EXTRA_ARGS}
+    --max-port=${TURN_MAX_PORT:-25004} \
+    --prometheus ${EXTRA_ARGS}
