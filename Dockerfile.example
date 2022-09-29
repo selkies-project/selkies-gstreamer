@@ -20,6 +20,7 @@ RUN \
         python3-dev \
         python3-gi \
         python3-setuptools \
+        python3-tk \
         python3-wheel \
         tzdata \
         sudo \
@@ -95,17 +96,17 @@ RUN \
         -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
     /opt/gst-web/sw.js
 
-# Install selkies-gstreamer python app
+# Install selkies-gstreamer Python app
 ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=1.0.0.dev0
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 
 # TODO: required for remote-cursor support. Only works with python>3.7, no ubuntu18.04 support.
-# Remove this and uncommend line in setup.cfg after this PR is merged and in release:
+# Remove this and uncomment line in setup.cfg after this PR is merged and in release:
 # https://github.com/python-xlib/python-xlib/pull/218
 RUN if [ "${UBUNTU_RELEASE}" != "18.04" ] ; then \
-    pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/master.zip ; fi
+    pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip ; fi
 
 # Setup global bashrc to configure gstreamer environment
 RUN echo 'export DISPLAY=:0' \

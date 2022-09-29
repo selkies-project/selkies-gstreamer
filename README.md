@@ -55,7 +55,7 @@ Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-tk python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 or an equivalent version of another operating system:
@@ -143,7 +143,7 @@ Docker (or an equivalent) is required if you are to use builds from the latest c
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-tk python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 or an equivalent version of another operating system:
@@ -298,7 +298,7 @@ In most cases when either of your server or client does not have a restrictive f
 
 An open-source TURN server for Linux or UNIX-like operating systems that may be used is [coTURN](https://github.com/coturn/coturn), available in major package repositories or as an example container [`coturn/coturn:latest`](https://hub.docker.com/r/coturn/coturn). Alternatively, the `selkies-gstreamer` [`coturn`](addons/coturn) and [`coturn-web`](addons/coturn-web) images [`ghcr.io/selkies-project/selkies-gstreamer/coturn`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fcoturn) and [`ghcr.io/selkies-project/selkies-gstreamer/coturn-web`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fcoturn-web) are also included in this repository, and may be used to host your own STUN/TURN infrastructure.
 
-For all other major operating systems including Windows, [Pion TURN](https://github.com/pion/turn)'s `turn-server-simple` executable or [eturnal](https://eturnal.net) are recommended alternative TURN server implementations.
+For all other major operating systems including Windows, [Pion TURN](https://github.com/pion/turn)'s `turn-server-simple` executable or [eturnal](https://eturnal.net) are recommended alternative TURN server implementations. [STUNner](https://github.com/l7mp/stunner) is a Kubernetes native STUN and TURN deployment if Helm is possible to be used.
 
 #### Install and run coTURN on a standalone machine or cloud instance
 
@@ -327,6 +327,8 @@ If you want to use TURN over TLS/DTLS, you must have a valid hostname, and also 
 More information available in the [coTURN container image](https://hub.docker.com/r/coturn/coturn) or the [coTURN repository](https://github.com/coturn/coturn) website.
 
 #### Deploy coTURN With Kubernetes
+
+Before you read, [STUNner](https://github.com/l7mp/stunner) is a pretty good method to deploy a TURN or STUN server on Kubernetes if you are able to use Helm.
 
 You are recommended to use a `ConfigMap` for creating the configuration file for coTURN. Use the [example coTURN configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) as a reference to create a `ConfigMap` which mounts to `/etc/turnserver.conf`. The only mandatory lines are either `use-auth-secret` and `static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)` or `lt-cred-mech` and `user=yourusername:yourpassword`, but specifying `min-port=` and `max-port=` are strongly recommended to restrict the range of the relay ports.
 
@@ -384,14 +386,14 @@ This step is required when you want to test your TURN server configured with a s
 docker-compose run --service-ports test
 ```
 
-2. From inside the test container, source the gst-env and call the `generate_rtc_config` method.
+2. From inside the test container, source `gst-env` and call the `generate_rtc_config` method.
 
 ```bash
 source /opt/gstreamer/gst-env
 
-export TURN_HOST="your turn host"
-export TURN_PORT="your turn port"
-export TURN_SECRET="your shared secret"
+export TURN_HOST="Your TURN Host"
+export TURN_PORT="Your TURN Port"
+export TURN_SECRET="Your Shared Secret"
 export TURN_USER="user"
 
 python3 -c 'import os;from selkies_gstreamer.signalling_web import generate_rtc_config; print(generate_rtc_config(os.environ["TURN_HOST"], os.environ["TURN_PORT"], os.environ["TURN_SECRET"], os.environ["TURN_USER"]))'
