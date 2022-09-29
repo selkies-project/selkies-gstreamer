@@ -67,7 +67,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `OS_VERSION`), using your own GStreamer build may work **as long as it is the most recent version**, but is not guaranteed:
 
 ```bash
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-${OS_VERSION}.tgz" | sudo tar -zxf -
+cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-${OS_VERSION}.tgz | sudo tar -zxf -
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
@@ -75,13 +75,13 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Install the Python components of `selkies-gstreamer` (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`):
 
 ```bash
-cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && sudo pip3 install "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && sudo pip3 install --upgrade --force-reinstall "https://github.com/python-xlib/python-xlib/archive/master.zip"
+cd /tmp && curl -O -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && sudo pip3 install selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && rm -f selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && sudo pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
 4. Unpack the HTML5 components of `selkies-gstreamer`:
 
 ```bash
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web-v${SELKIES_VERSION}.tgz" | sudo tar -zxf -
+cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web-v${SELKIES_VERSION}.tgz | sudo tar -zxf -
 ```
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`.
@@ -170,6 +170,7 @@ docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-bui
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer_disla-1.0.0rc0-py3-none-any.whl /opt/selkies_gstreamer_disla-1.0.0rc0-py3-none-any.whl
 docker rm selkies-py
 python3 -m pip install /opt/selkies_gstreamer_disla-1.0.0rc0-py3-none-any.whl
+python3 -m pip install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
 4. Install the HTML5 components to the container image:
@@ -232,9 +233,9 @@ selkies-gstreamer &
 
 ### Usage
 
-#### Locking the cursor
+#### Locking the cursor and fullscreen mode
 
-The cursor can be locked into the web interface using `Control + Shift + Left Click` in web browsers supporting the Pointer Lock API. This is useful for most games or graphics applications where the cursor must be confined to the remote screen.
+The cursor can be locked into the web interface using `Control + Shift + Left Click` in web browsers supporting the Pointer Lock API. This is useful for most games or graphics applications where the cursor must be confined to the remote screen. The fullscreen mode is available with the shortcut `Control + Shift + F`.
 
 #### Command-line options and environment variables
 
