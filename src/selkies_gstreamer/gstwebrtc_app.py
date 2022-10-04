@@ -693,7 +693,7 @@ class GSTWebRTCApp:
         logger.info("framerate set to: %d" % framerate)
 
     def set_video_bitrate(self, bitrate):
-        """Set NvEnc encoder target bitrate in bps
+        """Set encoder target bitrate in bps
 
         Arguments:
             bitrate {integer} -- bitrate in bits per second, for example, 2000 for 2kbits/s or 10000 for 1mbit/sec.
