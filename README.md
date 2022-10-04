@@ -38,7 +38,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example). 
 
-Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (replace `latest` to `master` for the latest development build):
+Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `master` for the development build**):
 
 ```bash
 docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04
@@ -152,7 +152,7 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
 
-2. Copy the GStreamer build tarball from the container image and extract it to `/opt/gstreamer` (change the OS version as needed):
+2. Copy the GStreamer build tarball from the container image and extract it to `/opt/gstreamer` (change the OS version as needed, use `sudo` where necessary):
 
 ```bash
 docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:master-ubuntu${UBUNTU_RELEASE}
@@ -162,7 +162,7 @@ docker rm gstreamer
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
 
-3. Copy the Python Wheel file from the container image and install it:
+3. Copy the Python Wheel file from the container image and install it, use `sudo` where necessary:
 
 ```bash
 docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:master
@@ -172,7 +172,7 @@ pip3 install /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
 pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
-4. Install the HTML5 components to the container image:
+4. Install the HTML5 components to the container image, use `sudo` where necessary:
 
 ```bash
 docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:master
