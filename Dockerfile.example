@@ -44,6 +44,7 @@ RUN \
         libpangocairo-1.0-0 \
         libgirepository1.0-dev \
         libjpeg-dev \
+        libvpx-dev \
         zlib1g-dev \
         x264 \
         git && \
