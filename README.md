@@ -64,10 +64,10 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
 
-2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `OS_VERSION`), using your own GStreamer build may work **as long as it is the most recent version**, but is not guaranteed:
+2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`), using your own GStreamer build may work **as long as it is the most recent version**, but is not guaranteed:
 
 ```bash
-cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-${OS_VERSION}.tgz | sudo tar -zxf -
+cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.tgz | sudo tar -zxf -
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
@@ -136,7 +136,7 @@ selkies-gstreamer &
 
 ### Install the latest build on a standalone machine or cloud instance
 
-Docker (or an equivalent) is required if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` instruction instead of using the `docker` CLI.
+Docker (or an equivalent) is required if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. **Change `master` to `latest` if you want the latest release version instead of the latest commit.**
 
 **NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
@@ -155,10 +155,9 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 2. Copy the GStreamer build tarball from the container image and extract it to `/opt/gstreamer` (change the OS version as needed):
 
 ```bash
-docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:latest-ubuntu20.04
-docker cp gstreamer:/opt/selkies-gstreamer-latest.tgz /opt/selkies-gstreamer-latest.tgz
+docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:master-ubuntu${UBUNTU_RELEASE}
+docker cp gstreamer:/opt/selkies-gstreamer /opt/selkies-gstreamer
 docker rm gstreamer
-cd /opt && tar zxvf selkies-gstreamer-latest.tgz
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
@@ -166,17 +165,17 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Copy the Python Wheel file from the container image and install it:
 
 ```bash
-docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:latest
-docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer_disla-1.0.0rc0-py3-none-any.whl /opt/selkies_gstreamer_disla-1.0.0rc0-py3-none-any.whl
+docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:master
+docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
-python3 -m pip install /opt/selkies_gstreamer_disla-1.0.0rc0-py3-none-any.whl
+python3 -m pip install /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
 python3 -m pip install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
 4. Install the HTML5 components to the container image:
 
 ```bash
-docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:latest
+docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:master
 cd /opt && docker cp gst-web:/usr/share/nginx/html ./gst-web
 docker rm gst-web
 ```
@@ -305,7 +304,7 @@ For all other major operating systems including Windows, [Pion TURN](https://git
 
 It is possible to install [coTURN](https://github.com/coturn/coturn) on your own server or PC from a package repository, as long as the listing port and the relay ports may be opened. In short, `/etc/turnserver.conf` must have either the lines `use-auth-secret` and `static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)`, or the lines `lt-cred-mech` and `user=yourusername:yourpassword`. It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies your relay ports between TURN servers (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
-The `cert=` and `pkey=` options, which lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS) are required for using TURN over TLS/DTLS, but are otherwise optional.
+The `cert=` and `pkey=` options, which lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS), are required for using TURN over TLS/DTLS, but are otherwise optional.
 
 ### Deploy coTURN with Docker
 
