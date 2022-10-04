@@ -379,7 +379,7 @@ def main():
                         default=os.environ.get('WEBRTC_AUDIO_BITRATE', '64000'),
                         help='Default audio bitrate')
     parser.add_argument('--encoder',
-                        default=os.environ.get('WEBRTC_ENCODER', 'nvh264enc'),
+                        default=os.environ.get('WEBRTC_ENCODER', 'x264enc'),
                         help='GStreamer encoder plugin to use')
     parser.add_argument('--enable_resize',
                         default=os.environ.get('WEBRTC_ENABLE_RESIZE', 'true'),
