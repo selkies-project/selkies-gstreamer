@@ -298,7 +298,7 @@ def main():
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
                             'BASIC_AUTH_USER', os.environ.get('USER', '')),
-                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce Basic authentication.')
+                        help='Username for Basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce Basic authentication.')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
                             'BASIC_AUTH_PASSWORD', ''),

@@ -36,12 +36,12 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 **NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker command to enable host networking and work around this requirement if your server is not behind NAT). Follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
-An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [Dockerfile](./Dockerfile.example). 
+An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example). 
 
-Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface:
+Running the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (replace `latest` to `master` for the latest development build):
 
 ```bash
-docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest
+docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04
 ```
 
 Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or [`selkies-examples`](https://github.com/selkies-project/selkies-examples) from the [Selkies Project](https://github.com/selkies-project) provide containerized virtual desktop infrastructure (VDI) templates.
@@ -168,8 +168,8 @@ This will install the GStreamer components to the default directory of `/opt/gst
 docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:master
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
-python3 -m pip install /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
-python3 -m pip install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
+pip3 install /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
+pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
 4. Install the HTML5 components to the container image:
