@@ -24,7 +24,7 @@ Fourth, `selkies-gstreamer` is easy to use and expand to various usage cases, at
 
 ## How do I get started?
 
-Three components are required to run `selkies-gstreamer`: the [standalone build of GStreamer](addons/gstreamer) with the most recent version, the [Python package](src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface](addons/gst-web). Currently, Ubuntu 18.04, 20.04, 22.04 are supported, but other operating systems will also work (contributions for build workflows for more operating systems are welcome).
+Three components are required to run `selkies-gstreamer`: the [standalone build of GStreamer](addons/gstreamer) with the most recent version, the [Python package](src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface](addons/gst-web). Currently, Ubuntu 18.04 (Mint 19), 20.04 (Mint 20), 22.04 (Mint 21) are supported, but other operating systems should also work if using your own GStreamer build (contributions for build workflows of more operating systems are welcome).
 
 All three of the components are built and packaged [every release](https://github.com/selkies-project/selkies-gstreamer/releases). In addition, every latest commit gets built and is made available in container forms [`ghcr.io/selkies-project/selkies-gstreamer/gstreamer`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgstreamer), [`ghcr.io/selkies-project/selkies-gstreamer/py-build`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fpy-build), and [`ghcr.io/selkies-project/selkies-gstreamer/gst-web`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-web).
 
@@ -55,10 +55,10 @@ Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-tk python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
 ```
 
-Additionally, install `xcvt` if using Ubuntu 22.04 or an equivalent version of another operating system:
+Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
@@ -143,10 +143,10 @@ Docker (or an equivalent) is required if you are to use builds from the latest c
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-tk python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev zlib1g-dev x264
 ```
 
-Additionally, install `xcvt` if using Ubuntu 22.04 or an equivalent version of another operating system:
+Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
@@ -231,17 +231,17 @@ selkies-gstreamer-resize 1280x720
 selkies-gstreamer &
 ```
 
-### Usage
+## Usage
 
-#### Locking the cursor and fullscreen mode
+### Locking the cursor and fullscreen mode
 
 The cursor can be locked into the web interface using `Control + Shift + Left Click` in web browsers supporting the Pointer Lock API. This is useful for most games or graphics applications where the cursor must be confined to the remote screen. The fullscreen mode is available with the shortcut `Control + Shift + F`.
 
-#### Command-line options and environment variables
+### Command-line options and environment variables
 
 Use `selkies-gstreamer --help` for all command-line options, after sourcing `gst-env`. Environment variables for each of the command-line options are available within [`__main__.py`](src/selkies_gstreamer/__main__.py). 
 
-#### GStreamer components
+### GStreamer components
 
 Below are GStreamer components which are implemented and therefore may be used with `selkies-gstreamer`. Some include environment variables or command-line options which may be used select one type of component, and others are chosen automatically based on the operating system or configuration. This section is to be continuously updated.
 
@@ -285,7 +285,7 @@ This table specifies the currently supported transport protocol components.
 |---|---|---|---|---|---|
 | [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html) | [WebRTC](https://webrtc.org) | All | All Major | Various | N/A |
 
-### Using a TURN server
+## Using a TURN server
 
 **You are at the right place if the HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and therefore the remote desktop does not start.**
 
@@ -301,13 +301,13 @@ An open-source TURN server for Linux or UNIX-like operating systems that may be 
 
 For all other major operating systems including Windows, [Pion TURN](https://github.com/pion/turn)'s `turn-server-simple` executable or [eturnal](https://eturnal.net) are recommended alternative TURN server implementations. [STUNner](https://github.com/l7mp/stunner) is a Kubernetes native STUN and TURN deployment if Helm is possible to be used.
 
-#### Install and run coTURN on a standalone machine or cloud instance
+### Install and run coTURN on a standalone machine or cloud instance
 
 It is possible to install [coTURN](https://github.com/coturn/coturn) on your own server or PC from a package repository, as long as the listing port and the relay ports may be opened. In short, `/etc/turnserver.conf` must have either the lines `use-auth-secret` and `static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)`, or the lines `lt-cred-mech` and `user=yourusername:yourpassword`. It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies your relay ports between TURN servers (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
 The `cert=` and `pkey=` options, which lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS) are required for using TURN over TLS/DTLS, but are otherwise optional.
 
-#### Deploy coTURN with Docker
+### Deploy coTURN with Docker
 
 In order to deploy a coTURN container, use the following command (consult this [example configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more options which may also be used as command-line arguments). You should be able to expose these ports to the internet. Modify the relay ports `-p 49160-49200:49160-49200/udp` and `--min-port=49160 --max-port=49200` as appropriate (at least one relay port is required). Simply using `--network=host` instead of specifying `-p 49160-49200:49160-49200/udp` is also fine if possible. The relay ports and the listening port must all be open to the internet. Add the `--no-udp-relay` behind `-n` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or `--no-tcp-relay` behind `-n` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
@@ -327,7 +327,7 @@ If you want to use TURN over TLS/DTLS, you must have a valid hostname, and also 
 
 More information available in the [coTURN container image](https://hub.docker.com/r/coturn/coturn) or the [coTURN repository](https://github.com/coturn/coturn) website.
 
-#### Deploy coTURN With Kubernetes
+### Deploy coTURN With Kubernetes
 
 Before you read, [STUNner](https://github.com/l7mp/stunner) is a pretty good method to deploy a TURN or STUN server on Kubernetes if you are able to use Helm.
 
@@ -343,7 +343,7 @@ If you want to use TURN over TLS/DTLS, use [cert-manager](https://cert-manager.i
 
 More information is available in the [coTURN container image](https://hub.docker.com/r/coturn/coturn) or the [coTURN repository](https://github.com/coturn/coturn) website.
 
-#### Start `selkies-gstreamer` with the TURN server credentials
+### Start `selkies-gstreamer` with the TURN server credentials
 
 Provide the TURN server host address (the environment variable `TURN_HOST` or the command-line option `--turn_host`), port (the environment variable `TURN_PORT` or the command-line option `--turn_port`), and the shared secret (`TURN_SHARED_SECRET`/`--turn_shared_secret`) or the legacy long-term authentication username/password (`TURN_USERNAME`/`--turn_username` and `TURN_PASSWORD`/`--turn_password`) in order to take advantage of the TURN relay capabilities and guarantee connection success.
 
@@ -390,6 +390,7 @@ docker-compose run --service-ports test
 2. From inside the test container, source `gst-env` and call the `generate_rtc_config` method.
 
 ```bash
+export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
 
 export TURN_HOST="Your TURN Host"
