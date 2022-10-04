@@ -358,7 +358,6 @@ class GSTWebRTCApp:
 
             if self.encoder == "vp9enc":
                 vpenc = Gst.ElementFactory.make("vp9enc", "vpenc")
-                vpenc.set_property("threads", 4)
                 vpenc_caps = Gst.caps_from_string("video/x-vp9")
                 vpenc_capsfilter = Gst.ElementFactory.make("capsfilter")
                 vpenc_capsfilter.set_property("caps", vpenc_caps)
@@ -373,7 +372,6 @@ class GSTWebRTCApp:
 
             # VPX Parameters
             # Borrowed from: https://github.com/nurdism/neko/blob/df98368137732b8aaf840e27cdf2bd41067b2161/server/internal/gst/gst.go#L94
-            vpenc.set_property("threads", 2)
             vpenc.set_property("cpu-used", 8)
             vpenc.set_property("deadline", 1)
             vpenc.set_property("error-resilient", "partitions")
