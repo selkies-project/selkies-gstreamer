@@ -202,7 +202,7 @@ class WebRTCInput:
     async def connect(self):
         """Connects to X server
 
-        The target X server is determiend by the DISPLAY environment variable.
+        The target X server is determined by the DISPLAY environment variable.
         """
 
         self.xdisplay = display.Display()
