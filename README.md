@@ -108,8 +108,8 @@ until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
 # Initialize PulseAudio, TCP interface to port 4713 must be configured if using a separate setup
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
-# Replace this line with your desktop environment session, use VirtualGL `vglrun` here if needed
-icewm-session &
+# Replace this line with your desktop environment session or do not invoke if already running, use VirtualGL `vglrun` here if needed
+[[ "${START_XFCE4:-true}" == true ]] && xfce4-session &
 # Write Progressive Web App (PWA) config.
 export PWA_APP_NAME="Selkies WebRTC"
 export PWA_APP_SHORT_NAME="selkies"
@@ -204,8 +204,8 @@ until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
 # Initialize PulseAudio, TCP interface to port 4713 must be configured if using a separate setup
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
-# Replace this line with your desktop environment session, use VirtualGL `vglrun` here if needed
-icewm-session &
+# Replace this line with your desktop environment session or do not invoke if already running, use VirtualGL `vglrun` here if needed
+[[ "${START_XFCE4:-true}" == true ]] && xfce4-session &
 # Write Progressive Web App (PWA) config.
 export PWA_APP_NAME="Selkies WebRTC"
 export PWA_APP_SHORT_NAME="selkies"

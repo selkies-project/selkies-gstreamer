@@ -98,7 +98,7 @@ RUN \
 
 # Install selkies-gstreamer Python app
 ARG PYPI_PACKAGE=selkies_gstreamer
-ARG PACKAGE_VERSION=1.0.0.dev0
+ARG PACKAGE_VERSION=0.0.0.dev0
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 
@@ -129,6 +129,7 @@ Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM 
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1\n\
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
+rm -rf ~/.config/xfce4\n\
 [[ \${START_XFCE4:-true} == true ]] && xfce4-session &\n\
 export WEBRTC_ENCODER=\${WEBRTC_ENCODER:-x264enc}\n\
 export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-true}\n\
@@ -172,13 +173,13 @@ RUN groupadd -g 1000 user && \
     echo "user:${PASSWD}" | chpasswd && \
     ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
 
+# Prevent dialogs at Xfce4 desktop environment start
+RUN cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+
 USER user
 ENV USER=user
 WORKDIR /home/user
 RUN touch ${HOME}/.sudo_as_admin_successful
-
-# Set default icewm theme
-RUN mkdir -p ${HOME}/.icewm && echo 'Theme="NanoBlue/default.theme"' > ${HOME}/.icewm/theme
 
 ENTRYPOINT ["/tini", "--"]
 CMD ["/entrypoint.sh"]
