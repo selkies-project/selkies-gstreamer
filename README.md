@@ -372,6 +372,12 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 ## Troubleshooting
 
+### The HTML5 web interface is slow and laggy.
+
+It's most likely something with your network. Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any remote desktop application. Moreover, please try to use a wired connection over a wireless connection.
+
+However, it might be that the parameters for the encoders, WebRTC, RTSP, or other [GStreamer](https://gstreamer.freedesktop.org) plugins are not optimized enough. If you find that it is the case, we always welcome contributions. If your changes show noticeably better results in the same conditions, please make a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls), or tell us about the parameters in any channel that we can reach so that we can also test.
+
 ### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
 
 Please read [Using a TURN server](#using-a-turn-server).
