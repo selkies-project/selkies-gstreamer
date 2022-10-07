@@ -166,9 +166,9 @@ This will install the GStreamer components to the default directory of `/opt/gst
 
 ```bash
 docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:master
-docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
+docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /opt/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
-pip3 install /opt/selkies_gstreamer-1.0.0.dev0-py3-none-any.whl
+pip3 install /opt/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
