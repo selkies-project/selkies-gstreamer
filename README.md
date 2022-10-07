@@ -382,6 +382,10 @@ However, it might be that the parameters for the encoders, WebRTC, RTSP, or othe
 
 Please read [Using a TURN server](#using-a-turn-server).
 
+### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
+
+You can start a new instance of `selkies-gstreamer` by changing the `DISPLAY` environment variable and setting a different web interface port in a different terminal to pass a different screen simultaneously to your current screen.
+
 ### I want to test a shared secret TURN server by manually generating a TURN credential from a shared secret.
 
 This step is required when you want to test your TURN server configured with a shared secret instead of the legacy username/password authentication.
