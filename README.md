@@ -98,7 +98,7 @@ cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.
 export DISPLAY=:0
 export GST_DEBUG=*:2
 export PULSE_SERVER=127.0.0.1:4713
-# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your gstreamer directory
+# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
 # Start a virtual X server, skip this line if an X server already exists or you are already using a display
@@ -194,7 +194,7 @@ cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.
 export DISPLAY=:0
 export GST_DEBUG=*:2
 export PULSE_SERVER=127.0.0.1:4713
-# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your gstreamer directory
+# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
 # Start a virtual X server, skip this line if an X server already exists or you are already using a display
