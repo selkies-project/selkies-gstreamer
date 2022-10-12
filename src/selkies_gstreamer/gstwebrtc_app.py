@@ -946,7 +946,7 @@ class GSTWebRTCApp:
         loop.run_until_complete(self.on_ice(mlineindex, candidate))
 
     def start_pipeline(self):
-        """Starts the gstreamer pipeline
+        """Starts the GStreamer pipeline
         """
 
         logger.info("starting pipeline")
