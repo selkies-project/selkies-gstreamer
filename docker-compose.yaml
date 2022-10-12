@@ -39,7 +39,7 @@ services:
         PY_BUILD_IMAGE: selkies-gstreamer-py-build:latest
         WEB_IMAGE: gst-web:latest
         PYPI_PACKAGE: selkies_gstreamer
-        PACKAGE_VERSION: 1.0.0.dev0
+        PACKAGE_VERSION: 0.0.0.dev0
     environment:
       # Basic authentication
       ENABLE_BASIC_AUTH: ${ENABLE_BASIC_AUTH}
@@ -71,6 +71,7 @@ services:
     volumes:
       - type: bind
         source: ./src/selkies_gstreamer
+        # Change python3.8 to python3.6 in 18.04 and python3.10 in 22.04
         target: /usr/local/lib/python3.8/dist-packages/selkies_gstreamer
         read_only: true
 

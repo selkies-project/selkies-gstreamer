@@ -202,7 +202,7 @@ class WebRTCInput:
     async def connect(self):
         """Connects to X server
 
-        The target X server is determiend by the DISPLAY environment variable.
+        The target X server is determined by the DISPLAY environment variable.
         """
 
         self.xdisplay = display.Display()
@@ -304,6 +304,11 @@ class WebRTCInput:
             down {bool} -- toggle key down or up (default: {True})
         """
 
+        # With the Generic 105-key PC layout (default in Linux without a real keyboard), the key '<' is redirected to keycode 94
+        # Because keycode 94 with Shift pressed is instead the key '>', the keysym for '<' should instead be redirected to ','
+        # Although prevented in most cases, this fix may present issues in some keyboard layouts
+        if keysym == 60 and self.keyboard._display.keysym_to_keycode(keysym) == 94:
+            keysym = 44
         keycode = pynput.keyboard.KeyCode(keysym)
         if down:
             self.keyboard.press(keycode)

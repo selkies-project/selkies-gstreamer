@@ -307,7 +307,7 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-            x264enc.set_property("threads", 4)
+            x264enc.set_property("sliced-threads", True)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("key-int-max", 0)
             x264enc.set_property("byte-stream", True)
@@ -359,7 +359,6 @@ class GSTWebRTCApp:
 
             if self.encoder == "vp9enc":
                 vpenc = Gst.ElementFactory.make("vp9enc", "vpenc")
-                vpenc.set_property("threads", 4)
                 vpenc_caps = Gst.caps_from_string("video/x-vp9")
                 vpenc_capsfilter = Gst.ElementFactory.make("capsfilter")
                 vpenc_capsfilter.set_property("caps", vpenc_caps)
@@ -374,7 +373,6 @@ class GSTWebRTCApp:
 
             # VPX Parameters
             # Borrowed from: https://github.com/nurdism/neko/blob/df98368137732b8aaf840e27cdf2bd41067b2161/server/internal/gst/gst.go#L94
-            vpenc.set_property("threads", 2)
             vpenc.set_property("cpu-used", 8)
             vpenc.set_property("deadline", 1)
             vpenc.set_property("error-resilient", "partitions")
@@ -696,7 +694,7 @@ class GSTWebRTCApp:
         logger.info("framerate set to: %d" % framerate)
 
     def set_video_bitrate(self, bitrate):
-        """Set NvEnc encoder target bitrate in bps
+        """Set video encoder target bitrate in bps
 
         Arguments:
             bitrate {integer} -- bitrate in bits per second, for example, 2000 for 2kbits/s or 10000 for 1mbit/sec.
@@ -948,7 +946,7 @@ class GSTWebRTCApp:
         loop.run_until_complete(self.on_ice(mlineindex, candidate))
 
     def start_pipeline(self):
-        """Starts the gstreamer pipeline
+        """Starts the GStreamer pipeline
         """
 
         logger.info("starting pipeline")

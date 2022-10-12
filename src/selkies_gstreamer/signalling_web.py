@@ -140,13 +140,13 @@ class WebRTCSimpleServer(object):
 
         # Validate TURN args
         if self.turn_shared_secret:
-            if not self.turn_host and self.turn_port:
-                raise Exception("missing turn_host and turn_port options with turn_shared_secret")
+            if not (self.turn_host and self.turn_port):
+                raise Exception("missing turn_host or turn_port options with turn_shared_secret")
 
         # Validate basic auth args
         if self.enable_basic_auth:
-            if not (self.basic_auth_user and self.basic_auth_password):
-                raise Exception("missing basic_auth_password when using basic_auth_user option.")
+            if not self.basic_auth_password:
+                raise Exception("missing basic_auth_password when using enable_basic_auth option.")
 
     ############### Helper functions ###############
 
@@ -513,7 +513,7 @@ def main():
     parser.add_argument('--health', default='/health', help='Health check route')
     parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the SSL certificate changes')
     parser.add_argument('--enable_basic_auth', default="false", help="Use basic auth, must also set basic_auth_user, and basic_auth_password args")
-    parser.add_argument('--basic_auth_user', default="", help='Username for basic auth, if not set, no authorization will be enforced.')
+    parser.add_argument('--basic_auth_user', default="", help='Username for basic auth.')
     parser.add_argument('--basic_auth_password', default="", help='Password for basic auth, if not set, no authorization will be enforced.')
 
     options = parser.parse_args(sys.argv[1:])
