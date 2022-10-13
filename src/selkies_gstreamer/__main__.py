@@ -256,7 +256,7 @@ def set_json_app_argument(config_path, key, value):
     """Writes kv pair to json argument file
 
     Arguments:
-        config_path {string} -- path to json config file, example: /var/run/appconfig/streaming_args.json
+        config_path {string} -- path to json config file, example: /tmp/selkies_config.json
         key {string} -- the name of the argument to set
         value {any} -- the value of the argument to set
     """
@@ -281,8 +281,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--json_config',
                         default=os.environ.get(
-                            'JSON_CONFIG', '/var/run/appconfig/streaming_args.json'),
-                        help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables.')
+                            'JSON_CONFIG', '/tmp/selkies_config.json'),
+                        help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables, this path must be writable.')
     parser.add_argument('--addr',
                         default=os.environ.get(
                             'LISTEN_HOST', '0.0.0.0'),
