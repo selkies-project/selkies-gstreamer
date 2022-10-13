@@ -75,7 +75,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Install the Python components of `selkies-gstreamer` (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`):
 
 ```bash
-cd /tmp && curl -O -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && sudo pip3 install selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && rm -f selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && sudo pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
+cd /tmp && curl -O -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && sudo pip3 install selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && rm -f selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && sudo pip3 install --upgrade --no-deps --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
 4. Unpack the HTML5 components of `selkies-gstreamer`:
@@ -126,8 +126,6 @@ sed -i \
 export WEBRTC_ENCODER=x264enc
 # Do not enable resize if there is a physical display
 export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}
-export JSON_CONFIG=/tmp/rtc.json
-echo '{}' > \$JSON_CONFIG
 # Replace to your resolution if using without resize, skip if there is a physical display
 selkies-gstreamer-resize 1280x720
 # Starts the remote desktop process
@@ -152,31 +150,32 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
 
-2. Copy the GStreamer build tarball from the container image and extract it to `/opt/gstreamer` (change the OS version as needed, use `sudo` where necessary):
+2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (change the OS version `UBUNTU_RELEASE` as needed):
 
 ```bash
 docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:master-ubuntu${UBUNTU_RELEASE}
-docker cp gstreamer:/opt/selkies-gstreamer /opt/selkies-gstreamer
+sudo docker cp gstreamer:/opt/gstreamer /opt/gstreamer
 docker rm gstreamer
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
 
-3. Copy the Python Wheel file from the container image and install it, use `sudo` where necessary:
+3. Copy the Python Wheel file from the container image and install it:
 
 ```bash
 docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:master
-docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /opt/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
-pip3 install /opt/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
-pip3 install --upgrade --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
+sudo pip3 install /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+sudo pip3 install --upgrade --no-deps --force-reinstall https://github.com/python-xlib/python-xlib/archive/e8cf018.zip
 ```
 
-4. Install the HTML5 components to the container image, use `sudo` where necessary:
+4. Install the HTML5 components to the container image:
 
 ```bash
 docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:master
-cd /opt && docker cp gst-web:/usr/share/nginx/html ./gst-web
+sudo docker cp gst-web:/usr/share/nginx/html /opt/gst-web
 docker rm gst-web
 ```
 
@@ -222,8 +221,6 @@ sed -i \
 export WEBRTC_ENCODER=x264enc
 # Do not enable resize if there is a physical display
 export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}
-export JSON_CONFIG=/tmp/rtc.json
-echo '{}' > \$JSON_CONFIG
 # Replace to your resolution if using without resize, skip if there is a physical display
 selkies-gstreamer-resize 1280x720
 # Starts the remote desktop process
