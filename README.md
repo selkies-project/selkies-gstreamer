@@ -92,7 +92,7 @@ This will install the HTML5 components to the default directory of `/opt/gst-web
 cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.*" -exec sh -c 'ln -sf $(basename {}) libnvrtc.so' \;
 ```
 
-6. Run `selkies-gstreamer` after changing the script below appropriately:
+6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
 export DISPLAY=:0
@@ -125,7 +125,7 @@ sed -i \
 # Choose your video encoder
 export WEBRTC_ENCODER=x264enc
 # Do not enable resize if there is a physical display
-export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}
+export WEBRTC_ENABLE_RESIZE=${WEBRTC_ENABLE_RESIZE:-false}
 # Replace to your resolution if using without resize, skip if there is a physical display
 selkies-gstreamer-resize 1280x720
 # Starts the remote desktop process
@@ -187,7 +187,7 @@ This will install the HTML5 components to the default directory of `/opt/gst-web
 cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.*" -exec sh -c 'ln -sf $(basename {}) libnvrtc.so' \;
 ```
 
-6. Run `selkies-gstreamer` after changing the script below appropriately:
+6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
 export DISPLAY=:0
@@ -220,7 +220,7 @@ sed -i \
 # Choose your video encoder
 export WEBRTC_ENCODER=x264enc
 # Do not enable resize if there is a physical display
-export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-false}
+export WEBRTC_ENABLE_RESIZE=${WEBRTC_ENABLE_RESIZE:-false}
 # Replace to your resolution if using without resize, skip if there is a physical display
 selkies-gstreamer-resize 1280x720
 # Starts the remote desktop process
