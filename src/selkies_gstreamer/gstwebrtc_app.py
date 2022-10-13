@@ -97,7 +97,7 @@ class GSTWebRTCApp:
         """Adds the webrtcbin elments to the pipeline.
 
         The video and audio pipelines are linked to this in the
-            build_video_pipline() and build_audio_pipeline() methods.
+            build_video_pipeline() and build_audio_pipeline() methods.
         """
 
         # Create webrtcbin element named app
