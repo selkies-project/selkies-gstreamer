@@ -259,15 +259,15 @@ This table specifies the currently implemented video frame converters used to co
 
 This table specifies the currently supported display interfaces and how each plugin selects each video device.
 
-| Plugin | Device Selector | Display Interfaces | Operating Systems | Main Dependencies | Notes |
-|---|---|---|---|---|---|
-| [`ximagesrc`](https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html) | `DISPLAY` environment | X.Org / X11 | Linux | Various | N/A |
+| Plugin | Device Selector | Display Interfaces | Input Interfaces | Operating Systems | Main Dependencies | Notes |
+|---|---|---|---|---|---|---|
+| [`ximagesrc`](https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html) | `DISPLAY` environment | X.Org / X11 | `Xlib` w/ `pynput`, `uinput` | Linux | Various | N/A |
 
-This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only media codec supported in web browsers by specification.
+This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only adequate media codec supported in web browsers by specification.
 
-| Plugin | Codec | Browsers | Operating Systems | Main Dependencies | Notes |
+| Plugin | Codec | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`opusenc`](https://gstreamer.freedesktop.org/documentation/opus/opusenc.html) | Opus | All Major | All | `libopus` | N/A |
+| [`opusenc`](https://gstreamer.freedesktop.org/documentation/opus/opusenc.html) | Opus | All | All Major | `libopus` | N/A |
 
 This table specifies the currently supported audio interfaces and how each plugin selects each audio device.
 
