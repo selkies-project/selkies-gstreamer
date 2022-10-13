@@ -153,6 +153,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (change the OS version `UBUNTU_RELEASE` as needed):
 
 ```bash
+docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:master-ubuntu${UBUNTU_RELEASE}
 docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:master-ubuntu${UBUNTU_RELEASE}
 sudo docker cp gstreamer:/opt/gstreamer /opt/gstreamer
 docker rm gstreamer
@@ -163,6 +164,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Copy the Python Wheel file from the container image and install it:
 
 ```bash
+docker pull ghcr.io/selkies-project/selkies-gstreamer/py-build:master
 docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:master
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
@@ -174,6 +176,7 @@ sudo pip3 install --upgrade --no-deps --force-reinstall https://github.com/pytho
 4. Install the HTML5 components to the container image:
 
 ```bash
+docker pull ghcr.io/selkies-project/selkies-gstreamer/gst-web:master
 docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:master
 sudo docker cp gst-web:/usr/share/nginx/html /opt/gst-web
 docker rm gst-web
