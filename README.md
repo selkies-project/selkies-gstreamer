@@ -264,7 +264,7 @@ This table specifies the currently supported display interfaces and how each plu
 
 | Plugin | Device Selector | Display Interfaces | Input Interfaces | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
-| [`ximagesrc`](https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html) | `DISPLAY` environment | X.Org / X11 | `Xlib` w/ `pynput`, `uinput` | Linux | Various | N/A |
+| [`ximagesrc`](https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html) | `DISPLAY` environment | X.Org / X11 | [`Xlib`](https://github.com/python-xlib/python-xlib) w/ [`pynput`](https://github.com/moses-palmer/pynput), `uinput` | Linux | Various | N/A |
 
 This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only adequate media codec supported in web browsers by specification.
 
