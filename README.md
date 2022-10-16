@@ -18,7 +18,7 @@ First, `selkies-gstreamer` is much more flexible to be used across various types
 
 Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, VP8, and VP9 codecs. Audio streaming from the server is supported using the Opus codec. WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC, with progress on supporting AMD, Intel, and other GPU hardware.
 
-Third, `selkies-gstreamer` was designed not only for desktops and bare metal servers, but also for unprivileged Docker and Kubernetes containers. Unlike other similar Linux solutions, there are no dependencies that require access to special devices not available inside containers by default, and is also not dependent on `systemd`. This enables virtual desktop infrastructure (VDI) using containers instead of virtual machines (VMs) which have high overhead.
+Third, `selkies-gstreamer` was designed not only for desktops and bare metal servers, but also for unprivileged Docker and Kubernetes containers. Unlike other similar Linux solutions, there are no dependencies that require access to special devices not available inside containers by default, and is also not dependent on `systemd`. This enables virtual desktop infrastructure (VDI) using containers instead of virtual machines (VMs) which have high overhead. Root permissions are also not required at all, and all components can be installed completely to the userspace.
 
 Fourth, `selkies-gstreamer` is easy to use and expand to various usage cases, attracting users and developers from diverse backgrounds, as it uses [GStreamer](https://gstreamer.freedesktop.org). GStreamer allows pluggable components to be mixed and matched like LEGO blocks to form arbitrary pipelines, providing an easier interface with more comprehensive documentation compared to [FFmpeg](https://ffmpeg.org). Therefore, `selkies-gstreamer` is meant from the start to be a community-built project, where developers from all backgrounds can easily contribute to or expand upon. `selkies-gstreamer` mainly uses [`gst-python`](https://gitlab.freedesktop.org/gstreamer/gstreamer/-/tree/main/subprojects/gst-python), the [Python](https://www.python.org) bindings for GStreamer, [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html), which provides the ability to send a WebRTC remote desktop stream to web browsers from GStreamer, and many more community plugins provided by GStreamer.
 
@@ -51,6 +51,8 @@ Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or 
 ### Install the packaged version on a standalone machine or cloud instance
 
 **NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
+
+While this instruction assumes that you are installing this project systemwide, it is possible to install and run all components completely within the userspace. Dependencies may also be installed without root permissions if you use [`conda`](https://conda.io) or other userspace package management systems. Documentation contributions for such instructions are welcome.
 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
@@ -137,6 +139,8 @@ selkies-gstreamer &
 Docker (or an equivalent) is required if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. **Change `master` to `latest` if you want the latest release version instead of the latest development version.**
 
 **NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
+
+While this instruction assumes that you are installing this project systemwide, it is possible to install and run all components completely within the userspace. Dependencies may also be installed without root permissions if you use [`conda`](https://conda.io) or other userspace package management systems. Documentation contributions for such instructions are welcome.
 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
