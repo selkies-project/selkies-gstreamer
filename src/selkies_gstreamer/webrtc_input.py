@@ -100,6 +100,11 @@ class WebRTCInput:
         """Initializes WebRTC input instance
         """
         self.clipboard_running = False
+
+        # WIP
+        self.uinput_mouse_enabled = True
+        self.uinput_mouse_device = None
+
         self.uinput_mouse_socket_path = uinput_mouse_socket_path
         self.uinput_mouse_socket = None
 
@@ -158,6 +163,14 @@ class WebRTCInput:
             # Proxy uinput mouse commands through unix domain socket.
             logger.info("Connecting to uinput mouse socket: %s" % self.uinput_mouse_socket_path)
             self.uinput_mouse_socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        elif self.uinput_mouse_enabled:
+            btns = [uinput.BTN_LEFT, uinput.BTN_MIDDLE, uinput.BTN_RIGHT]
+            axes = [uinput.REL_X, uinput.REL_Y]
+            try:
+                self.uinput_mouse_device = uinput.Device(btns + axes,
+                    name="Selkies Virutal Mouse")
+            except Exception as e:
+                logger.warning("failed to create uinput device, relative mouse motion may not work: {}".format(e))
 
         self.mouse = pynput.mouse.Controller()
 
@@ -171,6 +184,8 @@ class WebRTCInput:
             cmd = {"args": args, "kwargs": kwargs}
             data = msgpack.packb(cmd, use_bin_type=True)
             self.uinput_mouse_socket.sendto(data, self.uinput_mouse_socket_path)
+        elif self.uinput_mouse_device:
+            self.uinput_mouse_device.emit(*args, **kwargs)
 
     def __js_connect(self, num_axes, num_buttons):
         """Connect virtual joystick
