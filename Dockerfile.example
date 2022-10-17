@@ -46,6 +46,11 @@ RUN \
         libjpeg-dev \
         libvpx-dev \
         zlib1g-dev \
+        va-driver-all \
+        i965-va-driver-shaders \
+        libva2 \
+        vainfo \
+        intel-gpu-tools \
         x264 \
         git && \
     rm -rf /var/lib/apt/lists/*
