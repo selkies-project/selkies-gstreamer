@@ -23,6 +23,7 @@ RUN \
         bison \
         flex \
         gtk-doc-tools \
+        nasm \
         libtool-bin \
         libgtk2.0-dev \
         libgl1-mesa-dev \
@@ -40,7 +41,7 @@ RUN \
 
 # Install meson and ninja
 RUN \
-    apt-get update && apt install -y \
+    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-pip \
         python-gi-dev \
         ninja-build && \
