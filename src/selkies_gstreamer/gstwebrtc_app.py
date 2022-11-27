@@ -536,7 +536,8 @@ class GSTWebRTCApp:
         pulsesrc.set_property("provide-clock", True)
 
         # Apply stream time to buffers, this helps with pipeline synchronization.
-        pulsesrc.set_property("do-timestamp", True)
+        # Disabled by default because pulsesrc should not be re-timestamped with the current stream time when pushed out to the GStreamer pipeline and destroy the original synchronization.
+        # pulsesrc.set_property("do-timestamp", True)
 
         # Encode the raw pulseaudio stream to opus format which is the
         # default packetized streaming format for the web.
