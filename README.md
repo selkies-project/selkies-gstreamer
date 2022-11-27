@@ -99,7 +99,6 @@ cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.
 ```bash
 export DISPLAY=:0
 export GST_DEBUG=*:2
-export PULSE_SERVER=127.0.0.1:4713
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
@@ -107,7 +106,8 @@ source /opt/gstreamer/gst-env
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio, TCP interface to port 4713 must be configured if using a separate setup
+# Initialize PulseAudio, omit the below lines if PulseAudio server is already running
+export PULSE_SERVER=127.0.0.1:4713
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
@@ -199,7 +199,6 @@ cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.
 ```bash
 export DISPLAY=:0
 export GST_DEBUG=*:2
-export PULSE_SERVER=127.0.0.1:4713
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
@@ -207,7 +206,8 @@ source /opt/gstreamer/gst-env
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio, TCP interface to port 4713 must be configured if using a separate setup
+# Initialize PulseAudio, omit the below lines if PulseAudio server is already running
+export PULSE_SERVER=127.0.0.1:4713
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
