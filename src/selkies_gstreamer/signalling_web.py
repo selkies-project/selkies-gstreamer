@@ -1,13 +1,17 @@
-# FROM: https://gitlab.freedesktop.org/gstreamer/gst-examples/-/blob/master/webrtc/signalling/simple_server.py
-
 #!/usr/bin/env python3
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
 #
-# Example 1-1 call signalling server
+# This file incorporates work covered by the following copyright and
+# permission notice:
 #
-# Copyright (C) 2017 Centricular Ltd.
+#   Example 1-1 call signalling server
 #
-#  Author: Nirbheek Chauhan <nirbheek@centricular.com>
+#   Copyright (C) 2017 Centricular Ltd.
 #
+#   Author: Nirbheek Chauhan <nirbheek@centricular.com>
 
 import os
 import sys
