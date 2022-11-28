@@ -19,7 +19,7 @@ jobs:
       - id: get
         env:
           RELEASE_VERSION: ${{ github.ref_name }}
-        run: echo "semver=${RELEASE_VERSION/v/}" >> $GITHUB_OUTPUT
+        run: echo semver=${RELEASE_VERSION/v/} >> $GITHUB_OUTPUT
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   all_component_images:
@@ -221,12 +221,12 @@ jobs:
           docker rm copy
           gsutil cp $TARGET_PATH ${{ matrix.upload_bucket_path }}
 
-          echo "${{ matrix.id }}_cache_key=${{ matrix.cache_key }}" >> $GITHUB_OUTPUT
-          echo "${{ matrix.id }}_mimetype=${{ matrix.mimetype }}" >> $GITHUB_OUTPUT
-          echo "${{ matrix.id }}_name=${{ matrix.target_name }}" >> $GITHUB_OUTPUT
-          echo "${{ matrix.id }}_path=$TARGET_PATH" >> $GITHUB_OUTPUT
+          echo ${{ matrix.id }}_cache_key=${{ matrix.cache_key }} >> $GITHUB_OUTPUT
+          echo ${{ matrix.id }}_mimetype=${{ matrix.mimetype }} >> $GITHUB_OUTPUT
+          echo ${{ matrix.id }}_name=${{ matrix.target_name }} >> $GITHUB_OUTPUT
+          echo ${{ matrix.id }}_path=$TARGET_PATH >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           key: ${{ matrix.cache_key }}
           path: ${{ matrix.target_directory }}/${{ matrix.target_name }}
@@ -239,31 +239,31 @@ jobs:
       - all_assets
     steps:
       - name: Ubuntu 18.04 cache read
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.all_assets.outputs.gst18_cache_key }}
           path: ${{ needs.all_assets.outputs.gst18_path }}
 
       - name: Ubuntu 20.04 cache read
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.all_assets.outputs.gst20_cache_key }}
           path: ${{ needs.all_assets.outputs.gst20_path }}
 
       - name: Ubuntu 22.04 cache read
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.all_assets.outputs.gst22_cache_key }}
           path: ${{ needs.all_assets.outputs.gst22_path }}
 
       - name: Python cache read
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.all_assets.outputs.py_cache_key }}
           path: ${{ needs.all_assets.outputs.py_path }}
 
       - name: Web cache read
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.all_assets.outputs.web_cache_key }}
           path: ${{ needs.all_assets.outputs.web_path }}
