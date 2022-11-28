@@ -730,7 +730,7 @@ class GSTWebRTCApp:
 
         if sdp_type != 'answer':
             raise GSTWebRTCAppError('ERROR: sdp type was not "answer"')
-        sdpmsg = GstSdp.sdp_message_parse_buffer(bytes(sdp.encode()))
+        _, sdpmsg = GstSdp.SDPMessage.new_from_text(sdp)
         answer = GstWebRTC.WebRTCSessionDescription.new(
             GstWebRTC.WebRTCSDPType.ANSWER, sdpmsg)
         promise = Gst.Promise.new()
