@@ -52,7 +52,7 @@ jobs:
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Build & publish ${{ matrix.name }} image
         uses: ./.github/actions/build_and_publish_image
@@ -91,7 +91,7 @@ jobs:
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Build & publish ${{ matrix.name }} image
         uses: ./.github/actions/build_and_publish_image
