@@ -61,7 +61,7 @@ ENV GSTREAMER_VERSION=1.21.2
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
 RUN cd /src/gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson --prefix /opt/gstreamer -Dgpl=enabled -Dugly=enabled -Dgst-plugins-ugly:x264=enabled -Dvaapi=enabled -Dvaapi:encoders=true -Dvaapi:drm=true builddir && \
+    meson --prefix /opt/gstreamer -Dgpl=enabled -Dugly=enabled -Dgst-plugins-ugly:x264=enabled -Dgst-plugins-bad:va=enabled -Dvaapi=enabled -Dvaapi:encoders=true -Dvaapi:drm=true builddir && \
     ninja -C builddir && \
     meson install -C builddir
 
