@@ -54,7 +54,7 @@ WORKDIR /src
 ###
 # GStreamer monorepo build with prefix for standalone install.
 ###
-ENV GSTREAMER_VERSION=1.20.3
+ENV GSTREAMER_VERSION=1.20.5
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
 RUN cd /src/gstreamer && \
     mkdir -p /opt/gstreamer && \
