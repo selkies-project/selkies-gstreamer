@@ -410,14 +410,6 @@ class WebRTCInput:
             if self.xdisplay.query_extension('XFIXES') is None:
                 logger.error('XFIXES extension not supported, cannot watch cursor changes')
                 return
-        # Ensure patched python-xlib with xfixes support is installed.
-        # Remove after this PR is merged:
-        #   https://github.com/python-xlib/python-xlib/pull/218
-        try:
-            assert self.xdisplay.xfixes_select_cursor_input
-        except Exception as e:
-            logger.warning("missing patched python-xlib, remote cursors not available.")
-            return
 
         xfixes_version = self.xdisplay.xfixes_query_version()
         logger.info('Found XFIXES version %s.%s' % (
