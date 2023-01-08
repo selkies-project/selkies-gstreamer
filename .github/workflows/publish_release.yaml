@@ -37,17 +37,17 @@ jobs:
 
           - name: gstreamer
             version_suffix: -ubuntu18.04
-            build_args: BASE_IMAGE=ubuntu:18.04;
+            build_args: UBUNTU_RELEASE=ubuntu:18.04;
             source_directory: addons/gstreamer
 
           - name: gstreamer
             version_suffix: -ubuntu20.04
-            build_args: BASE_IMAGE=ubuntu:20.04;
+            build_args: UBUNTU_RELEASE=ubuntu:20.04;
             source_directory: addons/gstreamer
 
           - name: gstreamer
             version_suffix: -ubuntu22.04
-            build_args: BASE_IMAGE=ubuntu:22.04;
+            build_args: UBUNTU_RELEASE=ubuntu:22.04;
             source_directory: addons/gstreamer
 
           - name: infra-gcp-installer
