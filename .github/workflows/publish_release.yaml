@@ -16,7 +16,7 @@ jobs:
     steps:
       - id: get
         env:
-          RELEASE_VERSION: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ github.event.release.tag_name }}
         run: echo semver=${RELEASE_VERSION/v/} >> $GITHUB_OUTPUT
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
@@ -69,7 +69,7 @@ jobs:
           github_username: $GITHUB_ACTOR
           image_name: ${{ matrix.name }}
           image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+          image_version_1: ${{ github.event.release.tag_name }}${{ matrix.version_suffix }}
           image_version_2: latest${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
@@ -83,19 +83,19 @@ jobs:
         include:
           - name: gst-py-example
             version_suffix: -ubuntu18.04
-            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=18.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME
+            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=18.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event.release.tag_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.event.release.tag_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.event.release.tag_name }}
             dockerfile: Dockerfile.example
             source_directory: .
 
           - name: gst-py-example
             version_suffix: -ubuntu20.04
-            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME
+            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event.release.tag_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.event.release.tag_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.event.release.tag_name }}
             dockerfile: Dockerfile.example
             source_directory: .
 
           - name: gst-py-example
             version_suffix: -ubuntu22.04
-            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME
+            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event.release.tag_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.event.release.tag_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.event.release.tag_name }}
             dockerfile: Dockerfile.example
             source_directory: .
 
@@ -112,7 +112,7 @@ jobs:
           github_username: $GITHUB_ACTOR
           image_name: ${{ matrix.name }}
           image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+          image_version_1: ${{ github.event.release.tag_name }}${{ matrix.version_suffix }}
           image_version_2: latest${{ matrix.version_suffix }}
 
   all_assets:
@@ -147,52 +147,52 @@ jobs:
           - id: gst18
             cache_key: gstreamer-asset-ubuntu1804
             description: Ubuntu 18.04
-            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu18.04
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.event.release.tag_name }}-ubuntu18.04
             mimetype: application/tar+gzip
             source_path: /opt/selkies-gstreamer-latest.tgz
             target_directory: /tmp
-            target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu18.04.tgz
-            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+            target_name: selkies-gstreamer-${{ github.event.release.tag_name }}-ubuntu18.04.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.event.release.tag_name }}/
 
           - id: gst20
             cache_key: gstreamer-asset-ubuntu2004
             description: Ubuntu 20.04
-            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu20.04
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.event.release.tag_name }}-ubuntu20.04
             mimetype: application/tar+gzip
             source_path: /opt/selkies-gstreamer-latest.tgz
             target_directory: /tmp
-            target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu20.04.tgz
-            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+            target_name: selkies-gstreamer-${{ github.event.release.tag_name }}-ubuntu20.04.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.event.release.tag_name }}/
 
           - id: gst22
             cache_key: gstreamer-asset-ubuntu2204
             description: Ubuntu 22.04
-            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu22.04
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.event.release.tag_name }}-ubuntu22.04
             mimetype: application/tar+gzip
             source_path: /opt/selkies-gstreamer-latest.tgz
             target_directory: /tmp
-            target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu22.04.tgz
-            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+            target_name: selkies-gstreamer-${{ github.event.release.tag_name }}-ubuntu22.04.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.event.release.tag_name }}/
 
           - id: py
             cache_key: gst-py-asset
             description: Python
-            image_tag: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }}
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.event.release.tag_name }}
             mimetype: application/x-pywheel+zip
             source_path: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
             target_directory: /tmp
             target_name: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
-            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.event.release.tag_name }}/
 
           - id: web
             cache_key: gst-web-asset
             description: Web
-            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
+            image_tag: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.event.release.tag_name }}
             mimetype: application/tar+gzip
             source_path: /opt/gst-web.tgz
             target_directory: /tmp
-            target_name: selkies-gstreamer-web-${{ github.ref_name }}.tgz
-            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
+            target_name: selkies-gstreamer-web-${{ github.event.release.tag_name }}.tgz
+            upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.event.release.tag_name }}/
 
     name: ${{ matrix.description }} asset extraction
     steps:
@@ -266,16 +266,6 @@ jobs:
           key: ${{ needs.all_assets.outputs.web_cache_key }}
           path: ${{ needs.all_assets.outputs.web_path }}
 
-      - id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          draft: true
-          prerelease: false
-          release_name: Release ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-
       - name: Ubuntu 18.04 upload
         uses: actions/upload-release-asset@v1
         env:
@@ -284,7 +274,7 @@ jobs:
           asset_content_type: ${{ needs.all_assets.outputs.gst18_mimetype }}
           asset_name: ${{ needs.all_assets.outputs.gst18_name }}
           asset_path: ${{ needs.all_assets.outputs.gst18_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
 
       - name: Ubuntu 20.04 upload
         uses: actions/upload-release-asset@v1
@@ -294,7 +284,7 @@ jobs:
           asset_content_type: ${{ needs.all_assets.outputs.gst20_mimetype }}
           asset_name: ${{ needs.all_assets.outputs.gst20_name }}
           asset_path: ${{ needs.all_assets.outputs.gst20_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
 
       - name: Ubuntu 22.04 upload
         uses: actions/upload-release-asset@v1
@@ -304,7 +294,7 @@ jobs:
           asset_content_type: ${{ needs.all_assets.outputs.gst22_mimetype }}
           asset_name: ${{ needs.all_assets.outputs.gst22_name }}
           asset_path: ${{ needs.all_assets.outputs.gst22_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
 
       - name: Python upload
         uses: actions/upload-release-asset@v1
@@ -314,7 +304,7 @@ jobs:
           asset_content_type: ${{ needs.all_assets.outputs.py_mimetype }}
           asset_name: ${{ needs.all_assets.outputs.py_name }}
           asset_path: ${{ needs.all_assets.outputs.py_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
 
       - name: Web upload
         uses: actions/upload-release-asset@v1
@@ -324,4 +314,4 @@ jobs:
           asset_content_type: ${{ needs.all_assets.outputs.web_mimetype }}
           asset_name: ${{ needs.all_assets.outputs.web_name }}
           asset_path: ${{ needs.all_assets.outputs.web_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ github.event.release.upload_url }}
