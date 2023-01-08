@@ -5,8 +5,10 @@
 name: Publish release
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
 
 jobs:
   get_semver:
