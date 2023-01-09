@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 ARG UBUNTU_RELEASE=20.04
-FROM ubuntu:${UBUNTU_RELEASE} as build
+FROM ubuntu:${UBUNTU_RELEASE}
 
 # Install essentials
 RUN \
