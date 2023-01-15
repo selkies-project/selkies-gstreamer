@@ -96,7 +96,7 @@ class WebRTCInputError(Exception):
 
 
 class WebRTCInput:
-    def __init__(self, uinput_mouse_socket_path="", uinput_js_socket_path="", enable_clipboard="", enable_cursors=True):
+    def __init__(self, uinput_mouse_socket_path="", uinput_js_socket_path="", enable_clipboard="", enable_cursors=True, cursor_size=24, cursor_debug=False):
         """Initializes WebRTC input instance
         """
         self.clipboard_running = False
@@ -111,9 +111,9 @@ class WebRTCInput:
         self.enable_cursors = enable_cursors
         self.cursors_running = False
         self.cursor_cache = {}
-        self.cursor_resize_width = 24
-        self.cursor_resize_height = 24
-        self.cursor_debug = os.environ.get("DEBUG_CURSORS", "false").lower() == "true"
+        self.cursor_resize_width = cursor_size
+        self.cursor_resize_height = cursor_size
+        self.cursor_debug = cursor_debug
 
         self.keyboard = None
         self.mouse = None
@@ -425,26 +425,32 @@ class WebRTCInput:
         logger.info("watching for cursor changes")
 
         # Fetch initial cursor
-        image = self.xdisplay.xfixes_get_cursor_image(screen.root)
-        self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
-        self.on_cursor_change(self.cursor_cache[image.cursor_serial])
+        try:
+            image = self.xdisplay.xfixes_get_cursor_image(screen.root)
+            self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
+            self.on_cursor_change(self.cursor_cache[image.cursor_serial])
+        except Exception as e:
+            logger.warning("exception from fetching cursor image: %s" % e)
 
         while self.cursors_running:
-            e = self.xdisplay.next_event()
-            if (e.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
-                cache_key = e.cursor_serial
+            event = self.xdisplay.next_event()
+            if (event.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
+                cache_key = event.cursor_serial
                 if cache_key in self.cursor_cache:
                     if self.cursor_debug:
                         logger.warning("cursor changed to cached serial: {}".format(cache_key))
                 else:
-                    # Request the cursor image.
-                    cursor = self.xdisplay.xfixes_get_cursor_image(screen.root)
+                    try:
+                        # Request the cursor image.
+                        cursor = self.xdisplay.xfixes_get_cursor_image(screen.root)
 
-                    # Convert cursor image and cache.
-                    self.cursor_cache[cache_key] = self.cursor_to_msg(cursor, self.cursor_resize_width, self.cursor_resize_height)
+                        # Convert cursor image and cache.
+                        self.cursor_cache[cache_key] = self.cursor_to_msg(cursor, self.cursor_resize_width, self.cursor_resize_height)
 
-                    if self.cursor_debug:
-                        logger.warning("New cursor: position={},{}, size={}x{}, length={}, xyhot={},{}, cursor_serial={}".format(cursor.x, cursor.y, cursor.width,cursor.height, len(cursor.cursor_image), cursor.xhot, cursor.yhot, cursor.cursor_serial))
+                        if self.cursor_debug:
+                            logger.warning("New cursor: position={},{}, size={}x{}, length={}, xyhot={},{}, cursor_serial={}".format(cursor.x, cursor.y, cursor.width,cursor.height, len(cursor.cursor_image), cursor.xhot, cursor.yhot, cursor.cursor_serial))
+                    except Exception as e:
+                        logger.warning("exception from fetching cursor image: %s" % e)
 
                 self.on_cursor_change(self.cursor_cache.get(cache_key))
 

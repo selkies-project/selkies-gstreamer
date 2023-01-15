@@ -66,7 +66,7 @@ services:
       WEBRTC_ENABLE_RESIZE: ${WEBRTC_ENABLE_RESIZE}
 
       # DEBUG remote cursors
-      DEBUG_CURSORS: ${DEBUG_CURSORS:-false}
+      WEBRTC_DEBUG_CURSORS: ${WEBRTC_DEBUG_CURSORS:-false}
 
       # Start full XFCE4 session, vs just X11 server.
       START_XFCE4: ${START_XFCE4:-true}
