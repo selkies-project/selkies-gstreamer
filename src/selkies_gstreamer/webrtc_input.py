@@ -425,28 +425,34 @@ class WebRTCInput:
         logger.info("watching for cursor changes")
 
         # Fetch initial cursor
-        image = self.xdisplay.xfixes_get_cursor_image(screen.root)
-        self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
-        self.on_cursor_change(self.cursor_cache[image.cursor_serial])
+        try:
+            image = self.xdisplay.xfixes_get_cursor_image(screen.root)
+            self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
+            self.on_cursor_change(self.cursor_cache[image.cursor_serial])
+        except Exception as e:
+            logger.warning("exception from fetching cursor image: %s" % e)
 
         while self.cursors_running:
-            e = self.xdisplay.next_event()
-            if (e.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
-                cache_key = e.cursor_serial
-                if cache_key in self.cursor_cache:
-                    if self.cursor_debug:
-                        logger.warning("cursor changed to cached serial: {}".format(cache_key))
-                else:
-                    # Request the cursor image.
-                    cursor = self.xdisplay.xfixes_get_cursor_image(screen.root)
+            try:
+                e = self.xdisplay.next_event()
+                if (e.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
+                    cache_key = e.cursor_serial
+                    if cache_key in self.cursor_cache:
+                        if self.cursor_debug:
+                            logger.warning("cursor changed to cached serial: {}".format(cache_key))
+                    else:
+                        # Request the cursor image.
+                        cursor = self.xdisplay.xfixes_get_cursor_image(screen.root)
 
-                    # Convert cursor image and cache.
-                    self.cursor_cache[cache_key] = self.cursor_to_msg(cursor, self.cursor_resize_width, self.cursor_resize_height)
+                        # Convert cursor image and cache.
+                        self.cursor_cache[cache_key] = self.cursor_to_msg(cursor, self.cursor_resize_width, self.cursor_resize_height)
 
-                    if self.cursor_debug:
-                        logger.warning("New cursor: position={},{}, size={}x{}, length={}, xyhot={},{}, cursor_serial={}".format(cursor.x, cursor.y, cursor.width,cursor.height, len(cursor.cursor_image), cursor.xhot, cursor.yhot, cursor.cursor_serial))
+                        if self.cursor_debug:
+                            logger.warning("New cursor: position={},{}, size={}x{}, length={}, xyhot={},{}, cursor_serial={}".format(cursor.x, cursor.y, cursor.width,cursor.height, len(cursor.cursor_image), cursor.xhot, cursor.yhot, cursor.cursor_serial))
 
-                self.on_cursor_change(self.cursor_cache.get(cache_key))
+                    self.on_cursor_change(self.cursor_cache.get(cache_key))
+            except Exception as e:
+                logger.warning("exception from fetching cursor image: %s" % e)
 
         logger.info("exiting cursor monitor")
 
