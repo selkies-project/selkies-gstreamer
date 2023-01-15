@@ -433,14 +433,14 @@ class WebRTCInput:
             logger.warning("exception from fetching cursor image: %s" % e)
 
         while self.cursors_running:
-            try:
-                e = self.xdisplay.next_event()
-                if (e.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
-                    cache_key = e.cursor_serial
-                    if cache_key in self.cursor_cache:
-                        if self.cursor_debug:
-                            logger.warning("cursor changed to cached serial: {}".format(cache_key))
-                    else:
+            event = self.xdisplay.next_event()
+            if (event.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
+                cache_key = event.cursor_serial
+                if cache_key in self.cursor_cache:
+                    if self.cursor_debug:
+                        logger.warning("cursor changed to cached serial: {}".format(cache_key))
+                else:
+                    try:
                         # Request the cursor image.
                         cursor = self.xdisplay.xfixes_get_cursor_image(screen.root)
 
@@ -449,10 +449,10 @@ class WebRTCInput:
 
                         if self.cursor_debug:
                             logger.warning("New cursor: position={},{}, size={}x{}, length={}, xyhot={},{}, cursor_serial={}".format(cursor.x, cursor.y, cursor.width,cursor.height, len(cursor.cursor_image), cursor.xhot, cursor.yhot, cursor.cursor_serial))
+                    except Exception as e:
+                        logger.warning("exception from fetching cursor image: %s" % e)
 
-                    self.on_cursor_change(self.cursor_cache.get(cache_key))
-            except Exception as e:
-                logger.warning("exception from fetching cursor image: %s" % e)
+                self.on_cursor_change(self.cursor_cache.get(cache_key))
 
         logger.info("exiting cursor monitor")
 
