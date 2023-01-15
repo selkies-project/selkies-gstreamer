@@ -394,8 +394,14 @@ def main():
     parser.add_argument('--enable_cursors',
                         default=os.environ.get('WEBRTC_ENABLE_CURSORS', 'true'),
                         help='Enable passing remote cursors to client')
+    parser.add_argument('--debug_cursors',
+                        default=os.environ.get('WEBRTC_DEBUG_CURSORS', 'false'),
+                        help='Enable cursor debug logging')
+    parser.add_argument('--cursor_size',
+                        default=os.environ.get('WEBRTC_CURSOR_SIZE', '24'),
+                        help='Cursor size in Points for the local cursor, configure the remote cursor size in the remote desktop environment')
     parser.add_argument('--metrics_port',
-                        default=os.environ.get('METRICS_PORT', '8000'),
+                        default=os.environ.get('WEBRTC_METRICS_PORT', '8000'),
                         help='Port to start metrics server on')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug logging')
@@ -510,6 +516,8 @@ def main():
     curr_video_bitrate = int(args.video_bitrate)
     curr_audio_bitrate = int(args.audio_bitrate)
     enable_cursors = args.enable_cursors.lower() == "true"
+    cursor_debug = args.debug_cursors.lower() == "true"
+    cursor_size = int(args.cursor_size)
 
     # Create instance of app
     app = GSTWebRTCApp(stun_servers, turn_servers, enable_audio, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
@@ -532,7 +540,7 @@ def main():
     signalling.on_session = app.start_pipeline
 
     # Initialize the Xinput instance
-    webrtc_input = WebRTCInput(args.uinput_mouse_socket, args.uinput_js_socket, args.enable_clipboard.lower(), enable_cursors)
+    webrtc_input = WebRTCInput(args.uinput_mouse_socket, args.uinput_js_socket, args.enable_clipboard.lower(), enable_cursors, cursor_size, cursor_debug)
 
     # Handle changed cursors
     webrtc_input.on_cursor_change = lambda data: app.send_cursor_data(data)
