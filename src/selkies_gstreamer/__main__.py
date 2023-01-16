@@ -399,7 +399,7 @@ def main():
                         help='Enable cursor debug logging')
     parser.add_argument('--cursor_size',
                         default=os.environ.get('WEBRTC_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '24')),
-                        help='Cursor size in points for the local cursor, preferably set XCURSOR_SIZE instead of this argument to configure the remote cursor size in the remote desktop environment as well')
+                        help='Cursor size in points, only for the local cursor, instead set XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
     parser.add_argument('--metrics_port',
                         default=os.environ.get('WEBRTC_METRICS_PORT', '8000'),
                         help='Port to start metrics server on')
