@@ -287,9 +287,9 @@ This table specifies the currently supported transport protocol components.
 |---|---|---|---|---|---|
 | [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html) | [WebRTC](https://webrtc.org) | All | All Major | Various | N/A |
 
-## (IMPORTANT) Using a TURN server
+## Using a TURN server
 
-**You are at the right place if the HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and therefore the remote desktop does not start.**
+**(IMPORTANT) This is mandatory if the HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and therefore the remote desktop does not start.**
 
 **A TURN server is required if trying to use this project inside a Docker or Kubernetes container without host networking, or in other cases where the HTML5 web interface loads but the connection to the server fails. This is required for all WebRTC applications, especially since `selkies-gstreamer` is self-hosted, unlike other proprietary services which provide a TURN server for you.**
 
