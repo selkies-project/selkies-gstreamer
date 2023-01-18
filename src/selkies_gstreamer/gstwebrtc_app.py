@@ -755,8 +755,16 @@ class GSTWebRTCApp:
             "pipeline", {"status": "Set pointer visibility to: %d" % visible})
 
     def send_clipboard_data(self, data):
-        self.__send_data_channel_message(
-            "clipboard", {"content": base64.b64encode(data.encode()).decode("utf-8")})
+        # TODO: WebRTC DataChannel accepts a maximum length of 65489 (= 65535 - 46 for '{"type": "clipboard", "data": {"content": ""}}'), remove this restriction after implementing DataChannel chunking
+        CLIPBOARD_RESTRICTION = 65488
+        clipboard_message = base64.b64encode(data.encode()).decode("utf-8")
+        clipboard_length = len(clipboard_message)
+        logger.debug("clipboard base64 encoded message length: %d" % clipboard_length)
+        if clipboard_length <= CLIPBOARD_RESTRICTION:
+            self.__send_data_channel_message(
+                "clipboard", {"content": clipboard_message})
+        else:
+            logger.warning("clipboard may not be sent to the client because the base64 message length {} is {} above the maximum length of {}".format(clipboard_length, clipboard_length - CLIPBOARD_RESTRICTION, CLIPBOARD_RESTRICTION))
 
     def send_cursor_data(self, data):
         self.last_cursor_sent = data
@@ -883,7 +891,7 @@ class GSTWebRTCApp:
 
         msg = {
             "type": msg_type,
-            "data": data,
+            "data": data
         }
         self.data_channel.emit("send-string", json.dumps(msg))
 
@@ -916,7 +924,7 @@ class GSTWebRTCApp:
             logger.warning("injecting modified rtx-time to SDP")
             sdp_text = re.sub(r'rtx-time=\d+', r'rtx-time=125', sdp_text)
         # Firefox needs profile-level-id=42e01f in the offer, but webrtcbin does not add this.
-        # Remove when fixed in webrtcbin.
+        # TODO: Remove when fixed in webrtcbin.
         #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1106
         if '264' in self.encoder:
             if 'profile-level-id' not in sdp_text:

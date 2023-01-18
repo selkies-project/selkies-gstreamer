@@ -46,7 +46,7 @@ docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-
 
 Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or [`selkies-examples`](https://github.com/selkies-project/selkies-examples) from the [Selkies Project](https://github.com/selkies-project) provide containerized virtual desktop infrastructure (VDI) templates.
 
-[`docker-nvidia-glx-desktop`](https://github.com/ehfd/docker-nvidia-glx-desktop) and [`docker-nvidia-egl-desktop`](https://github.com/ehfd/docker-nvidia-egl-desktop) are expandable ready-to-go zero-configuration batteries-included containerized remote desktop implementations of `selkies-gstreamer` supporting hardware acceleration on NVIDIA and other GPUs.
+[`docker-nvidia-glx-desktop`](https://github.com/selkies-project/docker-nvidia-glx-desktop) and [`docker-nvidia-egl-desktop`](https://github.com/selkies-project/docker-nvidia-egl-desktop) are expandable ready-to-go zero-configuration batteries-included containerized remote desktop implementations of `selkies-gstreamer` supporting hardware acceleration on NVIDIA and other GPUs.
 
 ### Install the packaged version on a standalone machine or cloud instance
 
@@ -102,30 +102,30 @@ export GST_DEBUG=*:2
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
-# Start a virtual X server, skip this line if an X server already exists or you are already using a display
+# Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio, omit the below lines if PulseAudio server is already running
-export PULSE_SERVER=127.0.0.1:4713
+# Initialize PulseAudio, omit the below lines if a PulseAudio server is already running
+export PULSE_SERVER=tcp:127.0.0.1:4713
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
-sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+/usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
 [[ "${START_XFCE4:-true}" == "true" ]] && rm -rf ~/.config/xfce4 && xfce4-session &
 # Write Progressive Web App (PWA) config.
 export PWA_APP_NAME="Selkies WebRTC"
 export PWA_APP_SHORT_NAME="selkies"
 export PWA_START_URL="/index.html"
-sed -i \
+sudo sed -i \
     -e "s|PWA_APP_NAME|${PWA_APP_NAME}|g" \
     -e "s|PWA_APP_SHORT_NAME|${PWA_APP_SHORT_NAME}|g" \
     -e "s|PWA_START_URL|${PWA_START_URL}|g" \
 /opt/gst-web/manifest.json
-sed -i \
+sudo sed -i \
     -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
 /opt/gst-web/sw.js
 # Choose your video encoder
-export WEBRTC_ENCODER=x264enc
+export WEBRTC_ENCODER=${WEBRTC_ENCODER:-x264enc}
 # Do not enable resize if there is a physical display
 export WEBRTC_ENABLE_RESIZE=${WEBRTC_ENABLE_RESIZE:-false}
 # Replace to your resolution if using without resize, skip if there is a physical display
@@ -201,30 +201,30 @@ export GST_DEBUG=*:2
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
-# Start a virtual X server, skip this line if an X server already exists or you are already using a display
+# Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio, omit the below lines if PulseAudio server is already running
-export PULSE_SERVER=127.0.0.1:4713
+# Initialize PulseAudio, omit the below lines if a PulseAudio server is already running
+export PULSE_SERVER=tcp:127.0.0.1:4713
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
-sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+/usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
 [[ "${START_XFCE4:-true}" == "true" ]] && rm -rf ~/.config/xfce4 && xfce4-session &
 # Write Progressive Web App (PWA) config.
 export PWA_APP_NAME="Selkies WebRTC"
 export PWA_APP_SHORT_NAME="selkies"
 export PWA_START_URL="/index.html"
-sed -i \
+sudo sed -i \
     -e "s|PWA_APP_NAME|${PWA_APP_NAME}|g" \
     -e "s|PWA_APP_SHORT_NAME|${PWA_APP_SHORT_NAME}|g" \
     -e "s|PWA_START_URL|${PWA_START_URL}|g" \
 /opt/gst-web/manifest.json
-sed -i \
+sudo sed -i \
     -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
 /opt/gst-web/sw.js
 # Choose your video encoder
-export WEBRTC_ENCODER=x264enc
+export WEBRTC_ENCODER=${WEBRTC_ENCODER:-x264enc}
 # Do not enable resize if there is a physical display
 export WEBRTC_ENABLE_RESIZE=${WEBRTC_ENABLE_RESIZE:-false}
 # Replace to your resolution if using without resize, skip if there is a physical display
@@ -287,7 +287,7 @@ This table specifies the currently supported transport protocol components.
 |---|---|---|---|---|---|
 | [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html) | [WebRTC](https://webrtc.org) | All | All Major | Various | N/A |
 
-## Using a TURN server
+## (IMPORTANT) Using a TURN server
 
 **You are at the right place if the HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and therefore the remote desktop does not start.**
 
