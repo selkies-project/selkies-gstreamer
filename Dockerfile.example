@@ -124,7 +124,7 @@ export GSTREAMER_PATH=/opt/gstreamer\n\
 source /opt/gstreamer/gst-env\n\
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
-export PULSE_SERVER=tcp:127.0.0.1:4713\n\
+export PULSE_SERVER=unix:/run/pulse/native\n\
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1\n\
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
 [[ \${START_XFCE4:-true} == true ]] && rm -rf ~/.config/xfce4 && xfce4-session &\n\
@@ -162,7 +162,7 @@ ARG TZ=UTC
 ARG PASSWD=mypasswd
 RUN groupadd -g 1000 user && \
     useradd -ms /bin/bash user -u 1000 -g 1000 && \
-    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,input,plugdev,sudo,tape,tty,video,voice user && \
+    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,input,plugdev,pulse-access,sudo,tape,tty,video,voice user && \
     echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     chown -R user:user /home/user && \
     echo "user:${PASSWD}" | chpasswd && \
