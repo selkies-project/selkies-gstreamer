@@ -314,7 +314,7 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-            x264enc.set_property("sliced-threads", True)
+            x264enc.set_property("threads", 4)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("key-int-max", 0)
             x264enc.set_property("byte-stream", True)
@@ -380,6 +380,7 @@ class GSTWebRTCApp:
 
             # VPX Parameters
             # Borrowed from: https://github.com/nurdism/neko/blob/df98368137732b8aaf840e27cdf2bd41067b2161/server/internal/gst/gst.go#L94
+            vpenc.set_property("threads", 4)
             vpenc.set_property("cpu-used", 8)
             vpenc.set_property("deadline", 1)
             vpenc.set_property("error-resilient", "partitions")
@@ -759,12 +760,11 @@ class GSTWebRTCApp:
         CLIPBOARD_RESTRICTION = 65488
         clipboard_message = base64.b64encode(data.encode()).decode("utf-8")
         clipboard_length = len(clipboard_message)
-        logger.debug("clipboard base64 encoded message length: %d" % clipboard_length)
         if clipboard_length <= CLIPBOARD_RESTRICTION:
             self.__send_data_channel_message(
                 "clipboard", {"content": clipboard_message})
         else:
-            logger.warning("clipboard may not be sent to the client because the base64 message length {} is {} above the maximum length of {}".format(clipboard_length, clipboard_length - CLIPBOARD_RESTRICTION, CLIPBOARD_RESTRICTION))
+            logger.warning("clipboard may not be sent to the client because the base64 message length {} is above the maximum length of {}".format(clipboard_length, CLIPBOARD_RESTRICTION))
 
     def send_cursor_data(self, data):
         self.last_cursor_sent = data
@@ -891,7 +891,7 @@ class GSTWebRTCApp:
 
         msg = {
             "type": msg_type,
-            "data": data
+            "data": data,
         }
         self.data_channel.emit("send-string", json.dumps(msg))
 
