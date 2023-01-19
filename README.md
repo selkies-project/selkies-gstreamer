@@ -106,7 +106,7 @@ source /opt/gstreamer/gst-env
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio, omit the below lines if a PulseAudio server is already running
+# Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group), omit the below lines if a PulseAudio server is already running
 export PULSE_SERVER=tcp:127.0.0.1:4713
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
@@ -205,7 +205,7 @@ source /opt/gstreamer/gst-env
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio, omit the below lines if a PulseAudio server is already running
+# Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group), omit the below lines if a PulseAudio server is already running
 export PULSE_SERVER=tcp:127.0.0.1:4713
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
