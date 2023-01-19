@@ -20,6 +20,7 @@ LABEL maintainer "https://github.com/danisla"
 RUN \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         software-properties-common \
+        gnupg \
         build-essential \
         python3-pip \
         python3-dev \
