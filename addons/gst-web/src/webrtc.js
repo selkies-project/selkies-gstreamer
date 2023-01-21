@@ -273,6 +273,17 @@ class WebRTCDemo {
             this._setDebug("received SDP offer, creating answer");
             this.peerConnection.createAnswer()
                 .then((local_sdp) => {
+                    // Override SDP to enable stereo on WebRTC Opus with Chromium, must be munged before the Local Description
+                    if (local_sdp.sdp.indexOf('multiopus') === -1) {
+                        if (!(/[^-]stereo=1/gm.test(local_sdp.sdp))) {
+                            console.log("Overriding WebRTC SDP to allow stereo audio");
+                            if (/[^-]stereo=0/gm.test(local_sdp.sdp)) {
+                                local_sdp.sdp = local_sdp.sdp.replace('stereo=0', 'stereo=1');
+                            } else {
+                                local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'stereo=1;useinbandfec=');
+                            }
+                        }
+                    }
                     console.log("Created local SDP", local_sdp);
                     this.peerConnection.setLocalDescription(local_sdp).then(() => {
                         this._setDebug("Sending SDP answer");

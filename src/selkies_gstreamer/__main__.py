@@ -367,6 +367,9 @@ def main():
     parser.add_argument('--enable_audio',
                         default=os.environ.get('ENABLE_AUDIO', 'true'),
                         help='Enable or disable audio stream')
+    parser.add_argument('--audio_channels',
+                        default=os.environ.get('WEBRTC_AUDIO_CHANNELS', '2'),
+                        help='Number of audio channels, defaults to stereo (2 channels)')
     parser.add_argument('--enable_clipboard',
                         default=os.environ.get('ENABLE_CLIPBOARD', 'true'),
                         help='Enable or disable the clipboard features, supported values: true, false, in, out')
@@ -512,6 +515,7 @@ def main():
     # Extract args
     enable_audio = args.enable_audio.lower() == "true"
     enable_resize = args.enable_resize.lower() == "true"
+    audio_channels = int(args.audio_channels)
     curr_fps = int(args.framerate)
     curr_video_bitrate = int(args.video_bitrate)
     curr_audio_bitrate = int(args.audio_bitrate)
@@ -520,7 +524,7 @@ def main():
     cursor_size = int(args.cursor_size)
 
     # Create instance of app
-    app = GSTWebRTCApp(stun_servers, turn_servers, enable_audio, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
+    app = GSTWebRTCApp(stun_servers, turn_servers, enable_audio, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
 
     # [END main_setup]
 

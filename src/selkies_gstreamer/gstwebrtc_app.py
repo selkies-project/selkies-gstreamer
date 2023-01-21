@@ -41,8 +41,8 @@ class GSTWebRTCAppError(Exception):
 
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio=True, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000):
-        """Initialize gstreamer webrtc app.
+    def __init__(self, stun_servers=None, turn_servers=None, audio=True, audio_channels=2, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000):
+        """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
 
@@ -56,6 +56,7 @@ class GSTWebRTCApp:
         self.stun_servers = stun_servers
         self.turn_servers = turn_servers
         self.audio = audio
+        self.audio_channels = audio_channels
         self.pipeline = None
         self.webrtcbin = None
         self.data_channel = None
@@ -536,6 +537,14 @@ class GSTWebRTCApp:
         # jitter buffer to catch up and will never recover.
         pulsesrc.set_property("provide-clock", True)
 
+        # Create capabilities for pulsesrc and set channels
+        pulsesrc_caps = Gst.caps_from_string("audio/x-raw")
+        pulsesrc_caps.set_value("channels", self.audio_channels)
+
+        # Create a capability filter for the pulsesrc_caps
+        pulsesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
+        pulsesrc_capsfilter.set_property("caps", pulsesrc_caps)
+
         # Apply stream time to buffers, this helps with pipeline synchronization.
         # Disabled by default because pulsesrc should not be re-timestamped with the current stream time when pushed out to the GStreamer pipeline and destroy the original synchronization.
         # pulsesrc.set_property("do-timestamp", True)
@@ -589,6 +598,7 @@ class GSTWebRTCApp:
 
         # Add all elements to the pipeline.
         self.pipeline.add(pulsesrc)
+        self.pipeline.add(pulsesrc_capsfilter)
         self.pipeline.add(opusenc)
         self.pipeline.add(rtpopuspay)
         self.pipeline.add(rtpopuspay_queue)
@@ -596,8 +606,11 @@ class GSTWebRTCApp:
 
         # Link the pipeline elements and raise exception of linking fails
         # due to incompatible element pad capabilities.
-        if not Gst.Element.link(pulsesrc, opusenc):
-            raise GSTWebRTCAppError("Failed to link pulsesrc -> opusenc")
+        if not Gst.Element.link(pulsesrc, pulsesrc_capsfilter):
+            raise GSTWebRTCAppError("Failed to link pulsesrc -> pulsesrc_capsfilter")
+
+        if not Gst.Element.link(pulsesrc_capsfilter, opusenc):
+            raise GSTWebRTCAppError("Failed to link pulsesrc_capsfilter -> opusenc")
 
         if not Gst.Element.link(opusenc, rtpopuspay):
             raise GSTWebRTCAppError("Failed to link opusenc -> rtpopuspay")
