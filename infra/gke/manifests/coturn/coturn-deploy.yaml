@@ -60,9 +60,9 @@ spec:
             - name: TURN_ALT_PORT
               value: "443"
             - name: TURN_MIN_PORT
-              value: "25000"
+              value: "49152"
             - name: TURN_MAX_PORT
-              value: "25100"
+              value: "65535"
           resources:
             requests:
               cpu: "2"

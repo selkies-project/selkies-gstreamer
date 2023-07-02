@@ -42,6 +42,6 @@ turnserver \
     --static-auth-secret=${TURN_SHARED_SECRET:-changeme} \
     --rest-api-separator="-" \
     --channel-lifetime=${TURN_CHANNEL_LIFETIME:-"-1"} \
-    --min-port=${TURN_MIN_PORT:-25000} \
-    --max-port=${TURN_MAX_PORT:-25004} \
+    --min-port=${TURN_MIN_PORT:-49152} \
+    --max-port=${TURN_MAX_PORT:-65535} \
     --prometheus ${EXTRA_ARGS}

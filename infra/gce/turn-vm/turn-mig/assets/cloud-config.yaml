@@ -38,8 +38,8 @@ write_files:
       --env TURN_SHARED_SECRET="${element(split(",", custom_var), 0)}" \
       --env TURN_REALM="${element(split(",", custom_var), 1)}" \
       --env TURN_PORT="3478" \
-      --env TURN_MIN_PORT="25000" \
-      --env TURN_MAX_PORT="25100" \
+      --env TURN_MIN_PORT="49152" \
+      --env TURN_MAX_PORT="65535" \
       ${element(split(",", custom_var), 2)}
     ExecStop=/usr/bin/docker stop -t 2 %n
     [Install]
