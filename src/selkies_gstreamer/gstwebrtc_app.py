@@ -885,7 +885,7 @@ class GSTWebRTCApp:
             [bool] -- true if data channel is open
         """
 
-        return self.data_channel and self.data_channel.get_property("ready-state").value_name == 'GST_WEBRTC_DATA_CHANNEL_STATE_OPEN'
+        return self.data_channel
 
     def __send_data_channel_message(self, msg_type, data):
         """Sends message to the peer through the data channel
