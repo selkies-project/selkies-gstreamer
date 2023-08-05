@@ -14,7 +14,7 @@ FROM ${WEB_IMAGE} as selkies-web
 FROM ubuntu:${UBUNTU_RELEASE}
 ARG UBUNTU_RELEASE
 
-LABEL maintainer "https://github.com/danisla"
+LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 # Install Selkies-GStreamer system dependencies
 RUN \
