@@ -609,14 +609,6 @@ def main():
                 logger.warning("skipping resize because last resize failed.")
                 return
 
-            # TODO: remove the ximagesrc stop/start after this MR is merged:
-            #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/merge_requests/1562
-            logger.warning("stopping ximagesrc")
-            app.stop_ximagesrc()
-            logger.warning("resizing display from {} to {}".format(curr_res, new_res))
-            resize_display(res)
-            app.start_ximagesrc()
-
     # Initial binding of enable resize handler.
     if enable_resize:
         webrtc_input.on_resize = on_resize_handler

@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 # Supported base images: ubuntu:22.04, ubuntu:20.04, ubuntu:18.04
-ARG UBUNTU_RELEASE=20.04
+ARG UBUNTU_RELEASE=22.04
 ARG GSTREAMER_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer
 ARG GSTREAMER_BASE_IMAGE_RELEASE=master
 ARG PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:master
@@ -53,6 +53,11 @@ RUN \
         libvpx-dev \
         zlib1g-dev \
         x264 \
+        va-driver-all \
+        i965-va-driver-shaders \
+        libva2 \
+        vainfo \
+        intel-gpu-tools \
         git && \
     rm -rf /var/lib/apt/lists/*
 

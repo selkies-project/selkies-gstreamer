@@ -2,12 +2,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-ARG UBUNTU_RELEASE=20.04
+ARG UBUNTU_RELEASE=22.04
 FROM ubuntu:${UBUNTU_RELEASE}
 
 # Install essentials
-RUN \
-    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         curl \
         build-essential \
         ca-certificates \
@@ -16,8 +15,7 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Install build deps
-RUN \
-    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         autopoint \
         autoconf \
         automake \
@@ -27,6 +25,7 @@ RUN \
         bison \
         flex \
         gtk-doc-tools \
+        nasm \
         libtool-bin \
         libgtk2.0-dev \
         libgl1-mesa-dev \
@@ -37,12 +36,13 @@ RUN \
         libssl-dev \
         libsrtp2-dev \
         libx264-dev \
-        libvpx-dev && \
+        libvpx-dev \
+        libva-dev \
+        libdrm-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install meson and ninja
-RUN \
-    apt-get update && apt install -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-pip \
         python-gi-dev \
         ninja-build && \
@@ -54,11 +54,11 @@ WORKDIR /src
 ###
 # GStreamer monorepo build with prefix for standalone install.
 ###
-ENV GSTREAMER_VERSION=1.20.5
+ENV GSTREAMER_VERSION=1.22.5
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
 RUN cd /src/gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson --prefix /opt/gstreamer -Dgpl=enabled -Dugly=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
+    meson --prefix /opt/gstreamer -Dgpl=enabled -Dugly=enabled -Dgst-plugins-ugly:x264=enabled -Dgst-plugins-bad:va=enabled builddir && \
     ninja -C builddir && \
     meson install -C builddir
 

@@ -22,16 +22,13 @@ services:
     # NOTE: export the UBUNTU_RELEASE env var to change the base image during build and run.
     ###
 
-    # TODO: privileged is only required when using Ubuntu 22.04
-    #privileged: true
-
-    image: selkies-gstreamer-example:latest-ubuntu${UBUNTU_RELEASE:-20.04}
+    image: selkies-gstreamer-example:latest-ubuntu${UBUNTU_RELEASE:-22.04}
     entrypoint: ["/tini", "--", "/bin/bash"]
     build:
       context: .
       dockerfile: Dockerfile.example
       args:
-        UBUNTU_RELEASE: ${UBUNTU_RELEASE:-20.04}
+        UBUNTU_RELEASE: ${UBUNTU_RELEASE:-22.04}
 
         # Testing with gstreamer build in-repo:
         # 1. (cd addons/gstreamer && docker build --build-arg UBUNTU_RELEASE=${UBUNTU_RELEASE?} -t gstreamer:latest-ubuntu${UBUNTU_RELEASE?} .)
