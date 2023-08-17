@@ -44,7 +44,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 # Install meson and ninja
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-pip \
-        python3-gi-dev \
+        python-gi-dev \
         ninja-build && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 install meson
