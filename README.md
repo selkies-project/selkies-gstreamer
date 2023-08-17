@@ -24,7 +24,7 @@ Fourth, `selkies-gstreamer` is easy to use and expand to various usage cases, at
 
 ## How do I get started?
 
-Three components are required to run `selkies-gstreamer`: the [standalone build of GStreamer](addons/gstreamer) with the most recent version, the [Python package](src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface](addons/gst-web). Currently, Ubuntu 18.04 (Mint 19), 20.04 (Mint 20), 22.04 (Mint 21) are supported, but other operating systems should also work if using your own GStreamer build of the newest version (contributions for build workflows of more operating systems are welcome).
+Three components are required to run `selkies-gstreamer`: the [standalone build of GStreamer](addons/gstreamer) with the most recent version, the [Python package](src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface](addons/gst-web). Currently, 20.04 (Mint 20), 22.04 (Mint 21) are supported, but other operating systems should also work if using your own GStreamer build of the newest version (contributions for build workflows of more operating systems are welcome).
 
 All three of the components are built and packaged [every release](https://github.com/selkies-project/selkies-gstreamer/releases). In addition, every latest commit gets built and is made available in container forms [`ghcr.io/selkies-project/selkies-gstreamer/gstreamer`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgstreamer), [`ghcr.io/selkies-project/selkies-gstreamer/py-build`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fpy-build), and [`ghcr.io/selkies-project/selkies-gstreamer/gst-web`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-web).
 
@@ -38,7 +38,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example) is available.
 
-Run the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `master` for the development build instead of the release build, and choose the Ubuntu versions `18.04`, `20.04`, or `22.04`**):
+Run the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `master` for the development build instead of the release build, and choose the Ubuntu versions `20.04`, or `22.04`**):
 
 ```bash
 docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04

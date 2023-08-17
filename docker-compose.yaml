@@ -72,7 +72,7 @@ services:
     volumes:
       - type: bind
         source: ./src/selkies_gstreamer
-        # Change python3.8 to python3.6 in 18.04 and python3.10 in 22.04
+        # Change python3.8 to python3.10 in 22.04
         target: /usr/local/lib/python3.8/dist-packages/selkies_gstreamer
         read_only: true
 
