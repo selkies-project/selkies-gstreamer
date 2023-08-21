@@ -314,6 +314,18 @@ def main():
                         default=os.environ.get(
                             'WEB_ROOT', '/opt/gst-web'),
                         help='Path to directory containing web app source, default: "/opt/gst-web"')
+    parser.add_argument('--enable_https',
+                        default=os.environ.get(
+                            'ENABLE_HTTPS', 'false'),
+                        help='Enable or disable HTTPS for the web app, valid server certificate recommended.')
+    parser.add_argument('--https_cert',
+                        default=os.environ.get(
+                            'HTTPS_CERT', ''),
+                        help='TLS server certificate file for when HTTPS is enabled.')
+    parser.add_argument('--https_key',
+                        default=os.environ.get(
+                            'HTTPS_KEY', ''),
+                        help='TLS server private key file for when HTTPS is enabled.')
     parser.add_argument('--coturn_web_uri',
                         default=os.environ.get(
                             'COTURN_WEB_URI', ''),
