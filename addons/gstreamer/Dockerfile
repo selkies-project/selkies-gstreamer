@@ -41,9 +41,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         libdrm-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Install meson and ninja
+# Install gst-python dependencies, meson, and ninja
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-pip \
+        python3-dev \
         python-gi-dev \
         ninja-build && \
     rm -rf /var/lib/apt/lists/* && \
@@ -64,5 +65,4 @@ RUN cd /src/gstreamer && \
 
 # Bundle build output to tarball
 COPY config/gst-env /opt/gstreamer/
-RUN \
-    cd /opt && tar zcvf selkies-gstreamer-latest.tgz gstreamer
+RUN cd /opt && tar zcvf selkies-gstreamer-latest.tgz gstreamer

@@ -17,8 +17,7 @@ ARG UBUNTU_RELEASE
 LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 # Install Selkies-GStreamer system dependencies
-RUN \
-    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         software-properties-common \
         gnupg \
         build-essential \
@@ -64,8 +63,7 @@ RUN \
 WORKDIR /opt
 
 # Install test dependencies
-RUN \
-    mkdir -pm755 /etc/apt/preferences.d && \
+RUN mkdir -pm755 /etc/apt/preferences.d && \
     echo "Package: firefox*\n\
 Pin: release o=Ubuntu*\n\
 Pin-Priority: -1" > /etc/apt/preferences.d/firefox-ppa && \
@@ -102,8 +100,7 @@ COPY --from=selkies-web /usr/share/nginx/html ./gst-web
 ARG PWA_APP_NAME="Selkies WebRTC"
 ARG PWA_APP_SHORT_NAME="selkies"
 ARG PWA_START_URL="/index.html"
-RUN \
-    sed -i \
+RUN sed -i \
         -e "s|PWA_APP_NAME|${PWA_APP_NAME}|g" \
         -e "s|PWA_APP_SHORT_NAME|${PWA_APP_SHORT_NAME}|g" \
         -e "s|PWA_START_URL|${PWA_START_URL}|g" \

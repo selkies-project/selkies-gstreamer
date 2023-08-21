@@ -22,8 +22,7 @@
 FROM nginx:alpine
 
 # Install dependencies
-RUN \
-    apk add -u --no-cache imagemagick bash
+RUN apk add -u --no-cache imagemagick bash
 
 WORKDIR /opt/gst-web
 COPY . .
