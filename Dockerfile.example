@@ -65,7 +65,7 @@ WORKDIR /opt
 # Install test dependencies
 RUN mkdir -pm755 /etc/apt/preferences.d && \
     echo "Package: firefox*\n\
-Pin: release o=Ubuntu*\n\
+Pin: version 1:1snap*\n\
 Pin-Priority: -1" > /etc/apt/preferences.d/firefox-ppa && \
     add-apt-repository -y ppa:mozillateam/ppa && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
