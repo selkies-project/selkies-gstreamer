@@ -24,6 +24,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         gettext \
         bison \
         flex \
+        glib-networking \
         gtk-doc-tools \
         nasm \
         libtool-bin \
@@ -59,7 +60,7 @@ ENV GSTREAMER_VERSION=1.22.5
 RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
 RUN cd /src/gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson --prefix /opt/gstreamer -Dgpl=enabled -Dugly=enabled -Dgst-plugins-ugly:x264=enabled -Dgst-plugins-bad:va=enabled builddir && \
+    meson --prefix /opt/gstreamer -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
     ninja -C builddir && \
     meson install -C builddir
 
