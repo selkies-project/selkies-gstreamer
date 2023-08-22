@@ -190,7 +190,7 @@ jobs:
             (
               cd ${{ matrix.target_directory }} &&
               docker cp copy:${{ matrix.source_path }} ./temp &&
-              tar zcvf $TARGET_PATH temp
+              tar -zcvf $TARGET_PATH temp
             )
           fi
           docker rm copy

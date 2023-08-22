@@ -973,7 +973,7 @@ class GSTWebRTCApp:
 
         if not self.is_data_channel_ready():
             logger.debug(
-                "skipping messaage because data channel is not ready: %s" % msg_type)
+                "skipping message because data channel is not ready: %s" % msg_type)
             return
 
         msg = {

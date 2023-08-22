@@ -66,4 +66,4 @@ RUN cd /src/gstreamer && \
 
 # Bundle build output to tarball
 COPY config/gst-env /opt/gstreamer/
-RUN cd /opt && tar zcvf selkies-gstreamer-latest.tgz gstreamer
+RUN cd /opt && tar -zcvf selkies-gstreamer-latest.tgz gstreamer
