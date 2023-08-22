@@ -165,7 +165,7 @@ $(tail -n +2 /entrypoint.sh)\n\
 \n\
 To test the signaling server standalone:\n\
 \n\
-python3 signalling_web.py --disable-ssl --port 8080 --web_root=/opt/gst-web &\n\
+python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\n\
 \n\
 "\
     > /etc/motd

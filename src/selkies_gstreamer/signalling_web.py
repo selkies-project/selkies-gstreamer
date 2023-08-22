@@ -107,8 +107,9 @@ class WebRTCSimpleServer(object):
         self.port = options.port
         self.keepalive_timeout = options.keepalive_timeout
         self.cert_restart = options.cert_restart
-        self.cert_path = options.cert_path
-        self.disable_ssl = options.disable_ssl
+        self.enable_https = options.enable_https
+        self.https_cert = options.https_cert
+        self.https_key = options.https_key
         self.health_path = options.health
         self.web_root = options.web_root
 
@@ -402,28 +403,29 @@ class WebRTCSimpleServer(object):
         await ws.send('HELLO')
         return uid
 
-    def get_ssl_certs(self):
-        if 'letsencrypt' in self.cert_path:
-            chain_pem = os.path.join(self.cert_path, 'fullchain.pem')
-            key_pem = os.path.join(self.cert_path, 'privkey.pem')
+    def get_https_certs(self):
+        if os.path.isfile(self.https_cert) and os.path.isfile(self.https_key):
+            cert_pem = os.path.abspath(self.https_cert)
+            key_pem = os.path.abspath(self.https_key)
+        # TODO: Load self-signed certificate when no certificate is provided
         else:
-            chain_pem = os.path.join(self.cert_path, 'cert.pem')
-            key_pem = os.path.join(self.cert_path, 'key.pem')
-        return chain_pem, key_pem
+            logger.info("Certificates not found, did you run generate_cert.sh?")
+            sys.exit(1)
+        return cert_pem, key_pem
 
     def get_ssl_ctx(self):
-        if self.disable_ssl:
+        if not self.enable_https:
             return None
         # Create an SSL context to be used by the websocket server
-        logger.info('Using TLS with keys in {!r}'.format(self.cert_path))
-        chain_pem, key_pem = self.get_ssl_certs()
+        cert_pem, key_pem = self.get_https_certs()
+        logger.info('Using TLS with certificate in {!r} and private key in {!r}'.format(cert_pem, key_pem))
         sslctx = ssl.create_default_context()
         try:
-            sslctx.load_cert_chain(chain_pem, keyfile=key_pem)
+            sslctx.load_cert_chain(cert_pem, keyfile=key_pem)
         except FileNotFoundError:
             logger.info("Certificates not found, did you run generate_cert.sh?")
             sys.exit(1)
-        # FIXME
+        # TODO: FIXME
         sslctx.check_hostname = False
         sslctx.verify_mode = ssl.CERT_NONE
         return sslctx
@@ -449,7 +451,7 @@ class WebRTCSimpleServer(object):
         logger.setLevel(logging.INFO)
         web_logger.setLevel(logging.WARN)
 
-        if self.disable_ssl:
+        if not self.enable_https:
             logger.info("Listening on http://{}:{}".format(self.addr, self.port))
         else:
             logger.info("Listening on https://{}:{}".format(self.addr, self.port))
@@ -475,8 +477,8 @@ class WebRTCSimpleServer(object):
         logger.info('Stopped.')
 
     def check_cert_changed(self):
-        chain_pem, key_pem = self.get_ssl_certs()
-        mtime = max(os.stat(key_pem).st_mtime, os.stat(chain_pem).st_mtime)
+        cert_pem, key_pem = self.get_https_certs()
+        mtime = max(os.stat(key_pem).st_mtime, os.stat(cert_pem).st_mtime)
         if self.cert_mtime < 0:
             self.cert_mtime = mtime
             return False
@@ -512,10 +514,11 @@ def main():
     parser.add_argument('--enable_turn_tls', default=False, dest='turn_tls', action='store_true', help='enable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
     parser.add_argument('--turn_auth_header_name', default="x-auth-user", type=str, help='auth header for turn credentials')
     parser.add_argument('--keepalive-timeout', dest='keepalive_timeout', default=30, type=int, help='Timeout for keepalive (in seconds)')
-    parser.add_argument('--cert-path', default=os.path.dirname(__file__))
-    parser.add_argument('--disable-ssl', default=False, help='Disable ssl', action='store_true')
+    parser.add_argument('--enable-https', default=False, help='Enable HTTPS connections', action='store_true')
+    parser.add_argument('--https-cert', default="", type=str, help='HTTPS certificate file path')
+    parser.add_argument('--https-key', default="", type=str, help='HTTPS private key file path')
     parser.add_argument('--health', default='/health', help='Health check route')
-    parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the SSL certificate changes')
+    parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the HTTPS certificate changes')
     parser.add_argument('--enable_basic_auth', default="false", help="Use basic auth, must also set basic_auth_user, and basic_auth_password args")
     parser.add_argument('--basic_auth_user', default="", help='Username for basic auth.')
     parser.add_argument('--basic_auth_password', default="", help='Password for basic auth, if not set, no authorization will be enforced.')

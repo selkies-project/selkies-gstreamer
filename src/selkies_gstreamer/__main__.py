@@ -316,16 +316,16 @@ def main():
                         help='Path to directory containing web app source, default: "/opt/gst-web"')
     parser.add_argument('--enable_https',
                         default=os.environ.get(
-                            'ENABLE_HTTPS', 'false'),
-                        help='Enable or disable HTTPS for the web app, valid server certificate recommended.')
+                            'ENABLE_HTTPS_WEB', 'false'),
+                        help='Enable or disable HTTPS for the web app, specifing a valid server certificate is recommended.')
     parser.add_argument('--https_cert',
                         default=os.environ.get(
-                            'HTTPS_CERT', ''),
-                        help='TLS server certificate file for when HTTPS is enabled.')
+                            'HTTPS_WEB_CERT', ''),
+                        help='Path to the TLS server certificate file when HTTPS is enabled.')
     parser.add_argument('--https_key',
                         default=os.environ.get(
-                            'HTTPS_KEY', ''),
-                        help='TLS server private key file for when HTTPS is enabled.')
+                            'HTTPS_WEB_KEY', ''),
+                        help='Path to the TLS server private key file when HTTPS is enabled.')
     parser.add_argument('--coturn_web_uri',
                         default=os.environ.get(
                             'COTURN_WEB_URI', ''),
@@ -376,12 +376,6 @@ def main():
     parser.add_argument('--uinput_js_socket',
                         default=os.environ.get('UINPUT_JS_SOCKET', ''),
                         help='Path to uinput joystick socket provided by uinput-device-plugin, if not provided, uinput is used directly.')
-    parser.add_argument('--enable_audio',
-                        default=os.environ.get('ENABLE_AUDIO', 'true'),
-                        help='Enable or disable audio stream')
-    parser.add_argument('--audio_channels',
-                        default=os.environ.get('WEBRTC_AUDIO_CHANNELS', '2'),
-                        help='Number of audio channels, defaults to stereo (2 channels)')
     parser.add_argument('--enable_clipboard',
                         default=os.environ.get('ENABLE_CLIPBOARD', 'true'),
                         help='Enable or disable the clipboard features, supported values: true, false, in, out')
@@ -394,15 +388,21 @@ def main():
     parser.add_argument('--framerate',
                         default=os.environ.get('WEBRTC_FRAMERATE', '30'),
                         help='Framerate of streaming pipeline')
-    parser.add_argument('--video_bitrate',
-                        default=os.environ.get('WEBRTC_VIDEO_BITRATE', '2000'),
-                        help='Default video bitrate')
-    parser.add_argument('--audio_bitrate',
-                        default=os.environ.get('WEBRTC_AUDIO_BITRATE', '64000'),
-                        help='Default audio bitrate')
     parser.add_argument('--encoder',
                         default=os.environ.get('WEBRTC_ENCODER', 'x264enc'),
                         help='GStreamer encoder plugin to use')
+    parser.add_argument('--video_bitrate',
+                        default=os.environ.get('WEBRTC_VIDEO_BITRATE', '2000'),
+                        help='Default video bitrate')
+    parser.add_argument('--enable_audio',
+                        default=os.environ.get('ENABLE_AUDIO', 'true'),
+                        help='Enable or disable audio stream')
+    parser.add_argument('--audio_bitrate',
+                        default=os.environ.get('WEBRTC_AUDIO_BITRATE', '64000'),
+                        help='Default audio bitrate')
+    parser.add_argument('--audio_channels',
+                        default=os.environ.get('WEBRTC_AUDIO_CHANNELS', '2'),
+                        help='Number of audio channels, defaults to stereo (2 channels)')
     parser.add_argument('--enable_resize',
                         default=os.environ.get('WEBRTC_ENABLE_RESIZE', 'true'),
                         help='Enable dynamic resizing to match browser size')
@@ -679,11 +679,12 @@ def main():
     options.enable_basic_auth = args.enable_basic_auth
     options.basic_auth_user = args.basic_auth_user
     options.basic_auth_password = args.basic_auth_password
-    options.disable_ssl = True
+    options.enable_https = args.enable_https.lower() == 'true'
+    options.https_cert = args.https_cert
+    options.https_key = args.https_key
     options.health = "/health"
     options.web_root = args.web_root
     options.keepalive_timeout = 30
-    options.cert_path = None
     options.cert_restart = False
     options.rtc_config_file = args.rtc_config_json
     options.rtc_config = rtc_config
