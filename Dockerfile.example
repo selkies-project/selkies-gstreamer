@@ -53,12 +53,14 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libvpx-dev \
         zlib1g-dev \
         x264 \
-        # Intel graphics driver dependencies
+        # AMD/Intel graphics driver dependencies
         va-driver-all \
         i965-va-driver-shaders \
+        intel-media-va-driver-non-free \
         libva2 \
         vainfo \
-        intel-gpu-tools && \
+        intel-gpu-tools \
+        radeontop && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
@@ -92,13 +94,13 @@ ENV TINI_VERSION v0.7.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
-# Install gstreamer distribution
+# Install GStreamer distribution
 COPY --from=selkies-gstreamer /opt/gstreamer ./gstreamer
 
-# Install web app
+# Install web application
 COPY --from=selkies-web /usr/share/nginx/html ./gst-web
 
-# Update PWA manifest.json with app info and route.
+# Update PWA manifest.json with application info and route.
 ARG PWA_APP_NAME="Selkies WebRTC"
 ARG PWA_APP_SHORT_NAME="selkies"
 ARG PWA_START_URL="/index.html"
@@ -111,7 +113,7 @@ RUN sed -i \
         -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
     /opt/gst-web/sw.js
 
-# Install selkies-gstreamer Python app
+# Install Selkies-GStreamer Python application
 ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=0.0.0.dev0
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .

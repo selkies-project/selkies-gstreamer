@@ -712,7 +712,7 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp",
                     "rtpmanager", "ximagesrc"]
 
-        supported = ["nvh264enc", "vp8enc", "vp9enc", "vah264enc", "x264enc"]
+        supported = ["nvh264enc", "vah264enc", "x264enc", "vp8enc", "vp9enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 

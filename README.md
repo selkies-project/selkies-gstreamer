@@ -8,7 +8,7 @@
 
 ## What is `selkies-gstreamer`?
 
-`selkies-gstreamer` is a modern open-source low-latency Linux WebRTC HTML5 remote desktop, first started out as a [project by Google engineers](https://web.archive.org/web/20210310083658/https://cloud.google.com/solutions/gpu-accelerated-streaming-using-webrtc) and currently supported by [itopia](https://itopia.com). `selkies-gstreamer` streams a Linux X11 desktop or a Docker or Kubernetes container to a recent web browser using WebRTC with hardware or software acceleration from the server or the client. Linux Wayland, Mac, and Windows support is planned.
+`selkies-gstreamer` is a modern open-source low-latency Linux WebRTC HTML5 remote desktop, first started out as a [project by Google engineers](https://web.archive.org/web/20210310083658/https://cloud.google.com/solutions/gpu-accelerated-streaming-using-webrtc) and currently supported by [itopia](https://itopia.com). `selkies-gstreamer` streams a Linux X11 desktop or a Docker/Kubernetes container to a recent web browser using WebRTC with hardware or software acceleration from the server or the client. Linux Wayland, Mac, and Windows support is planned.
 
 This project is adequate as a high-performance replacement to most Linux remote desktop solutions, providing similar performance (at least 30 FPS at 720p with software encoding or at least 60+ FPS at Full HD with an NVIDIA GPU) to popular game streaming applications like [Parsec](https://parsec.app), [Moonlight](https://github.com/moonlight-stream) + [Sunshine](https://github.com/LizardByte/Sunshine), [Steam Remote Play](https://store.steampowered.com/remoteplay), and [NICE DCV](https://aws.amazon.com/hpc/dcv/). It is also adequate to be used in place of [noVNC](https://github.com/novnc/noVNC) or [Apache Guacamole](https://guacamole.apache.org). You may create a self-hosted version of Shadow, NVIDIA GeForce NOW, Google Stadia, or Xbox Cloud Gaming, running on a Linux host with a web-based client from any operating system.
 
@@ -16,7 +16,7 @@ There are several strengths of `selkies-gstreamer` compared to other game stream
 
 First, `selkies-gstreamer` is much more flexible to be used across various types of environments compared to other services or projects. Its focus on a single web interface instead of multiple native client implementations allow any operating system with a recent web browser to work as a client. Either the built-in HTTP basic authentication feature of `selkies-gstreamer` or any HTTP web server may provide protection to the web interface. Compared to many remote desktop or game streaming applications requiring multiple ports open to stream your desktop across the internet, `selkies-gstreamer` only requires one HTTP web server or reverse proxy which supports WebSocket, or a single TCP port from the server. A TURN server for actual traffic relaying can be flexibly configured within any location at or between the server and the client.
 
-Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, VP8, and VP9 codecs. Audio streaming from the server is supported using the Opus codec. WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC, with progress on supporting AMD, Intel, and other GPU hardware.
+Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, VP8, and VP9 codecs. Audio streaming from the server is supported using the Opus codec. WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC and AMD, Intel GPUs are supported with VA-API, with progress on supporting other GPU hardware.
 
 Third, `selkies-gstreamer` was designed not only for desktops and bare metal servers, but also for unprivileged Docker and Kubernetes containers. Unlike other similar Linux solutions, there are no dependencies that require access to special devices not available inside containers by default, and is also not dependent on `systemd`. This enables virtual desktop infrastructure (VDI) using containers instead of virtual machines (VMs) which have high overhead. Root permissions are also not required at all, and all components can be installed completely to the userspace.
 
@@ -57,7 +57,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libvpx-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core glib-networking x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libvpx-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
@@ -65,6 +65,8 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
+
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation.
 
 2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`), using your own GStreamer build may work **as long as it is the most recent version with the required plugins included**:
 
@@ -145,7 +147,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libvpx-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core glib-networking x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libvpx-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
@@ -153,6 +155,8 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
+
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation.
 
 2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (change the OS version `UBUNTU_RELEASE` as needed):
 
@@ -251,17 +255,19 @@ This table specifies the currently implemented video encoders and their correspo
 
 | Plugin (set `WEBRTC_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
+| [`nvh264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvh264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+| [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver | N/A |
 | [`x264enc`](https://gstreamer.freedesktop.org/documentation/x264/index.html) | H.264 AVC | Software | All | All Major | `x264` | N/A |
 | [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
 | [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | Chromium-based, Firefox | `libvpx` | N/A |
-| [`nvh264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvh264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
 
 This table specifies the currently implemented video frame converters used to convert the YUV formats from `BGRx` to `I420`, which are automatically decided based on the encoder types.
 
 | Plugin | Encoders | Acceleration | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
+| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvh264enc` | NVIDIA GPU | All | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | N/A |
+| [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc` | AMD, Intel GPU | All | VA-API Driver | N/A |
 | [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `vp8enc`, `vp9enc` | Software | All | Various | N/A |
-| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvh264enc` | NVIDIA GPU | Linux | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | N/A |
 
 This table specifies the currently supported display interfaces and how each plugin selects each video device.
 
