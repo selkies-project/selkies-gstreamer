@@ -4,7 +4,7 @@
 
 FROM python:3-jessie
 
-LABEL maintainer "https://github.com/danisla"
+LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 # Install build deps
 RUN python3 -m pip install --upgrade build

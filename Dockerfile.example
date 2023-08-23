@@ -31,27 +31,38 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         tzdata \
         sudo \
         udev \
-        xclip \
-        x11-utils \
-        xdotool \
         wmctrl \
         jq \
         gdebi-core \
         glib-networking \
-        x11-xserver-utils \
-        xserver-xorg-core \
         libopus0 \
         libgdk-pixbuf2.0-0 \
-        libsrtp2-1 \
+        libgtk2.0-bin \
+        libgl-dev \
+        libgles-dev \
+        libglvnd-dev \
+        libgudev-1.0-0 \
+        xclip \
+        x11-utils \
+        xdotool \
+        x11-xserver-utils \
+        xserver-xorg-core \
+        wayland-protocols \
+        libwayland-dev \
+        libwayland-egl-backend-dev \
+        libx11-xcb1 \
+        libxkbcommon0 \
         libxdamage1 \
         libxml2-dev \
         libwebrtc-audio-processing1 \
+        libsrtp2-1 \
         libcairo-gobject2 \
         pulseaudio \
         libpulse0 \
         libpangocairo-1.0-0 \
         libgirepository1.0-dev \
         libjpeg-dev \
+        libwebp-dev \
         libvpx-dev \
         zlib1g-dev \
         x264 \
@@ -59,6 +70,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         va-driver-all \
         i965-va-driver-shaders \
         intel-media-va-driver-non-free \
+        libmfx-tools \
         libva2 \
         vainfo \
         intel-gpu-tools \

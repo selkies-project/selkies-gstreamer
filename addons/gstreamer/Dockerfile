@@ -24,32 +24,42 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         gettext \
         bison \
         flex \
+        nasm \
         glib-networking \
         gtk-doc-tools \
-        nasm \
-        libtool-bin \
+        libgl-dev \
+        libgles-dev \
+        libglvnd-dev \
+        libgudev-1.0-dev \
         libgtk2.0-dev \
-        libgl1-mesa-dev \
+        libtool-bin \
+        libx11-xcb-dev \
+        libxkbcommon-dev \
+        wayland-protocols \
+        libwayland-dev \
+        libwayland-egl-backend-dev \
+        libdrm-dev \
         libopus-dev \
         libpulse-dev \
         libgirepository1.0-dev \
         libwebrtc-audio-processing-dev \
         libssl-dev \
         libsrtp2-dev \
+        libjpeg-dev \
+        libwebp-dev \
         libx264-dev \
         libvpx-dev \
-        libva-dev \
-        libdrm-dev && \
+        libmfx-dev \
+        libva-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install gst-python dependencies, meson, and ninja
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-pip \
         python3-dev \
-        python-gi-dev \
-        ninja-build && \
+        python-gi-dev && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 install meson
+    pip3 install meson ninja
 
 WORKDIR /src
 
@@ -57,11 +67,11 @@ WORKDIR /src
 # GStreamer monorepo build with prefix for standalone install.
 ###
 ENV GSTREAMER_VERSION=1.22.5
-RUN git clone https://gitlab.freedesktop.org/gstreamer/gstreamer.git && cd gstreamer && git checkout ${GSTREAMER_VERSION}
+RUN git clone "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && git checkout "${GSTREAMER_VERSION}"
 RUN cd /src/gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson --prefix /opt/gstreamer -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
-    ninja -C builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Db_lto=true -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:msdk=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
+    ninja -C builddir -j $(nproc) && \
     meson install -C builddir
 
 # Bundle build output to tarball
