@@ -407,10 +407,8 @@ class WebRTCSimpleServer(object):
         if os.path.isfile(self.https_cert) and os.path.isfile(self.https_key):
             cert_pem = os.path.abspath(self.https_cert)
             key_pem = os.path.abspath(self.https_key)
-        # TODO: Load self-signed certificate when no certificate is provided
         else:
-            logger.info("Certificates not found, did you run generate_cert.sh?")
-            sys.exit(1)
+            cert_pem, key_pem = None, None
         return cert_pem, key_pem
 
     def get_ssl_ctx(self):
@@ -423,7 +421,7 @@ class WebRTCSimpleServer(object):
         try:
             sslctx.load_cert_chain(cert_pem, keyfile=key_pem)
         except FileNotFoundError:
-            logger.info("Certificates not found, did you run generate_cert.sh?")
+            logger.info("Certificates are not found, generate using \'openssl req -x509 -newkey rsa:4096 -keyout /tmp/key.pem -out /tmp/cert.pem -days 3650 -nodes -subj \"/CN=example.com\"\'")
             sys.exit(1)
         # TODO: FIXME
         sslctx.check_hostname = False
