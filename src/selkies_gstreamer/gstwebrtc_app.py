@@ -976,10 +976,7 @@ class GSTWebRTCApp:
                 "skipping message because data channel is not ready: %s" % msg_type)
             return
 
-        msg = {
-            "type": msg_type,
-            "data": data,
-        }
+        msg = {"type": msg_type, "data": data}
         self.data_channel.emit("send-string", json.dumps(msg))
 
     def __on_offer_created(self, promise, _, __):
@@ -1064,7 +1061,7 @@ class GSTWebRTCApp:
 
         # Advance the state of the pipeline to PLAYING.
         res = self.pipeline.set_state(Gst.State.PLAYING)
-        if res.value_name != 'GST_STATE_CHANGE_SUCCESS':
+        if res != Gst.StateChangeReturn.SUCCESS:
             raise GSTWebRTCAppError(
                 "Failed to transition pipeline to PLAYING: %s" % res)
 

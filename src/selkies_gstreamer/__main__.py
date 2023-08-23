@@ -676,7 +676,7 @@ def main():
     options = argparse.Namespace()
     options.addr = args.addr
     options.port = args.port
-    options.enable_basic_auth = args.enable_basic_auth
+    options.enable_basic_auth = args.enable_basic_auth.lower() == 'true'
     options.basic_auth_user = args.basic_auth_user
     options.basic_auth_password = args.basic_auth_password
     options.enable_https = args.enable_https.lower() == 'true'

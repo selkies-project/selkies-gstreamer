@@ -18,8 +18,10 @@ LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 # Install Selkies-GStreamer system dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        # APT dependencies
         software-properties-common \
         gnupg \
+        # GStreamer dependencies
         build-essential \
         python3-pip \
         python3-dev \
@@ -69,7 +71,7 @@ WORKDIR /opt
 RUN mkdir -pm755 /etc/apt/preferences.d && \
     echo "Package: firefox*\n\
 Pin: version 1:1snap*\n\
-Pin-Priority: -1" > /etc/apt/preferences.d/firefox-ppa && \
+Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
     add-apt-repository -y ppa:mozillateam/ppa && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         git \

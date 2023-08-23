@@ -130,7 +130,7 @@ class WebRTCSimpleServer(object):
         self.turn_auth_header_name = options.turn_auth_header_name
 
         # Basic Auth options.
-        self.enable_basic_auth = str(options.enable_basic_auth).lower() == 'true'
+        self.enable_basic_auth = options.enable_basic_auth
         self.basic_auth_user = options.basic_auth_user
         self.basic_auth_password = options.basic_auth_password
 
@@ -519,7 +519,7 @@ def main():
     parser.add_argument('--https-key', default="", type=str, help='HTTPS private key file path')
     parser.add_argument('--health', default='/health', help='Health check route')
     parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the HTTPS certificate changes')
-    parser.add_argument('--enable_basic_auth', default="false", help="Use basic auth, must also set basic_auth_user, and basic_auth_password args")
+    parser.add_argument('--enable_basic_auth', default=False, dest='enable_basic_auth', action='store_true', help="Use basic auth, must also set basic_auth_user, and basic_auth_password args")
     parser.add_argument('--basic_auth_user', default="", help='Username for basic auth.')
     parser.add_argument('--basic_auth_password', default="", help='Password for basic auth, if not set, no authorization will be enforced.')
 
