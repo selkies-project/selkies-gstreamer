@@ -404,14 +404,8 @@ class WebRTCSimpleServer(object):
         return uid
 
     def get_https_certs(self):
-        if os.path.isfile(self.https_cert):
-            cert_pem = os.path.abspath(self.https_cert)
-        else:
-            cert_pem = None
-        if os.path.isfile(self.https_key):
-            key_pem = os.path.abspath(self.https_key)
-        else:
-            key_pem = None
+        cert_pem = os.path.abspath(self.https_cert) if os.path.isfile(self.https_cert) else None
+        key_pem = os.path.abspath(self.https_key) if os.path.isfile(self.https_key) else None
         return cert_pem, key_pem
 
     def get_ssl_ctx(self):
@@ -420,14 +414,11 @@ class WebRTCSimpleServer(object):
         # Create an SSL context to be used by the websocket server
         cert_pem, key_pem = self.get_https_certs()
         logger.info('Using TLS with certificate in {!r} and private key in {!r}'.format(cert_pem, key_pem))
-        sslctx = ssl.create_default_context()
         try:
-            sslctx.load_cert_chain(cert_pem, keyfile=key_pem)
+            sslctx = ssl._create_unverified_context(cert_reqs=ssl.CERT_NONE, check_hostname=False, purpose=ssl.Purpose.CLIENT_AUTH, certfile=cert_pem, keyfile=key_pem)
         except FileNotFoundError:
             logger.error("Certificate or private key not found. To use a self-signed certificate, install the package \'ssl-cert\' and add the group \'ssl-cert\' to your user in Debian-based distributions or generate using \'openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem -days 3650 -nodes -subj \"/CN=example.com\"\'")
             sys.exit(1)
-        sslctx.check_hostname = False
-        sslctx.verify_mode = ssl.CERT_NONE
         return sslctx
 
     def run(self):

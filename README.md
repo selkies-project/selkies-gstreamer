@@ -38,7 +38,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example) is available.
 
-Run the docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `master` for the development build instead of the release build, and choose the Ubuntu versions `20.04`, or `22.04`**):
+Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `master` for the development build instead of the release build, and choose the Ubuntu versions `20.04`, or `22.04`**):
 
 ```bash
 docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04
@@ -57,7 +57,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core glib-networking x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libvpx-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev wmctrl jq gdebi-core glib-networking libopus0 libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl-backend-dev libx11-xcb1 libxkbcommon0 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libsrtp2-1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
@@ -66,7 +66,7 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
 
-If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation.
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
 2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`), using your own GStreamer build may work **as long as it is the most recent version with the required plugins included**:
 
@@ -147,7 +147,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev xclip x11-utils xdotool wmctrl jq gdebi-core glib-networking x11-xserver-utils xserver-xorg-core libopus0 libgdk-pixbuf2.0-0 libsrtp2-1 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libvpx-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y adwaita-icon-theme-full build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel tzdata sudo udev wmctrl jq gdebi-core glib-networking libopus0 libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl-backend-dev libx11-xcb1 libxkbcommon0 libxdamage1 libxml2-dev libwebrtc-audio-processing1 libsrtp2-1 libcairo-gobject2 pulseaudio libpulse0 libpangocairo-1.0-0 libgirepository1.0-dev libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
@@ -156,7 +156,7 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
 
-If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation.
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
 2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (change the OS version `UBUNTU_RELEASE` as needed):
 

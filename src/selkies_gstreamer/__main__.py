@@ -462,7 +462,8 @@ def main():
     metrics = Metrics(int(args.metrics_port))
 
     # Initialize the signalling client
-    signalling = WebRTCSignalling('ws://127.0.0.1:%s/ws' % args.port, my_id, peer_id,
+    ws_protocol = 'wss:' if args.enable_https.lower() == 'true' else 'ws:'
+    signalling = WebRTCSignalling('%s//127.0.0.1:%s/ws' % (ws_protocol, args.port), my_id, peer_id,
         enable_basic_auth=args.enable_basic_auth.lower() == 'true',
         basic_auth_user=args.basic_auth_user,
         basic_auth_password=args.basic_auth_password)
