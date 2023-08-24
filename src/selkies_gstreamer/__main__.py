@@ -320,12 +320,12 @@ def main():
                         help='Enable or disable HTTPS for the web app, specifing a valid server certificate is recommended.')
     parser.add_argument('--https_cert',
                         default=os.environ.get(
-                            'HTTPS_WEB_CERT', ''),
+                            'HTTPS_WEB_CERT', '/etc/ssl/certs/ssl-cert-snakeoil.pem'),
                         help='Path to the TLS server certificate file when HTTPS is enabled.')
     parser.add_argument('--https_key',
                         default=os.environ.get(
-                            'HTTPS_WEB_KEY', ''),
-                        help='Path to the TLS server private key file when HTTPS is enabled.')
+                            'HTTPS_WEB_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
+                        help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate.')
     parser.add_argument('--coturn_web_uri',
                         default=os.environ.get(
                             'COTURN_WEB_URI', ''),

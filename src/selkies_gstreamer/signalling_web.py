@@ -404,11 +404,14 @@ class WebRTCSimpleServer(object):
         return uid
 
     def get_https_certs(self):
-        if os.path.isfile(self.https_cert) and os.path.isfile(self.https_key):
+        if os.path.isfile(self.https_cert):
             cert_pem = os.path.abspath(self.https_cert)
+        else:
+            cert_pem = None
+        if os.path.isfile(self.https_key):
             key_pem = os.path.abspath(self.https_key)
         else:
-            cert_pem, key_pem = None, None
+            key_pem = None
         return cert_pem, key_pem
 
     def get_ssl_ctx(self):
@@ -421,9 +424,8 @@ class WebRTCSimpleServer(object):
         try:
             sslctx.load_cert_chain(cert_pem, keyfile=key_pem)
         except FileNotFoundError:
-            logger.info("Certificates are not found, generate using \'openssl req -x509 -newkey rsa:4096 -keyout /tmp/key.pem -out /tmp/cert.pem -days 3650 -nodes -subj \"/CN=example.com\"\'")
+            logger.error("Certificate or private key not found. To use a self-signed certificate, install the package \'ssl-cert\' and add the group \'ssl-cert\' to your user in Debian-based distributions or generate using \'openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem -days 3650 -nodes -subj \"/CN=example.com\"\'")
             sys.exit(1)
-        # TODO: FIXME
         sslctx.check_hostname = False
         sslctx.verify_mode = ssl.CERT_NONE
         return sslctx
@@ -513,8 +515,8 @@ def main():
     parser.add_argument('--turn_auth_header_name', default="x-auth-user", type=str, help='auth header for turn credentials')
     parser.add_argument('--keepalive-timeout', dest='keepalive_timeout', default=30, type=int, help='Timeout for keepalive (in seconds)')
     parser.add_argument('--enable-https', default=False, help='Enable HTTPS connections', action='store_true')
-    parser.add_argument('--https-cert', default="", type=str, help='HTTPS certificate file path')
-    parser.add_argument('--https-key', default="", type=str, help='HTTPS private key file path')
+    parser.add_argument('--https-cert', default="/etc/ssl/certs/ssl-cert-snakeoil.pem", type=str, help='HTTPS certificate file path')
+    parser.add_argument('--https-key', default="/etc/ssl/private/ssl-cert-snakeoil.key", type=str, help='HTTPS private key file path, set to an empty string if the private key is included in the certificate')
     parser.add_argument('--health', default='/health', help='Health check route')
     parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the HTTPS certificate changes')
     parser.add_argument('--enable_basic_auth', default=False, dest='enable_basic_auth', action='store_true', help="Use basic auth, must also set basic_auth_user, and basic_auth_password args")
