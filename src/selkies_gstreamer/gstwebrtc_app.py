@@ -309,6 +309,8 @@ class GSTWebRTCApp:
         elif self.encoder in ["vah264enc"]:
             # color converter
             videoconvert = Gst.ElementFactory.make("vapostproc")
+            videoconvert.set_property("scale-method", "fast")
+            # TODO: Investigate the usage of 'GstVaDisplay' and 'video/x-raw(memory:VAMemory)' like how 'video/x-raw(memory:CUDAMemory)' is used with NVIDIA
             videoconvert_caps = Gst.caps_from_string("video/x-raw,format=NV12")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
             videoconvert_capsfilter.set_property("caps", videoconvert_caps)
