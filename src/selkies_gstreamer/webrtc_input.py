@@ -488,7 +488,7 @@ class WebRTCInput:
             im = Image.frombytes('RGBA', (cursor.width,cursor.height), bytes(s), 'raw')
 
             if cursor.width != resize_width or cursor.height != resize_height:
-                # Resize cursor to target size.
+                # Resize cursor to target size
                 im = im.resize((resize_width, resize_height))
 
             # Save image as PNG

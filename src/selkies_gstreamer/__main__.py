@@ -276,7 +276,7 @@ def set_json_app_argument(config_path, key, value):
     # Read current config JSON
     json_data = json.load(open(config_path))
 
-    # Set the new value for the argument.
+    # Set the new value for the argument
     json_data[key] = value
 
     # Save the json file
@@ -301,15 +301,15 @@ def main():
     parser.add_argument('--enable_basic_auth',
                         default=os.environ.get(
                             'ENABLE_BASIC_AUTH', 'false'),
-                        help='Enable Basic authentication on server. Must set basic_auth_password and optionally basic_auth_user to enforce Basic authentication.')
+                        help='Enable basic authentication on server. Must set basic_auth_password and optionally basic_auth_user to enforce basic authentication.')
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
                             'BASIC_AUTH_USER', os.environ.get('USER', '')),
-                        help='Username for Basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce Basic authentication.')
+                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce basic authentication.')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
                             'BASIC_AUTH_PASSWORD', ''),
-                        help='Password used when Basic authentication is set.')
+                        help='Password used when basic authentication is set.')
     parser.add_argument('--web_root',
                         default=os.environ.get(
                             'WEB_ROOT', '/opt/gst-web'),
@@ -423,7 +423,7 @@ def main():
     args = parser.parse_args()
 
     if os.path.exists(args.json_config):
-        # Read and overlay args from json file
+        # Read and overlay arguments from json file
         # Note that these are explicit overrides only.
         try:
             json_args = json.load(open(args.json_config))
@@ -528,7 +528,7 @@ def main():
 
     logger.info("initial server RTC config: {}".format(rtc_config))
 
-    # Extract args
+    # Extract arguments
     enable_audio = args.enable_audio.lower() == "true"
     enable_resize = args.enable_resize.lower() == "true"
     audio_channels = int(args.audio_channels)
@@ -596,7 +596,7 @@ def main():
     # Send clipboard contents when requested
     webrtc_input.on_clipboard_read = lambda data: app.send_clipboard_data(data)
 
-    # Write framerate arg to local config and then tell client to reload.
+    # Write framerate argument to local configuration and then tell client to reload.
     def set_fps_handler(fps):
         set_json_app_argument(args.json_config, "framerate", fps)
         curr_fps = app.framerate
@@ -606,7 +606,7 @@ def main():
             app.send_reload_window()
     webrtc_input.on_set_fps = lambda fps: set_fps_handler(fps)
 
-    # Write audio enabled arg to local config and then tell client to reload.
+    # Write audio enabled argument to local configuration and then tell client to reload.
     def enable_audio_handler(enabled):
         set_json_app_argument(args.json_config, "enable_audio", enabled)
         curr_audio = app.audio

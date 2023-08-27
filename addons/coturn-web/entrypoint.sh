@@ -8,7 +8,7 @@ set -e
 set -x
 
 if [[ -n "${HTPASSWD_DATA64}" ]]; then
-    # Save basic auth htpasswd to file.
+    # Save basic authentication htpasswd to file.
     export TURN_HTPASSWD_FILE="${TURN_HTPASSWD_FILE:-"/etc/htpasswd"}"
     cat - > ${TURN_HTPASSWD_FILE} <<EOF
 $(echo $HTPASSWD_DATA64 | base64 -d)

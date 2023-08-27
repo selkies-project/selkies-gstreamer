@@ -844,7 +844,7 @@ class GSTWebRTCApp:
 
     def send_clipboard_data(self, data):
         # TODO: WebRTC DataChannel accepts a maximum length of 65489 (= 65535 - 46 for '{"type": "clipboard", "data": {"content": ""}}'), remove this restriction after implementing DataChannel chunking
-        CLIPBOARD_RESTRICTION = 65000
+        CLIPBOARD_RESTRICTION = 65400
         clipboard_message = base64.b64encode(data.encode()).decode("utf-8")
         clipboard_length = len(clipboard_message)
         if clipboard_length <= CLIPBOARD_RESTRICTION:

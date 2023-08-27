@@ -168,7 +168,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("ERROR: failed to read htpasswd file: %v", err)
 		}
-		log.Printf("INFO: forcing auth header to: 'authorization' for Basic auth with htaccess file")
+		log.Printf("INFO: forcing auth header to: 'authorization' for basic authentication with htaccess file")
 		authHeaderName = "authorization"
 	}
 
@@ -338,12 +338,12 @@ func main() {
 		authHeaderValue := r.Header.Get(authHeaderName)
 		user := ""
 
-		// Perform basic auth
+		// Perform basic authentication
 		if authHeaderName == "authorization" {
 			if strings.Contains(authHeaderValue, "Basic") {
 				username, password, authOK := r.BasicAuth()
 				if authOK == false {
-					writeStatusResponse(w, http.StatusUnauthorized, "Invalid Basic Auth credential.")
+					writeStatusResponse(w, http.StatusUnauthorized, "Invalid basic authentication credential.")
 					return
 				}
 				// Authorize user from htpasswd file.

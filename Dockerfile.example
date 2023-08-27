@@ -115,7 +115,7 @@ COPY --from=selkies-gstreamer /opt/gstreamer ./gstreamer
 # Install web application
 COPY --from=selkies-web /usr/share/nginx/html ./gst-web
 
-# Update PWA manifest.json with application info and route.
+# Update PWA manifest.json with application information and route.
 ARG PWA_APP_NAME="Selkies WebRTC"
 ARG PWA_APP_SHORT_NAME="selkies"
 ARG PWA_START_URL="/index.html"

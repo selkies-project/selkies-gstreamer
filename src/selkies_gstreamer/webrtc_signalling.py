@@ -102,14 +102,12 @@ class WebRTCSignalling:
             headers = None
             if self.enable_basic_auth:
                 auth64 = base64.b64encode(bytes("{}:{}".format(self.basic_auth_user, self.basic_auth_password), "ascii")).decode("ascii")
-                headers = [
-                    ("Authorization", "Basic {}".format(auth64))
-                ]
+                headers = [("Authorization", "Basic {}".format(auth64))]
             self.conn = await websockets.connect(self.server, extra_headers=headers, ssl=sslctx)
             await self.conn.send('HELLO %d' % self.id)
         except websockets.ConnectionClosed:
             self.on_disconnect()
-       
+
     async def send_ice(self, mlineindex, candidate):
         """Sends te ice candidate to peer
 
