@@ -98,7 +98,8 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         dbus-x11 \
         x11-apps \
         firefox && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    update-alternatives --set x-www-browser /usr/bin/firefox
 
 # Install Ubuntu 22.04 specific packages
 RUN if [ "${UBUNTU_RELEASE}" = "22.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
