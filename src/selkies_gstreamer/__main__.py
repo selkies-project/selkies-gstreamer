@@ -298,18 +298,6 @@ def main():
                         default=os.environ.get(
                             'LISTEN_PORT', '8080'),
                         help='Port to listen on for the signaling and web server, default: "8080"')
-    parser.add_argument('--enable_basic_auth',
-                        default=os.environ.get(
-                            'ENABLE_BASIC_AUTH', 'false'),
-                        help='Enable basic authentication on server. Must set basic_auth_password and optionally basic_auth_user to enforce basic authentication.')
-    parser.add_argument('--basic_auth_user',
-                        default=os.environ.get(
-                            'BASIC_AUTH_USER', os.environ.get('USER', '')),
-                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce basic authentication.')
-    parser.add_argument('--basic_auth_password',
-                        default=os.environ.get(
-                            'BASIC_AUTH_PASSWORD', ''),
-                        help='Password used when basic authentication is set.')
     parser.add_argument('--web_root',
                         default=os.environ.get(
                             'WEB_ROOT', '/opt/gst-web'),
@@ -326,6 +314,18 @@ def main():
                         default=os.environ.get(
                             'HTTPS_WEB_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
                         help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate.')
+    parser.add_argument('--enable_basic_auth',
+                        default=os.environ.get(
+                            'ENABLE_BASIC_AUTH', 'false'),
+                        help='Enable basic authentication on server. Must set basic_auth_password and optionally basic_auth_user to enforce basic authentication.')
+    parser.add_argument('--basic_auth_user',
+                        default=os.environ.get(
+                            'BASIC_AUTH_USER', os.environ.get('USER', '')),
+                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce basic authentication.')
+    parser.add_argument('--basic_auth_password',
+                        default=os.environ.get(
+                            'BASIC_AUTH_PASSWORD', ''),
+                        help='Password used when basic authentication is set.')
     parser.add_argument('--coturn_web_uri',
                         default=os.environ.get(
                             'COTURN_WEB_URI', ''),
@@ -342,18 +342,6 @@ def main():
                         default=os.environ.get(
                             'RTC_CONFIG_JSON', '/tmp/rtc.json'),
                         help='JSON file with RTC config to use as alternative to coturn service, read periodically')
-    parser.add_argument('--turn_shared_secret',
-                        default=os.environ.get(
-                            'TURN_SHARED_SECRET', ''),
-                        help='Shared TURN secret used to generate HMAC credentials, also requires TURN_HOST and TURN_PORT.')
-    parser.add_argument('--turn_username',
-                        default=os.environ.get(
-                            'TURN_USERNAME', ''),
-                        help='Legacy non-HMAC TURN credential username, also requires TURN_HOST and TURN_PORT.')
-    parser.add_argument('--turn_password',
-                        default=os.environ.get(
-                            'TURN_PASSWORD', ''),
-                        help='Legacy non-HMAC TURN credential password, also requires TURN_HOST and TURN_PORT.')
     parser.add_argument('--turn_host',
                         default=os.environ.get(
                             'TURN_HOST', ''),
@@ -370,27 +358,36 @@ def main():
                         default=os.environ.get(
                             'TURN_TLS', 'false'),
                         help='Enable or disable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
-    parser.add_argument('--uinput_mouse_socket',
-                        default=os.environ.get('UINPUT_MOUSE_SOCKET', ''),
-                        help='Path to uinput mouse socket provided by uinput-device-plugin, if not provided, uinput is used directly.')
-    parser.add_argument('--uinput_js_socket',
-                        default=os.environ.get('UINPUT_JS_SOCKET', ''),
-                        help='Path to uinput joystick socket provided by uinput-device-plugin, if not provided, uinput is used directly.')
-    parser.add_argument('--enable_clipboard',
-                        default=os.environ.get('ENABLE_CLIPBOARD', 'true'),
-                        help='Enable or disable the clipboard features, supported values: true, false, in, out')
+    parser.add_argument('--turn_shared_secret',
+                        default=os.environ.get(
+                            'TURN_SHARED_SECRET', ''),
+                        help='Shared TURN secret used to generate HMAC credentials, also requires TURN_HOST and TURN_PORT.')
+    parser.add_argument('--turn_username',
+                        default=os.environ.get(
+                            'TURN_USERNAME', ''),
+                        help='Legacy non-HMAC TURN credential username, also requires TURN_HOST and TURN_PORT.')
+    parser.add_argument('--turn_password',
+                        default=os.environ.get(
+                            'TURN_PASSWORD', ''),
+                        help='Legacy non-HMAC TURN credential password, also requires TURN_HOST and TURN_PORT.')
     parser.add_argument('--app_auto_init',
                         default=os.environ.get('APP_AUTO_INIT', 'true'),
                         help='If true, skips wait for APP_READY_FILE to exist before starting stream.')
     parser.add_argument('--app_ready_file',
                         default=os.environ.get('APP_READY_FILE', '/var/run/appconfig/appready'),
                         help='File set by sidecar used to indicate that app is initialized and ready')
-    parser.add_argument('--framerate',
-                        default=os.environ.get('WEBRTC_FRAMERATE', '30'),
-                        help='Framerate of streaming pipeline')
+    parser.add_argument('--uinput_mouse_socket',
+                        default=os.environ.get('UINPUT_MOUSE_SOCKET', ''),
+                        help='Path to the uinput mouse socket provided by the uinput-device-plugin, if not provided uinput is used directly.')
+    parser.add_argument('--uinput_js_socket',
+                        default=os.environ.get('UINPUT_JS_SOCKET', ''),
+                        help='Path to the uinput joystick socket provided by the uinput-device-plugin, if not provided uinput is used directly.')
     parser.add_argument('--encoder',
                         default=os.environ.get('WEBRTC_ENCODER', 'x264enc'),
                         help='GStreamer encoder plugin to use')
+    parser.add_argument('--framerate',
+                        default=os.environ.get('WEBRTC_FRAMERATE', '30'),
+                        help='Framerate of the streaming pipeline')
     parser.add_argument('--video_bitrate',
                         default=os.environ.get('WEBRTC_VIDEO_BITRATE', '2000'),
                         help='Default video bitrate')
@@ -403,8 +400,11 @@ def main():
     parser.add_argument('--audio_channels',
                         default=os.environ.get('WEBRTC_AUDIO_CHANNELS', '2'),
                         help='Number of audio channels, defaults to stereo (2 channels)')
+    parser.add_argument('--enable_clipboard',
+                        default=os.environ.get('ENABLE_CLIPBOARD', 'true'),
+                        help='Enable or disable the clipboard features, supported values: true, false, in, out')
     parser.add_argument('--enable_resize',
-                        default=os.environ.get('WEBRTC_ENABLE_RESIZE', 'true'),
+                        default=os.environ.get('WEBRTC_ENABLE_RESIZE', 'false'),
                         help='Enable dynamic resizing to match browser size')
     parser.add_argument('--enable_cursors',
                         default=os.environ.get('WEBRTC_ENABLE_CURSORS', 'true'),
@@ -417,7 +417,7 @@ def main():
                         help='Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
     parser.add_argument('--metrics_port',
                         default=os.environ.get('WEBRTC_METRICS_PORT', '8000'),
-                        help='Port to start metrics server on')
+                        help='Port to start the metrics server on')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug logging')
     args = parser.parse_args()
