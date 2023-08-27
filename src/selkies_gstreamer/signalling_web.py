@@ -408,16 +408,20 @@ class WebRTCSimpleServer(object):
         key_pem = os.path.abspath(self.https_key) if os.path.isfile(self.https_key) else None
         return cert_pem, key_pem
 
-    def get_ssl_ctx(self):
+    def get_ssl_ctx(self, https_server=True):
         if not self.enable_https:
             return None
         # Create an SSL context to be used by the websocket server
         cert_pem, key_pem = self.get_https_certs()
         logger.info('Using TLS with certificate in {!r} and private key in {!r}'.format(cert_pem, key_pem))
+        ssl_purpose = ssl.Purpose.CLIENT_AUTH if https_server else ssl.Purpose.SERVER_AUTH
         try:
-            sslctx = ssl._create_unverified_context(cert_reqs=ssl.CERT_NONE, check_hostname=False, purpose=ssl.Purpose.CLIENT_AUTH, certfile=cert_pem, keyfile=key_pem)
-        except FileNotFoundError:
-            logger.error("Certificate or private key not found. To use a self-signed certificate, install the package \'ssl-cert\' and add the group \'ssl-cert\' to your user in Debian-based distributions or generate using \'openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem -days 3650 -nodes -subj \"/CN=example.com\"\'")
+            sslctx = ssl.create_default_context(purpose=ssl_purpose)
+            sslctx.check_hostname = False
+            sslctx.verify_mode = ssl.CERT_NONE
+            sslctx.load_cert_chain(cert_pem, keyfile=key_pem)
+        except Exception:
+            logger.error('Certificate or private key file not found or incorrect. To use a self-signed certificate, install the package \'ssl-cert\' and add the group \'ssl-cert\' to your user in Debian-based distributions or generate a new certificate with root using \'openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem -days 3650 -nodes -subj \"/CN=localhost\"\'')
             sys.exit(1)
         return sslctx
 
@@ -436,16 +440,14 @@ class WebRTCSimpleServer(object):
             finally:
                 await self.remove_peer(peer_id)
 
-        sslctx = self.get_ssl_ctx()
+        sslctx = self.get_ssl_ctx(https_server=True)
 
         # Setup logging
         logger.setLevel(logging.INFO)
         web_logger.setLevel(logging.WARN)
 
-        if not self.enable_https:
-            logger.info("Listening on http://{}:{}".format(self.addr, self.port))
-        else:
-            logger.info("Listening on https://{}:{}".format(self.addr, self.port))
+        http_protocol = 'https:' if self.enable_https else 'http:'
+        logger.info("Listening on {}//{}:{}".format(http_protocol, self.addr, self.port))
         # Websocket and HTTP server
         http_handler = functools.partial(self.process_request, self.web_root)
         wsd = websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,
@@ -458,7 +460,7 @@ class WebRTCSimpleServer(object):
         self.server = self.loop.run_until_complete(wsd)
         logger.info("websocket server started")
         # Stop the server if certificate changes
-        #self.loop.run_until_complete(self.check_server_needs_restart())
+        self.loop.run_until_complete(self.check_server_needs_restart())
 
     async def stop(self):
         logger.info('Stopping server... ', end='')
@@ -504,12 +506,12 @@ def main():
     parser.add_argument('--turn_protocol', default="udp", type=str, help='TURN protocol to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network.')
     parser.add_argument('--enable_turn_tls', default=False, dest='turn_tls', action='store_true', help='enable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
     parser.add_argument('--turn_auth_header_name', default="x-auth-user", type=str, help='auth header for turn credentials')
-    parser.add_argument('--keepalive-timeout', dest='keepalive_timeout', default=30, type=int, help='Timeout for keepalive (in seconds)')
-    parser.add_argument('--enable-https', default=False, help='Enable HTTPS connections', action='store_true')
-    parser.add_argument('--https-cert', default="/etc/ssl/certs/ssl-cert-snakeoil.pem", type=str, help='HTTPS certificate file path')
-    parser.add_argument('--https-key', default="/etc/ssl/private/ssl-cert-snakeoil.key", type=str, help='HTTPS private key file path, set to an empty string if the private key is included in the certificate')
+    parser.add_argument('--keepalive_timeout', dest='keepalive_timeout', default=30, type=int, help='Timeout for keepalive (in seconds)')
+    parser.add_argument('--enable_https', default=False, help='Enable HTTPS connections', action='store_true')
+    parser.add_argument('--https_cert', default="/etc/ssl/certs/ssl-cert-snakeoil.pem", type=str, help='HTTPS certificate file path')
+    parser.add_argument('--https_key', default="/etc/ssl/private/ssl-cert-snakeoil.key", type=str, help='HTTPS private key file path, set to an empty string if the private key is included in the certificate')
     parser.add_argument('--health', default='/health', help='Health check route')
-    parser.add_argument('--restart-on-cert-change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the HTTPS certificate changes')
+    parser.add_argument('--restart_on_cert_change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the HTTPS certificate changes')
     parser.add_argument('--enable_basic_auth', default=False, dest='enable_basic_auth', action='store_true', help="Use basic auth, must also set basic_auth_user, and basic_auth_password args")
     parser.add_argument('--basic_auth_user', default="", help='Username for basic auth.')
     parser.add_argument('--basic_auth_password', default="", help='Password for basic auth, if not set, no authorization will be enforced.')

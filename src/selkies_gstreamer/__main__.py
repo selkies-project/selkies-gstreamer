@@ -462,9 +462,12 @@ def main():
     metrics = Metrics(int(args.metrics_port))
 
     # Initialize the signalling client
-    ws_protocol = 'wss:' if args.enable_https.lower() == 'true' else 'ws:'
+    using_https = args.enable_https.lower() == 'true'
+    using_basic_auth = args.enable_basic_auth.lower() == 'true'
+    ws_protocol = 'wss:' if using_https else 'ws:'
     signalling = WebRTCSignalling('%s//127.0.0.1:%s/ws' % (ws_protocol, args.port), my_id, peer_id,
-        enable_basic_auth=args.enable_basic_auth.lower() == 'true',
+        enable_https=using_https,
+        enable_basic_auth=using_basic_auth,
         basic_auth_user=args.basic_auth_user,
         basic_auth_password=args.basic_auth_password)
 
@@ -677,10 +680,10 @@ def main():
     options = argparse.Namespace()
     options.addr = args.addr
     options.port = args.port
-    options.enable_basic_auth = args.enable_basic_auth.lower() == 'true'
+    options.enable_basic_auth = using_basic_auth
     options.basic_auth_user = args.basic_auth_user
     options.basic_auth_password = args.basic_auth_password
-    options.enable_https = args.enable_https.lower() == 'true'
+    options.enable_https = using_https
     options.https_cert = args.https_cert
     options.https_key = args.https_key
     options.health = "/health"
