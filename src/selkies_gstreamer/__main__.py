@@ -624,6 +624,7 @@ def main():
             if not app.last_resize_success:
                 logger.warning("skipping resize because last resize failed.")
                 return
+            resize_display(res)
 
     # Initial binding of enable resize handler.
     if enable_resize:
