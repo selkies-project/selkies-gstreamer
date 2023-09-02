@@ -5,6 +5,7 @@
 import logging
 import os
 import re
+from shutil import which
 from subprocess import Popen, PIPE, STDOUT
 
 logger = logging.getLogger("gstwebrtc_app_resize")
@@ -144,6 +145,36 @@ def generate_xrandr_gtf_modeline(res):
             if modeline_ma:
                 _, modeline = modeline_ma.groups()
     return mode, modeline
+
+def set_dpi(dpi):
+    if which("xfconf-query"):
+        # Set window scale
+        cmd = ["xfconf-query", "-c", "xsettings", "-p", "/Xft/DPI", "-s", str(dpi), "--create", "-t", "int"]
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            logger.error("failed to set XFCE DPI to: '%d': %s%s" % (dpi, str(stdout), str(stderr)))
+            return False
+    else:
+        logger.warning("failed to find supported window manager to set DPI.")
+        return False
+
+    return True
+
+def set_cursor_size(size):
+    if which("xfconf-query"):
+        # Set cursor size
+        cmd = ["xfconf-query", "-c", "xsettings", "-p", "/Gtk/CursorThemeSize", "-s", str(size), "--create", "-t", "int"]
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            logger.error("failed to set XFCE cursor size to: '%d': %s%s" % (dpi, str(stdout), str(stderr)))
+            return False
+    else:
+        logger.warning("failed to find supported window manager to set DPI.")
+        return False
+
+    return True
 
 def main():
     import sys

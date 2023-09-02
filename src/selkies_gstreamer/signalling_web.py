@@ -14,6 +14,7 @@
 #   Author: Nirbheek Chauhan <nirbheek@centricular.com>
 
 import os
+import base64
 import sys
 import ssl
 import logging
@@ -169,10 +170,6 @@ class WebRTCSimpleServer(object):
             # refresh cache
             data = open(full_path, 'rb').read()
             self.http_cache[full_path] = (data, now)
-        if data:
-            print("cache hit: {}".format(full_path))
-        else:
-            print("cache miss: {}".format(full_path))
         return data
 
     async def process_request(self, server_root, path, request_headers):
@@ -270,7 +267,7 @@ class WebRTCSimpleServer(object):
                 # close the connection to reset its state.
                 if other_id in self.peers:
                     logger.info("Closing connection to {}".format(other_id))
-                    wso, oaddr, _ = self.peers[other_id]
+                    wso, oaddr, _, _ = self.peers[other_id]
                     del self.peers[other_id]
                     await wso.close()
 
@@ -280,7 +277,7 @@ class WebRTCSimpleServer(object):
             return
         room_peers.remove(uid)
         for pid in room_peers:
-            wsp, paddr, _ = self.peers[pid]
+            wsp, paddr, _, _ = self.peers[pid]
             msg = 'ROOM_PEER_LEFT {}'.format(uid)
             logger.info('room {}: {} -> {}: {}'.format(room_id, uid, pid, msg))
             await wsp.send(msg)
@@ -288,7 +285,7 @@ class WebRTCSimpleServer(object):
     async def remove_peer(self, uid):
         await self.cleanup_session(uid)
         if uid in self.peers:
-            ws, raddr, status = self.peers[uid]
+            ws, raddr, status, _ = self.peers[uid]
             if status and status != 'session':
                 await self.cleanup_room(uid, status)
             del self.peers[uid]
@@ -298,11 +295,11 @@ class WebRTCSimpleServer(object):
     ############### Handler functions ###############
 
     
-    async def connection_handler(self, ws, uid):
+    async def connection_handler(self, ws, uid, meta=None):
         raddr = ws.remote_address
         peer_status = None
-        self.peers[uid] = [ws, raddr, peer_status]
-        logger.info("Registered peer {!r} at {!r}".format(uid, raddr))
+        self.peers[uid] = [ws, raddr, peer_status, meta]
+        logger.info("Registered peer {!r} at {!r} with meta: {}".format(uid, raddr, meta))
         while True:
             # Receive command, wait forever if necessary
             msg = await self.recv_msg_ping(ws, raddr)
@@ -313,7 +310,7 @@ class WebRTCSimpleServer(object):
                 # We're in a session, route message to connected peer
                 if peer_status == 'session':
                     other_id = self.sessions[uid]
-                    wso, oaddr, status = self.peers[other_id]
+                    wso, oaddr, status, _ = self.peers[other_id]
                     assert(status == 'session')
                     logger.info("{} -> {}: {}".format(uid, other_id, msg))
                     await wso.send(msg)
@@ -326,7 +323,7 @@ class WebRTCSimpleServer(object):
                             await ws.send('ERROR peer {!r} not found'
                                           ''.format(other_id))
                             continue
-                        wso, oaddr, status = self.peers[other_id]
+                        wso, oaddr, status, _ = self.peers[other_id]
                         if status != room_id:
                             await ws.send('ERROR peer {!r} is not in the room'
                                           ''.format(other_id))
@@ -355,7 +352,12 @@ class WebRTCSimpleServer(object):
                 if peer_status is not None:
                     await ws.send('ERROR peer {!r} busy'.format(callee_id))
                     continue
-                await ws.send('SESSION_OK')
+                meta = self.peers[callee_id][3]
+                if meta:
+                    meta64 = base64.b64encode(bytes(json.dumps(meta).encode())).decode("ascii")
+                else:
+                    meta64 = ""
+                await ws.send('SESSION_OK {}'.format(meta64))
                 wsc = self.peers[callee_id][0]
                 logger.info('Session from {!r} ({!r}) to {!r} ({!r})'
                       ''.format(uid, raddr, callee_id, wsc.remote_address))
@@ -387,7 +389,7 @@ class WebRTCSimpleServer(object):
                 for pid in self.rooms[room_id]:
                     if pid == uid:
                         continue
-                    wsp, paddr, _ = self.peers[pid]
+                    wsp, paddr, _, _ = self.peers[pid]
                     msg = 'ROOM_PEER_JOINED {}'.format(uid)
                     logger.info('room {}: {} -> {}: {}'.format(room_id, uid, pid, msg))
                     await wsp.send(msg)
@@ -400,16 +402,24 @@ class WebRTCSimpleServer(object):
         '''
         raddr = ws.remote_address
         hello = await ws.recv()
-        hello, uid = hello.split(maxsplit=1)
+        toks = hello.split(maxsplit=2)
+        metab64str = None
+        if len(toks) > 2:
+            hello, uid, metab64str = toks
+        else:
+            hello, uid = toks
         if hello != 'HELLO':
             await ws.close(code=1002, reason='invalid protocol')
             raise Exception("Invalid hello from {!r}".format(raddr))
         if not uid or uid in self.peers or uid.split() != [uid]: # no whitespace
             await ws.close(code=1002, reason='invalid peer uid')
             raise Exception("Invalid uid {!r} from {!r}".format(uid, raddr))
+        meta = None
+        if metab64str:
+            meta = json.loads(base64.b64decode(metab64str))
         # Send back a HELLO
         await ws.send('HELLO')
-        return uid
+        return uid, meta
 
     def get_https_certs(self):
         cert_pem = os.path.abspath(self.https_cert) if os.path.isfile(self.https_cert) else None
@@ -440,9 +450,9 @@ class WebRTCSimpleServer(object):
             '''
             raddr = ws.remote_address
             logger.info("Connected to {!r}".format(raddr))
-            peer_id = await self.hello_peer(ws)
+            peer_id, meta = await self.hello_peer(ws)
             try:
-                await self.connection_handler(ws, peer_id)
+                await self.connection_handler(ws, peer_id, meta)
             except websockets.ConnectionClosed:
                 logger.info("Connection to peer {!r} closed, exiting handler".format(raddr))
             finally:

@@ -179,8 +179,14 @@ class WebRTCDemoSignalling {
      * @event
      */
     _onServerOpen() {
+        // Send local device resolution and scaling with HELLO message.
+        var currRes = webrtc.input.getWindowResolution();
+        var meta = {
+            "res": parseInt(currRes[0]/window.devicePixelRatio) + "x" + parseInt(currRes[1]/window.devicePixelRatio),
+            "scale": window.devicePixelRatio
+        };
         this.state = 'connected';
-        this._ws_conn.send('HELLO ' + this._peer_id);
+        this._ws_conn.send(`HELLO ${this._peer_id} ${btoa(JSON.stringify(meta))}`);
         this._setStatus("Registering with server, peer ID: " + this._peer_id);
         this.retry_count = 0;
     }

@@ -38,7 +38,7 @@ from gstwebrtc_app import GSTWebRTCApp
 from gpu_monitor import GPUMonitor
 from system_monitor import SystemMonitor
 from metrics import Metrics
-from resize import resize_display, get_new_res
+from resize import resize_display, get_new_res, set_dpi, set_cursor_size
 from signalling_web import WebRTCSimpleServer, generate_rtc_config
 
 logger = logging.getLogger("main")
@@ -416,7 +416,7 @@ def main():
                         default=os.environ.get('WEBRTC_DEBUG_CURSORS', 'false'),
                         help='Enable cursor debug logging')
     parser.add_argument('--cursor_size',
-                        default=os.environ.get('WEBRTC_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '24')),
+                        default=os.environ.get('WEBRTC_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '-1')),
                         help='Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
     parser.add_argument('--metrics_port',
                         default=os.environ.get('WEBRTC_METRICS_PORT', '8000'),
@@ -560,10 +560,19 @@ def main():
     signalling.on_ice = app.set_ice
 
     # Start the pipeline once the session is established.
-    signalling.on_session = app.start_pipeline
+    def on_session_handler(meta=None):
+        logger.info("starting session with meta: {}".format(meta))
+        if meta:
+            if meta["res"]:
+                on_resize_handler(meta["res"])
+            if meta["scale"]:
+                on_scaling_ratio_handler(meta["scale"])
+        app.start_pipeline()
+    signalling.on_session = on_session_handler
 
     # Initialize the Xinput instance
-    webrtc_input = WebRTCInput(args.uinput_mouse_socket, args.uinput_js_socket, args.enable_clipboard.lower(), enable_cursors, cursor_size, cursor_debug)
+    cursor_scale = 1.0
+    webrtc_input = WebRTCInput(args.uinput_mouse_socket, args.uinput_js_socket, args.enable_clipboard.lower(), enable_cursors, cursor_size, cursor_scale, cursor_debug)
 
     # Handle changed cursors
     webrtc_input.on_cursor_change = lambda data: app.send_cursor_data(data)
@@ -632,6 +641,24 @@ def main():
     # Initial binding of enable resize handler.
     if enable_resize:
         webrtc_input.on_resize = on_resize_handler
+
+    # Handle for DPI events.
+    def on_scaling_ratio_handler(scale):
+        if scale < 0.75 or scale > 2.5:
+            logger.error("requested scale ratio out of bounds: {}".format(scale))
+            return
+        dpi = int(96 * scale)
+        logger.info("Setting DPI to: {}".format(dpi))
+        if not set_dpi(dpi):
+            logger.error("failed to set DPI to {}".format(dpi))
+
+        cursor_size = int(16 * scale)
+        logger.info("Setting cursor size to: {}".format(cursor_size))
+        if not set_cursor_size(cursor_size):
+            logger.error("failed to set cursor size to {}".format(cursor_size))
+
+    # Bind DPI handler.
+    webrtc_input.on_scaling_ratio = on_scaling_ratio_handler
 
     webrtc_input.on_ping_response = lambda latency: app.send_latency_time(latency)
 
