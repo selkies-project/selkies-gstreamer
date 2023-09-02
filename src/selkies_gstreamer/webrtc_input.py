@@ -96,7 +96,7 @@ class WebRTCInputError(Exception):
 
 
 class WebRTCInput:
-    def __init__(self, uinput_mouse_socket_path="", uinput_js_socket_path="", enable_clipboard="", enable_cursors=True, cursor_size=24, cursor_debug=False):
+    def __init__(self, uinput_mouse_socket_path="", uinput_js_socket_path="", enable_clipboard="", enable_cursors=True, cursor_size=24, cursor_scale=1.0, cursor_debug=False):
         """Initializes WebRTC input instance
         """
         self.clipboard_running = False
@@ -111,8 +111,8 @@ class WebRTCInput:
         self.enable_cursors = enable_cursors
         self.cursors_running = False
         self.cursor_cache = {}
-        self.cursor_resize_width = cursor_size
-        self.cursor_resize_height = cursor_size
+        self.cursor_scale = cursor_scale
+        self.cursor_size = cursor_size
         self.cursor_debug = cursor_debug
 
         self.keyboard = None
@@ -143,6 +143,8 @@ class WebRTCInput:
             'unhandled on_client_latency')
         self.on_resize = lambda res: logger.warn(
             'unhandled on_resize')
+        self.on_scaling_ratio = lambda res: logger.warn(
+            'unhandled on_scaling_ratio')
         self.on_ping_response = lambda latency: logger.warn(
             'unhandled on_ping_response')
         self.on_cursor_change = lambda msg: logger.warn(
@@ -428,7 +430,7 @@ class WebRTCInput:
         # Fetch initial cursor
         try:
             image = self.xdisplay.xfixes_get_cursor_image(screen.root)
-            self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_resize_width, self.cursor_resize_height)
+            self.cursor_cache[image.cursor_serial] = self.cursor_to_msg(image, self.cursor_scale, self.cursor_size)
             self.on_cursor_change(self.cursor_cache[image.cursor_serial])
         except Exception as e:
             logger.warning("exception from fetching cursor image: %s" % e)
@@ -449,7 +451,7 @@ class WebRTCInput:
                         cursor = self.xdisplay.xfixes_get_cursor_image(screen.root)
 
                         # Convert cursor image and cache.
-                        self.cursor_cache[cache_key] = self.cursor_to_msg(cursor, self.cursor_resize_width, self.cursor_resize_height)
+                        self.cursor_cache[cache_key] = self.cursor_to_msg(cursor, self.cursor_scale, self.cursor_size)
 
                         if self.cursor_debug:
                             logger.warning("New cursor: position={},{}, size={}x{}, length={}, xyhot={},{}, cursor_serial={}".format(cursor.x, cursor.y, cursor.width,cursor.height, len(cursor.cursor_image), cursor.xhot, cursor.yhot, cursor.cursor_serial))
@@ -477,8 +479,6 @@ class WebRTCInput:
             yhot_scaled = int(cursor.yhot * scale)
 
         png_data_b64 = base64.b64encode(self.cursor_to_png(cursor, target_width, target_height))
-        xhot_scaled = int(target_width/cursor.width * cursor.xhot)
-        yhot_scaled = int(target_height/cursor.height * cursor.yhot)
 
         override = None
         if sum(cursor.cursor_image) == 0:
@@ -625,11 +625,19 @@ class WebRTCInput:
         elif toks[0] == "r":
             # resize event
             res = toks[1]
-            if not re.match(re.compile(r'^\d+x\d+$'), res):
+            if re.match(re.compile(r'^\d+x\d+$'), res):
+                # Make sure resolution is divisible by 2
+                w, h = [int(i) + int(i)%2 for i in res.split("x")]
+                self.on_resize("%dx%d" % (w, h))
+            else:
                 logger.warning("rejecting resolution change, invalid WxH resolution: %s" % res)
-            # Make sure resolution is divisible by 2
-            w, h = [int(i) + int(i)%2 for i in res.split("x")]
-            self.on_resize("%dx%d" % (w, h))
+        elif toks[0] == "s":
+            # scaling info
+            scale = toks[1]
+            if re.match(re.compile(r'^\d+(\.\d+)?$'), scale):
+                self.on_scaling_ratio(float(scale))
+            else:
+                logger.warning("rejecting scaling change, invalid scale ratio: %s" % scale)
         elif toks[0] == "_arg_fps":
             # Set framerate
             fps = int(toks[1])

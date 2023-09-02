@@ -474,6 +474,7 @@ webrtc.input.onresizeend = () => {
     var newRes = parseInt(app.windowResolution[0]/window.devicePixelRatio) + "x" + parseInt(app.windowResolution[1]/window.devicePixelRatio);
     console.log(`Window size changed: ${app.windowResolution[0]}x${app.windowResolution[1]}, scaled to: ${newRes}`);
     webrtc.sendDataChannelMessage("r," + newRes);
+    webrtc.sendDataChannelMessage("s," + window.devicePixelRatio);
 }
 
 webrtc.onplayvideorequired = () => {

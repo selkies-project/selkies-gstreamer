@@ -23,6 +23,7 @@ import asyncio
 import base64
 import json
 import logging
+import re
 import ssl
 import websockets
 
@@ -73,9 +74,9 @@ class WebRTCSignalling:
         self.on_ice = lambda mlineindex, candidate: logger.warn(
             'unhandled ice event')
         self.on_sdp = lambda sdp_type, sdp: logger.warn('unhandled sdp event')
-        self.on_connect = lambda: logger.warn('unhandled on_connect callback')
+        self.on_connect = lambda res, scale: logger.warn('unhandled on_connect callback')
         self.on_disconnect = lambda: logger.warn('unhandled on_disconnect callback')
-        self.on_session = lambda: logger.warn('unhandled on_session callback')
+        self.on_session = lambda meta: logger.warn('unhandled on_session callback')
         self.on_error = lambda v: logger.warn(
             'unhandled on_error callback: %s', v)
 
@@ -168,9 +169,13 @@ class WebRTCSignalling:
             if message == 'HELLO':
                 logger.info("connected")
                 await self.on_connect()
-            elif message == 'SESSION_OK':
-                logger.info("started session with peer: %s", self.peer_id)
-                self.on_session()
+            elif message.startswith('SESSION_OK'):
+                toks = message.split(" ")
+                meta = {}
+                if len(toks) > 1:
+                    meta = json.loads(base64.b64decode(toks[1]))
+                logger.info("started session with peer: %s, meta: %s", self.peer_id, json.dumps(meta))
+                self.on_session(meta)
             elif message.startswith('ERROR'):
                 if message == "ERROR peer '%s' not found" % self.peer_id:
                     await self.on_error(WebRTCSignallingErrorNoPeer("'%s' not found" % self.peer_id))
