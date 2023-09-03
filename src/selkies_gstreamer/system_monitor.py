@@ -7,6 +7,7 @@ import psutil
 
 import logging
 logger = logging.getLogger("system_monitor")
+logger.setLevel(logging.INFO)
 
 
 class SystemMonitor:
@@ -25,13 +26,14 @@ class SystemMonitor:
     def start(self):
         self.running = True
         while self.running:
-            if self.enabled:
+            if self.enabled and int(time.time()) % self.period == 0:
                 self.cpu_percent = psutil.cpu_percent()
                 mem = psutil.virtual_memory()
                 self.mem_total = mem.total
                 self.mem_used = mem.used
                 self.on_timer(time.time())
-                time.sleep(self.period)
+            time.sleep(0.5)
+        logger.info("system monitor stopped")
 
     def stop(self):
         self.running = False

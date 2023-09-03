@@ -24,6 +24,7 @@ import time
 
 import logging
 logger = logging.getLogger("gpu_monitor")
+logger.setLevel(logging.INFO)
 
 
 class GPUMonitor:
@@ -38,10 +39,11 @@ class GPUMonitor:
     def start(self):
         self.running = True
         while self.running:
-            if self.enabled:
+            if self.enabled and int(time.time()) % self.period == 0:
                 gpu = GPUtil.getGPUs()[0]
                 self.on_stats(gpu.load, gpu.memoryTotal, gpu.memoryUsed)
-            time.sleep(self.period)
+            time.sleep(0.5)
+        logger.info("GPU monitor stopped")
 
     def stop(self):
         self.running = False

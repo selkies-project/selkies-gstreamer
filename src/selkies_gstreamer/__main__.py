@@ -76,14 +76,15 @@ class HMACRTCMonitor:
     def start(self):
         self.running = True
         while self.running:
-            if self.enabled:
+            if self.enabled and int(time.time()) % self.period == 0:
                 try:
                     data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls)
                     stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
                     self.on_rtc_config(stun_servers, turn_servers, rtc_config)
                 except Exception as e:
                     logger.warning("could not fetch coturn config in periodic monitor: {}".format(e))
-            time.sleep(self.period)
+            time.sleep(0.5)
+        logger.info("HMAC RTC monitor stopped")
 
     def stop(self):
         self.running = False
@@ -104,13 +105,14 @@ class CoturnRTCMonitor:
     def start(self):
         self.running = True
         while self.running:
-            if self.enabled:
+            if self.enabled and int(time.time()) % self.period == 0:
                 try:
                     stun_servers, turn_servers, rtc_config = fetch_coturn(self.coturn_web_uri, self.coturn_web_username, self.coturn_auth_header_name)
                     self.on_rtc_config(stun_servers, turn_servers, rtc_config)
                 except Exception as e:
                     logger.warning("could not fetch coturn config in periodic monitor: {}".format(e))
-            time.sleep(self.period)
+            time.sleep(0.5)
+        logger.info("coturn RTC monitor stopped")
 
     def stop(self):
         self.running = False
@@ -147,6 +149,7 @@ class RTCConfigFileMonitor:
 
     def stop(self):
         self.observer.stop()
+        logger.info("RTC config file monitor stopped")
         self.running = False
 
 def make_turn_rtc_config_json(host, port, username, password, protocol='udp', tls=False):
@@ -734,7 +737,7 @@ def main():
     rtc_file_mon.on_rtc_config = mon_rtc_config
 
     try:
-        server.run()
+        asyncio.ensure_future(server.run(), loop=loop)
         metrics.start()
         loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
@@ -753,14 +756,16 @@ def main():
         logger.error("Caught exception: %s" % e)
         sys.exit(1)
     finally:
+        app.stop_pipeline()
         webrtc_input.stop_clipboard()
         webrtc_input.stop_cursor_monitor()
         webrtc_input.disconnect()
         gpu_mon.stop()
+        hmac_turn_mon.stop()
         coturn_mon.stop()
         rtc_file_mon.stop()
         system_mon.stop()
-        server.server.close()
+        loop.run_until_complete(server.stop())
         sys.exit(0)
     # [END main_start]
 
