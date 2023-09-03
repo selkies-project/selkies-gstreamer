@@ -102,6 +102,9 @@ class WebRTCSimpleServer(object):
         # Websocket Server Instance
         self.server = None
 
+        # Signal used to shutdown server
+        self.stop_server = None
+
         # Options
         self.addr = options.addr
         self.port = options.port
@@ -425,7 +428,7 @@ class WebRTCSimpleServer(object):
             sys.exit(1)
         return sslctx
 
-    def run(self):
+    async def run(self):
         async def handler(ws, path):
             '''
             All incoming messages are handled here. @path is unused.
@@ -450,23 +453,21 @@ class WebRTCSimpleServer(object):
         logger.info("Listening on {}//{}:{}".format(http_protocol, self.addr, self.port))
         # Websocket and HTTP server
         http_handler = functools.partial(self.process_request, self.web_root)
-        wsd = websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,
+        self.stop_server = self.loop.create_future()
+        async with websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler, loop=self.loop,
                                # Maximum number of messages that websockets will pop
                                # off the asyncio and OS buffers per connection. See:
                                # https://websockets.readthedocs.io/en/stable/api.html#websockets.protocol.WebSocketCommonProtocol
-                               max_queue=16)
+                               max_queue=16) as self.server:
+            await self.stop_server
 
-        # Run the server
-        self.server = self.loop.run_until_complete(wsd)
-        logger.info("websocket server started")
-        # Stop the server if certificate changes
-        self.loop.run_until_complete(self.check_server_needs_restart())
+        asyncio.ensure_future(self.check_server_needs_restart(), loop=self.loop)
 
     async def stop(self):
-        logger.info('Stopping server... ', end='')
+        logger.info('Stopping server... ')
+        self.stop_server.set_result(True)
         self.server.close()
         await self.server.wait_closed()
-        self.loop.stop()
         logger.info('Stopped.')
 
     def check_cert_changed(self):
@@ -481,11 +482,11 @@ class WebRTCSimpleServer(object):
         return False
 
     async def check_server_needs_restart(self):
-        "When the certificate changes, we need to restart the server"
-        if not self.cert_restart:
-            return
-        while True:
-            await asyncio.sleep(10)
+        '''
+        When the certificate changes, we need to restart the server
+        '''
+        while self.cert_restart:
+            await asyncio.sleep(1)
             if self.check_cert_changed():
                 logger.info('Certificate changed, stopping server...')
                 await self.stop()
@@ -523,10 +524,9 @@ def main():
     r = WebRTCSimpleServer(loop, options)
 
     print('Starting server...')
-    while True:
-        r.run()
-        loop.run_forever()
-        print('Restarting server...')
+    asyncio.ensure_future(r.run(), loop=loop)
+    print("Started server")
+    loop.run_forever()
 
 if __name__ == "__main__":
     main()

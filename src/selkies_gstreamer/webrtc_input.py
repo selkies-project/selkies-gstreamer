@@ -398,6 +398,7 @@ class WebRTCInput:
                     self.on_clipboard_read(curr_data)
                     last_data = curr_data
                 time.sleep(0.5)
+            logger.info("clipboard monitor stopped")
         else:
             logger.info("skipping outbound clipboard service.")
 
@@ -433,6 +434,9 @@ class WebRTCInput:
             logger.warning("exception from fetching cursor image: %s" % e)
 
         while self.cursors_running:
+            if self.xdisplay.pending_events() == 0:
+                time.sleep(0.1)
+                continue
             event = self.xdisplay.next_event()
             if (event.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
                 cache_key = event.cursor_serial
@@ -454,13 +458,24 @@ class WebRTCInput:
 
                 self.on_cursor_change(self.cursor_cache.get(cache_key))
 
-        logger.info("exiting cursor monitor")
+        logger.info("cursor monitor stopped")
 
     def stop_cursor_monitor(self):
         logger.info("stopping cursor monitor")
         self.cursors_running = False
 
-    def cursor_to_msg(self, cursor, target_width, target_height):
+    def cursor_to_msg(self, cursor, scale=1.0, cursor_size=-1):
+        if cursor_size > -1:
+            target_width = cursor_size
+            target_height = cursor_size
+            xhot_scaled = int(cursor_size/cursor.width * cursor.xhot)
+            yhot_scaled = int(cursor_size/cursor.height * cursor.yhot)
+        else:
+            target_width = int(cursor.width * scale)
+            target_height = int(cursor.height * scale)
+            xhot_scaled = int(cursor.xhot * scale)
+            yhot_scaled = int(cursor.yhot * scale)
+
         png_data_b64 = base64.b64encode(self.cursor_to_png(cursor, target_width, target_height))
         xhot_scaled = int(target_width/cursor.width * cursor.xhot)
         yhot_scaled = int(target_height/cursor.height * cursor.yhot)

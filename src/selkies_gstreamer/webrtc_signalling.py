@@ -19,6 +19,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import asyncio
 import base64
 import json
 import logging
@@ -103,7 +104,15 @@ class WebRTCSignalling:
             if self.enable_basic_auth:
                 auth64 = base64.b64encode(bytes("{}:{}".format(self.basic_auth_user, self.basic_auth_password), "ascii")).decode("ascii")
                 headers = [("Authorization", "Basic {}".format(auth64))]
-            self.conn = await websockets.connect(self.server, extra_headers=headers, ssl=sslctx)
+            
+            while True:
+                try:
+                    self.conn = await websockets.connect(self.server, extra_headers=headers, ssl=sslctx)
+                    break
+                except ConnectionRefusedError:
+                    logger.info("Connecting to signal server...")
+                    await asyncio.sleep(2)
+
             await self.conn.send('HELLO %d' % self.id)
         except websockets.ConnectionClosed:
             self.on_disconnect()
