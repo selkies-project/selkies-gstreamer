@@ -17,6 +17,7 @@ import os
 import sys
 import ssl
 import logging
+import glob
 import asyncio
 import websockets
 import basicauth
@@ -119,7 +120,7 @@ class WebRTCSimpleServer(object):
         # Certificate mtime, used to detect when to restart the server
         self.cert_mtime = -1
 
-        self.cache_ttl = 60
+        self.cache_ttl = 300
         self.http_cache = {}
 
         # TURN options
@@ -144,7 +145,7 @@ class WebRTCSimpleServer(object):
 
         # Perform initial cache of web_root files
         for f in Path(self.web_root).rglob('*.*'):
-            self.cache_file(f)
+            self.cache_file(os.path.realpath(f))
 
         # Validate TURN arguments
         if self.turn_shared_secret:
@@ -168,6 +169,10 @@ class WebRTCSimpleServer(object):
             # refresh cache
             data = open(full_path, 'rb').read()
             self.http_cache[full_path] = (data, now)
+        if data:
+            print("cache hit: {}".format(full_path))
+        else:
+            print("cache miss: {}".format(full_path))
         return data
 
     async def process_request(self, server_root, path, request_headers):
@@ -494,11 +499,13 @@ class WebRTCSimpleServer(object):
 
 
 def main():
+    default_web_root = os.path.join(os.getcwd(), "../../addons/gst-web/src")
+
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # See: host, port in https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.create_server
     parser.add_argument('--addr', default='', help='Address to listen on (default: all interfaces, both ipv4 and ipv6)')
     parser.add_argument('--port', default=8443, type=int, help='Port to listen on')
-    parser.add_argument('--web_root', default=os.getcwd(), type=str, help='Path to web root')
+    parser.add_argument('--web_root', default=default_web_root, type=str, help='Path to web root')
     parser.add_argument('--rtc_config_file', default="/tmp/rtc.json", type=str, help='Path to json rtc config file')
     parser.add_argument('--rtc_config', default="", type=str, help='JSON rtc config data')
     parser.add_argument('--turn_shared_secret', default="", type=str, help='shared secret for generating TURN HMAC credentials')
