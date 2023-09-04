@@ -1,0 +1,61 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "[build] build python package",
+            "type": "shell",
+            "command": "python3 -m build",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "[install] re-install python package",
+            "type": "shell",
+            "command": " sudo python3 -m pip install --force-reinstall --upgrade ${workspaceFolder}/dist/selkies_gstreamer-0.0.1-py3-none-any.whl",
+            "problemMatcher": []
+        },
+        {
+            "label": "[run] Start selkies-gstreamer",
+            "type": "shell",
+            "command": "${workspaceFolder}/.devcontainer/features/desktop-selkies/src/start-selkies.sh",
+            "problemMatcher": [],
+            "options": {
+                "env": {
+                    "WEB_ROOT": "${workspaceFolder}/addons/gst-web/src"
+                }
+            }
+        },
+        {
+            "label": "[run] re-build, re-install and run selkies-gstreamer",
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "[build] build python package",
+                "[install] re-install python package",
+                "[run] Start selkies-gstreamer"
+            ]
+        },
+        {
+            "label": "[workflow] local run devcontainer_feature_validate",
+            "type": "shell",
+            "command": "act -W .github/workflows/devcontainer_feature_validate.yaml workflow_dispatch",
+            "problemMatcher": []
+        },
+        {
+            "label": "[workflow] local run devcontainer_feature_test",
+            "type": "shell",
+            "command": "act -W .github/workflows/devcontainer_feature_test.yaml workflow_dispatch",
+            "problemMatcher": []
+        },
+        {
+            "label": "[workflow] local run devcontainer_feature_release",
+            "type": "shell",
+            "command": "act -W .github/workflows/devcontainer_feature_release.yaml workflow_dispatch",
+            "problemMatcher": []
+        }
+    ]
+}
