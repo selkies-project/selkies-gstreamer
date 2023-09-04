@@ -15,6 +15,8 @@
 		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/devcontainers-contrib/features/act:1": {}
 	},
+	// Run privileged to run Chrome without --no-sandbox option.
+	"privileged": true,
 	// Increase SHM size to help with crashing on Chrome.
 	"runArgs": [
 		"--shm-size=1g"
@@ -44,6 +46,14 @@
 	"remoteEnv": {
 		// desktop environment passed to the start-selkies.sh script
 		"DESKTOP": "XFCE"
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python"
+			]
+		}
 	}
 
 	// Use 'postCreateCommand' to run commands after the container is created.
