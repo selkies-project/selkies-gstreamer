@@ -476,7 +476,8 @@ class WebRTCSimpleServer(object):
                                max_queue=16) as self.server:
             await self.stop_server
 
-        asyncio.ensure_future(self.check_server_needs_restart(), loop=self.loop)
+        if self.enable_https:
+            asyncio.ensure_future(self.check_server_needs_restart(), loop=self.loop)
 
     async def stop(self):
         logger.info('Stopping server... ')
