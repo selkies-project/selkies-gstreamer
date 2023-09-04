@@ -158,6 +158,7 @@ def make_turn_rtc_config_json(host, port, username, password, protocol='udp', tl
   "iceServers": [
     {
       "urls": [
+        "stun:stun.l.google.com:19302",
         "stun:%s:%s"
       ]
     },
