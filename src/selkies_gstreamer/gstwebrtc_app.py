@@ -84,6 +84,7 @@ class GSTWebRTCApp:
 
         self.pipeline = None
         self.ximagesrc = None
+        self.ximagesrc_caps = None
         self.last_cursor_sent = None
 
     def stop_ximagesrc(self):
@@ -184,18 +185,18 @@ class GSTWebRTCApp:
         ximagesrc.set_property("use-damage", 0)
 
         # Create capabilities for ximagesrc
-        ximagesrc_caps = Gst.caps_from_string("video/x-raw")
+        self.ximagesrc_caps = Gst.caps_from_string("video/x-raw")
 
         # Setting the framerate=60/1 capability instructs the ximagesrc element
         # to generate buffers at 60 frames per second (FPS).
         # The higher the FPS, the lower the latency so this parameter is one
         # way to set the overall target latency of the pipeline though keep in
         # mind that the pipeline may not always perfom at the full 60 FPS.
-        ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
+        self.ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
 
         # Create a capability filter for the ximagesrc_caps
-        ximagesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
-        ximagesrc_capsfilter.set_property("caps", ximagesrc_caps)
+        self.ximagesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
+        self.ximagesrc_capsfilter.set_property("caps", self.ximagesrc_caps)
 
         if self.encoder in ["nvh264enc"]:
             # Upload buffers from ximagesrc directly to CUDA memory where
@@ -432,7 +433,7 @@ class GSTWebRTCApp:
 
         # Add all elements to the pipeline.
         self.pipeline.add(ximagesrc)
-        self.pipeline.add(ximagesrc_capsfilter)
+        self.pipeline.add(self.ximagesrc_capsfilter)
 
         if self.encoder == "nvh264enc":
             self.pipeline.add(cudaupload)
@@ -469,11 +470,11 @@ class GSTWebRTCApp:
 
         # Link the pipeline elements and raise exception of linking fails
         # due to incompatible element pad capabilities.
-        if not Gst.Element.link(ximagesrc, ximagesrc_capsfilter):
+        if not Gst.Element.link(ximagesrc, self.ximagesrc_capsfilter):
             raise GSTWebRTCAppError("Failed to link ximagesrc -> ximagesrc_capsfilter")
 
         if self.encoder == "nvh264enc":
-            if not Gst.Element.link(ximagesrc_capsfilter, cudaupload):
+            if not Gst.Element.link(self.ximagesrc_capsfilter, cudaupload):
                 raise GSTWebRTCAppError(
                     "Failed to link ximagesrc_capsfilter -> cudaupload")
 
@@ -507,7 +508,7 @@ class GSTWebRTCApp:
                     "Failed to link rtph264pay_capsfilter -> webrtcbin")
 
         elif self.encoder == "vah264enc":
-            if not Gst.Element.link(ximagesrc_capsfilter, videoconvert):
+            if not Gst.Element.link(self.ximagesrc_capsfilter, videoconvert):
                 raise GSTWebRTCAppError(
                     "Failed to link ximagesrc_capsfilter -> videoconvert")
 
@@ -537,7 +538,7 @@ class GSTWebRTCApp:
                     "Failed to link rtph264pay_capsfilter -> webrtcbin")
 
         elif self.encoder == "x264enc":
-            if not Gst.Element.link(ximagesrc_capsfilter, videoconvert):
+            if not Gst.Element.link(self.ximagesrc_capsfilter, videoconvert):
                 raise GSTWebRTCAppError(
                     "Failed to link ximagesrc_capsfilter -> videoconvert")
 
@@ -567,7 +568,7 @@ class GSTWebRTCApp:
                     "Failed to link rtph264pay_capsfilter -> webrtcbin")
 
         elif self.encoder.startswith("vp"):
-            if not Gst.Element.link(ximagesrc_capsfilter, videoconvert):
+            if not Gst.Element.link(self.ximagesrc_capsfilter, videoconvert):
                 raise GSTWebRTCAppError(
                     "Failed to link ximagesrc_capsfilter -> videoconvert")
 
@@ -788,6 +789,9 @@ class GSTWebRTCApp:
             framerate {integer} -- framerate in frames per second, for example, 15, 30, 60.
         """
         self.framerate = framerate
+        self.ximagesrc_caps = Gst.caps_from_string("video/x-raw")
+        self.ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
+        self.ximagesrc_capsfilter.set_property("caps", self.ximagesrc_caps)
         logger.info("framerate set to: %d" % framerate)
 
     def set_video_bitrate(self, bitrate):
