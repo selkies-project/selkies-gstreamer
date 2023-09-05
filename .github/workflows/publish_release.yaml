@@ -5,9 +5,8 @@
 name: Publish release
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [created, edited]
   workflow_dispatch:
 
 jobs:
@@ -19,7 +18,14 @@ jobs:
       - id: get
         env:
           RELEASE_VERSION: ${{ github.ref_name }}
-        run: echo semver=${RELEASE_VERSION/v/} >> $GITHUB_OUTPUT
+        run: |
+          # If ref name does not match semver, default to 0.0.0.
+          # This happens when running from a branch name like master.
+          if [[ ${RELEASE_VERSION} =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo semver=${RELEASE_VERSION/v/} >> $GITHUB_OUTPUT
+          else
+            echo semver=0.0.0 >> $GITHUB_OUTPUT
+          fi
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   all_component_images:
@@ -56,7 +62,7 @@ jobs:
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build & publish ${{ matrix.name }} image
         uses: ./.github/actions/build_and_publish_image
@@ -92,7 +98,7 @@ jobs:
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build & publish ${{ matrix.name }} image
         uses: ./.github/actions/build_and_publish_image
@@ -206,8 +212,9 @@ jobs:
           key: ${{ matrix.cache_key }}
           path: ${{ matrix.target_directory }}/${{ matrix.target_name }}
 
-  create_release:
+  upload_assets:
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
     needs:
       - all_component_images
       - all_example_images
@@ -237,52 +244,40 @@ jobs:
           key: ${{ needs.all_assets.outputs.web_cache_key }}
           path: ${{ needs.all_assets.outputs.web_path }}
 
-      - id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          draft: true
-          prerelease: false
-          release_name: Release ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-
       - name: Ubuntu 20.04 upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          asset_content_type: ${{ needs.all_assets.outputs.gst20_mimetype }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ${{ needs.all_assets.outputs.gst20_path }}
           asset_name: ${{ needs.all_assets.outputs.gst20_name }}
-          asset_path: ${{ needs.all_assets.outputs.gst20_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          overwrite: true
 
       - name: Ubuntu 22.04 upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          asset_content_type: ${{ needs.all_assets.outputs.gst22_mimetype }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ${{ needs.all_assets.outputs.gst22_path }}
           asset_name: ${{ needs.all_assets.outputs.gst22_name }}
-          asset_path: ${{ needs.all_assets.outputs.gst22_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          overwrite: true
 
       - name: Python upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: svenstaro/upload-release-action@v2
         with:
-          asset_content_type: ${{ needs.all_assets.outputs.py_mimetype }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ${{ needs.all_assets.outputs.py_path }}
           asset_name: ${{ needs.all_assets.outputs.py_name }}
-          asset_path: ${{ needs.all_assets.outputs.py_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          overwrite: true
 
       - name: Web upload
-        uses: actions/upload-release-asset@v1
+        uses: svenstaro/upload-release-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_content_type: ${{ needs.all_assets.outputs.web_mimetype }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ${{ needs.all_assets.outputs.web_path }}
           asset_name: ${{ needs.all_assets.outputs.web_name }}
-          asset_path: ${{ needs.all_assets.outputs.web_path }}
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          overwrite: true

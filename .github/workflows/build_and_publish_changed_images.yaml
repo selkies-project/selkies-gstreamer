@@ -8,6 +8,12 @@ on:
   push:
     branches:
       - master
+  pull_request:
+      branches: master
+      paths-ignore:
+        - README.md
+        - .devconttainer/**
+        - .vscode/**
   workflow_dispatch:
 
 jobs:
@@ -49,21 +55,21 @@ jobs:
             build_args: PACKAGE_VERSION=0.0.0.dev0
             source_directory: .
             source_files_for_diff: |
-              ^src
-              ^Dockerfile$
+              src/**
+              Dockerfile
               pyproject.toml
               setup.cfg
               .github/workflows/build_and_publish_changed_images.yaml
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2 # This is for changed-files.
 
       - name: Check for changes to image source
         id: check
-        uses: tj-actions/changed-files@v1.1.2
+        uses: tj-actions/changed-files@v38
         with:
           files: ${{ matrix.source_files_for_diff }}
 
@@ -91,8 +97,8 @@ jobs:
             dockerfile: Dockerfile.example
             source_directory: .
             source_files_for_diff: |
-              addons
-              src
+              addons/**
+              src/**
               Dockerfile
               Dockerfile.example
               pyproject.toml
@@ -105,8 +111,8 @@ jobs:
             dockerfile: Dockerfile.example
             source_directory: .
             source_files_for_diff: |
-              addons
-              src
+              addons/**
+              src/**
               Dockerfile
               Dockerfile.example
               pyproject.toml
@@ -115,13 +121,13 @@ jobs:
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2 # This is for changed-files.
 
       - id: check
         name: Check for changes to ${{ matrix.name }} image source
-        uses: tj-actions/changed-files@v1.1.2
+        uses: tj-actions/changed-files@v38
         with:
           files: ${{ matrix.source_files_for_diff }}
 
