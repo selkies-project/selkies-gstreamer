@@ -9,7 +9,8 @@ on:
     branches:
       - master
     paths:
-      - ".github/**"
+      - ".github/workflows/build_and_publish_all_images.yaml"
+      - ".github/actions/build_and_publish_image/action.yaml"      
   workflow_dispatch:
 
 jobs:
