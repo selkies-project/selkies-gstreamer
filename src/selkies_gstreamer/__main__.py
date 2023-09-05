@@ -564,10 +564,11 @@ def main():
     def on_session_handler(meta=None):
         logger.info("starting session with meta: {}".format(meta))
         if meta:
-            if meta["res"]:
-                on_resize_handler(meta["res"])
-            if meta["scale"]:
-                on_scaling_ratio_handler(meta["scale"])
+            if enable_resize:
+                if meta["res"]:
+                    on_resize_handler(meta["res"])
+                if meta["scale"]:
+                    on_scaling_ratio_handler(meta["scale"])
         app.start_pipeline()
     signalling.on_session = on_session_handler
 
@@ -656,7 +657,8 @@ def main():
             logger.error("failed to set cursor size to {}".format(cursor_size))
 
     # Bind DPI handler.
-    webrtc_input.on_scaling_ratio = on_scaling_ratio_handler
+    if enable_resize:
+        webrtc_input.on_scaling_ratio = on_scaling_ratio_handler
 
     webrtc_input.on_ping_response = lambda latency: app.send_latency_time(latency)
 
@@ -664,14 +666,16 @@ def main():
     def enable_resize_handler(enabled, enable_res):
         set_json_app_argument(args.json_config, "enable_resize", enabled)
         if enabled:
-            # Bind the handler
+            # Bind the handlers
             webrtc_input.on_resize = on_resize_handler
+            webrtc_input.on_scaling_ratio = on_scaling_ratio_handler
 
             # Trigger resize and reload if it changed.
             on_resize_handler(enable_res)
         else:
             logger.info("removing handler for on_resize")
             webrtc_input.on_resize = lambda res: logger.warning("remote resize is disabled, skipping resize to %s" % res)
+            webrtc_input.on_scaling_ratio = lambda scale: logger.warning("remote resize is disabled, skipping DPI scale change to %s" % str(scale))
 
     webrtc_input.on_set_enable_resize = enable_resize_handler
 
