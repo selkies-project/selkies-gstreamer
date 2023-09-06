@@ -90,7 +90,6 @@ jobs:
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   changed_example_images:
     needs: changed_component_images
-    if: needs.changed_component_images.outputs.any_changed == 'true' || needs.changed_component_images.outputs.any_deleted == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
