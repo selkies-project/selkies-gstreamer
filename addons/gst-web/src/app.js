@@ -261,6 +261,8 @@ var app = new Vue({
             console.log("scaleLocal changed from " + oldValue + " to " + newValue);
             if (oldValue !== null && newValue !== oldValue) {
                 if (newValue === true) {
+                    webrtc.element.style.width = '';
+                    webrtc.element.style.height = '';
                     webrtc.element.setAttribute("class", "video scale");
                 } else {
                     webrtc.element.setAttribute("class", "video");
@@ -471,7 +473,7 @@ webrtc.input.onfullscreenhotkey = () => {
 
 webrtc.input.onresizeend = () => {
     app.windowResolution = webrtc.input.getWindowResolution();
-    var newRes = parseInt(app.windowResolution[0]/window.devicePixelRatio) + "x" + parseInt(app.windowResolution[1]/window.devicePixelRatio);
+    var newRes = parseInt(app.windowResolution[0]) + "x" + parseInt(app.windowResolution[1]);
     console.log(`Window size changed: ${app.windowResolution[0]}x${app.windowResolution[1]}, scaled to: ${newRes}`);
     webrtc.sendDataChannelMessage("r," + newRes);
     webrtc.sendDataChannelMessage("s," + window.devicePixelRatio);
@@ -592,13 +594,15 @@ webrtc.onsystemaction = (action) => {
                 app.scaleLocal = true;
             }
         }
-
-        // Send initial window size.
+    } else if (action.startsWith("resolution")) {
+        // Sent when remote resizing is enabled.
+        // Match the CSS of the video element to the remote resolution.
+        var remote_res = action.split(",")[1];
+        console.log("received remote resolution of: " + remote_res);
         if (app.resizeRemote === true) {
-            app.windowResolution = webrtc.input.getWindowResolution();
-            var newRes = parseInt(app.windowResolution[0]/window.devicePixelRatio) + "x" + parseInt(app.windowResolution[1]/window.devicePixelRatio);
-            console.log(`Initial window resolution: ${app.windowResolution[0]}x${app.windowResolution[1]}, scaled to: ${newRes}`);
-            webrtc.sendDataChannelMessage("r," + newRes);
+            var toks = remote_res.split("x");
+            webrtc.element.style.width = toks[0]/window.devicePixelRatio+'px';
+            webrtc.element.style.height = toks[1]/window.devicePixelRatio+'px';
         }
     } else if (action.startsWith("local_scaling")) {
         // Local scaling default pushed from server
@@ -684,6 +688,11 @@ fetch("/turn/")
 
         // get initial local resolution
         app.windowResolution = webrtc.input.getWindowResolution();
+
+        if (app.scaleLocal === false) {
+            webrtc.element.style.width = app.windowResolution[0]/window.devicePixelRatio+'px';
+            webrtc.element.style.height = app.windowResolution[1]/window.devicePixelRatio+'px';
+        }
 
         if (config.iceServers.length > 1) {
             app.debugEntries.push(applyTimestamp("[app] using TURN servers: " + config.iceServers[1].urls.join(", ")));

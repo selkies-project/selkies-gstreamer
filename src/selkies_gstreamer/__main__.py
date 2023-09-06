@@ -635,7 +635,8 @@ def main():
                 logger.warning("skipping resize because last resize failed.")
                 return
             logger.warning("resizing display from {} to {}".format(curr_res, new_res))
-            resize_display(res)
+            if resize_display(res):
+                app.send_remote_resolution(res)
 
     # Initial binding of enable resize handler.
     if enable_resize:

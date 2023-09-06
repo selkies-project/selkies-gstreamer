@@ -182,7 +182,7 @@ class WebRTCDemoSignalling {
         // Send local device resolution and scaling with HELLO message.
         var currRes = webrtc.input.getWindowResolution();
         var meta = {
-            "res": parseInt(currRes[0]/window.devicePixelRatio) + "x" + parseInt(currRes[1]/window.devicePixelRatio),
+            "res": parseInt(currRes[0]) + "x" + parseInt(currRes[1]),
             "scale": window.devicePixelRatio
         };
         this.state = 'connected';

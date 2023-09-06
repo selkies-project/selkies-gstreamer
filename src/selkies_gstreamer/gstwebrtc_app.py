@@ -933,6 +933,14 @@ class GSTWebRTCApp:
         self.__send_data_channel_message(
             "system", {"action": "resize,"+str(resize_enabled)})
 
+    def send_remote_resolution(self, res):
+        """sends the current remote resolution to the client
+        """
+
+        logger.info("sending remote resolution of: " + res)
+        self.__send_data_channel_message(
+            "system", {"action": "resolution," + res})
+
     def send_ping(self, t):
         """Sends a ping request over the data channel to measure latency
         """
