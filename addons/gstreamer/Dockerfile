@@ -20,17 +20,16 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         autoconf \
         automake \
         autotools-dev \
-        libtool \
         gettext \
         bison \
         flex \
         nasm \
-        glib-networking \
         gtk-doc-tools \
         libgl-dev \
         libgles-dev \
         libglvnd-dev \
         libgudev-1.0-dev \
+        libgirepository1.0-dev \
         libgtk2.0-dev \
         libtool-bin \
         libx11-xcb-dev \
@@ -39,13 +38,16 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         libwayland-dev \
         libwayland-egl-backend-dev \
         libdrm-dev \
+        libmp3lame-dev \
         libopus-dev \
         libpulse-dev \
-        libgirepository1.0-dev \
         libwebrtc-audio-processing-dev \
-        libssl-dev \
+        libsoup2.4-dev \
+        libsoup-gnome2.4-dev \
         libsrtp2-dev \
+        libssl-dev \
         libjpeg-dev \
+        libopenjp2-7-dev \
         libwebp-dev \
         libx264-dev \
         libvpx-dev \

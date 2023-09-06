@@ -16,7 +16,7 @@ function install_xfce() {
             breeze-cursor-theme
 
     # Configure desktop environment
-    sudo apt remove -y \
+    sudo apt-get remove -y \
             xfce4-screensaver
 
     sudo ln -fs /etc/xfce4/defaults.list /usr/share/applications/defaults.list

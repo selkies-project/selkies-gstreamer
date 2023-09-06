@@ -68,6 +68,6 @@ RUN /tmp/install-desktop-environment.sh ${DESKTOP}
 # Install browser
 RUN cd /tmp && sudo apt-get update && \
     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    sudo DEBIAN_FRONTEND=noninteractive apt install -y xdg-utils ./google-chrome-stable_current_amd64.deb && \
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xdg-utils ./google-chrome-stable_current_amd64.deb && \
     sudo rm -f google-chrome-stable_current_amd64.deb && \
     xdg-settings set default-web-browser google-chrome.desktop
