@@ -7,9 +7,9 @@ name: Build & publish changed images
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
-      branches: master
+      branches: main
       paths-ignore:
         - README.md
         - .devconttainer/**

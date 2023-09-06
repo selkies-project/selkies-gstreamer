@@ -7,7 +7,7 @@ name: Build & publish all images
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - ".github/workflows/build_and_publish_all_images.yaml"
       - ".github/actions/build_and_publish_image/action.yaml"      

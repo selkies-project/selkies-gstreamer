@@ -35,7 +35,7 @@ services:
         # 2. export GSTREAMER_BASE_IMAGE=gstreamer
         # 3. docker-compose build test
         GSTREAMER_BASE_IMAGE: ${GSTREAMER_BASE_IMAGE:-ghcr.io/selkies-project/selkies-gstreamer/gstreamer}
-        GSTREAMER_BASE_IMAGE_RELEASE: ${GSTREAMER_BASE_IMAGE_RELEASE:-master}
+        GSTREAMER_BASE_IMAGE_RELEASE: ${GSTREAMER_BASE_IMAGE_RELEASE:-main}
 
         PY_BUILD_IMAGE: selkies-gstreamer-py-build:latest
         WEB_IMAGE: gst-web:latest

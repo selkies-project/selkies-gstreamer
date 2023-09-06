@@ -30,7 +30,7 @@ resources:
 images:
   - name: ghcr.io/selkies-project/selkies-gstreamer/coturn
     newName: ghcr.io/selkies-project/selkies-gstreamer/coturn
-    newTag: master
+    newTag: main
   - name: ghcr.io/selkies-project/selkies-gstreamer/coturn-web
     newName: ghcr.io/selkies-project/selkies-gstreamer/coturn-web
-    newTag: master
+    newTag: main

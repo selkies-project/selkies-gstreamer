@@ -32,7 +32,7 @@ logger = logging.getLogger("signalling")
 """Signalling API for Gstreamer WebRTC demo
 
 Interfaces with signalling server found at:
-  https://github.com/centricular/gstwebrtc-demos/tree/master/signalling
+  https://github.com/GStreamer/gstreamer/tree/main/subprojects/gst-examples/webrtc/signalling
 
     Usage example:
     from webrtc_signalling import WebRTCSignalling

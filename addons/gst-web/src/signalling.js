@@ -36,13 +36,13 @@
 class WebRTCDemoSignalling {
     /**
      * Interface to WebRTC demo signalling server.
-     * Protocol: https://github.com/centricular/gstwebrtc-demos/blob/master/signalling/Protocol.md
+     * Protocol: https://github.com/GStreamer/gstreamer/blob/main/subprojects/gst-examples/webrtc/signalling/Protocol.md
      *
      * @constructor
      * @param {URL} [server]
      *    The URL object of the signalling server to connect to, created with `new URL()`.
      *    Signalling implementation is here:
-     *      https://github.com/centricular/gstwebrtc-demos/tree/master/signalling
+     *      https://github.com/GStreamer/gstreamer/tree/main/subprojects/gst-examples/webrtc/signalling
      * @param {number} [peer_id]
      *    The peer ID established during signalling that the sending peer (server) will connect to.
      *    This can be anything, but must match what the server will attempt to connect to.

@@ -38,7 +38,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example) is available.
 
-Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `master` for the development build instead of the release build, and choose the Ubuntu versions `20.04`, or `22.04`**):
+Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `main` for the development build instead of the release build, and choose the Ubuntu versions `20.04`, or `22.04`**):
 
 ```bash
 docker run --name selkies -it --rm -p 8080:8080 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04
@@ -138,7 +138,7 @@ selkies-gstreamer &
 
 ### Install the latest build on a standalone machine or cloud instance
 
-Docker (or an equivalent) is required if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. **Change `master` to `latest` if you want the latest release version instead of the latest development version.**
+Docker (or an equivalent) is required if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. **Change `main` to `latest` if you want the latest release version instead of the latest development version.**
 
 **NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
@@ -161,8 +161,8 @@ If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and 
 2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (change the OS version `UBUNTU_RELEASE` as needed):
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:master-ubuntu${UBUNTU_RELEASE}
-docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:master-ubuntu${UBUNTU_RELEASE}
+docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${UBUNTU_RELEASE}
+docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${UBUNTU_RELEASE}
 sudo docker cp gstreamer:/opt/gstreamer /opt/gstreamer
 docker rm gstreamer
 ```
@@ -172,8 +172,8 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Copy the Python Wheel file from the container image and install it:
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/py-build:master
-docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:master
+docker pull ghcr.io/selkies-project/selkies-gstreamer/py-build:main
+docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
 sudo pip3 install /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
@@ -183,8 +183,8 @@ rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 4. Install the HTML5 components to the container image:
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/gst-web:master
-docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:master
+docker pull ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
+docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
 sudo docker cp gst-web:/usr/share/nginx/html /opt/gst-web
 docker rm gst-web
 ```
