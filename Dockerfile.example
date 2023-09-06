@@ -61,7 +61,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libpulse0 \
         libcairo-gobject2 \
         libpangocairo-1.0-0 \
-        libgirepository1.0-1 \
+        libgirepository-1.0-1 \
         libopenjp2-7 \
         libjpeg-dev \
         libwebp-dev \

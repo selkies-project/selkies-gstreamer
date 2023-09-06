@@ -57,7 +57,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 libsoup2.4-1 libsoup-gnome2.4-1 libsrtp2-1 lame libopus0 libwebrtc-audio-processing1 pulseaudio libpulse0 libcairo-gobject2 libpangocairo-1.0-0 libgirepository1.0-1 libopenjp2-7 libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 libsoup2.4-1 libsoup-gnome2.4-1 libsrtp2-1 lame libopus0 libwebrtc-audio-processing1 pulseaudio libpulse0 libcairo-gobject2 libpangocairo-1.0-0 libgirepository-1.0-1 libopenjp2-7 libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
@@ -147,7 +147,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 libsoup2.4-1 libsoup-gnome2.4-1 libsrtp2-1 lame libopus0 libwebrtc-audio-processing1 pulseaudio libpulse0 libcairo-gobject2 libpangocairo-1.0-0 libgirepository1.0-1 libopenjp2-7 libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
+sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 libsoup2.4-1 libsoup-gnome2.4-1 libsrtp2-1 lame libopus0 libwebrtc-audio-processing1 pulseaudio libpulse0 libcairo-gobject2 libpangocairo-1.0-0 libgirepository-1.0-1 libopenjp2-7 libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
