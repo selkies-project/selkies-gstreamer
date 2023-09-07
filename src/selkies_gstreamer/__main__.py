@@ -569,7 +569,7 @@ def main():
                     on_resize_handler(meta["res"])
                 if meta["scale"]:
                     on_scaling_ratio_handler(meta["scale"])
-        app.start_pipeline()
+        loop.run_in_executor(None, lambda: app.start_pipeline())
     signalling.on_session = on_session_handler
 
     # Initialize the Xinput instance
