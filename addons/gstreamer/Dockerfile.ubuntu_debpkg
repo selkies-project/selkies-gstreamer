@@ -1,0 +1,43 @@
+# Example docker build:
+#   docker build \
+#        --build-arg=DEBFULLNAME="Dan Isla" \
+#        --build-arg=DEBEMAIL=dan.isla@gmail.com \
+#        --build-arg=GSTREAMER_VERSION=1.22.5 \
+#        --build-arg SELKIES_VERSION=1.4.3 \
+#        --build-arg DISTRIB_RELEASE=22.04 \
+#        -t selkies-gst-deb:latest -f Dockerfile.ubuntu_debpkg .
+
+ARG SELKIES_VERSION=1.4.3
+ARG DISTRIB_RELEASE=22.04
+FROM ghcr.io/selkies-project/selkies-gstreamer/gstreamer:v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE} as build
+ARG SELKIES_VERSION
+ARG DISTRIB_RELEASE
+ARG GSTREAMER_VERSION
+ARG DEBFULLNAME
+ARG DEBEMAIL
+
+WORKDIR /opt
+
+COPY build_ubuntu_deb.sh .
+
+RUN ./build_ubuntu_deb.sh
+
+FROM ubuntu:${DISTRIB_RELEASE} as test
+ARG GSTREAMER_VERSION
+ARG SELKIES_VERSION
+
+COPY --from=build /opt/selkies-gst-gstreamer-${GSTREAMER_VERSION}_${SELKIES_VERSION}.deb /tmp/selkies-gst-gstreamer.deb
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    /tmp/selkies-gst-gstreamer.deb
+
+ENV GSTREAMER_PATH=/usr/local/share/selkies-gst-gstreamer-${GSTREAMER_VERSION}
+ENV GST_REGISTRY=/dev/null
+
+RUN . ${GSTREAMER_PATH}/gst-env && \
+    gst-inspect-1.0 --exists ximagesrc && \
+    gst-inspect-1.0 --exists webrtcbin && \
+    gst-inspect-1.0 --exists x264enc && \
+    gst-inspect-1.0 --exists vp8enc && \
+    gst-inspect-1.0 --exists pulsesrc && \
+    echo "Found all required gstreamer plugins."
