@@ -569,7 +569,7 @@ def main():
                     on_resize_handler(meta["res"])
                 if meta["scale"]:
                     on_scaling_ratio_handler(meta["scale"])
-        loop.run_in_executor(None, lambda: app.start_pipeline())
+        app.start_pipeline()
     signalling.on_session = on_session_handler
 
     # Initialize the Xinput instance
@@ -779,6 +779,7 @@ def main():
         loop.run_in_executor(None, lambda: system_mon.start())
 
         while True:
+            asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             loop.run_until_complete(signalling.connect())
             loop.run_until_complete(signalling.start())
             app.stop_pipeline()

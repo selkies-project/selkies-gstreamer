@@ -1126,15 +1126,19 @@ class GSTWebRTCApp:
 
         logger.info("pipeline started")
 
+    async def handle_bus_calls(self):
         # Start bus call loop
-        self.bus = self.pipeline.get_bus()
-        while self.bus is not None and self.pipeline is not None:
-            while self.bus.have_pending():
-                msg = self.bus.pop()
-                if not self.bus_call(msg):
-                    self.bus = None
-                    break
-            time.sleep(0.1)
+        running = True
+        bus = None
+        while running:
+            if self.pipeline is not None:
+                bus = self.pipeline.get_bus()
+            if bus is not None:
+                while bus.have_pending():
+                    msg = bus.pop()
+                    if not self.bus_call(msg):
+                        running = False
+            await asyncio.sleep(0.1)
 
     def stop_pipeline(self):
         logger.info("stopping pipeline")
