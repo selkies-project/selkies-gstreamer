@@ -2,12 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-name: Build & publish changed images
+name: Build changed images
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
       branches: main
       paths-ignore:
@@ -85,7 +82,8 @@ jobs:
           github_username: $GITHUB_ACTOR
           image_name: ${{ matrix.name }}
           image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+          image_version_1: pr${{ matrix.version_suffix }}
+          push_image: "false"
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   changed_example_images:
@@ -96,7 +94,8 @@ jobs:
         include:
           - name: gst-py-example
             version_suffix: -ubuntu20.04
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
+            push_image: "false"
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=pr;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr
             dockerfile: Dockerfile.example
             source_directory: .
             source_files_for_diff: |
@@ -110,7 +109,8 @@ jobs:
 
           - name: gst-py-example
             version_suffix: -ubuntu22.04
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
+            push_image: "false"
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=pr;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr
             dockerfile: Dockerfile.example
             source_directory: .
             source_files_for_diff: |
@@ -144,4 +144,5 @@ jobs:
           github_username: $GITHUB_ACTOR
           image_name: ${{ matrix.name }}
           image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+          image_version_1: pr${{ matrix.version_suffix }}
+          push_image: "false"

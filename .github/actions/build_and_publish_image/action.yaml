@@ -36,6 +36,10 @@ inputs:
     default: "false"
     description: Use cached layers from pre-published image with version 1 (true/false)
     required: false
+  push_image:
+    default: "true"
+    description: Push image to registry
+    required: false
 
 runs:
   using: composite
@@ -65,10 +69,14 @@ runs:
         else
           (cd ${{ inputs.image_source_directory }} && docker build $BUILD_ARGS -f ${{ inputs.dockerfile }} -t $IMAGE_TAG_1 .)
         fi
-        docker push $IMAGE_TAG_1
+        if [[ "${{ inputs.push_image }}" == "true" ]]; then
+          docker push $IMAGE_TAG_1
+        fi
 
         if [ '${{ inputs.image_version_2 }}' != '' ]; then
           export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}${{ inputs.image_version_suffix }}"
           docker tag $IMAGE_TAG_1 $IMAGE_TAG_2
-          docker push $IMAGE_TAG_2
+          if [[ "${{ inputs.push_image }}" == "true" ]]; then
+            docker push $IMAGE_TAG_2
+          fi
         fi
