@@ -1,0 +1,39 @@
+# Example docker build:
+#   docker build \
+#        --build-arg=DEBFULLNAME="Dan Isla" \
+#        --build-arg=DEBEMAIL=dan.isla@gmail.com \
+#        --build-arg=PKG_NAME=selkies-js-interposer \
+#        --build-arg=PKG_VERSION=0.0.1 \
+#        --build-arg=DISTRIB_RELEASE=22.04 \
+#        -t selkies-js-interposer-deb:latest -f Dockerfile.ubuntu_debpkg .
+
+ARG DISTRIB_RELEASE=22.04
+FROM ubuntu:${DISTRIB_RELEASE} as build
+
+RUN apt-get update && apt-get install -y \
+        build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG PKG_NAME "selkies-js-interposer"
+ARG PKG_VERSION "0.0.0"
+ARG DEBFULLNAME "Dan Isla"
+ARG DEBEMAIL "danisla@users.noreply.github.com"
+
+WORKDIR /opt/build
+COPY . .
+RUN ./build_ubuntu_deb.sh
+
+ARG DISTRIB_RELEASE
+FROM ubuntu:${DISTRIB_RELEASE} as test
+ARG PKG_NAME
+ARG PKG_VERSION
+
+# COPY --from=build /opt/${PKG_NAME}_${PKG_VERSION}.deb /opt/${PKG_NAME}.deb
+COPY --from=build /opt/*.deb /opt/${PKG_NAME}.deb
+
+WORKDIR /opt
+
+RUN apt-get install -y --no-install-recommends \
+    /opt/${PKG_NAME}.deb
+
+RUN stat /usr/local/lib/selkies-js-interposer/joystick_interposer.so

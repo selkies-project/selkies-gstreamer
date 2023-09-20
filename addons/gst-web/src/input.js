@@ -364,23 +364,23 @@ class Input {
         }
 
         // Initialize the gamepad manager.
-        this.gamepadManager = new GamepadManager(event.gamepad, this._gamepadButton.bind(this), this._gamepadAxis.bind(this), this._gamepadDisconnect.bind(this));
+        this.gamepadManager = new GamepadManager(event.gamepad, this._gamepadButton.bind(this), this._gamepadAxis.bind(this));
 
         // Send joystick connect message over data channel.
-        this.send("js,c," + this.gamepadManager.numAxes + "," + this.gamepadManager.numButtons);
+        this.send("js,c," + event.gamepad.index + "," + btoa(event.gamepad.id) + "," + this.gamepadManager.numAxes + "," + this.gamepadManager.numButtons);
     }
 
     /**
      * Sends joystick disconnect command to WebRTC app.
      */
-    _gamepadDisconnect() {
-        console.log("Gamepad disconnected");
+    _gamepadDisconnect(event) {
+        console.log(`Gamepad %d disconnected`, event.gamepad.index);
 
         if (this.ongamepaddisconneceted !== null) {
             this.ongamepaddisconneceted();
         }
 
-        this.send("js,d")
+        this.send("js,d," + event.gamepad.index);
     }
 
     /**
@@ -391,7 +391,7 @@ class Input {
      * @param {number} val - the button value, 1 or 0 for pressed or not-pressed.
      */
     _gamepadButton(gp_num, btn_num, val) {
-        this.send("js,b," + btn_num + "," + val);
+        this.send("js,b," + gp_num + "," + btn_num + "," + val);
     }
 
     /**
@@ -402,7 +402,7 @@ class Input {
      * @param {number} val - the normalize value between [0, 255]
      */
     _gamepadAxis(gp_num, axis_num, val) {
-        this.send("js,a," + axis_num + "," + val)
+        this.send("js,a," + gp_num + "," + axis_num + "," + val)
     }
 
     /**

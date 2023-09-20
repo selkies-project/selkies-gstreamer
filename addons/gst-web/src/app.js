@@ -439,12 +439,14 @@ webrtc.onconnectionstatechange = (state) => {
 webrtc.ondatachannelopen = () => {
     // Bind gamepad connected handler.
     webrtc.input.ongamepadconnected = (gamepad_id) => {
+        webrtc._setStatus('Gamepad connected: ' + gamepad_id);
         app.gamepadState = "connected";
         app.gamepadName = gamepad_id;
     }
 
     // Bind gamepad disconnect handler.
     webrtc.input.ongamepaddisconnected = () => {
+        webrtc._setStatus('Gamepad disconnected: ' + gamepad_id);
         app.gamepadState = "disconnected";
         app.gamepadName = "none";
     }

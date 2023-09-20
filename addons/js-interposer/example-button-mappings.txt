@@ -1,0 +1,9 @@
+Xbox 360 Controller Mapping
+Driver version is 2.1.0.
+Joystick (Microsoft Xbox Series S|X Controller) has 8 axes (X, Y, Z, Rx, Ry, Rz, Hat0X, Hat0Y)
+and 11 buttons (BtnA, BtnB, BtnX, BtnY, BtnTL, BtnTR, BtnSelect, BtnStart, BtnMode, BtnThumbL, BtnThumbR).
+
+Stadia Controller mapping
+Driver version is 2.1.0.
+Joystick (Google LLC Stadia Controller rev. A) has 8 axes (X, Y, Z, Rz, Gas, Brake, Hat0X, Hat0Y)
+and 15 buttons (BtnA, BtnB, BtnX, BtnY, BtnTL, BtnTR, BtnSelect, BtnStart, BtnMode, BtnThumbL, BtnThumbR, (null), (null), (null), (null)).
