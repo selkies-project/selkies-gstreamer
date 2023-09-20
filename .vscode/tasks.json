@@ -4,6 +4,15 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "[build] build joystick interposer library",
+            "type": "shell",
+            "command": "sudo make install",
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/addons/js-interposer"
+            }
+        },
+        {
             "label": "[build] build python package",
             "type": "shell",
             "command": "python3 -m build",
@@ -34,6 +43,7 @@
             "problemMatcher": [],
             "dependsOrder": "sequence",
             "dependsOn": [
+                "[build] build joystick interposer library",
                 "[build] build python package",
                 "[install] re-install python package",
                 "[run] Start selkies-gstreamer"

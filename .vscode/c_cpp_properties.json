@@ -1,0 +1,24 @@
+{
+    "env": {
+        "myDefaultIncludePath": [
+            "/usr/include/**",
+            "${workspaceFolder}/**",
+        ]
+    },
+    "configurations": [
+        {
+            "name": "Dev",
+            "includePath": [
+                "${myDefaultIncludePath}"
+            ],
+            "browse": {
+                "path": [
+                    "${myDefaultIncludePath}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}

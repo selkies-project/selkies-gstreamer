@@ -383,9 +383,9 @@ def main():
     parser.add_argument('--uinput_mouse_socket',
                         default=os.environ.get('UINPUT_MOUSE_SOCKET', ''),
                         help='Path to the uinput mouse socket provided by the uinput-device-plugin, if not provided uinput is used directly.')
-    parser.add_argument('--uinput_js_socket',
-                        default=os.environ.get('UINPUT_JS_SOCKET', ''),
-                        help='Path to the uinput joystick socket provided by the uinput-device-plugin, if not provided uinput is used directly.')
+    parser.add_argument('--js_socket_path',
+                        default=os.environ.get('SELKIES_JS_SOCKET_PATH', '/tmp'),
+                        help='Directory to write the selkies joystick interposer communication sockets to, default: /tmp results in socket files: /tmp/selkies_js{0-3}.sock')
     parser.add_argument('--encoder',
                         default=os.environ.get('WEBRTC_ENCODER', 'x264enc'),
                         help='GStreamer encoder plugin to use')
@@ -574,7 +574,14 @@ def main():
 
     # Initialize the Xinput instance
     cursor_scale = 1.0
-    webrtc_input = WebRTCInput(args.uinput_mouse_socket, args.uinput_js_socket, args.enable_clipboard.lower(), enable_cursors, cursor_size, cursor_scale, cursor_debug)
+    webrtc_input = WebRTCInput(
+        args.uinput_mouse_socket,
+        args.js_socket_path,
+        args.enable_clipboard.lower(),
+        enable_cursors,
+        cursor_size,
+        cursor_scale,
+        cursor_debug)
 
     # Handle changed cursors
     webrtc_input.on_cursor_change = lambda data: app.send_cursor_data(data)
@@ -709,6 +716,7 @@ def main():
     # [START main_start]
     # Connect to the signalling server and process messages.
     loop = asyncio.get_event_loop()
+    webrtc_input.loop = loop
 
     # Initialize the signaling and web server
     options = argparse.Namespace()
@@ -781,8 +789,9 @@ def main():
         while True:
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             loop.run_until_complete(signalling.connect())
-            loop.run_until_complete(signalling.start())
+            loop.run_until_complete(signalling.start())            
             app.stop_pipeline()
+            webrtc_input.stop_js_server()
     except Exception as e:
         logger.error("Caught exception: %s" % e)
         sys.exit(1)
@@ -790,6 +799,7 @@ def main():
         app.stop_pipeline()
         webrtc_input.stop_clipboard()
         webrtc_input.stop_cursor_monitor()
+        webrtc_input.stop_js_server()
         webrtc_input.disconnect()
         gpu_mon.stop()
         hmac_turn_mon.stop()
