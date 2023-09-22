@@ -43,11 +43,8 @@ class WebRTCDemoSignalling {
      *    The URL object of the signalling server to connect to, created with `new URL()`.
      *    Signalling implementation is here:
      *      https://github.com/GStreamer/gstreamer/tree/main/subprojects/gst-examples/webrtc/signalling
-     * @param {number} [peer_id]
-     *    The peer ID established during signalling that the sending peer (server) will connect to.
-     *    This can be anything, but must match what the server will attempt to connect to.
      */
-    constructor(server, peer_id) {
+    constructor(server) {
         /**
          * @private
          * @type {URL}
@@ -58,7 +55,7 @@ class WebRTCDemoSignalling {
          * @private
          * @type {number}
          */
-        this._peer_id = peer_id;
+        this.peer_id = 1;
 
         /**
          * @private
@@ -186,8 +183,8 @@ class WebRTCDemoSignalling {
             "scale": window.devicePixelRatio
         };
         this.state = 'connected';
-        this._ws_conn.send(`HELLO ${this._peer_id} ${btoa(JSON.stringify(meta))}`);
-        this._setStatus("Registering with server, peer ID: " + this._peer_id);
+        this._ws_conn.send(`HELLO ${this.peer_id} ${btoa(JSON.stringify(meta))}`);
+        this._setStatus("Registering with server, peer ID: " + this.peer_id);
         this.retry_count = 0;
     }
 

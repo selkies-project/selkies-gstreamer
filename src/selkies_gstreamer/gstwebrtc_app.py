@@ -44,7 +44,7 @@ class GSTWebRTCAppError(Exception):
 
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio=True, audio_channels=2, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -58,7 +58,6 @@ class GSTWebRTCApp:
 
         self.stun_servers = stun_servers
         self.turn_servers = turn_servers
-        self.audio = audio
         self.audio_channels = audio_channels
         self.pipeline = None
         self.webrtcbin = None
@@ -85,7 +84,6 @@ class GSTWebRTCApp:
 
         self.check_plugins()
 
-        self.pipeline = None
         self.ximagesrc = None
         self.ximagesrc_caps = None
         self.last_cursor_sent = None
@@ -776,15 +774,6 @@ class GSTWebRTCApp:
 
         self.webrtcbin.emit('add-ice-candidate', mlineindex, candidate)
 
-    def set_enable_audio(self, enabled):
-        """Set pipeline audio state
-
-        Arguments:
-            enabled {boolean} -- true of false indicating if audio should be enabled the next time the pipeline is built.
-        """
-        self.audio = enabled
-        logger.info("audio set to: %s" % str(enabled))
-
     def set_framerate(self, framerate):
         """Set pipeline framerate in fps
 
@@ -830,7 +819,7 @@ class GSTWebRTCApp:
             bitrate {integer} -- bitrate in bits per second, for example, 96000 for 96kbits/s.
         """
 
-        if self.audio:
+        if self.pipeline:
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", bitrate)
 
@@ -919,14 +908,6 @@ class GSTWebRTCApp:
         logger.info("sending encoder: " + encoder)
         self.__send_data_channel_message(
             "system", {"action": "encoder,%s" % encoder})
-
-    def send_audio_enabled(self, audio_enabled):
-        """Sends the current audio state
-        """
-
-        logger.info("sending audio enabled")
-        self.__send_data_channel_message(
-            "system", {"action": "audio,"+str(audio_enabled)})
 
     def send_resize_enabled(self, resize_enabled):
         """Sends the current resize enabled state
@@ -1087,7 +1068,7 @@ class GSTWebRTCApp:
 
         return True
 
-    def start_pipeline(self):
+    def start_pipeline(self, audio_only=False):
         """Starts the GStreamer pipeline
         """
 
@@ -1095,12 +1076,13 @@ class GSTWebRTCApp:
 
         self.pipeline = Gst.Pipeline.new()
 
-        # Construct the webrtcbin pipeline with video and audio.
+        # Construct the webrtcbin pipeline
         self.build_webrtcbin_pipeline()
-        self.build_video_pipeline()
 
-        if self.audio:
+        if audio_only:
             self.build_audio_pipeline()
+        else:
+            self.build_video_pipeline()
 
         # Advance the state of the pipeline to PLAYING.
         res = self.pipeline.set_state(Gst.State.PLAYING)
@@ -1108,21 +1090,22 @@ class GSTWebRTCApp:
             raise GSTWebRTCAppError(
                 "Failed to transition pipeline to PLAYING: %s" % res)
 
-        # Create the data channel, this has to be done after the pipeline is PLAYING.
-        options = Gst.Structure("application/data-channel")
-        options.set_value("ordered", True)
-        options.set_value("max-retransmits", 0)
-        self.data_channel = self.webrtcbin.emit(
-            'create-data-channel', "input", options)
-        self.data_channel.connect('on-open', lambda _: self.on_data_open())
-        self.data_channel.connect('on-close', lambda _: self.on_data_close())
-        self.data_channel.connect('on-error', lambda _: self.on_data_error())
-        self.data_channel.connect(
-            'on-message-string', lambda _, msg: self.on_data_message(msg))
+        if audio_only is False:
+            # Create the data channel, this has to be done after the pipeline is PLAYING.
+            options = Gst.Structure("application/data-channel")
+            options.set_value("ordered", True)
+            options.set_value("max-retransmits", 0)
+            self.data_channel = self.webrtcbin.emit(
+                'create-data-channel', "input", options)
+            self.data_channel.connect('on-open', lambda _: self.on_data_open())
+            self.data_channel.connect('on-close', lambda _: self.on_data_close())
+            self.data_channel.connect('on-error', lambda _: self.on_data_error())
+            self.data_channel.connect(
+                'on-message-string', lambda _, msg: self.on_data_message(msg))
 
-        # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
-        transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        transceiver.set_property("do-nack", True)
+            # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
+            transceiver = self.webrtcbin.emit("get-transceiver", 0)
+            transceiver.set_property("do-nack", True)
 
         logger.info("pipeline started")
 

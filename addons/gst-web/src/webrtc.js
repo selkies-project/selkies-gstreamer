@@ -49,7 +49,7 @@ class WebRTCDemo {
      * @param {Element} [element]
      *    video element to attach stream to.
      */
-    constructor(signalling, element) {
+    constructor(signalling, element, peer_id) {
         /**
          * @type {WebRTCDemoSignalling}
          */
@@ -59,6 +59,11 @@ class WebRTCDemo {
          * @type {Element}
          */
         this.element = element;
+
+        /**
+         * @type {Element}
+         */
+        this.peer_id = peer_id;
 
         /**
          * @type {boolean}
@@ -313,7 +318,7 @@ class WebRTCDemo {
         this._setStatus("Received incoming " + event.track.kind + " stream from peer");
         if (!this.streams) this.streams = [];
         this.streams.push([event.track.kind, event.streams]);
-        if (event.track.kind === "video") {
+        if (event.track.kind === "video" || event.track.kind === "audio") {
             this.element.srcObject = event.streams[0];
             this.playVideo();
         }
@@ -667,6 +672,8 @@ class WebRTCDemo {
             config.iceTransportPolicy = "relay";
             this.peerConnection.setConfiguration(config);
         }
+
+        this.signalling.peer_id = this.peer_id;
         this.signalling.connect();
     }
 

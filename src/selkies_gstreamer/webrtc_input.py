@@ -117,8 +117,6 @@ class WebRTCInput:
             'unhandled on_clipboard_read')
         self.on_set_fps = lambda fps: logger.warn(
             'unhandled on_set_fps')
-        self.on_set_enable_audio = lambda enable_audio: logger.warn(
-            'unhandled on_set_enable_audio')
         self.on_set_enable_resize = lambda enable_resize, res: logger.warn(
             'unhandled on_set_enable_resize')
         self.on_client_fps = lambda fps: logger.warn(
@@ -665,11 +663,6 @@ class WebRTCInput:
             fps = int(toks[1])
             logger.info("Setting framerate to: %d" % fps)
             self.on_set_fps(fps)
-        elif toks[0] == "_arg_audio":
-            # Set audio enabled
-            enabled = toks[1].lower() == "true"
-            logger.info("Setting enable_audio to: %s" % str(enabled))
-            self.on_set_enable_audio(enabled)
         elif toks[0] == "_arg_resize":
             if len(toks) != 3:
                 logger.error("invalid _arg_resize command, expected 2 arguments <enabled>,<resolution>")
