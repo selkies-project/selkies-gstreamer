@@ -76,7 +76,6 @@ var app = new Vue({
                 { text: '60 fps', value: 60 },
                 { text: '100 fps', value: 100 },
             ],
-            audioEnabled: false,
             audioBitRate: 32000,
             audioBitRateOptions: [
                 { text: '32 kb/s', value: 32000 },
@@ -242,12 +241,6 @@ var app = new Vue({
             webrtc.sendDataChannelMessage('_arg_fps,' + newValue);
             this.setIntParam("videoFramerate", newValue);
         },
-        audioEnabled(newValue, oldValue) {
-            if (newValue === null) return;
-            console.log("audio enabled changed from " + oldValue + " to " + newValue);
-            if (oldValue !== null && newValue !== oldValue) webrtc.sendDataChannelMessage('_arg_audio,' + newValue);
-            this.setBoolParam("audioEnabled", newValue);
-        },
         resizeRemote(newValue, oldValue) {
             if (newValue === null) return;
             console.log("resize remote changed from " + oldValue + " to " + newValue);
@@ -326,11 +319,18 @@ if (videoElement === null) {
     throw 'videoElement not found on page';
 }
 
+var audioElement = document.getElementById("audio_stream");
+if (audioElement === null) {
+    throw 'audioElement not found on page';
+}
+
 // WebRTC entrypoint, connect to the signalling server
 /*global WebRTCDemoSignalling, WebRTCDemo*/
 var protocol = (location.protocol == "http:" ? "ws://" : "wss://");
-var signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + "/" + app.appName + "/signalling/"), 1);
-var webrtc = new WebRTCDemo(signalling, videoElement);
+var signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + "/" + app.appName + "/signalling/"));
+var webrtc = new WebRTCDemo(signalling, videoElement, 1);
+var audio_signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + "/" + app.appName + "/signalling/"));
+var audio_webrtc = new WebRTCDemo(audio_signalling, audioElement, 3);
 
 // Function to add timestamp to logs.
 var applyTimestamp = (msg) => {
@@ -351,15 +351,19 @@ signalling.ondisconnect = () => {
     app.status = 'connecting';
     videoElement.style.cursor = "auto";
     webrtc.reset();
+    audio_webrtc.reset();
 }
 
 // Send webrtc status and error messages to logs.
 webrtc.onstatus = (message) => { app.logEntries.push(applyTimestamp("[webrtc] " + message)) };
 webrtc.onerror = (message) => { app.logEntries.push(applyTimestamp("[webrtc] [ERROR] " + message)) };
+audio_webrtc.onstatus = (message) => { app.logEntries.push(applyTimestamp("[audio webrtc] " + message)) };
+audio_webrtc.onerror = (message) => { app.logEntries.push(applyTimestamp("[audio webrtc] [ERROR] " + message)) };
 
 if (app.debug) {
     signalling.ondebug = (message) => { app.debugEntries.push("[signalling] " + message); };
     webrtc.ondebug = (message) => { app.debugEntries.push(applyTimestamp("[webrtc] " + message)) };
+    audio_webrtc.ondebug = (message) => { app.debugEntries.push(applyTimestamp("[audio webrtc] " + message)) };
 }
 
 webrtc.ongpustats = (data) => {
@@ -409,19 +413,13 @@ webrtc.onconnectionstatechange = (state) => {
                 videoBytesReceivedStart = stats.video.bytesReceived;
 
                 // Audio stats.
-                if (app.audioEnabled) {
-                    app.connectionLatency += stats.audio.jitterBufferDelay * 1000;
-                    app.connectionPacketsReceived += stats.audio.packetsReceived;
-                    app.connectionPacketsLost += stats.audio.packetsLost;
-                    app.connectionAudioLatency = parseInt(stats.audio.jitterBufferDelay * 1000);
-                    app.connectionAudioCodecName = stats.audio.codecName;
-                    app.connectionAudioBitrate = (((stats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
-                    audioBytesReceivedStart = stats.audio.bytesReceived;
-                } else {
-                    app.connectionAudioBitrate = 0;
-                    app.connectionAudioCodecName = "NA";
-                    app.connectionAudioLatency = "NA";
-                }
+                app.connectionLatency += stats.audio.jitterBufferDelay * 1000;
+                app.connectionPacketsReceived += stats.audio.packetsReceived;
+                app.connectionPacketsLost += stats.audio.packetsLost;
+                app.connectionAudioLatency = parseInt(stats.audio.jitterBufferDelay * 1000);
+                app.connectionAudioCodecName = stats.audio.codecName;
+                app.connectionAudioBitrate = (((stats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
+                audioBytesReceivedStart = stats.audio.bytesReceived;
 
                 // Format latency
                 app.connectionLatency = parseInt(app.connectionLatency);
@@ -482,6 +480,10 @@ webrtc.input.onresizeend = () => {
 }
 
 webrtc.onplayvideorequired = () => {
+    app.showStart = true;
+}
+
+audio_webrtc.onplayvideorequired = () => {
     app.showStart = true;
 }
 
@@ -571,16 +573,6 @@ webrtc.onsystemaction = (action) => {
         } else {
             // Use the server setting.
             app.audioBitRate = parseInt(action.split(",")[1]);
-        }
-    } else if (action.startsWith('audio')) {
-        // Server received audio enabled setting.
-        const audioEnabledSetting = app.getBoolParam("audioEnabled" , null);
-        if (audioEnabledSetting !== null) {
-            // Prefer the user saved value.
-            app.audioEnabled = audioEnabledSetting;
-        } else {
-            // Use the server setting.
-            app.audioEnabled = (action.split(",")[1].toLowerCase() === 'true');
         }
     } else if (action.startsWith('resize')) {
         // Remote resize enabled/disabled action.
@@ -687,6 +679,7 @@ fetch("/turn/")
     .then((config) => {
         // for debugging, force use of relay server.
         webrtc.forceTurn = app.turnSwitch;
+        audio_webrtc.forceTurn = app.turnSwitch;
 
         // get initial local resolution
         app.windowResolution = webrtc.input.getWindowResolution();
@@ -702,5 +695,7 @@ fetch("/turn/")
             app.debugEntries.push(applyTimestamp("[app] no TURN servers found."));
         }
         webrtc.rtcPeerConfig = config;
+        audio_webrtc.rtcPeerConfig = config;
         webrtc.connect();
+        audio_webrtc.connect();
     });

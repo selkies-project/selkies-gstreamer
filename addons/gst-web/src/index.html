@@ -274,7 +274,7 @@
               </p>
               <p>
                 <v-select :items="audioBitRateOptions" label="Audio bit rate" menu-props="left" v-model="audioBitRate"
-                  :disabled="!audioEnabled" hint="Dynamic bit rate selection for audio encoder on server"
+                  hint="streaming bit rate selection for audio encoder on server"
                   persistent-hint>
                 </v-select>
               </p>
@@ -311,8 +311,6 @@
               <v-textarea bottom class="scrolly" label="Debug Logs" readonly :value="debugEntries.join('\n\n')">
               </v-textarea>
               <p>
-                <v-btn color="primary" v-if="!audioEnabled" small v-on:click="audioEnabled=true">Enable Audio</v-btn>
-                <v-btn color="primary" v-else small v-on:click="audioEnabled=false">Disable Audio</v-btn>
                 <v-switch v-model="resizeRemote" :label="`Resize remote to fit window: ${resizeRemote.toString()}`"></v-switch>
                 <v-switch v-model="scaleLocal" :label="`Scale to fit window: ${scaleLocal.toString()}`"></v-switch>
               </p>
@@ -354,6 +352,12 @@
           </v-layout>
         </v-container>
       </v-navigation-drawer>
+
+      <div id="audio_container" class="audio-container">
+        <audio id="audio_stream" class="audio" preload="none" playsinline>
+          Your browser doesn't support audio
+        </audio>
+      </div>
 
       <div id="video_container" class="video-container">
         <video id="stream" class="video" preload="none" playsinline>

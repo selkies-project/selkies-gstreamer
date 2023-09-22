@@ -76,7 +76,7 @@ class WebRTCSignalling:
         self.on_sdp = lambda sdp_type, sdp: logger.warn('unhandled sdp event')
         self.on_connect = lambda res, scale: logger.warn('unhandled on_connect callback')
         self.on_disconnect = lambda: logger.warn('unhandled on_disconnect callback')
-        self.on_session = lambda meta: logger.warn('unhandled on_session callback')
+        self.on_session = lambda peer_id, meta: logger.warn('unhandled on_session callback')
         self.on_error = lambda v: logger.warn(
             'unhandled on_error callback: %s', v)
 
@@ -175,7 +175,7 @@ class WebRTCSignalling:
                 if len(toks) > 1:
                     meta = json.loads(base64.b64decode(toks[1]))
                 logger.info("started session with peer: %s, meta: %s", self.peer_id, json.dumps(meta))
-                self.on_session(meta)
+                self.on_session(self.peer_id, (meta))
             elif message.startswith('ERROR'):
                 if message == "ERROR peer '%s' not found" % self.peer_id:
                     await self.on_error(WebRTCSignallingErrorNoPeer("'%s' not found" % self.peer_id))

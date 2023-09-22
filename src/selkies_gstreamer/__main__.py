@@ -29,6 +29,7 @@ import socket
 import sys
 import time
 import urllib.parse
+import traceback
 
 from watchdog.observers import Observer
 from watchdog.events import FileClosedEvent, FileSystemEventHandler
@@ -395,9 +396,6 @@ def main():
     parser.add_argument('--video_bitrate',
                         default=os.environ.get('WEBRTC_VIDEO_BITRATE', '2000'),
                         help='Default video bitrate')
-    parser.add_argument('--enable_audio',
-                        default=os.environ.get('ENABLE_AUDIO', 'true'),
-                        help='Enable or disable audio stream')
     parser.add_argument('--audio_bitrate',
                         default=os.environ.get('WEBRTC_AUDIO_BITRATE', '64000'),
                         help='Default audio bitrate')
@@ -438,8 +436,6 @@ def main():
                     args.video_bitrate = int(v)
                 if k == "audio_bitrate":
                     args.audio_bitrate = int(v)
-                if k == "enable_audio":
-                    args.enable_audio = str((str(v).lower() == 'true')).lower()
                 if k == "enable_resize":
                     args.enable_resize = str((str(v).lower() == 'true')).lower()
                 if k == "encoder":
@@ -461,6 +457,8 @@ def main():
     # Peer id for this app, default is 0, expecting remote peer id to be 1
     my_id = 0
     peer_id = 1
+    my_audio_id = 2
+    audio_peer_id = 3
 
     # Initialize metrics server.
     metrics = Metrics(int(args.metrics_port))
@@ -475,6 +473,13 @@ def main():
         basic_auth_user=args.basic_auth_user,
         basic_auth_password=args.basic_auth_password)
 
+    # Initialize signalling client for audio connection.
+    audio_signalling = WebRTCSignalling('%s//127.0.0.1:%s/ws' % (ws_protocol, args.port), my_audio_id, audio_peer_id,
+        enable_https=using_https,
+        enable_basic_auth=using_basic_auth,
+        basic_auth_user=args.basic_auth_user,
+        basic_auth_password=args.basic_auth_password)
+
     # Handle errors from the signalling server.
     async def on_signalling_error(e):
        if isinstance(e, WebRTCSignallingErrorNoPeer):
@@ -484,12 +489,23 @@ def main():
        else:
            logger.error("signalling error: %s", str(e))
            app.stop_pipeline()
+    async def on_audio_signalling_error(e):
+       if isinstance(e, WebRTCSignallingErrorNoPeer):
+           # Waiting for peer to connect, retry in 2 seconds.
+           time.sleep(2)
+           await audio_signalling.setup_call()
+       else:
+           logger.error("signalling error: %s", str(e))
+           audio_app.stop_pipeline()
     signalling.on_error = on_signalling_error
+    audio_signalling.on_error = on_audio_signalling_error
 
     signalling.on_disconnect = lambda: app.stop_pipeline()
+    audio_signalling.on_disconnect = lambda: audio_app.stop_pipeline()
 
     # After connecting, attempt to setup call to peer.
     signalling.on_connect = signalling.setup_call
+    audio_signalling.on_connect = audio_signalling.setup_call
 
     # [START main_setup]
     # Fetch the TURN server and credentials
@@ -533,7 +549,6 @@ def main():
     logger.info("initial server RTC config: {}".format(rtc_config))
 
     # Extract arguments
-    enable_audio = args.enable_audio.lower() == "true"
     enable_resize = args.enable_resize.lower() == "true"
     audio_channels = int(args.audio_channels)
     curr_fps = int(args.framerate)
@@ -544,33 +559,47 @@ def main():
     cursor_size = int(args.cursor_size)
 
     # Create instance of app
-    app = GSTWebRTCApp(stun_servers, turn_servers, enable_audio, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
+    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
+    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
 
     # [END main_setup]
 
     # Send the local sdp to signalling when offer is generated.
     app.on_sdp = signalling.send_sdp
+    audio_app.on_sdp = audio_signalling.send_sdp
 
     # Send ICE candidates to the signalling server.
     app.on_ice = signalling.send_ice
+    audio_app.on_ice = audio_signalling.send_ice
 
     # Set the remote SDP when received from signalling server.
     signalling.on_sdp = app.set_sdp
+    audio_signalling.on_sdp = audio_app.set_sdp
 
     # Set ICE candidates received from signalling server.
     signalling.on_ice = app.set_ice
+    audio_signalling.on_ice = audio_app.set_ice
 
     # Start the pipeline once the session is established.
-    def on_session_handler(meta=None):
-        logger.info("starting session with meta: {}".format(meta))
-        if meta:
-            if enable_resize:
-                if meta["res"]:
-                    on_resize_handler(meta["res"])
-                if meta["scale"]:
-                    on_scaling_ratio_handler(meta["scale"])
-        app.start_pipeline()
+    def on_session_handler(session_peer_id, meta=None):
+        logger.info("starting session for peer id {} with meta: {}".format(session_peer_id, meta))
+        if str(session_peer_id) == str(peer_id):
+            if meta:
+                if enable_resize:
+                    if meta["res"]:
+                        on_resize_handler(meta["res"])
+                    if meta["scale"]:
+                        on_scaling_ratio_handler(meta["scale"])
+            logger.info("starting video pipeline")
+            app.start_pipeline()
+        elif str(session_peer_id) == str(audio_peer_id):
+            logger.info("starting audio pipeline")
+            audio_app.start_pipeline(audio_only=True)
+        else:
+            logger.error("failed to start pipeline for peer_id: %s" % peer_id)
+
     signalling.on_session = on_session_handler
+    audio_signalling.on_session = on_session_handler
 
     # Initialize the Xinput instance
     cursor_scale = 1.0
@@ -593,8 +622,7 @@ def main():
 
         app.send_framerate(app.framerate)
         app.send_video_bitrate(app.video_bitrate)
-        app.send_audio_bitrate(app.audio_bitrate)
-        app.send_audio_enabled(app.audio)
+        app.send_audio_bitrate(audio_app.audio_bitrate)
         app.send_resize_enabled(enable_resize)
         app.send_encoder(app.encoder)
         app.send_cursor_data(app.last_cursor_sent)
@@ -608,7 +636,7 @@ def main():
     webrtc_input.on_video_encoder_bit_rate = lambda bitrate: set_json_app_argument(args.json_config, "video_bitrate", bitrate) and (app.set_video_bitrate(int(bitrate)))
 
     # Send audio bitrate messages to app
-    webrtc_input.on_audio_encoder_bit_rate = lambda bitrate: set_json_app_argument(args.json_config, "audio_bitrate", bitrate) and app.set_audio_bitrate(int(bitrate))
+    webrtc_input.on_audio_encoder_bit_rate = lambda bitrate: set_json_app_argument(args.json_config, "audio_bitrate", bitrate) and audio_app.set_audio_bitrate(int(bitrate))
 
     # Send pointer visibility setting to app
     webrtc_input.on_mouse_pointer_visible = lambda visible: app.set_pointer_visible(
@@ -622,15 +650,6 @@ def main():
         set_json_app_argument(args.json_config, "framerate", fps)
         app.set_framerate(fps)
     webrtc_input.on_set_fps = lambda fps: set_fps_handler(fps)
-
-    # Write audio enabled argument to local configuration and then tell client to reload.
-    def enable_audio_handler(enabled):
-        set_json_app_argument(args.json_config, "enable_audio", enabled)
-        curr_audio = app.audio
-        app.set_enable_audio(enabled)
-        if enabled != curr_audio:
-            app.send_reload_window()
-    webrtc_input.on_set_enable_audio = lambda enabled: enable_audio_handler(enabled)
 
     # Handler for resize events.
     app.last_resize_success = True
@@ -788,15 +807,25 @@ def main():
 
         while True:
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
+            asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
+
             loop.run_until_complete(signalling.connect())
-            loop.run_until_complete(signalling.start())            
+            loop.run_until_complete(audio_signalling.connect())
+
+            # asyncio.ensure_future(signalling.start(), loop=loop)
+            asyncio.ensure_future(audio_signalling.start(), loop=loop)
+            loop.run_until_complete(signalling.start())
+
             app.stop_pipeline()
+            audio_app.stop_pipeline()
             webrtc_input.stop_js_server()
     except Exception as e:
         logger.error("Caught exception: %s" % e)
+        traceback.print_exc()
         sys.exit(1)
     finally:
         app.stop_pipeline()
+        audio_app.stop_pipeline()
         webrtc_input.stop_clipboard()
         webrtc_input.stop_cursor_monitor()
         webrtc_input.stop_js_server()
