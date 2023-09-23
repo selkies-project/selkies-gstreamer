@@ -19,8 +19,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import Xlib
 from Xlib import display
-from Xlib.ext import xfixes
+from Xlib.ext import xfixes, xtest
 import asyncio
 import base64
 import pynput
@@ -269,7 +270,11 @@ class WebRTCInput:
                 self.__mouse_emit(uinput.REL_X, x, syn=False)
                 self.__mouse_emit(uinput.REL_Y, y)
             else:
-                self.mouse.move(x, y)
+                # NOTE: the pynput mouse.move method moves the mouse relative to the current position using it's internal tracked position.
+                #       this does not work for relative motion where the input should just be a delta value.
+                #       instead, send the X fake input directly.
+                xtest.fake_input(self.xdisplay, Xlib.X.MotionNotify, detail=True, root=Xlib.X.NONE, x=x, y=y)
+                self.xdisplay.sync()
         elif action == MOUSE_SCROLL_UP:
             # Scroll up
             if self.uinput_mouse_socket_path:
