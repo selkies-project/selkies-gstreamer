@@ -270,7 +270,7 @@ class WebRTCInput:
                 self.__mouse_emit(uinput.REL_X, x, syn=False)
                 self.__mouse_emit(uinput.REL_Y, y)
             else:
-                # NOTE: the pynput mouse.move method moves the mouse relative to the current position using it's internal tracked position.
+                # NOTE: the pynput mouse.move method moves the mouse relative to the current position using its internal tracked position.
                 #       this does not work for relative motion where the input should just be a delta value.
                 #       instead, send the X fake input directly.
                 xtest.fake_input(self.xdisplay, Xlib.X.MotionNotify, detail=True, root=Xlib.X.NONE, x=x, y=y)
