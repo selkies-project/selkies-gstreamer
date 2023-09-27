@@ -82,13 +82,13 @@ jobs:
         include:
           - name: gst-py-example
             version_suffix: -ubuntu20.04
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_BASE_IMAGE_RELEASE=${{ github.ref_name }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
             dockerfile: Dockerfile.example
             source_directory: .
 
           - name: gst-py-example
             version_suffix: -ubuntu22.04
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_BASE_IMAGE_RELEASE=${{ github.ref_name }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
             dockerfile: Dockerfile.example
             source_directory: .
 

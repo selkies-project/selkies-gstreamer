@@ -99,13 +99,13 @@ jobs:
         include:
           - name: gst-py-example
             version_suffix: -ubuntu20.04
-            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME;JS_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer:$GITHUB_REF_NAME
+            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME;JS_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
             dockerfile: Dockerfile.example
             source_directory: .
 
           - name: gst-py-example
             version_suffix: -ubuntu22.04
-            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME;JS_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer:$GITHUB_REF_NAME
+            build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME;JS_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
             dockerfile: Dockerfile.example
             source_directory: .
 
@@ -279,11 +279,11 @@ jobs:
           key: ${{ needs.all_assets.outputs.js20_cache_key }}
           path: ${{ needs.all_assets.outputs.js20_path }}
 
-      - name: Ubuntu 22.04 cache read
+      - name: JS Interposer Ubuntu 22.04 cache read
         uses: actions/cache@v3
         with:
-          key: ${{ needs.all_assets.outputs.gst22_cache_key }}
-          path: ${{ needs.all_assets.outputs.gst22_path }}
+          key: ${{ needs.all_assets.outputs.js22_cache_key }}
+          path: ${{ needs.all_assets.outputs.js22_path }}
 
       - name: Python cache read
         uses: actions/cache@v3
@@ -315,7 +315,7 @@ jobs:
           asset_name: ${{ needs.all_assets.outputs.gst22_name }}
           overwrite: true
       
-      - name: JS Interceptor Ubuntu 20.04 upload
+      - name: JS Interposer Ubuntu 20.04 upload
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -324,7 +324,7 @@ jobs:
           asset_name: ${{ needs.all_assets.outputs.js20_name }}
           overwrite: true
       
-      - name: JS Interceptor Ubuntu 22.04 upload
+      - name: JS Interposer Ubuntu 22.04 upload
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
