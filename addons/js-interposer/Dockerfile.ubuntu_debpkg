@@ -28,12 +28,11 @@ FROM ubuntu:${DISTRIB_RELEASE} as test
 ARG PKG_NAME
 ARG PKG_VERSION
 
-# COPY --from=build /opt/${PKG_NAME}_${PKG_VERSION}.deb /opt/${PKG_NAME}.deb
-COPY --from=build /opt/*.deb /opt/${PKG_NAME}.deb
+COPY --from=build /opt/${PKG_NAME}_${PKG_VERSION}.deb /opt/${PKG_NAME}_${PKG_VERSION}.deb
 
 WORKDIR /opt
 
 RUN apt-get install -y --no-install-recommends \
-    /opt/${PKG_NAME}.deb
+    /opt/${PKG_NAME}_${PKG_VERSION}.deb
 
 RUN stat /usr/local/lib/selkies-js-interposer/joystick_interposer.so
