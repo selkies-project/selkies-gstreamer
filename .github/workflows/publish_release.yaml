@@ -57,11 +57,13 @@ jobs:
             version_suffix: -ubuntu20.04
             build_args: DISTRIB_RELEASE=20.04;DEBFULLNAME="$GITHUB_ACTOR";DEBEMAIL="$GITHUB_ACTOR@users.noreply.github.com";PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
             source_directory: addons/js-interposer
+            dockerfile: Dockerfile.ubuntu_debpkg
 
           - name: js-interposer
             version_suffix: -ubuntu22.04
             build_args: DISTRIB_RELEASE=22.04;DEBFULLNAME="$GITHUB_ACTOR";DEBEMAIL="$GITHUB_ACTOR@users.noreply.github.com";PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
             source_directory: addons/js-interposer
+            dockerfile: Dockerfile.ubuntu_debpkg
 
           - name: infra-gcp-installer
             source_directory: infra/gce/installer-image
@@ -84,6 +86,7 @@ jobs:
           image_source_directory: ${{ matrix.source_directory }}
           image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
           image_version_2: latest${{ matrix.version_suffix }}
+          dockerfile: ${{ matrix.dockerfile || 'Dockerfile' }}
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   all_example_images:
