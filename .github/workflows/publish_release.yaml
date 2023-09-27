@@ -180,7 +180,7 @@ jobs:
           
           - id: js20
             cache_key: js-interposer-asset-ubuntu2004
-            description: JS Interposr Ubuntu 20.04
+            description: JS Interposer Ubuntu 20.04
             image_tag: ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}-ubuntu20.04
             mimetype: application/octet-stream
             source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
@@ -190,7 +190,7 @@ jobs:
           
           - id: js22
             cache_key: js-interposer-asset-ubuntu2204
-            description: JS Interposr Ubuntu 22.04
+            description: JS Interposer Ubuntu 22.04
             image_tag: ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}-ubuntu22.04
             mimetype: application/octet-stream
             source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
