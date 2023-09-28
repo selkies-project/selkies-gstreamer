@@ -14,4 +14,5 @@ exec turnserver \
     --cli-password selkies \
     --allow-loopback-peers \
     --db ${HOME}/.config/turndb \
+    --pidfile ${HOME}/.config/turnserver.pid \
     ${EXTRA_ARGS} $@

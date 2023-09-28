@@ -1,6 +1,7 @@
 export DISPLAY=:0
 unset WAYLAND_DISPLAY
 export XSERVER=${XSERVER:-XVFB}
+export DESKTOP=${DESKTOP:-XFCE}
 
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 
@@ -48,7 +49,7 @@ if [[ -e /usr/local/lib/selkies-js-interposer/joystick_interposer.so ]]; then
 fi
 
 # Start desktop environment
-case ${DESKTOP:-XFCE} in
+case ${DESKTOP^^} in
     FLUXBOX)
         startfluxbox &
         ;;
