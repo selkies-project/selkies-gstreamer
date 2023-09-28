@@ -38,7 +38,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example) is available.
 
-Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `latest` to `main` for the development build instead of the release build, and choose the Ubuntu versions `20.04`, or `22.04`**):
+Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**replace `main` to `latest` for the release build instead of the development build, and choose the Ubuntu versions `20.04`, or `22.04`**):
 
 ```bash
 docker run --pull=always --name selkies -it --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu20.04
