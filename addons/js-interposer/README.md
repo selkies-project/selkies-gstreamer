@@ -2,7 +2,7 @@
 
 LD_PRELOAD library for interposing application calls to open a Linux joystick device and pass data via a unix domain socket.
 
-This allows the selkies-gstreamer WebRTC interface to pass gamepad events over the Data Channel and translate them to joystick events without requiring access to /dev/input/js0 or depend kernel modules like uinput to emulate devices.  
+This allows the `selkies-gstreamer` WebRTC interface to pass gamepad events over `RTCDataChannel`, and translate them to joystick events without requiring access to /dev/input/js0 or depending on kernel modules including uinput to emulate devices.
 
 ## Compiling
 
@@ -12,7 +12,7 @@ gcc -shared -fPIC -o joystick_interposer.so joystick_interposer.c -ldl
 
 ## Testing
 
-1. Start the python joystick emulator:
+1. Start the Python joystick emulator:
 
 ```bash
 python3 js-interposer-test.py

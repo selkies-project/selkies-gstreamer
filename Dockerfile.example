@@ -183,7 +183,7 @@ export GSTREAMER_PATH=/opt/gstreamer\n\
 source /opt/gstreamer/gst-env\n\
 export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
-sudo mkdir -p /dev/input\n\
+sudo mkdir -pm755 /dev/input\n\
 sudo touch /dev/input/{js0,js1,js2,js3}\n\
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
 until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
