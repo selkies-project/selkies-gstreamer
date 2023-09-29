@@ -8,7 +8,7 @@
 
 ## What is `selkies-gstreamer`?
 
-`selkies-gstreamer` is a modern open-source low-latency Linux WebRTC HTML5 remote desktop, first started out as a [project by Google engineers](https://web.archive.org/web/20210310083658/https://cloud.google.com/solutions/gpu-accelerated-streaming-using-webrtc) and currently supported by [itopia](https://itopia.com). `selkies-gstreamer` streams a Linux X11 desktop or a Docker/Kubernetes container to a recent web browser using WebRTC with hardware or software acceleration from the server or the client. Linux Wayland, Mac, and Windows support is planned.
+`selkies-gstreamer` is a modern open-source low-latency Linux WebRTC HTML5 remote desktop, first started out as a [project by Google engineers](https://web.archive.org/web/20210310083658/https://cloud.google.com/solutions/gpu-accelerated-streaming-using-webrtc). `selkies-gstreamer` streams a Linux X11 desktop or a Docker/Kubernetes container to a recent web browser using WebRTC with hardware or software acceleration from the server or the client. Linux Wayland, Mac, and Windows support is planned.
 
 This project is adequate as a high-performance replacement to most Linux remote desktop solutions, providing similar performance (at least 30 FPS at 720p with software encoding or at least 60+ FPS at Full HD with an NVIDIA GPU) to popular game streaming applications like [Parsec](https://parsec.app), [Moonlight](https://github.com/moonlight-stream) + [Sunshine](https://github.com/LizardByte/Sunshine), [Steam Remote Play](https://store.steampowered.com/remoteplay), and [NICE DCV](https://aws.amazon.com/hpc/dcv/). It is also adequate to be used in place of [noVNC](https://github.com/novnc/noVNC) or [Apache Guacamole](https://guacamole.apache.org). You may create a self-hosted version of Shadow, NVIDIA GeForce NOW, Google Stadia, or Xbox Cloud Gaming, running on a Linux host with a web-based client from any operating system.
 
@@ -30,7 +30,7 @@ All three of the components are built and packaged [every release](https://githu
 
 **A TURN server is required if trying to use this project inside a Docker or Kubernetes container, or in other cases where the HTML5 web interface loads but the connection fails. This is required for all WebRTC applications, especially since `selkies-gstreamer` is self-hosted, unlike other proprietary services which provide a TURN server for you. Follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
-Example Google Compute Engine/Google Kubernetes Engine deployment configurations of all components are available in the [`infra/gce`](infra/gce) and [`infra/gke`](infra/gke) directories. Commercial support on Google Cloud is available with [itopia Spaces](https://itopiaspaces.com).
+Example Google Compute Engine/Google Kubernetes Engine deployment configurations of all components are available in the [`infra/gce`](infra/gce) and [`infra/gke`](infra/gke) directories. Support in self-hosted Kubernetes clusters is planned.
 
 ### Example Docker container
 
