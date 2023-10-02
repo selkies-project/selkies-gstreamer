@@ -70,16 +70,16 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libwebp-dev \
         libvpx-dev \
         zlib1g-dev \
-        x264 \
+        x264 && \
         # AMD/Intel graphics driver dependencies
-        va-driver-all \
-        i965-va-driver-shaders \
-        intel-media-va-driver-non-free \
-        libmfx-tools \
-        libva2 \
-        vainfo \
-        intel-gpu-tools \
-        radeontop && \
+        #va-driver-all \
+        #i965-va-driver-shaders \
+        #intel-media-va-driver-non-free \
+        #libmfx-tools \
+        #libva2 \
+        #vainfo \
+        #intel-gpu-tools \
+        #radeontop && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
@@ -114,7 +114,8 @@ RUN if [ "${UBUNTU_RELEASE}" = "22.04" ]; then apt-get update && DEBIAN_FRONTEND
 
 # Add Tini init script - take care of runaway processes
 ENV TINI_VERSION v0.7.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+# ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+ADD https://github.com/krallin/tini/releases/download/v0.19.0/tini-arm64 /tini
 RUN chmod +x /tini
 
 # Install GStreamer distribution
