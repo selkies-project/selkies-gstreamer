@@ -170,7 +170,7 @@ class WebRTCSignalling:
                 logger.info("connected")
                 await self.on_connect()
             elif message.startswith('SESSION_OK'):
-                toks = message.split(" ")
+                toks = message.split()
                 meta = {}
                 if len(toks) > 1:
                     meta = json.loads(base64.b64decode(toks[1]))
