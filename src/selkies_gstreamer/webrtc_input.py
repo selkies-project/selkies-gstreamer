@@ -212,7 +212,7 @@ class WebRTCInput:
 
         js.send_axis(axis_num, axis_val)
 
-    async def connect(self):
+    def connect(self):
         # Create connection to the X11 server provided by the DISPLAY env var.
         self.xdisplay = display.Display()
 

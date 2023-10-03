@@ -467,14 +467,14 @@ def main():
     using_https = args.enable_https.lower() == 'true'
     using_basic_auth = args.enable_basic_auth.lower() == 'true'
     ws_protocol = 'wss:' if using_https else 'ws:'
-    signalling = WebRTCSignalling('%s//127.0.0.1:%s/ws' % (ws_protocol, args.port), my_id, peer_id,
+    signalling = WebRTCSignalling('%s//127.0.0.1:%s/webrtc/signalling' % (ws_protocol, args.port), my_id, peer_id,
         enable_https=using_https,
         enable_basic_auth=using_basic_auth,
         basic_auth_user=args.basic_auth_user,
         basic_auth_password=args.basic_auth_password)
 
     # Initialize signalling client for audio connection.
-    audio_signalling = WebRTCSignalling('%s//127.0.0.1:%s/ws' % (ws_protocol, args.port), my_audio_id, audio_peer_id,
+    audio_signalling = WebRTCSignalling('%s//127.0.0.1:%s/webrtc/signalling' % (ws_protocol, args.port), my_audio_id, audio_peer_id,
         enable_https=using_https,
         enable_basic_auth=using_basic_auth,
         basic_auth_user=args.basic_auth_user,
@@ -793,10 +793,13 @@ def main():
         enabled=using_rtc_config_json)
     rtc_file_mon.on_rtc_config = mon_rtc_config
 
+    # Start integrated signal server.
+    loop.create_task(server.run())
+
     try:
-        asyncio.ensure_future(server.run(), loop=loop)
         metrics.start()
-        loop.run_until_complete(webrtc_input.connect())
+        webrtc_input.connect()
+
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
         loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
         loop.run_in_executor(None, lambda: gpu_mon.start())
@@ -806,17 +809,20 @@ def main():
         loop.run_in_executor(None, lambda: system_mon.start())
 
         while True:
-            asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
-            asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
+            loop.create_task(app.handle_bus_calls())
+            loop.create_task(audio_app.handle_bus_calls())
 
+            logger.info("Connecting to signal server")
             loop.run_until_complete(signalling.connect())
             loop.run_until_complete(audio_signalling.connect())
-
-            # asyncio.ensure_future(signalling.start(), loop=loop)
-            asyncio.ensure_future(audio_signalling.start(), loop=loop)
+            
+            logger.info("Connected to signal server, starting signalling")
+            loop.create_task(audio_signalling.start())
             loop.run_until_complete(signalling.start())
 
+            logger.info("Stopping video pipeline")
             app.stop_pipeline()
+            logger.info("Stopping audio pipeline")
             audio_app.stop_pipeline()
             webrtc_input.stop_js_server()
     except Exception as e:

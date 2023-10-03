@@ -17,10 +17,9 @@ import os
 import base64
 import sys
 import ssl
-import logging
 import glob
 import asyncio
-import websockets
+from aiohttp import web
 import basicauth
 import time
 import argparse
@@ -36,8 +35,12 @@ import base64
 from pathlib import Path
 from http import HTTPStatus
 
+import logging
 logger = logging.getLogger("signaling")
+logger.setLevel(logging.INFO)
+
 web_logger = logging.getLogger("web")
+web_logger.setLevel(logging.INFO)
 
 MIME_TYPES = {
     "html": "text/html",
@@ -101,8 +104,8 @@ class WebRTCSimpleServer(object):
 
         # Event loop
         self.loop = loop
-        # Websocket Server Instance
-        self.server = None
+        # Web App Instance
+        self.app = None
 
         # Signal used to shutdown server
         self.stop_server = None
@@ -171,77 +174,55 @@ class WebRTCSimpleServer(object):
             data = open(full_path, 'rb').read()
             self.http_cache[full_path] = (data, now)
         return data
+    
+    @web.middleware
+    async def middleware_basic_auth(self, request, handler):
+        # Bypass auth for health checks.
+        if request.path == self.health_path:
+            return await handler(request)
 
-    async def process_request(self, server_root, path, request_headers):
-        response_headers = [
-            ('Server', 'asyncio websocket server'),
-            ('Connection', 'close'),
-        ]
-
-        username = ''
+        request['username'] = ''
+        authorized = True
         if self.enable_basic_auth:
-            if "basic" in request_headers.get("authorization", "").lower():
-                username, passwd = basicauth.decode(request_headers.get("authorization"))
-                if not (username == self.basic_auth_user and passwd == self.basic_auth_password):
-                    return http.HTTPStatus.UNAUTHORIZED, response_headers, b'Unauthorized'
-            else:
-                response_headers.append(('WWW-Authenticate', 'Basic realm="restricted, charset="UTF-8"'))
-                return http.HTTPStatus.UNAUTHORIZED, response_headers, b'Authorization required'
+            authorized = False
+            if "basic" in request.headers.get("authorization", "").lower():
+                username, passwd = basicauth.decode(request.headers.get("authorization"))
+                if username == self.basic_auth_user and passwd == self.basic_auth_password:
+                    request['username'] = username
+                    authorized = True
 
-        if path == "/ws" or path.endswith("/signalling/"):
-            return None
-
-        if path == self.health_path:
-            return http.HTTPStatus.OK, response_headers, b"OK\n"
-
-        if path == '/turn/':
-            if self.turn_shared_secret:
-                # Get username from auth header.
-                if not username:
-                    username = request_headers.get(self.turn_auth_header_name, "")
-                    if not username:
-                        web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
-                        return HTTPStatus.UNAUTHORIZED, response_headers, b'401 Unauthorized - missing auth header'
-                web_logger.info("Generating HMAC credential for user: {}".format(username))
-                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, username, self.turn_protocol, self.turn_tls)
-                return http.HTTPStatus.OK, response_headers, str.encode(rtc_config)
-
-            elif self.rtc_config:
-                data = self.rtc_config
-                if type(data) == str:
-                    data = str.encode(data)
-                response_headers.append(('Content-Type', 'application/json'))
-                return http.HTTPStatus.OK, response_headers, data
-            else:
-                web_logger.warning("HTTP GET {} 404 NOT FOUND - Missing RTC config".format(path))
-                return HTTPStatus.NOT_FOUND, response_headers, b'404 NOT FOUND'
+        if not authorized:
+            raise web.HTTPForbidden(reason="Authorization required", headers={"WWW-Authenticate": 'Basic realm="restricted, charset="UTF-8"'})
         
-        path = path.split("?")[0]
-        if path == '/':
-            path = '/index.html'
+        return await handler(request)
 
-        # Derive full system path
-        full_path = os.path.realpath(os.path.join(server_root, path[1:]))
+    @web.middleware
+    async def middleware_turn_credentials(self, request, handler):
+        # Bypass auth for health checks.
+        if request.path == self.health_path:
+            return await handler(request)
 
-        # Validate the path
-        if os.path.commonpath((server_root, full_path)) != server_root or \
-                not os.path.exists(full_path) or not os.path.isfile(full_path):
-            response_headers.append(('Content-Type', 'text/html'))
-            web_logger.info("HTTP GET {} 404 NOT FOUND".format(path))
-            return HTTPStatus.NOT_FOUND, response_headers, b'404 NOT FOUND'
+        request['turn-username'] = request.headers.get(self.turn_auth_header_name, "")
+        if self.turn_shared_secret and not (request['username'] or request['turn-username']):
+            raise web.HTTPForbidden(reason="missing auth header")
+        return await handler(request)
+    
+    async def handle_turn(self, request):
+        if self.turn_shared_secret:
+            username = request.get('username', 'turn-username')
+            web_logger.info("Generating HMAC credential for user: {}".format(username))
+            rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, username, self.turn_protocol, self.turn_tls)
+            return web.HTTPOk(content_type="application/json", body=str.encode(rtc_config))
 
-        # Guess file content type
-        extension = full_path.split(".")[-1]
-        mime_type = MIME_TYPES.get(extension, "application/octet-stream")
-        response_headers.append(('Content-Type', mime_type))
+        if self.rtc_config:
+            data = self.rtc_config
+            if type(data) == str:
+                data = str.encode(data)
+            return web.HTTPOk(content_type="application/json", body=data)
 
-        # Read the whole file into memory and send it out
-        body = self.cache_file(full_path)
-        response_headers.append(('Content-Length', str(len(body))))
-        web_logger.info("HTTP GET {} 200 OK".format(path))
-        return HTTPStatus.OK, response_headers, body
+        raise web.HTTPNotFound(reason="Missing RTC config")
 
-    async def recv_msg_ping(self, ws, raddr):
+    async def recv_msg_ping(self, ws: web.WebSocketResponse, raddr):
         '''
         Wait for a message forever, and send a regular ping to prevent bad routers
         from closing the connection.
@@ -249,7 +230,13 @@ class WebRTCSimpleServer(object):
         msg = None
         while msg is None:
             try:
-                msg = await asyncio.wait_for(ws.recv(), self.keepalive_timeout)
+                data = await ws.receive(timeout=self.keepalive_timeout)
+                if data.type == web.WSMsgType.TEXT:
+                    msg = str(data.data)
+                elif data.type in [web.WSMsgType.CLOSE, web.WSMsgType.CLOSING, web.WSMsgType.CLOSED]:
+                    return None
+                else:
+                    web_logger.warning("unsupported socket message type: %s" % data.type)
             except (asyncio.TimeoutError, concurrent.futures._base.TimeoutError):
                 web_logger.info('Sending keepalive ping to {!r} in recv'.format(raddr))
                 await ws.ping()
@@ -295,14 +282,23 @@ class WebRTCSimpleServer(object):
     ############### Handler functions ###############
 
     
-    async def connection_handler(self, ws, uid, meta=None):
-        raddr = ws.remote_address
+    async def handle_websocket(self, request):
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+        raddr = request.remote
+
+        uid, meta = await self.hello_peer(ws, request)
+
         peer_status = None
         self.peers[uid] = [ws, raddr, peer_status, meta]
         logger.info("Registered peer {!r} at {!r} with meta: {}".format(uid, raddr, meta))
         while True:
             # Receive command, wait forever if necessary
             msg = await self.recv_msg_ping(ws, raddr)
+            if msg is None:
+                await self.remove_peer(uid)
+                break
+
             # Update current status
             peer_status = self.peers[uid][2]
             # We are in a session or a room, messages must be relayed
@@ -313,32 +309,32 @@ class WebRTCSimpleServer(object):
                     wso, oaddr, status, _ = self.peers[other_id]
                     assert(status == 'session')
                     logger.info("{} -> {}: {}".format(uid, other_id, msg))
-                    await wso.send(msg)
+                    await wso.send_str(msg)
                 # We're in a room, accept room-specific commands
                 elif peer_status:
                     # ROOM_PEER_MSG peer_id MSG
                     if msg.startswith('ROOM_PEER_MSG'):
                         _, other_id, msg = msg.split(maxsplit=2)
                         if other_id not in self.peers:
-                            await ws.send('ERROR peer {!r} not found'
+                            await ws.send_str('ERROR peer {!r} not found'
                                           ''.format(other_id))
                             continue
                         wso, oaddr, status, _ = self.peers[other_id]
                         if status != room_id:
-                            await ws.send('ERROR peer {!r} is not in the room'
+                            await ws.send_str('ERROR peer {!r} is not in the room'
                                           ''.format(other_id))
                             continue
                         msg = 'ROOM_PEER_MSG {} {}'.format(uid, msg)
                         logger.info('room {}: {} -> {}: {}'.format(room_id, uid, other_id, msg))
-                        await wso.send(msg)
+                        await wso.send_str(msg)
                     elif msg == 'ROOM_PEER_LIST':
-                        room_id = self.peers[peer_id][2]
-                        room_peers = ' '.join([pid for pid in self.rooms[room_id] if pid != peer_id])
+                        room_id = self.peers[uid][2]
+                        room_peers = ' '.join([pid for pid in self.rooms[room_id] if pid != uid])
                         msg = 'ROOM_PEER_LIST {}'.format(room_peers)
                         logger.info('room {}: -> {}: {}'.format(room_id, uid, msg))
-                        await ws.send(msg)
+                        await ws.send_str(msg)
                     else:
-                        await ws.send('ERROR invalid msg, already in room')
+                        await ws.send_str('ERROR invalid msg, already in room')
                         continue
                 else:
                     raise AssertionError('Unknown peer status {!r}'.format(peer_status))
@@ -347,20 +343,19 @@ class WebRTCSimpleServer(object):
                 logger.info("{!r} command {!r}".format(uid, msg))
                 _, callee_id = msg.split(maxsplit=1)
                 if callee_id not in self.peers:
-                    await ws.send('ERROR peer {!r} not found'.format(callee_id))
+                    await ws.send_str('ERROR peer {!r} not found'.format(callee_id))
                     continue
                 if peer_status is not None:
-                    await ws.send('ERROR peer {!r} busy'.format(callee_id))
+                    await ws.send_str('ERROR peer {!r} busy'.format(callee_id))
                     continue
                 meta = self.peers[callee_id][3]
                 if meta:
                     meta64 = base64.b64encode(bytes(json.dumps(meta).encode())).decode("ascii")
                 else:
                     meta64 = ""
-                await ws.send('SESSION_OK {}'.format(meta64))
-                wsc = self.peers[callee_id][0]
-                logger.info('Session from {!r} ({!r}) to {!r} ({!r})'
-                      ''.format(uid, raddr, callee_id, wsc.remote_address))
+                await ws.send_str('SESSION_OK {}'.format(meta64))
+                logger.info('Session from {!r} ({!r}) to {!r}'
+                      ''.format(uid, raddr, callee_id))
                 # Register session
                 self.peers[uid][2] = peer_status = 'session'
                 self.sessions[uid] = callee_id
@@ -372,7 +367,7 @@ class WebRTCSimpleServer(object):
                 _, room_id = msg.split(maxsplit=1)
                 # Room name cannot be 'session', empty, or contain whitespace
                 if room_id == 'session' or room_id.split() != [room_id]:
-                    await ws.send('ERROR invalid room id {!r}'.format(room_id))
+                    await ws.send_str('ERROR invalid room id {!r}'.format(room_id))
                     continue
                 if room_id in self.rooms:
                     if uid in self.rooms[room_id]:
@@ -382,7 +377,7 @@ class WebRTCSimpleServer(object):
                     # Create room if required
                     self.rooms[room_id] = set()
                 room_peers = ' '.join([pid for pid in self.rooms[room_id]])
-                await ws.send('ROOM_OK {}'.format(room_peers))
+                await ws.send_str('ROOM_OK {}'.format(room_peers))
                 # Enter room
                 self.peers[uid][2] = peer_status = room_id
                 self.rooms[room_id].add(uid)
@@ -396,12 +391,12 @@ class WebRTCSimpleServer(object):
             else:
                 logger.info('Ignoring unknown message {!r} from {!r}'.format(msg, uid))
 
-    async def hello_peer(self, ws):
+    async def hello_peer(self, ws, request):
         '''
         Exchange hello, register peer
         '''
-        raddr = ws.remote_address
-        hello = await ws.recv()
+        raddr = request.remote
+        hello = await ws.receive_str()
         toks = hello.split(maxsplit=2)
         metab64str = None
         if len(toks) > 2:
@@ -418,7 +413,7 @@ class WebRTCSimpleServer(object):
         if metab64str:
             meta = json.loads(base64.b64decode(metab64str))
         # Send back a HELLO
-        await ws.send('HELLO')
+        await ws.send_str('HELLO')
         return uid, meta
 
     def get_https_certs(self):
@@ -444,46 +439,44 @@ class WebRTCSimpleServer(object):
         return sslctx
 
     async def run(self):
-        async def handler(ws, path):
-            '''
-            All incoming messages are handled here. @path is unused.
-            '''
-            raddr = ws.remote_address
-            logger.info("Connected to {!r}".format(raddr))
-            peer_id, meta = await self.hello_peer(ws)
-            try:
-                await self.connection_handler(ws, peer_id, meta)
-            except websockets.ConnectionClosed:
-                logger.info("Connection to peer {!r} closed, exiting handler".format(raddr))
-            finally:
-                await self.remove_peer(peer_id)
+        self.app = web.Application(
+            middlewares=[
+                self.middleware_basic_auth,
+                self.middleware_turn_credentials
+            ]
+        )
 
-        sslctx = self.get_ssl_ctx(https_server=True)
+        # Handle health check requests
+        async def handle_health(request):
+            return web.HTTPOk(body="ok", content_type="text/plain")
+        self.app.router.add_get(self.health_path, handle_health)
 
-        # Setup logging
-        logger.setLevel(logging.INFO)
-        web_logger.setLevel(logging.WARN)
+        # Handle websocket requests
+        self.app.router.add_get('/{id}/signalling{none:[\/]{0,1}}', self.handle_websocket)
 
-        http_protocol = 'https:' if self.enable_https else 'http:'
-        logger.info("Listening on {}//{}:{}".format(http_protocol, self.addr, self.port))
-        # Websocket and HTTP server
-        http_handler = functools.partial(self.process_request, self.web_root)
-        self.stop_server = self.loop.create_future()
-        async with websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler, loop=self.loop,
-                               # Maximum number of messages that websockets will pop
-                               # off the asyncio and OS buffers per connection. See:
-                               # https://websockets.readthedocs.io/en/stable/api.html#websockets.protocol.WebSocketCommonProtocol
-                               max_queue=16) as self.server:
-            await self.stop_server
+        # Handle turn requests
+        self.app.router.add_get("/turn{none:[\/]{0,1}}", self.handle_turn)
 
-        if self.enable_https:
-            asyncio.ensure_future(self.check_server_needs_restart(), loop=self.loop)
+        # Handle static files
+        async def handle_web_root(request):
+            return web.HTTPFound('/index.html')
+        self.app.router.add_route("*", "/", handle_web_root)
+        self.app.router.add_static("/", path=self.web_root, name="static")
 
+        runner = web.AppRunner(self.app)
+        await runner.setup()
+        site = web.TCPSite(runner, host='0.0.0.0', port=self.port)
+        # web.run_app(self.app, host='0.0.0.0', port=self.port, loop=self.loop)
+        await site.start()
+        logger.info("Signal server is listening on port %s" % self.port)
+        return
+    
     async def stop(self):
         logger.info('Stopping server... ')
-        self.stop_server.set_result(True)
-        self.server.close()
-        await self.server.wait_closed()
+        # self.stop_server.set_result(True)
+        # self.server.close()
+        # await self.server.wait_closed()
+        self.app.shutdown()
         logger.info('Stopped.')
 
     def check_cert_changed(self):
@@ -515,7 +508,7 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # See: host, port in https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.create_server
     parser.add_argument('--addr', default='', help='Address to listen on (default: all interfaces, both ipv4 and ipv6)')
-    parser.add_argument('--port', default=8443, type=int, help='Port to listen on')
+    parser.add_argument('--port', default=6080, type=int, help='Port to listen on')
     parser.add_argument('--web_root', default=default_web_root, type=str, help='Path to web root')
     parser.add_argument('--rtc_config_file', default="/tmp/rtc.json", type=str, help='Path to json rtc config file')
     parser.add_argument('--rtc_config', default="", type=str, help='JSON rtc config data')
@@ -536,14 +529,16 @@ def main():
     parser.add_argument('--basic_auth_password', default="", help='Password for basic authentication, if not set, no authorization will be enforced.')
 
     options = parser.parse_args(sys.argv[1:])
+    
+    logging.basicConfig(level=logging.INFO)
 
     loop = asyncio.get_event_loop()
 
     r = WebRTCSimpleServer(loop, options)
 
-    print('Starting server...')
-    asyncio.ensure_future(r.run(), loop=loop)
-    print("Started server")
+    web_logger.info('Starting server...')
+    loop.create_task(r.run())
+    web_logger.info("Started server")
     loop.run_forever()
 
 if __name__ == "__main__":
