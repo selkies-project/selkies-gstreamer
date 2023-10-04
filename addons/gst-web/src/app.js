@@ -347,10 +347,22 @@ signalling.onstatus = (message) => {
 };
 signalling.onerror = (message) => { app.logEntries.push(applyTimestamp("[signalling] [ERROR] " + message)) };
 
-signalling.ondisconnect = () => {
-    console.log("signalling disconnected");
-    app.status = 'connecting';
+signalling.ondisconnect = (reason) => {
+    console.log("signalling disconnected", reason);
     videoElement.style.cursor = "auto";
+
+    if (reason.indexOf("exists") > -1) {
+        // Session transfered to another window.
+        app.status = 'failed';
+        webrtc.peerConnection.close();
+        webrtc._send_channel.close();
+        audio_webrtc.peerConnection.close();
+        videoElement.load();
+        audioElement.load();
+        return;
+    }
+
+    app.status = 'connecting';
     webrtc.reset();
     audio_webrtc.reset();
 }

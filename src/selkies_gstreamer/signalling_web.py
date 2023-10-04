@@ -269,14 +269,14 @@ class WebRTCSimpleServer(object):
             logger.info('room {}: {} -> {}: {}'.format(room_id, uid, pid, msg))
             await wsp.send(msg)
 
-    async def remove_peer(self, uid):
+    async def remove_peer(self, uid, reason=b''):
         await self.cleanup_session(uid)
         if uid in self.peers:
             ws, raddr, status, _ = self.peers[uid]
             if status and status != 'session':
                 await self.cleanup_room(uid, status)
             del self.peers[uid]
-            await ws.close()
+            await ws.close(code=1000, message=reason)
             logger.info("Disconnected from peer {!r} at {!r}".format(uid, raddr))
 
     ############### Handler functions ###############
@@ -287,7 +287,12 @@ class WebRTCSimpleServer(object):
         await ws.prepare(request)
         raddr = request.remote
 
-        uid, meta = await self.hello_peer(ws, request)
+        uid, meta, exists = await self.hello_peer(ws, request)
+        if uid is None:
+            return
+
+        if exists:
+            await self.remove_peer(uid, reason=b'already exists')
 
         peer_status = None
         self.peers[uid] = [ws, raddr, peer_status, meta]
@@ -391,7 +396,7 @@ class WebRTCSimpleServer(object):
             else:
                 logger.info('Ignoring unknown message {!r} from {!r}'.format(msg, uid))
 
-    async def hello_peer(self, ws, request):
+    async def hello_peer(self, ws: web.WebSocketResponse, request):
         '''
         Exchange hello, register peer
         '''
@@ -399,22 +404,30 @@ class WebRTCSimpleServer(object):
         hello = await ws.receive_str()
         toks = hello.split(maxsplit=2)
         metab64str = None
+        exists = False
         if len(toks) > 2:
             hello, uid, metab64str = toks
         else:
             hello, uid = toks
         if hello != 'HELLO':
-            await ws.close(code=1002, reason='invalid protocol')
-            raise Exception("Invalid hello from {!r}".format(raddr))
-        if not uid or uid in self.peers or uid.split() != [uid]: # no whitespace
-            await ws.close(code=1002, reason='invalid peer uid')
-            raise Exception("Invalid uid {!r} from {!r}".format(uid, raddr))
+            await ws.close(code=1002, message=b'invalid protocol')
+            logger.error("Invalid hello from {!r}".format(raddr))
+            return None, None, False
+        if not uid or uid.split() != [uid]: # no whitespace:
+            await ws.close(code=1002, message=b'missing or invalid peer uid')
+            logger.error("Missing or invalid uid from {!r}".format(raddr))
+            return None, None, False
+        if uid in self.peers:
+            # await ws.close(code=1002, message=b'peer with same uid already connected')
+            logger.warning("Duplicate uid {!r} from {!r}".format(uid, raddr))
+            exists = True
+
         meta = None
         if metab64str:
             meta = json.loads(base64.b64decode(metab64str))
         # Send back a HELLO
         await ws.send_str('HELLO')
-        return uid, meta
+        return uid, meta, exists
 
     def get_https_certs(self):
         cert_pem = os.path.abspath(self.https_cert) if os.path.isfile(self.https_cert) else None

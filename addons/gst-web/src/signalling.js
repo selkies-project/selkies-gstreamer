@@ -266,11 +266,11 @@ class WebRTCDemoSignalling {
      * @private
      * @event
      */
-    _onServerClose() {
+    _onServerClose(e) {
+        this._setError("Server closed connection: " + e.reason);
         if (this.state !== 'connecting') {
             this.state = 'disconnected';
-            this._setError("Server closed connection.");
-            if (this.ondisconnect !== null) this.ondisconnect();
+            if (this.ondisconnect !== null) this.ondisconnect(e.reason);
         }
     }
 
