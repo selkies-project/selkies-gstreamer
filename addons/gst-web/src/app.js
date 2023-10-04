@@ -187,6 +187,7 @@ var app = new Vue({
         },
         playVideo() {
             webrtc.playVideo();
+            audio_webrtc.playVideo();
             this.showStart = false;
         },
         enableClipboard() {
