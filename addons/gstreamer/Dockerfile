@@ -5,7 +5,7 @@
 ARG UBUNTU_RELEASE=22.04
 FROM ubuntu:${UBUNTU_RELEASE}
 
-# Install essentials
+# Install essential dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         curl \
         build-essential \
@@ -14,7 +14,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         vim && \
     rm -rf /var/lib/apt/lists/*
 
-# Install build deps
+# Install build dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         autopoint \
         autoconf \
@@ -55,7 +55,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         libva-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Install gst-python dependencies, meson, and ninja
+# Install GST-Python dependencies, Meson, and Ninja
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-pip \
         python3-dev \
@@ -63,17 +63,15 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     rm -rf /var/lib/apt/lists/* && \
     pip3 install meson ninja
 
-###
-# GStreamer monorepo build with prefix for standalone install.
-###
+# GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
-ARG GSTREAMER_VERSION=1.22.5
+ARG GSTREAMER_VERSION=1.22.6
 RUN git clone "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && git checkout "${GSTREAMER_VERSION}" && \
     mkdir -p /opt/gstreamer && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Db_lto=true -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:msdk=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Db_lto=true -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
-# Bundle build output to tarball
+# Bundle build result to tarball
 COPY config/gst-env /opt/gstreamer/
 RUN cd /opt && tar -zcvf selkies-gstreamer-latest.tgz gstreamer

@@ -27,10 +27,10 @@ import re
 import time
 
 import gi
+gi.require_version('GLib', '2.0')
 gi.require_version("Gst", "1.0")
 gi.require_version('GstWebRTC', '1.0')
 gi.require_version('GstSdp', '1.0')
-gi.require_version('GLib', '2.0')
 from gi.repository import GLib
 from gi.repository import Gst
 from gi.repository import GstWebRTC

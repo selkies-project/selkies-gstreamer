@@ -125,7 +125,8 @@ COPY --from=selkies-web /usr/share/nginx/html ./gst-web
 
 # Install Joystick Interposer
 COPY --from=selkies-js-interposer /opt/*.deb /opt/selkies-js-interposer.deb
-RUN apt-get install -y /opt/selkies-js-interposer.deb
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y /opt/selkies-js-interposer.deb && rm -f /opt/selkies-js-interposer.deb && \
+    rm -rf /var/lib/apt/lists/*
 
 # Update PWA manifest.json with application information and route.
 ARG PWA_APP_NAME="Selkies WebRTC"

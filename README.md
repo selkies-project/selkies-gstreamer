@@ -90,13 +90,19 @@ cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/relea
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`.
 
-5. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
+5. Install the Joystick Interposer to process gamepad input (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`):
+
+```bash
+curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb"
+```
+
+6. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
 
 ```bash
 cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.*" -exec sh -c 'ln -sf $(basename {}) libnvrtc.so' \;
 ```
 
-6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
+7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
 export DISPLAY=:0
@@ -104,6 +110,11 @@ export GST_DEBUG=*:2
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
+# Configure the Joystick Interposer
+export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so
+export SDL_JOYSTICK_DEVICE=/dev/input/js0
+sudo mkdir -pm755 /dev/input
+sudo touch /dev/input/{js0,js1,js2,js3}
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
@@ -158,7 +169,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
-2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (change the OS version `UBUNTU_RELEASE` as needed):
+2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `UBUNTU_RELEASE`):
 
 ```bash
 docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${UBUNTU_RELEASE}
@@ -174,10 +185,10 @@ This will install the GStreamer components to the default directory of `/opt/gst
 ```bash
 docker pull ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
-docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer.whl
 docker rm selkies-py
-sudo pip3 install /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
-rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+sudo pip3 install /tmp/selkies_gstreamer.whl
+rm -f /tmp/selkies_gstreamer.whl
 ```
 
 4. Install the HTML5 components to the container image:
@@ -191,13 +202,24 @@ docker rm gst-web
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`.
 
-5. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
+5. Install the Joystick Interposer to process gamepad input (fill in the OS version `UBUNTU_RELEASE`):
+
+```bash
+docker pull ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${UBUNTU_RELEASE}
+docker create --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${UBUNTU_RELEASE}
+docker cp js-interposer:/opt/selkies-js-interposer_0.0.0.deb /tmp/selkies-js-interposer.deb
+docker rm js-interposer
+sudo apt-get update && sudo apt-get install --no-install-recommends -y /tmp/selkies-js-interposer.deb
+rm -f /tmp/selkies-js-interposer.deb
+```
+
+6. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
 
 ```bash
 cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.*" -exec sh -c 'ln -sf $(basename {}) libnvrtc.so' \;
 ```
 
-6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
+7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
 export DISPLAY=:0
@@ -205,6 +227,11 @@ export GST_DEBUG=*:2
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
 source /opt/gstreamer/gst-env
+# Configure the Joystick Interposer
+export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so
+export SDL_JOYSTICK_DEVICE=/dev/input/js0
+sudo mkdir -pm755 /dev/input
+sudo touch /dev/input/{js0,js1,js2,js3}
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
 Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
