@@ -7,7 +7,7 @@ echo "The provided web port is: ${WEB_PORT:-missing env}"
 echo "The provided xserver is: ${XSERVER:-missing env}"
 
 # Install base dependencies
-apt-get update && apt-get install --no-install-recommends -y \
+apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     python3-pip \
     python3-dev \
     python3-gi \
@@ -17,8 +17,6 @@ apt-get update && apt-get install --no-install-recommends -y \
     wmctrl \
     jq \
     gdebi-core \
-    glib-networking \
-    libopus0 \
     libgdk-pixbuf2.0-0 \
     libgtk2.0-bin \
     libgl-dev \
@@ -32,25 +30,34 @@ apt-get update && apt-get install --no-install-recommends -y \
     xserver-xorg-core \
     wayland-protocols \
     libwayland-dev \
-    libwayland-egl-backend-dev \
+    libwayland-egl1 \
     libx11-xcb1 \
     libxkbcommon0 \
     libxdamage1 \
-    libxml2-dev \
-    libwebrtc-audio-processing1 \
+    libsoup2.4-1 \
+    libsoup-gnome2.4-1 \
     libsrtp2-1 \
-    libcairo-gobject2 \
+    lame \
+    libopus0 \
+    libwebrtc-audio-processing1 \
     pulseaudio \
     libpulse0 \
+    libcairo-gobject2 \
     libpangocairo-1.0-0 \
-    libgirepository1.0-dev \
+    libgirepository-1.0-1 \
+    libopenjp2-7 \
     libjpeg-dev \
     libwebp-dev \
     libvpx-dev \
     zlib1g-dev \
-    x264 \
+    x264 && \
+rm -rf /var/lib/apt/lists/*
+
+# Install development dependencies
+apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     xvfb \
-    coturn
+    coturn && \
+rm -rf /var/lib/apt/lists/*
 
 . /etc/lsb-release
 if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt; fi

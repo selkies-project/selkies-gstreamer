@@ -12,8 +12,6 @@ RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -
     wmctrl \
     jq \
     gdebi-core \
-    glib-networking \
-    libopus0 \
     libgdk-pixbuf2.0-0 \
     libgtk2.0-bin \
     libgl-dev \
@@ -27,25 +25,28 @@ RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -
     xserver-xorg-core \
     wayland-protocols \
     libwayland-dev \
-    libwayland-egl-backend-dev \
+    libwayland-egl1 \
     libx11-xcb1 \
     libxkbcommon0 \
     libxdamage1 \
-    libxml2-dev \
-    libwebrtc-audio-processing1 \
+    libsoup2.4-1 \
+    libsoup-gnome2.4-1 \
     libsrtp2-1 \
-    libcairo-gobject2 \
+    lame \
+    libopus0 \
+    libwebrtc-audio-processing1 \
     pulseaudio \
     libpulse0 \
+    libcairo-gobject2 \
     libpangocairo-1.0-0 \
-    libgirepository1.0-dev \
+    libgirepository-1.0-1 \
+    libopenjp2-7 \
     libjpeg-dev \
     libwebp-dev \
     libvpx-dev \
     zlib1g-dev \
-    x264 \
-    xvfb \
-    coturn
+    x264 && \
+    sudo rm -rf /var/lib/apt/lists/*
 
 RUN . /etc/lsb-release; if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt; fi
 
@@ -53,11 +54,14 @@ RUN . /etc/lsb-release; if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get ins
 RUN cd /opt && . /etc/lsb-release && SELKIES_VERSION=$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g') && \
     curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.tgz" | tar -zxf -
 
-# Install dev dependencies
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+# Install development dependencies
+RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        xvfb \
+        coturn \
         nginx \
         imagemagick \
         python3-venv && \
+    sudo rm -rf /var/lib/apt/lists/* && \
     sudo python3 -m pip install --upgrade build
 
 # Install desktop environment
@@ -65,14 +69,15 @@ ARG DESKTOP=xfce
 COPY ./features/desktop-selkies/src/install-desktop-environment.sh /tmp/
 RUN /tmp/install-desktop-environment.sh ${DESKTOP}
 
-# Install browser
-RUN cd /tmp && sudo apt-get update && \
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xdg-utils ./google-chrome-stable_current_amd64.deb && \
-    sudo rm -f google-chrome-stable_current_amd64.deb && \
+# Install Chrome browser
+RUN cd /tmp && curl -fsSL -o ./google-chrome-stable.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xdg-utils ./google-chrome-stable.deb && \
+    sudo rm -rf /var/lib/apt/lists/* && \
+    sudo rm -f google-chrome-stable.deb && \
     xdg-settings set default-web-browser google-chrome.desktop
 
-# Install other dev utils
+# Install other development utilities
 RUN sudo apt-get update && sudo apt-get install -y \
     jstest-gtk \
-    netcat
+    netcat && \
+    sudo rm -rf /var/lib/apt/lists/*
