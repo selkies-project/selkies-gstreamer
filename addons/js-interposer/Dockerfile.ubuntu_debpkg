@@ -10,7 +10,7 @@
 ARG DISTRIB_RELEASE=22.04
 FROM ubuntu:${DISTRIB_RELEASE} as build
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         build-essential && \
     rm -rf /var/lib/apt/lists/*
 
@@ -32,7 +32,8 @@ COPY --from=build /opt/${PKG_NAME}_${PKG_VERSION}.deb /opt/${PKG_NAME}_${PKG_VER
 
 WORKDIR /opt
 
-RUN apt-get install -y --no-install-recommends \
-    /opt/${PKG_NAME}_${PKG_VERSION}.deb
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        /opt/${PKG_NAME}_${PKG_VERSION}.deb && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN stat /usr/local/lib/selkies-js-interposer/joystick_interposer.so
