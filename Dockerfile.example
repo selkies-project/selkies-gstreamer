@@ -75,7 +75,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         va-driver-all \
         i965-va-driver-shaders \
         intel-media-va-driver-non-free \
-        libmfx-tools \
         libva2 \
         vainfo \
         intel-gpu-tools \

@@ -51,7 +51,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libwebp-dev \
         libx264-dev \
         libvpx-dev \
-        libmfx-dev \
         libva-dev && \
     rm -rf /var/lib/apt/lists/*
 
