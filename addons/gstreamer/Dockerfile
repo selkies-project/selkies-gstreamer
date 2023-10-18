@@ -7,9 +7,9 @@ FROM ubuntu:${UBUNTU_RELEASE}
 
 # Install essential dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        curl \
         build-essential \
         ca-certificates \
+        curl \
         git \
         vim && \
     rm -rf /var/lib/apt/lists/*

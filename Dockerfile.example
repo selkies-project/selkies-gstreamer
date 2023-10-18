@@ -23,6 +23,7 @@ LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         # System dependencies
         build-essential \
+        curl \
         gnupg \
         software-properties-common \
         sudo \
@@ -88,11 +89,16 @@ RUN mkdir -pm755 /etc/apt/preferences.d && \
     echo "Package: firefox*\n\
 Pin: version 1:1snap*\n\
 Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
-    add-apt-repository -y ppa:mozillateam/ppa && \
+    # Add Mozilla Firefox PPA
+    mkdir -pm755 /etc/apt/trusted.gpg.d && \
+    curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0AB215679C571D1C8325275B9BDB3D89CE49EC21" | gpg --dearmor -o /etc/apt/trusted.gpg.d/mozillateam-ubuntu-ppa.gpg && \
+    mkdir -pm755 /etc/apt/sources.list.d && \
+    echo "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2) main" > "/etc/apt/sources.list.d/mozillateam-ubuntu-ppa-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2).list" && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        curl \
         git \
         vim \
-        curl \
+        wget \
         ssl-cert \
         jq \
         xvfb \
