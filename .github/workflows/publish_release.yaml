@@ -55,13 +55,13 @@ jobs:
           
           - name: js-interposer
             version_suffix: -ubuntu20.04
-            build_args: DISTRIB_RELEASE=20.04;DEBFULLNAME="$GITHUB_ACTOR";DEBEMAIL="$GITHUB_ACTOR@users.noreply.github.com";PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
+            build_args: DISTRIB_RELEASE=20.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
             source_directory: addons/js-interposer
             dockerfile: Dockerfile.ubuntu_debpkg
 
           - name: js-interposer
             version_suffix: -ubuntu22.04
-            build_args: DISTRIB_RELEASE=22.04;DEBFULLNAME="$GITHUB_ACTOR";DEBEMAIL="$GITHUB_ACTOR@users.noreply.github.com";PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
+            build_args: DISTRIB_RELEASE=22.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
             source_directory: addons/js-interposer
             dockerfile: Dockerfile.ubuntu_debpkg
 

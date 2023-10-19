@@ -74,7 +74,7 @@ runs:
         fi
 
         if [ '${{ inputs.image_version_2 }}' != '' ]; then
-          export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}${{ inputs.image_version_suffix }}"
+          export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}"
           docker tag $IMAGE_TAG_1 $IMAGE_TAG_2
           if [[ "${{ inputs.push_image }}" == "true" ]]; then
             docker push $IMAGE_TAG_2
