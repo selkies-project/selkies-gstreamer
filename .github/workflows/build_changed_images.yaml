@@ -105,7 +105,7 @@ jobs:
           - name: gst-py-example
             version_suffix: -ubuntu20.04
             push_image: "false"
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=pr-ubuntu20.04;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr-ubuntu20.04;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr-ubuntu20.04;JS_BASE_IMAGE_RELEASE=pr-ubuntu20.04;JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr${{ matrix.version_suffix }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr${{ matrix.version_suffix }};JS_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
             dockerfile: Dockerfile.example
             source_directory: .
             source_files_for_diff: |
@@ -120,7 +120,7 @@ jobs:
           - name: gst-py-example
             version_suffix: -ubuntu22.04
             push_image: "false"
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=pr-ubuntu22.04;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr-ubuntu22.04;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr-ubuntu22.04;JS_BASE_IMAGE_RELEASE=pr-ubuntu22.04;JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr${{ matrix.version_suffix }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr${{ matrix.version_suffix }};JS_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
             dockerfile: Dockerfile.example
             source_directory: .
             source_files_for_diff: |
