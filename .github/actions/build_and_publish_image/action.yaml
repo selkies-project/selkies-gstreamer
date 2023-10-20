@@ -65,9 +65,9 @@ runs:
         export IMAGE_TAG_1="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_1 }}"
         if [[ "${{ inputs.use_cache }}" == "true" ]]; then
           docker pull "$IMAGE_TAG_1" || true
-          (cd "${{ inputs.image_source_directory" }} && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" --cache-from "$IMAGE_TAG_1" -t "$IMAGE_TAG_1" .)
+          (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" --cache-from "$IMAGE_TAG_1" -t "$IMAGE_TAG_1" .)
         else
-          (cd "${{ inputs.image_source_directory" }} && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" -t "$IMAGE_TAG_1" .)
+          (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" -t "$IMAGE_TAG_1" .)
         fi
         if [[ "${{ inputs.push_image }}" == "true" ]]; then
           docker push "$IMAGE_TAG_1"
