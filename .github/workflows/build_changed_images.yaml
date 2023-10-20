@@ -6,11 +6,8 @@ name: Build changed images
 
 on:
   pull_request:
-      branches: main
-      paths-ignore:
-        - README.md
-        - .devconttainer/**
-        - .vscode/**
+    branches:
+    - main
   workflow_dispatch:
 
 jobs:
@@ -23,77 +20,79 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: coturn
-            source_directory: addons/coturn
-            source_files_for_diff: addons/coturn
+        - name: coturn
+          source_directory: addons/coturn
+          source_files_for_diff: addons/coturn
 
-          - name: coturn-web
-            source_directory: addons/coturn-web
-            source_files_for_diff: addons/coturn-web
+        - name: coturn-web
+          source_directory: addons/coturn-web
+          source_files_for_diff: addons/coturn-web
 
-          - name: gst-web
-            source_directory: addons/gst-web
-            source_files_for_diff: addons/gst-web
+        - name: gst-web
+          source_directory: addons/gst-web
+          source_files_for_diff: addons/gst-web
 
-          - name: gstreamer
-            version_suffix: -ubuntu20.04
-            build_args: UBUNTU_RELEASE=20.04
-            source_directory: addons/gstreamer
-            source_files_for_diff: addons/gstreamer
+        - name: gstreamer
+          version_suffix: -ubuntu20.04
+          build_args: UBUNTU_RELEASE=20.04
+          source_directory: addons/gstreamer
+          source_files_for_diff: addons/gstreamer
 
-          - name: gstreamer
-            version_suffix: -ubuntu22.04
-            build_args: UBUNTU_RELEASE=22.04
-            source_directory: addons/gstreamer
-            source_files_for_diff: addons/gstreamer
-          
-          - name: js-interposer
-            version_suffix: -ubuntu20.04
-            build_args: DISTRIB_RELEASE=20.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
-            source_directory: addons/js-interposer
+        - name: gstreamer
+          version_suffix: -ubuntu22.04
+          build_args: UBUNTU_RELEASE=22.04
+          source_directory: addons/gstreamer
+          source_files_for_diff: addons/gstreamer
+        
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          build_args: DISTRIB_RELEASE=20.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
+          source_directory: addons/js-interposer
+          source_files_for_diff: addons/js-interposer
 
-          - name: js-interposer
-            version_suffix: -ubuntu22.04
-            build_args: DISTRIB_RELEASE=22.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
-            source_directory: addons/js-interposer
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          build_args: DISTRIB_RELEASE=22.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
+          source_directory: addons/js-interposer
+          source_files_for_diff: addons/js-interposer
 
-          - name: infra-gcp-installer
-            source_directory: infra/gce/installer-image
-            source_files_for_diff: infra/gce/installer-image
+        - name: infra-gcp-installer
+          source_directory: infra/gce/installer-image
+          source_files_for_diff: infra/gce/installer-image
 
-          - name: py-build
-            build_args: PACKAGE_VERSION=0.0.0.dev0
-            source_directory: .
-            source_files_for_diff: |
-              src/**
-              Dockerfile
-              pyproject.toml
-              setup.cfg
-              .github/workflows/build_and_publish_changed_images.yaml
+        - name: py-build
+          build_args: PACKAGE_VERSION=0.0.0.dev0
+          source_directory: .
+          source_files_for_diff: |
+            src/**
+            Dockerfile
+            pyproject.toml
+            setup.cfg
+            .github/workflows/build_changed_images.yaml
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2 # This is for changed-files.
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2 # This is for changed-files.
 
-      - name: Check for changes to image source
-        id: check
-        uses: tj-actions/changed-files@v38
-        with:
-          files: ${{ matrix.source_files_for_diff }}
+    - name: Check for changes to image source
+      id: check
+      uses: tj-actions/changed-files@v38
+      with:
+        files: ${{ matrix.source_files_for_diff }}
 
-      - name: Build & publish ${{ matrix.name }} image
-        if: steps.check.outputs.any_changed == 'true' || steps.check.outputs.any_deleted == 'true'
-        uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: ${{ matrix.build_args }}
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: $GITHUB_ACTOR
-          image_name: ${{ matrix.name }}
-          image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: pr${{ matrix.version_suffix }}
-          push_image: "false"
+    - name: Build & publish ${{ matrix.name }} image
+      if: steps.check.outputs.any_changed == 'true' || steps.check.outputs.any_deleted == 'true'
+      uses: ./.github/actions/build_and_publish_image
+      with:
+        build_args: ${{ matrix.build_args }}
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: $GITHUB_ACTOR
+        image_name: ${{ matrix.name }}
+        image_source_directory: ${{ matrix.source_directory }}
+        image_version_1: pr${{ matrix.version_suffix }}
+        push_image: "false"
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   changed_example_images:
@@ -102,57 +101,57 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: gst-py-example
-            version_suffix: -ubuntu20.04
-            push_image: "false"
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr${{ matrix.version_suffix }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr${{ matrix.version_suffix }};JS_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
-            dockerfile: Dockerfile.example
-            source_directory: .
-            source_files_for_diff: |
-              addons/**
-              src/**
-              Dockerfile
-              Dockerfile.example
-              pyproject.toml
-              setup.cfg
-              .github/workflows/build_and_publish_changed_images.yaml
+        - name: gst-py-example
+          version_suffix: -ubuntu20.04
+          push_image: "false"
+          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr${{ matrix.version_suffix }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr${{ matrix.version_suffix }};JS_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+          dockerfile: Dockerfile.example
+          source_directory: .
+          source_files_for_diff: |
+            addons/**
+            src/**
+            Dockerfile
+            Dockerfile.example
+            pyproject.toml
+            setup.cfg
+            .github/workflows/build_changed_images.yaml
 
-          - name: gst-py-example
-            version_suffix: -ubuntu22.04
-            push_image: "false"
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr${{ matrix.version_suffix }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr${{ matrix.version_suffix }};JS_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
-            dockerfile: Dockerfile.example
-            source_directory: .
-            source_files_for_diff: |
-              addons/**
-              src/**
-              Dockerfile
-              Dockerfile.example
-              pyproject.toml
-              setup.cfg
-              .github/workflows/build_and_publish_changed_images.yaml
+        - name: gst-py-example
+          version_suffix: -ubuntu22.04
+          push_image: "false"
+          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:pr${{ matrix.version_suffix }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:pr${{ matrix.version_suffix }};JS_BASE_IMAGE_RELEASE=pr${{ matrix.version_suffix }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+          dockerfile: Dockerfile.example
+          source_directory: .
+          source_files_for_diff: |
+            addons/**
+            src/**
+            Dockerfile
+            Dockerfile.example
+            pyproject.toml
+            setup.cfg
+            .github/workflows/build_changed_images.yaml
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2 # This is for changed-files.
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2 # This is for changed-files.
 
-      - id: check
-        name: Check for changes to ${{ matrix.name }} image source
-        uses: tj-actions/changed-files@v38
-        with:
-          files: ${{ matrix.source_files_for_diff }}
+    - name: Check for changes to ${{ matrix.name }} image source
+      id: check
+      uses: tj-actions/changed-files@v38
+      with:
+        files: ${{ matrix.source_files_for_diff }}
 
-      - name: Build & publish ${{ matrix.name }} image
-        if: steps.check.outputs.any_changed == 'true' || steps.check.outputs.any_deleted == 'true'
-        uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: ${{ matrix.build_args }}
-          dockerfile: ${{ matrix.dockerfile }}
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: $GITHUB_ACTOR
-          image_name: ${{ matrix.name }}
-          image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: pr${{ matrix.version_suffix }}
-          push_image: "false"
+    - name: Build & publish ${{ matrix.name }} image
+      if: steps.check.outputs.any_modified == 'true'
+      uses: ./.github/actions/build_and_publish_image
+      with:
+        build_args: ${{ matrix.build_args }}
+        dockerfile: ${{ matrix.dockerfile }}
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: $GITHUB_ACTOR
+        image_name: ${{ matrix.name }}
+        image_source_directory: ${{ matrix.source_directory }}
+        image_version_1: pr${{ matrix.version_suffix }}
+        push_image: "false"

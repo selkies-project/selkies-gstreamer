@@ -7,10 +7,7 @@ name: Build & publish all images
 on:
   push:
     branches:
-      - main
-    paths:
-      - ".github/workflows/build_and_publish_all_images.yaml"
-      - ".github/actions/build_and_publish_image/action.yaml"      
+    - main
   workflow_dispatch:
 
 jobs:
@@ -20,58 +17,58 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: coturn
-            source_directory: addons/coturn
+        - name: coturn
+          source_directory: addons/coturn
 
-          - name: coturn-web
-            source_directory: addons/coturn-web
+        - name: coturn-web
+          source_directory: addons/coturn-web
 
-          - name: gst-web
-            source_directory: addons/gst-web
+        - name: gst-web
+          source_directory: addons/gst-web
 
-          - name: gstreamer
-            version_suffix: -ubuntu20.04
-            build_args: UBUNTU_RELEASE=20.04
-            source_directory: addons/gstreamer
+        - name: gstreamer
+          version_suffix: -ubuntu20.04
+          build_args: UBUNTU_RELEASE=20.04
+          source_directory: addons/gstreamer
 
-          - name: gstreamer
-            version_suffix: -ubuntu22.04
-            build_args: UBUNTU_RELEASE=22.04
-            source_directory: addons/gstreamer
-          
-          - name: js-interposer
-            version_suffix: -ubuntu20.04
-            build_args: DISTRIB_RELEASE=20.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
-            source_directory: addons/js-interposer
-            dockerfile: Dockerfile.ubuntu_debpkg
+        - name: gstreamer
+          version_suffix: -ubuntu22.04
+          build_args: UBUNTU_RELEASE=22.04
+          source_directory: addons/gstreamer
+        
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          build_args: DISTRIB_RELEASE=20.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
+          source_directory: addons/js-interposer
+          dockerfile: Dockerfile.ubuntu_debpkg
 
-          - name: js-interposer
-            version_suffix: -ubuntu22.04
-            build_args: DISTRIB_RELEASE=22.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
-            source_directory: addons/js-interposer
-            dockerfile: Dockerfile.ubuntu_debpkg
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          build_args: DISTRIB_RELEASE=22.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=0.0.0
+          source_directory: addons/js-interposer
+          dockerfile: Dockerfile.ubuntu_debpkg
 
-          - name: infra-gcp-installer
-            source_directory: infra/gce/installer-image
+        - name: infra-gcp-installer
+          source_directory: infra/gce/installer-image
 
-          - name: py-build
-            build_args: PACKAGE_VERSION=0.0.0.dev0
-            source_directory: .
+        - name: py-build
+          build_args: PACKAGE_VERSION=0.0.0.dev0
+          source_directory: .
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Build & publish ${{ matrix.name }} image
-        uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: ${{ matrix.build_args }}
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: $GITHUB_ACTOR
-          image_name: ${{ matrix.name }}
-          image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
-          dockerfile: ${{ matrix.dockerfile || 'Dockerfile' }}
+    - name: Build & publish ${{ matrix.name }} image
+      uses: ./.github/actions/build_and_publish_image
+      with:
+        build_args: ${{ matrix.build_args }}
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: $GITHUB_ACTOR
+        image_name: ${{ matrix.name }}
+        image_source_directory: ${{ matrix.source_directory }}
+        image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+        dockerfile: ${{ matrix.dockerfile || 'Dockerfile' }}
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   all_example_images:
@@ -80,29 +77,29 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: gst-py-example
-            version_suffix: -ubuntu20.04
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_BASE_IMAGE_RELEASE=${{ github.ref_name }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
-            dockerfile: Dockerfile.example
-            source_directory: .
+        - name: gst-py-example
+          version_suffix: -ubuntu20.04
+          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_BASE_IMAGE_RELEASE=${{ github.ref_name }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+          dockerfile: Dockerfile.example
+          source_directory: .
 
-          - name: gst-py-example
-            version_suffix: -ubuntu22.04
-            build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_BASE_IMAGE_RELEASE=${{ github.ref_name }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
-            dockerfile: Dockerfile.example
-            source_directory: .
+        - name: gst-py-example
+          version_suffix: -ubuntu22.04
+          build_args: PACKAGE_VERSION=0.0.0.dev0;UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }};PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }};WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }};JS_BASE_IMAGE_RELEASE=${{ github.ref_name }};JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+          dockerfile: Dockerfile.example
+          source_directory: .
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Build & publish ${{ matrix.name }} image
-        uses: ./.github/actions/build_and_publish_image
-        with:
-          build_args: ${{ matrix.build_args }}
-          dockerfile: ${{ matrix.dockerfile }}
-          github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-          github_username: $GITHUB_ACTOR
-          image_name: ${{ matrix.name }}
-          image_source_directory: ${{ matrix.source_directory }}
-          image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
+    - name: Build & publish ${{ matrix.name }} image
+      uses: ./.github/actions/build_and_publish_image
+      with:
+        build_args: ${{ matrix.build_args }}
+        dockerfile: ${{ matrix.dockerfile }}
+        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
+        github_username: $GITHUB_ACTOR
+        image_name: ${{ matrix.name }}
+        image_source_directory: ${{ matrix.source_directory }}
+        image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}

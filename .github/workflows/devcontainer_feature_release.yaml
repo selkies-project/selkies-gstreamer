@@ -1,4 +1,9 @@
-name: "Release dev container features & Generate Documentation"
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+name: "Release devcontainer features & Generate documentation"
+
 on:
   workflow_dispatch:
 
@@ -11,14 +16,13 @@ jobs:
       pull-requests: write
       packages: write
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: "Publish Features"
-        uses: devcontainers/action@v1
-        with:
-          publish-features: "true"
-          base-path-to-features: ".devcontainer/features/desktop-selkies"
-          generate-docs: "false"
-          
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: "Publish Features"
+      uses: devcontainers/action@v1
+      with:
+        publish-features: "true"
+        base-path-to-features: ".devcontainer/features/desktop-selkies"
+        generate-docs: "false"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

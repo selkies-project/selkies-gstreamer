@@ -2,9 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-name: Build & publish an image
+name: Build & publish image
 
-description: Build an image from source, then publish it to GHCR
+description: Build image from source, then publish it to GHCR
 
 inputs:
   build_args:
@@ -44,39 +44,39 @@ inputs:
 runs:
   using: composite
   steps:
-    - shell: bash
-      run: |
-        set -x
-        echo "${{ inputs.github_personal_access_token }}" | docker login ghcr.io -u "${{ inputs.github_username }}" --password-stdin
-        export BUILD_ARGS=""
-        if [[ -n "${{ inputs.build_args }}" ]]; then
-          IFS=";" read -ra args <<< "${{ inputs.build_args }}"
-          for arg in ${args[@]}; do
-            BUILD_ARGS+="--build-arg $arg "
-            if [[ "$arg" =~ "UBUNTU_RELEASE" ]]; then
-              # pull latest base image
-              eval "export $arg"
-              docker pull "ubuntu:${UBUNTU_RELEASE?}"
-            fi
-          done
-        fi
-
-        export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-gstreamer/
-        export IMAGE_TAG_1="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_1 }}"
-        if [[ "${{ inputs.use_cache }}" == "true" ]]; then
-          docker pull "$IMAGE_TAG_1" || true
-          (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" --cache-from "$IMAGE_TAG_1" -t "$IMAGE_TAG_1" .)
-        else
-          (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" -t "$IMAGE_TAG_1" .)
-        fi
-        if [[ "${{ inputs.push_image }}" == "true" ]]; then
-          docker push "$IMAGE_TAG_1"
-        fi
-
-        if [[ ! -z "${{ inputs.image_version_2 }}" ]]; then
-          export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}"
-          docker tag "$IMAGE_TAG_1" "$IMAGE_TAG_2"
-          if [[ "${{ inputs.push_image }}" == "true" ]]; then
-            docker push "$IMAGE_TAG_2"
+  - shell: bash
+    run: |
+      set -x
+      echo "${{ inputs.github_personal_access_token }}" | docker login ghcr.io -u "${{ inputs.github_username }}" --password-stdin
+      export BUILD_ARGS=""
+      if [[ -n "${{ inputs.build_args }}" ]]; then
+        IFS=";" read -ra args <<< "${{ inputs.build_args }}"
+        for arg in ${args[@]}; do
+          BUILD_ARGS+="--build-arg $arg "
+          if [[ "$arg" =~ "UBUNTU_RELEASE" ]]; then
+            # pull latest base image
+            eval "export $arg"
+            docker pull "ubuntu:${UBUNTU_RELEASE?}"
           fi
+        done
+      fi
+
+      export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-gstreamer/
+      export IMAGE_TAG_1="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_1 }}"
+      if [[ "${{ inputs.use_cache }}" == "true" ]]; then
+        docker pull "$IMAGE_TAG_1" || true
+        (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" --cache-from "$IMAGE_TAG_1" -t "$IMAGE_TAG_1" .)
+      else
+        (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" -t "$IMAGE_TAG_1" .)
+      fi
+      if [[ "${{ inputs.push_image }}" == "true" ]]; then
+        docker push "$IMAGE_TAG_1"
+      fi
+
+      if [[ ! -z "${{ inputs.image_version_2 }}" ]]; then
+        export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}"
+        docker tag "$IMAGE_TAG_1" "$IMAGE_TAG_2"
+        if [[ "${{ inputs.push_image }}" == "true" ]]; then
+          docker push "$IMAGE_TAG_2"
         fi
+      fi
