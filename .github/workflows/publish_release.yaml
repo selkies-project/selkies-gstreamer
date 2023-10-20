@@ -21,10 +21,10 @@ jobs:
         run: |
           # If ref name does not match semver, default to 0.0.0.
           # This happens when running from a branch name like main.
-          if [[ ${RELEASE_VERSION} =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-            echo semver=${RELEASE_VERSION/v/} >> $GITHUB_OUTPUT
+          if [[ "${RELEASE_VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "semver=${RELEASE_VERSION/v/}" >> "$GITHUB_OUTPUT"
           else
-            echo semver=0.0.0 >> $GITHUB_OUTPUT
+            echo "semver=0.0.0" >> "$GITHUB_OUTPUT"
           fi
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
@@ -222,31 +222,30 @@ jobs:
     steps:
       - id: extract
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           cat - > /tmp/sa_key.json <<EOF
           ${{ secrets.GCP_ACTIONS_SA_KEY }}
           EOF
           gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
 
-          docker create --name copy ${{ matrix.image_tag }}
-          TARGET_PATH=${{ matrix.target_directory }}/${{ matrix.target_name }}
-          if [[ ${{ matrix.source_path }} == *\.whl || ${{ matrix.source_path }} == *\.tgz ]]
-          then
-            docker cp copy:${{ matrix.source_path }} $TARGET_PATH
+          docker create --name copy "${{ matrix.image_tag }}"
+          TARGET_PATH="${{ matrix.target_directory }}/${{ matrix.target_name }}"
+          if [[ -f "${{ matrix.source_path }}" ]]; then
+            docker cp "copy:${{ matrix.source_path }}" "$TARGET_PATH"
           else
             (
-              cd ${{ matrix.target_directory }} &&
-              docker cp copy:${{ matrix.source_path }} ./temp &&
-              tar -zcvf $TARGET_PATH temp
+              cd "${{ matrix.target_directory }}" &&
+              docker cp "copy:${{ matrix.source_path }}" ./temp &&
+              tar -zcvf "$TARGET_PATH" temp
             )
           fi
           docker rm copy
-          gsutil cp $TARGET_PATH ${{ matrix.upload_bucket_path }}
+          gsutil cp "$TARGET_PATH" "${{ matrix.upload_bucket_path }}"
 
-          echo ${{ matrix.id }}_cache_key=${{ matrix.cache_key }} >> $GITHUB_OUTPUT
-          echo ${{ matrix.id }}_mimetype=${{ matrix.mimetype }} >> $GITHUB_OUTPUT
-          echo ${{ matrix.id }}_name=${{ matrix.target_name }} >> $GITHUB_OUTPUT
-          echo ${{ matrix.id }}_path=$TARGET_PATH >> $GITHUB_OUTPUT
+          echo "${{ matrix.id }}_cache_key=${{ matrix.cache_key }}" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.id }}_mimetype=${{ matrix.mimetype }}" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.id }}_name=${{ matrix.target_name }}" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.id }}_path=$TARGET_PATH" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v3
         with:
