@@ -159,7 +159,7 @@ class GSTWebRTCApp:
         # common when building a remote desktop interface as the clients
         # mouse pointer can be used to give the user perceived lower latency.
         # This can be programmatically toggled after the pipeline is started
-        # for example if the user is viewing full screen in the browser,
+        # for example if the user is viewing fullscreen in the browser,
         # they may want to revert to seeing the remote cursor when the
         # client side cursor disappears.
         ximagesrc.set_property("show-pointer", 0)

@@ -182,7 +182,7 @@ var app = new Vue({
             return (getCookieValue("broker_" + app.appName) || "webrtc").split("#")[0];
         },
         enterFullscreen() {
-            // Request full screen mode.
+            // Request fullscreen mode.
             webrtc.element.parentElement.requestFullscreen();
         },
         playVideo() {
