@@ -6,7 +6,7 @@ name: Publish release
 
 on:
   release:
-    types: [published]
+    types: [ published ]
   workflow_dispatch:
 
 jobs:
@@ -182,7 +182,7 @@ jobs:
             cache_key: js-interposer-asset-ubuntu2004
             description: JS Interposer Ubuntu 20.04
             image_tag: ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}-ubuntu20.04
-            mimetype: application/octet-stream
+            mimetype: application/vnd.debian.binary-package
             source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
             target_directory: /tmp
             target_name: selkies-js-interposer-${{ github.ref_name }}-ubuntu20.04.deb
@@ -192,7 +192,7 @@ jobs:
             cache_key: js-interposer-asset-ubuntu2204
             description: JS Interposer Ubuntu 22.04
             image_tag: ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}-ubuntu22.04
-            mimetype: application/octet-stream
+            mimetype: application/vnd.debian.binary-package
             source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
             target_directory: /tmp
             target_name: selkies-js-interposer-${{ github.ref_name }}-ubuntu22.04.deb
@@ -230,14 +230,11 @@ jobs:
 
           docker create --name copy "${{ matrix.image_tag }}"
           TARGET_PATH="${{ matrix.target_directory }}/${{ matrix.target_name }}"
-          if [[ -f "${{ matrix.source_path }}" ]]; then
-            docker cp "copy:${{ matrix.source_path }}" "$TARGET_PATH"
-          else
-            (
-              cd "${{ matrix.target_directory }}" &&
-              docker cp "copy:${{ matrix.source_path }}" ./temp &&
-              tar -zcvf "$TARGET_PATH" temp
-            )
+          docker cp "copy:${{ matrix.source_path }}" "$TARGET_PATH"
+          if [[ -d "$TARGET_PATH" ]]; then
+            SOURCE_DIRNAME=$(echo "${{ matrix.source_path }}" | sed 's:.*/::')
+            cd "${{ matrix.target_directory }}" && mv -f "$TARGET_PATH" "$SOURCE_DIRNAME"
+            tar -zcvf "temp.tgz" "$SOURCE_DIRNAME" && rm -rf "$SOURCE_DIRNAME" && mv -f "temp.tgz" "$TARGET_PATH"
           fi
           docker rm copy
           gsutil cp "$TARGET_PATH" "${{ matrix.upload_bucket_path }}"
