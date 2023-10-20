@@ -145,7 +145,7 @@
                         {{ connectionVideoBitrate }}
                       </v-progress-circular>
                     </template>
-                    <span>Current video bit rate in mbps vs selected bit rate {{ (videoBitRate / 1000).toFixed(0) }}
+                    <span>Current video bitrate in mbps vs selected bitrate {{ (videoBitRate / 1000).toFixed(0) }}
                       mbps</span>
                   </v-tooltip>
 
@@ -264,17 +264,17 @@
                 </v-toolbar>
               </p>
               <p>
-                <v-select :items="videoBitRateOptions" label="Video bit rate" menu-props="left" v-model="videoBitRate"
-                  hint="Dynamic bit rate selection for hardware encoder on server" persistent-hint></v-select>
+                <v-select :items="videoBitRateOptions" label="Video bitrate" menu-props="left" v-model="videoBitRate"
+                  hint="Dynamic bitrate selection for host video encoder" persistent-hint></v-select>
               </p>
               <p>
-                <v-select :items="videoFramerateOptions" label="Video frame rate" menu-props="left"
-                  v-model="videoFramerate" hint="Frame rate selection, will reload window on change" persistent-hint>
+                <v-select :items="videoFramerateOptions" label="Video framerate" menu-props="left"
+                  v-model="videoFramerate" hint="Framerate selection for host video encoder" persistent-hint>
                 </v-select>
               </p>
               <p>
-                <v-select :items="audioBitRateOptions" label="Audio bit rate" menu-props="left" v-model="audioBitRate"
-                  hint="streaming bit rate selection for audio encoder on server"
+                <v-select :items="audioBitRateOptions" label="Audio bitrate" menu-props="left" v-model="audioBitRate"
+                  hint="Streaming bitrate selection for host audio encoder"
                   persistent-hint>
                 </v-select>
               </p>
@@ -294,15 +294,15 @@
                 <li>Video encoder: <b>{{ encoderName }}</b></li>
                 <li>Window size: <b>{{ windowResolution[0] }}x{{ windowResolution[1] }}</b></li>
                 <li>Video decoder: <b>{{ connectionVideoDecoder }}</b></li>
-                <li>Frame rate: <b>{{ connectionFrameRate }} fps</b></li>
-                <li>Bit rate: <b>{{ connectionVideoBitrate }} mbps</b></li>
+                <li>Framerate: <b>{{ connectionFrameRate }} fps</b></li>
+                <li>Bitrate: <b>{{ connectionVideoBitrate }} mbps</b></li>
                 <li>Available receive bandwidth: <b>{{ connectionAvailableBandwidth }}</b></li>
               </ul>
               Audio Stats
               <ul>
                 <li>Latency: <b>{{ connectionAudioLatency }} ms</b></li>
                 <li>Codec: <b>{{ connectionAudioCodecName }}</b></li>
-                <li>Bit rate: <b>{{ connectionAudioBitrate }} kbps</b></li>
+                <li>Bitrate: <b>{{ connectionAudioBitrate }} kbps</b></li>
               </ul>
               </p>
               <hr />

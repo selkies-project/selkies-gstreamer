@@ -237,7 +237,7 @@ var app = new Vue({
         },
         videoFramerate(newValue) {
             if (newValue === null) return;
-            console.log("video frame rate changed to " + newValue);
+            console.log("video framerate changed to " + newValue);
             webrtc.sendDataChannelMessage('_arg_fps,' + newValue);
             this.setIntParam("videoFramerate", newValue);
         },

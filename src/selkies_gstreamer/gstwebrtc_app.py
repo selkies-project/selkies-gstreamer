@@ -231,7 +231,7 @@ class GSTWebRTCApp:
 
             # Rate control mode tells the encoder how to compress the frames to
             # reach the target bitrate. A Constant Bit Rate (CBR) setting is best
-            # for streaming use cases as bit rate is the most important factor.
+            # for streaming use cases as bitrate is the most important factor.
             # A Variable Bit Rate (VBR) setting tells the encoder to adjust the
             # compression level based on scene complexity, something not needed
             # when streaming in real-time.
@@ -242,7 +242,7 @@ class GSTWebRTCApp:
             # Infinite GOP is best for streaming because it reduces the number
             # of large I-Frames being transmitted. At higher resolutions, these
             # I-Frames can dominate the bandwidth and add additional latency.
-            # With infinite GOP, you can use a higher bit rate to increase quality
+            # With infinite GOP, you can use a higher bitrate to increase quality
             # without a linear increase in total bandwidth.
             # A negative consequence when using infinite GOP size is that
             # when packets are lost, it may take the decoder longer to recover.
@@ -880,10 +880,10 @@ class GSTWebRTCApp:
             "system", {"action": "reload"})
 
     def send_framerate(self, framerate):
-        """Sends the current frame rate to the data channel
+        """Sends the current framerate to the data channel
         """
 
-        logger.info("sending frame rate")
+        logger.info("sending framerate")
         self.__send_data_channel_message(
             "system", {"action": "framerate,"+str(framerate)})
 
