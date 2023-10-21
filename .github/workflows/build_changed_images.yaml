@@ -15,8 +15,7 @@ jobs:
   changed_component_images:
     runs-on: ubuntu-latest
     outputs:
-      any_changed: steps.check.outputs.any_changed
-      any_deleted: steps.check.outputs.any_deleted
+      any_modified: steps.check.outputs.any_modified
     strategy:
       matrix:
         include:
@@ -83,7 +82,7 @@ jobs:
         files: ${{ matrix.source_files_for_diff }}
 
     - name: Build & publish ${{ matrix.name }} image
-      if: steps.check.outputs.any_changed == 'true' || steps.check.outputs.any_deleted == 'true'
+      if: ${{ steps.check.outputs.any_modified == 'true' }}
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}
@@ -144,7 +143,7 @@ jobs:
         files: ${{ matrix.source_files_for_diff }}
 
     - name: Build & publish ${{ matrix.name }} image
-      if: steps.check.outputs.any_modified == 'true'
+      if: ${{ steps.check.outputs.any_modified == 'true' }}
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}

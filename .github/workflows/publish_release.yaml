@@ -6,11 +6,12 @@ name: Publish release
 
 on:
   release:
-    types: [ created ]
+    types: [ published ]
   workflow_dispatch:
 
 jobs:
   get_semver:
+    name: Get Semantic Version
     runs-on: ubuntu-latest
     outputs:
       semver: ${{ steps.get.outputs.semver }}
@@ -141,7 +142,6 @@ jobs:
           source_path: /opt/selkies-gstreamer-latest.tgz
           target_directory: /tmp
           target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu20.04.tgz
-          upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
 
         - id: gst22
           description: Ubuntu 22.04
@@ -150,7 +150,6 @@ jobs:
           source_path: /opt/selkies-gstreamer-latest.tgz
           target_directory: /tmp
           target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu22.04.tgz
-          upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
         
         - id: js20
           description: JS Interposer Ubuntu 20.04
@@ -159,7 +158,6 @@ jobs:
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_directory: /tmp
           target_name: selkies-js-interposer-${{ github.ref_name }}-ubuntu20.04.deb
-          upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
         
         - id: js22
           description: JS Interposer Ubuntu 22.04
@@ -168,7 +166,6 @@ jobs:
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_directory: /tmp
           target_name: selkies-js-interposer-${{ github.ref_name }}-ubuntu22.04.deb
-          upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
 
         - id: py
           description: Python
@@ -177,7 +174,6 @@ jobs:
           source_path: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
           target_directory: /tmp
           target_name: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
-          upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
 
         - id: web
           description: Web
@@ -186,7 +182,6 @@ jobs:
           source_path: /opt/gst-web.tgz
           target_directory: /tmp
           target_name: selkies-gstreamer-web-${{ github.ref_name }}.tgz
-          upload_bucket_path: gs://selkies-project-releases/selkies-gstreamer/${{ github.ref_name }}/
 
     name: ${{ matrix.description }} release artifact extraction & upload
     steps:
@@ -194,11 +189,6 @@ jobs:
       id: extract
       run: |
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-        cat - > /tmp/sa_key.json <<EOF
-        ${{ secrets.GCP_ACTIONS_SA_KEY }}
-        EOF
-        gcloud -q auth activate-service-account --key-file /tmp/sa_key.json
-
         docker create --name copy "${{ matrix.image_tag }}"
         TARGET_PATH="${{ matrix.target_directory }}/${{ matrix.target_name }}"
         docker cp "copy:${{ matrix.source_path }}" "$TARGET_PATH"
@@ -208,11 +198,10 @@ jobs:
           tar -zcvf "temp.tgz" "$SOURCE_DIRNAME" && rm -rf "$SOURCE_DIRNAME" && mv -f "temp.tgz" "$TARGET_PATH"
         fi
         docker rm copy
-        gsutil cp "$TARGET_PATH" "${{ matrix.upload_bucket_path }}"
 
     - name: ${{ matrix.description }} release artifact upload
       id: release
-      if: github.event_name == 'release'
+      if: ${{ github.event_name == 'release' }}
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
