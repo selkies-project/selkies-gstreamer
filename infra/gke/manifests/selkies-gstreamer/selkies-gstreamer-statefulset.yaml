@@ -26,7 +26,7 @@ spec:
         # selkies-gstreamer selkies-gstreamer container
         ###
         - name: selkies-gstreamer
-          image: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu20.04
+          image: ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:latest-ubuntu22.04
           imagePullPolicy: Always
           env:
             - name: COTURN_WEB_URI

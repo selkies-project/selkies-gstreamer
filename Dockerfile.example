@@ -112,7 +112,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
     update-alternatives --set x-www-browser /usr/bin/firefox
 
 # Install Ubuntu 22.04 specific packages
-RUN if [ "${UBUNTU_RELEASE}" = "22.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
+RUN if [ "${UBUNTU_RELEASE}"\> "20.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
     rm -rf /var/lib/apt/lists/*
 
 # Add Tini init script - take care of runaway processes
