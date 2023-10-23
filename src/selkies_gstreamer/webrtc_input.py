@@ -582,7 +582,10 @@ class WebRTCInput:
             except:
                 x, y, button_mask = 0, 0, self.button_mask
                 relative = False
-            self.send_x11_mouse(x, y, button_mask, relative)
+            try:
+                self.send_x11_mouse(x, y, button_mask, relative)
+            except Exception as e:
+                logger.warning('failed to set mouse cursor: {}'.format(e))
         elif toks[0] == "p":
             # toggle mouse pointer visibility
             visible = bool(int(toks[1]))
