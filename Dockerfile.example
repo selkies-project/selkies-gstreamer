@@ -97,6 +97,8 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         git \
         vim \
         wget \
+        unzip \
+        zip \
         ssl-cert \
         jq \
         xvfb \
