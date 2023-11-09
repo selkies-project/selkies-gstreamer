@@ -66,7 +66,7 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
 
-If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
 2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`), using your own GStreamer build may work **as long as it is the most recent version with the required plugins included**:
 
@@ -96,10 +96,10 @@ This will install the HTML5 components to the default directory of `/opt/gst-web
 curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb"
 ```
 
-6. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
+6. If using NVIDIA GPUs for hardware acceleration, run this command to download NVRTC (you agree to the [NVIDIA License](https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt)):
 
 ```bash
-cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.*" -exec sh -c 'ln -sf $(basename {}) libnvrtc.so' \;
+cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl
 ```
 
 7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
@@ -167,7 +167,7 @@ Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent ve
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 ```
 
-If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and CUDA. If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
 2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `UBUNTU_RELEASE`):
 
@@ -213,10 +213,10 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y /tmp/selk
 rm -f /tmp/selkies-js-interposer.deb
 ```
 
-6. If using NVIDIA GPUs for hardware acceleration, run this command (make sure the NVIDIA CUDA Toolkit is installed before this):
+6. If using NVIDIA GPUs for hardware acceleration, run this command to download NVRTC (you agree to the [NVIDIA License](https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt)):
 
 ```bash
-cd /usr/local/cuda/lib64 && sudo find . -maxdepth 1 -type l -name "*libnvrtc.so.*" -exec sh -c 'ln -sf $(basename {}) libnvrtc.so' \;
+cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl
 ```
 
 7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
@@ -282,7 +282,7 @@ This table specifies the currently implemented video encoders and their correspo
 
 | Plugin (set `WEBRTC_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
-| [`nvh264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvh264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+| [`nvh264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvh264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | libnvidia-encode, NVRTC | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
 | [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver | N/A |
 | [`x264enc`](https://gstreamer.freedesktop.org/documentation/x264/index.html) | H.264 AVC | Software | All | All Major | `x264` | N/A |
 | [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
@@ -292,7 +292,7 @@ This table specifies the currently implemented video frame converters used to co
 
 | Plugin | Encoders | Acceleration | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvh264enc` | NVIDIA GPU | All | [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) | N/A |
+| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvh264enc` | NVIDIA GPU | All | libnvidia-encode, NVRTC | N/A |
 | [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc` | AMD, Intel GPU | All | VA-API Driver | N/A |
 | [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `vp8enc`, `vp9enc` | Software | All | Various | N/A |
 
