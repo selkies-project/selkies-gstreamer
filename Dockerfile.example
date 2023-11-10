@@ -97,8 +97,8 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         git \
         vim \
         wget \
-        unzip \
         zip \
+        unzip \
         ssl-cert \
         jq \
         xvfb \
@@ -111,9 +111,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         jstest-gtk \
         coturn && \
     rm -rf /var/lib/apt/lists/* && \
-    update-alternatives --set x-www-browser /usr/bin/firefox && \
-    # Extract NVRTC dependency, https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt
-    cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf /tmp/*
+    update-alternatives --set x-www-browser /usr/bin/firefox
 
 # Install Ubuntu 22.04 specific packages
 RUN if [ "${UBUNTU_RELEASE}"\> "20.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
@@ -126,6 +124,9 @@ RUN chmod +x /tini
 
 # Install GStreamer distribution
 COPY --from=selkies-gstreamer /opt/gstreamer ./gstreamer
+
+# Extract NVRTC dependency, https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt
+RUN cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf /tmp/*
 
 # Install web application
 COPY --from=selkies-web /usr/share/nginx/html ./gst-web

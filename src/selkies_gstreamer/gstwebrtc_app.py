@@ -356,6 +356,8 @@ class GSTWebRTCApp:
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
             x264enc.set_property("threads", 4)
+            x264enc.set_property("aud", False)
+            x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("key-int-max", 0)
             x264enc.set_property("byte-stream", True)
