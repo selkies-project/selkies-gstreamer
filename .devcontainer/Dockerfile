@@ -48,7 +48,11 @@ RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -
         x264 && \
     sudo rm -rf /var/lib/apt/lists/*
 
-RUN . /etc/lsb-release; if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt; fi
+RUN . /etc/lsb-release; if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then \
+        apt-get update && \
+        apt-get install --no-install-recommends -y xcvt && \
+        rm -rf /var/lib/apt/lists/*; \
+    fi
 
 # Download and extract latest GStreamer component
 RUN cd /opt && . /etc/lsb-release && SELKIES_VERSION=$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g') && \
