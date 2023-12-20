@@ -93,13 +93,13 @@ This will install the HTML5 components to the default directory of `/opt/gst-web
 5. Install the Joystick Interposer to process gamepad input (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`):
 
 ```bash
-curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb"
+cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb"
 ```
 
 6. If using NVIDIA GPUs for hardware acceleration, run this command to download NVRTC (you agree to the [NVIDIA License](https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt)):
 
 ```bash
-cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl
+cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && sudo mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl
 ```
 
 7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
@@ -137,7 +137,7 @@ sudo sed -i \
 sudo sed -i \
     -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
 /opt/gst-web/sw.js
-# Choose your video encoder
+# Choose your video encoder, change to nvh264enc or other encoders for hardware encoding
 export WEBRTC_ENCODER=${WEBRTC_ENCODER:-x264enc}
 # Do not enable resize if there is a physical display
 export WEBRTC_ENABLE_RESIZE=${WEBRTC_ENABLE_RESIZE:-false}
@@ -216,7 +216,7 @@ rm -f /tmp/selkies-js-interposer.deb
 6. If using NVIDIA GPUs for hardware acceleration, run this command to download NVRTC (you agree to the [NVIDIA License](https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt)):
 
 ```bash
-cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl
+cd /tmp && curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && cd nvrtc && chmod 755 libnvrtc* && find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && sudo mv -f libnvrtc* /opt/gstreamer/lib/x86_64-linux-gnu/ && cd /tmp && rm -rf nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl
 ```
 
 7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
@@ -254,7 +254,7 @@ sudo sed -i \
 sudo sed -i \
     -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
 /opt/gst-web/sw.js
-# Choose your video encoder
+# Choose your video encoder, change to nvh264enc or other encoders for hardware encoding
 export WEBRTC_ENCODER=${WEBRTC_ENCODER:-x264enc}
 # Do not enable resize if there is a physical display
 export WEBRTC_ENABLE_RESIZE=${WEBRTC_ENABLE_RESIZE:-false}
@@ -416,7 +416,7 @@ However, it might be that the parameters for the WebRTC interface, video encoder
 
 ### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
 
-Please read [Using a TURN server](#using-a-turn-server).
+Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login.
 
 ### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 

@@ -321,7 +321,7 @@ def main():
                         help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate.')
     parser.add_argument('--enable_basic_auth',
                         default=os.environ.get(
-                            'ENABLE_BASIC_AUTH', 'false'),
+                            'ENABLE_BASIC_AUTH', 'true'),
                         help='Enable basic authentication on server. Must set basic_auth_password and optionally basic_auth_user to enforce basic authentication.')
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
@@ -329,7 +329,7 @@ def main():
                         help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce basic authentication.')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
-                            'BASIC_AUTH_PASSWORD', ''),
+                            'BASIC_AUTH_PASSWORD', 'password'),
                         help='Password used when basic authentication is set.')
     parser.add_argument('--coturn_web_uri',
                         default=os.environ.get(
