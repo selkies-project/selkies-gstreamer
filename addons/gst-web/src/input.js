@@ -535,8 +535,8 @@ class Input {
 
     getWindowResolution() {
         return [
-            parseInt( (() => {var width = document.body.offsetWidth * window.devicePixelRatio; return width - width % 2})() ),
-            parseInt( (() => {var height = document.body.offsetHeight * window.devicePixelRatio; return height - height % 2})() )
+            parseInt( (() => {var offsetRatioWidth = document.body.offsetWidth * window.devicePixelRatio; return offsetRatioWidth - offsetRatioWidth % 2})() ),
+            parseInt( (() => {var offsetRatioHeight = document.body.offsetHeight * window.devicePixelRatio; return offsetRatioHeight - offsetRatioHeight % 2})() )
         ];
     }
 }
