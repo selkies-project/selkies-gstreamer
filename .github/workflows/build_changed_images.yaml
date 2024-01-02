@@ -77,7 +77,7 @@ jobs:
 
     - name: Check for changes to image source
       id: check
-      uses: tj-actions/changed-files@v38
+      uses: tj-actions/changed-files@v41
       with:
         files: ${{ matrix.source_files_for_diff }}
 
@@ -138,7 +138,7 @@ jobs:
 
     - name: Check for changes to ${{ matrix.name }} image source
       id: check
-      uses: tj-actions/changed-files@v38
+      uses: tj-actions/changed-files@v41
       with:
         files: ${{ matrix.source_files_for_diff }}
 
