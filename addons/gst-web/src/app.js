@@ -184,9 +184,11 @@ var app = new Vue({
         enterFullscreen() {
             // Request fullscreen mode.
             webrtc.element.parentElement.requestFullscreen();
+            webrtc.input._onFullscreenChange();
         },
-        playVideo() {
-            webrtc.playVideo();
+        playStream() {
+            webrtc.playStream();
+            audio_webrtc.playStream();
             this.showStart = false;
         },
         enableClipboard() {
@@ -479,11 +481,11 @@ webrtc.input.onresizeend = () => {
     webrtc.sendDataChannelMessage("s," + window.devicePixelRatio);
 }
 
-webrtc.onplayvideorequired = () => {
+webrtc.onplaystreamrequired = () => {
     app.showStart = true;
 }
 
-audio_webrtc.onplayvideorequired = () => {
+audio_webrtc.onplaystreamrequired = () => {
     app.showStart = true;
 }
 

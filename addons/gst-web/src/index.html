@@ -379,7 +379,7 @@
         <div v-else>
           <scale-loader size="200px" :loading="(status !== 'connected')" color="#E0E0E0"></scale-loader>
           <div v-if="(status !== 'connected')" class="loading-text">{{ loadingText }}</div>
-          <v-btn v-if="(status === 'connected' && showStart)" v-on:click="playVideo()" color="#E0E0E0">
+          <v-btn v-if="(status === 'connected' && showStart)" v-on:click="playStream()" color="#E0E0E0">
             start</v-btn>
         </div>
       </div>

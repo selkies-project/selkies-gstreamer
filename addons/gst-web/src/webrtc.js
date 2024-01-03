@@ -32,7 +32,7 @@
  * @property {function} onconnectionstatechange - Callback fired when peer connection state changes.
  * @property {function} ondatachannelclose - Callback fired when data channel is closed.
  * @property {function} ondatachannelopen - Callback fired when data channel is opened.
- * @property {function} onplayvideorequired - Callback fired when user interaction is required before playing video.
+ * @property {function} onplaystreamrequired - Callback fired when user interaction is required before playing the stream.
  * @property {function} onclipboardcontent - Callback fired when clipboard content from the remote host is received.
  * @property {function} getConnectionStats - Returns promise that resolves with connection stats.
  * @property {Objet} rtcPeerConfig - RTC configuration containing ICE servers and other connection properties.
@@ -134,7 +134,7 @@ class WebRTCDemo {
         /**
          * @type {function}
          */
-        this.onplayvideorequired = null;
+        this.onplaystreamrequired = null;
 
         /**
          * @type {function}
@@ -320,7 +320,7 @@ class WebRTCDemo {
         this.streams.push([event.track.kind, event.streams]);
         if (event.track.kind === "video" || event.track.kind === "audio") {
             this.element.srcObject = event.streams[0];
-            this.playVideo();
+            this.playStream();
         }
     }
 
@@ -625,28 +625,28 @@ class WebRTCDemo {
     }
 
     /**
-     * Starts playing the video stream.
+     * Starts playing the stream.
      * Note that this must be called after some DOM interaction has already occured.
      * Chrome does not allow auto playing of videos without first having a DOM interaction.
      */
-    // [START playVideo]
-    playVideo() {
+    // [START playStream]
+    playStream() {
         this.element.load();
 
         var playPromise = this.element.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
-                this._setDebug("Video stream is playing.");
+                this._setDebug("Stream is playing.");
             }).catch(() => {
-                if (this.onplayvideorequired !== null) {
-                    this.onplayvideorequired();
+                if (this.onplaystreamrequired !== null) {
+                    this.onplaystreamrequired();
                 } else {
-                    this._setDebug("Video play failed and no onplayvideorequired was bound.");
+                    this._setDebug("Stream play failed and no onplaystreamrequired was bound.");
                 }
             });
         }
     }
-    // [END playVideo]
+    // [END playStream]
 
     /**
      * Initiate connection to signalling server.

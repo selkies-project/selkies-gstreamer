@@ -1105,10 +1105,13 @@ class GSTWebRTCApp:
             self.data_channel.connect(
                 'on-message-string', lambda _, msg: self.on_data_message(msg))
 
-            # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
-            transceiver = self.webrtcbin.emit("get-transceiver", 0)
-            transceiver.set_property("do-nack", True)
-
+        # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
+        transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        transceiver.set_property("do-nack", True)
+        # Enable Forward Error Correction (FEC) on audio streams, default to 5 percent
+        if audio_only is True:
+            transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
+            transceiver.set_property("fec-percentage", 5)
         logger.info("pipeline started")
 
     async def handle_bus_calls(self):
