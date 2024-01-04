@@ -288,7 +288,7 @@ This table specifies the currently implemented video encoders and their correspo
 | [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
 | [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | Chromium-based, Firefox | `libvpx` | N/A |
 
-This table specifies the currently implemented video frame converters used to convert the YUV formats from `BGRx` to `I420`, which are automatically decided based on the encoder types.
+This table specifies the currently implemented video frame converters used to convert the YUV formats from `BGRx` to `I420` or `NV12`, which are automatically decided based on the encoder types.
 
 | Plugin | Encoders | Acceleration | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
@@ -410,7 +410,9 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 ### The HTML5 web interface is slow and laggy.
 
-First of all, it's most likely something with your network. Using wired ethernet or a good 5GHz WiFi connection is important. Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any remote desktop application. Also note that a higher framerate will improve performance if you have the sufficient bandwidth. This is because one screen refresh from a 60 fps screen takes 16.67 ms at a time, while one screen refresh from a 15 fps screen inevitably takes 66.67 ms, and therefore inherently causes a visible lag. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to encode the screen.
+Disable all power saving or efficiency features available in the web browser. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to encode the screen.
+
+Using wired ethernet or a good 5GHz WiFi connection is important. Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any remote desktop application. Also note that a higher framerate will improve performance if you have the sufficient bandwidth. This is because one screen refresh from a 60 fps screen takes 16.67 ms at a time, while one screen refresh from a 15 fps screen inevitably takes 66.67 ms, and therefore inherently causes a visible lag.
 
 However, it might be that the parameters for the WebRTC interface, video encoders, RTSP, or other [GStreamer](https://gstreamer.freedesktop.org) plugins are not optimized enough. If you find that it is the case, we always welcome contributions. If your changes show noticeably better results in the same conditions, please make a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls), or tell us about the parameters in any channel that we can reach so that we can also test.
 

@@ -64,7 +64,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
-ARG GSTREAMER_VERSION=1.22.6
+ARG GSTREAMER_VERSION=1.22.8
 RUN git clone "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && git checkout "${GSTREAMER_VERSION}" && \
     mkdir -p /opt/gstreamer && \
     meson setup --prefix /opt/gstreamer -Dbuildtype=release -Db_lto=true -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled builddir && \

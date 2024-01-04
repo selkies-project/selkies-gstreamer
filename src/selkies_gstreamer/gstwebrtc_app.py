@@ -29,12 +29,9 @@ import time
 import gi
 gi.require_version('GLib', '2.0')
 gi.require_version("Gst", "1.0")
-gi.require_version('GstWebRTC', '1.0')
 gi.require_version('GstSdp', '1.0')
-from gi.repository import GLib
-from gi.repository import Gst
-from gi.repository import GstWebRTC
-from gi.repository import GstSdp
+gi.require_version('GstWebRTC', '1.0')
+from gi.repository import GLib, Gst, GstSdp, GstWebRTC
 
 logger = logging.getLogger("gstwebrtc_app")
 logger.setLevel(logging.INFO)
@@ -119,6 +116,9 @@ class GSTWebRTCApp:
         # audio and video.
         # See also: https://webrtcstandards.info/sdp-bundle/
         self.webrtcbin.set_property("bundle-policy", "max-compat")
+
+        # Set jitterbuffer latency to the minimum possible
+        self.webrtcbin.set_property("latency", 1)
 
         # Connect signal handlers
         self.webrtcbin.connect(
@@ -355,11 +355,12 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-            x264enc.set_property("threads", 4)
+            x264enc.set_property("threads", 8)
             x264enc.set_property("aud", False)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("key-int-max", 0)
+            x264enc.set_property("sliced-threads", True)
             x264enc.set_property("byte-stream", True)
             x264enc.set_property("tune", "zerolatency")
             x264enc.set_property("speed-preset", "veryfast")
@@ -633,6 +634,12 @@ class GSTWebRTCApp:
         # default packetized streaming format for the web.
         opusenc = Gst.ElementFactory.make("opusenc", "opusenc")
 
+        # Force CELT codec for media instead of voice
+        opusenc.set_property("audio-type", "restricted-lowdelay")
+
+        # Use full band audio bandwidth
+        opusenc.set_property("bandwidth", "fullband")
+
         # Set audio bitrate to 64kbps.
         # This can be dynamically changed using set_audio_bitrate()
         opusenc.set_property("bitrate", self.audio_bitrate)
@@ -644,8 +651,11 @@ class GSTWebRTCApp:
         # Insert a queue for the RTP packets.
         rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
 
-        # Make the queue leaky, so just drop packets if the queue is behind.
-        rtpopuspay_queue.set_property("leaky", True)
+        # Make the queue leaky in the downstream direction, drop packets if the queue is behind.
+        rtpopuspay_queue.set_property("leaky", "downstream")
+
+        # Discard all data in the queue when an EOS event is received
+        rtpopuspay_queue.set_property("flush-on-eos", True)
 
         # Set the queue max time to 16ms (16000000ns)
         # If the pipeline is behind by more than 1s, the packets
@@ -1092,7 +1102,7 @@ class GSTWebRTCApp:
             raise GSTWebRTCAppError(
                 "Failed to transition pipeline to PLAYING: %s" % res)
 
-        if audio_only is False:
+        if not audio_only:
             # Create the data channel, this has to be done after the pipeline is PLAYING.
             options = Gst.Structure("application/data-channel")
             options.set_value("ordered", True)
@@ -1105,14 +1115,11 @@ class GSTWebRTCApp:
             self.data_channel.connect(
                 'on-message-string', lambda _, msg: self.on_data_message(msg))
 
-        # Enable NACKs on the transceiver, helps with retransmissions and freezing when packets are dropped.
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        transceiver.set_property("do-nack", True)
-        # Enable Forward Error Correction (FEC) on audio streams, default to 5 percent
-        if audio_only is True:
-            transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
-            transceiver.set_property("fec-percentage", 5)
-        logger.info("pipeline started")
+        # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
+        if not audio_only:
+            transceiver.set_property("do-nack", True)
+        logger.info("{} pipeline started".format("audio" if audio_only else "video"))
 
     async def handle_bus_calls(self):
         # Start bus call loop

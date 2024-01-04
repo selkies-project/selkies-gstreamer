@@ -184,7 +184,6 @@ var app = new Vue({
         enterFullscreen() {
             // Request fullscreen mode.
             webrtc.element.parentElement.requestFullscreen();
-            webrtc.input._onFullscreenChange();
         },
         playStream() {
             webrtc.playStream();
