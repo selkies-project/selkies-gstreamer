@@ -26,7 +26,6 @@ import asyncio
 import base64
 import pynput
 import io
-import uinput
 import msgpack
 import re
 import os
@@ -54,18 +53,25 @@ MOUSE_BUTTON_LEFT = 41
 MOUSE_BUTTON_MIDDLE = 42
 MOUSE_BUTTON_RIGHT = 43
 
+UINPUT_BTN_LEFT = (0x01, 0x110)
+UINPUT_BTN_MIDDLE = (0x01, 0x112)
+UINPUT_BTN_RIGHT = (0x01, 0x111)
+UINPUT_REL_X = (0x02, 0x00)
+UINPUT_REL_Y = (0x02, 0x01)
+UINPUT_REL_WHEEL = (0x02, 0x08)
+
 # Local map for uinput and pynput buttons
 MOUSE_BUTTON_MAP = {
     MOUSE_BUTTON_LEFT: {
-        "uinput": uinput.BTN_LEFT,
+        "uinput": UINPUT_BTN_LEFT,
         "pynput": pynput.mouse.Button.left,
     },
     MOUSE_BUTTON_MIDDLE: {
-        "uinput": uinput.BTN_MIDDLE,
+        "uinput": UINPUT_BTN_MIDDLE,
         "pynput": pynput.mouse.Button.middle,
     },
     MOUSE_BUTTON_RIGHT: {
-        "uinput": uinput.BTN_RIGHT,
+        "uinput": UINPUT_BTN_RIGHT,
         "pynput": pynput.mouse.Button.right,
     },
 }
@@ -267,8 +273,8 @@ class WebRTCInput:
             if self.uinput_mouse_socket_path:
                 # Send relative motion to uinput device.
                 # syn=False delays the sync until the second command.
-                self.__mouse_emit(uinput.REL_X, x, syn=False)
-                self.__mouse_emit(uinput.REL_Y, y)
+                self.__mouse_emit(UINPUT_REL_X, x, syn=False)
+                self.__mouse_emit(UINPUT_REL_Y, y)
             else:
                 # NOTE: the pynput mouse.move method moves the mouse relative to the current position using its internal tracked position.
                 #       this does not work for relative motion where the input should just be a delta value.
@@ -278,13 +284,13 @@ class WebRTCInput:
         elif action == MOUSE_SCROLL_UP:
             # Scroll up
             if self.uinput_mouse_socket_path:
-                self.__mouse_emit(uinput.REL_WHEEL, 1)
+                self.__mouse_emit(UINPUT_REL_WHEEL, 1)
             else:
                 self.mouse.scroll(0, -1)
         elif action == MOUSE_SCROLL_DOWN:
             # Scroll down
             if self.uinput_mouse_socket_path:
-                self.__mouse_emit(uinput.REL_WHEEL, -1)
+                self.__mouse_emit(UINPUT_REL_WHEEL, -1)
             else:
                 self.mouse.scroll(0, 1)
         elif action == MOUSE_BUTTON:
