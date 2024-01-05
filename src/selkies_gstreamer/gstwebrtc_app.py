@@ -634,9 +634,6 @@ class GSTWebRTCApp:
         # default packetized streaming format for the web.
         opusenc = Gst.ElementFactory.make("opusenc", "opusenc")
 
-        # Force CELT codec for media instead of voice
-        opusenc.set_property("audio-type", "restricted-lowdelay")
-
         # Use full band audio bandwidth
         opusenc.set_property("bandwidth", "fullband")
 
@@ -1115,10 +1112,10 @@ class GSTWebRTCApp:
             self.data_channel.connect(
                 'on-message-string', lambda _, msg: self.on_data_message(msg))
 
-        transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
-        if not audio_only:
+            # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
+            transceiver = self.webrtcbin.emit("get-transceiver", 0)
             transceiver.set_property("do-nack", True)
+
         logger.info("{} pipeline started".format("audio" if audio_only else "video"))
 
     async def handle_bus_calls(self):
