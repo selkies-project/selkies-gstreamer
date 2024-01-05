@@ -185,10 +185,10 @@ This will install the GStreamer components to the default directory of `/opt/gst
 ```bash
 docker pull ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
-docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer.whl
+docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
-sudo pip3 install /tmp/selkies_gstreamer.whl
-rm -f /tmp/selkies_gstreamer.whl
+sudo pip3 install --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 ```
 
 4. Install the HTML5 components to the container image:
