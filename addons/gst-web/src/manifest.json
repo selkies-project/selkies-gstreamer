@@ -1,8 +1,8 @@
 {
-    "name": "PWA_APP_NAME",
-    "short_name": "PWA_APP_SHORT_NAME",
+    "name": "Selkies WebRTC",
+    "short_name": "selkies",
     "lang": "en-US",
-    "start_url": "PWA_START_URL",
+    "start_url": "./index.html",
     "display": "minimal-ui",
     "background_color": "black",
     "theme_color": "black",

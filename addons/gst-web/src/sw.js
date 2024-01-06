@@ -5,7 +5,7 @@
  */
 
 const cacheVersion = "CACHE_VERSION";
-var cacheName = 'PWA_CACHE';
+var cacheName = 'selkies-webrtc-pwa';
 var filesToCache = [
   'index.html?ts=CACHE_VERSION',
   'icon-192x192.png?ts=CACHE_VERSION',
