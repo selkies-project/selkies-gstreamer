@@ -1,3 +1,0 @@
-[submodule "addons/gst-web/guacamole-client"]
-	path = addons/gst-web/guacamole-client
-	url = https://github.com/selkies-project/guacamole-client.git
