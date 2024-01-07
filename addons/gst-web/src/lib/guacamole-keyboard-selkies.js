@@ -1,3 +1,4 @@
+/* Customized Line 839: `//guac_keyboard.onkeyup(keysym);` */
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
