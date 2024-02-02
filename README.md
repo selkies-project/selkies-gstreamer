@@ -43,7 +43,6 @@ Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.exam
 ```bash
 docker run --pull=always --name selkies -it --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${UBUNTU_RELEASE}
 ```
-> **_Note_**: If you've created the above container in a VPN enabled VM and webrtc connection fails, then you may need to add an environment variable `TURN_HOST` to the above command set with **private IP** of that VM. For example: `-e TURN_HOST=192.168.0.105` 
 
 Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or [`selkies-examples`](https://github.com/selkies-project/selkies-examples) from the [Selkies Project](https://github.com/selkies-project) provide containerized virtual desktop infrastructure (VDI) templates.
 
@@ -397,7 +396,7 @@ However, it might be that the parameters for the WebRTC interface, video encoder
 
 ### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
 
-Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login.
+Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.105`.
 
 ### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 
