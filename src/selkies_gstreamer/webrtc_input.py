@@ -334,7 +334,7 @@ class WebRTCInput:
         else:
             self.keyboard.release(keycode)
 
-    def send_x11_mouse(self, x, y, button_mask, relative=False):
+    def send_x11_mouse(self, x, y, button_mask, scroll_magnitude, relative=False):
         """Sends mouse events to the X server.
 
         The mouse button mask is stored locally to keep track of press/release state.
@@ -344,6 +344,7 @@ class WebRTCInput:
         Arguments:
             x {integer} -- mouse position X
             y {integer} -- mouse position Y
+            scroll_magnitude {integer} -- 
             button_mask {integer} -- mask of 5 mouse buttons, button 1 is at the LSB.
         """
 
@@ -373,14 +374,21 @@ class WebRTCInput:
                         btn_num = MOUSE_BUTTON_MIDDLE
                     elif i == 2:
                         btn_num = MOUSE_BUTTON_RIGHT
-                    elif i == 3:
+                    elif i == 3 and button_mask != 0:
                         # Wheel up
                         action = MOUSE_SCROLL_UP
-                    elif i == 4:
+                    elif i == 4 and button_mask != 0:
                         # Wheel down
                         action = MOUSE_SCROLL_DOWN
 
                     data = (btn_action, btn_num)
+
+                    # if event is scroll up/down then send the event multiple times
+                    # based on the received scroll magnitue for smoother scroll experience
+                    if i == 3 or i == 4:
+                        for i in range(1, scroll_magnitude):
+                            self.send_mouse(action, data)
+
                     self.send_mouse(action, data)
 
             # Update the button mask to remember positions.
@@ -584,12 +592,12 @@ class WebRTCInput:
             if toks[0] == "m2":
                 relative = True
             try:
-                x, y, button_mask = [int(i) for i in toks[1:]]
+                x, y, button_mask, scroll_magnitude = [int(i) for i in toks[1:]]
             except:
-                x, y, button_mask = 0, 0, self.button_mask
+                x, y, button_mask, scroll_magnitude = 0, 0, self.button_mask, 0
                 relative = False
             try:
-                self.send_x11_mouse(x, y, button_mask, relative)
+                self.send_x11_mouse(x, y, button_mask, scroll_magnitude, relative)
             except Exception as e:
                 logger.warning('failed to set mouse cursor: {}'.format(e))
         elif toks[0] == "p":
