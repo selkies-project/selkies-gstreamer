@@ -210,7 +210,7 @@ sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/p
 sudo /start-turnserver.sh &\n\
 export WEBRTC_ENCODER=\${WEBRTC_ENCODER:-x264enc}\n\
 export WEBRTC_ENABLE_RESIZE=\${WEBRTC_ENABLE_RESIZE:-true}\n\
-export TURN_HOST=\${TURN_HOST:-$(curl checkip.amazonaws.com)}\n\
+export TURN_HOST=\${TURN_HOST:-\$(curl checkip.amazonaws.com)}\n\
 export TURN_PORT=\${TURN_PORT:-3478}\n\
 export TURN_USERNAME=\${TURN_USERNAME:-selkies}\n\
 export TURN_PASSWORD=\${TURN_PASSWORD:-selkies}\n\
