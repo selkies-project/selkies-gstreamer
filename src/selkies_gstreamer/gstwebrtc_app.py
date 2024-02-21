@@ -310,15 +310,15 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vah264enc"]:
             # color converter
-            videoconvert = Gst.ElementFactory.make("vapostproc")
-            videoconvert.set_property("scale-method", "fast")
-            # TODO: Investigate the usage of 'GstVaDisplay' and 'video/x-raw(memory:VAMemory)' like how 'video/x-raw(memory:CUDAMemory)' is used with NVIDIA
-            videoconvert_caps = Gst.caps_from_string("video/x-raw,format=NV12")
-            videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
-            videoconvert_capsfilter.set_property("caps", videoconvert_caps)
+            vapostproc = Gst.ElementFactory.make("vapostproc")
+            vapostproc.set_property("scale-method", "fast")
+            vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
+            vapostproc_caps.set_value("format", "NV12")
+            vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
+            vapostproc_capsfilter.set_property("caps", vapostproc_caps)
 
             # encoder
-            vah264enc = Gst.ElementFactory.make("vah264enc", "vah264enc")
+            vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
             vah264enc.set_property("i-frames", 0)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("key-int-max", 0)
@@ -350,6 +350,7 @@ class GSTWebRTCApp:
             # Videoconvert for colorspace conversion
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
+            videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
             videoconvert_capsfilter.set_property("caps", videoconvert_caps)
 
@@ -390,7 +391,8 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vp8enc", "vp9enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
-            videoconvert_caps = Gst.caps_from_string("video/x-raw,format=I420")
+            videoconvert_caps = Gst.caps_from_string("video/x-raw")
+            videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
             videoconvert_capsfilter.set_property("caps", videoconvert_caps)
 
@@ -424,7 +426,7 @@ class GSTWebRTCApp:
 
             # VPX Parameters
             # Borrowed from: https://github.com/nurdism/neko/blob/df98368137732b8aaf840e27cdf2bd41067b2161/server/internal/gst/gst.go#L94
-            vpenc.set_property("threads", 4)
+            vpenc.set_property("threads", 8)
             vpenc.set_property("cpu-used", 8)
             vpenc.set_property("deadline", 1)
             vpenc.set_property("error-resilient", "partitions")
@@ -449,8 +451,8 @@ class GSTWebRTCApp:
             self.pipeline.add(rtph264pay_capsfilter)
 
         elif self.encoder == "vah264enc":
-            self.pipeline.add(videoconvert)
-            self.pipeline.add(videoconvert_capsfilter)
+            self.pipeline.add(vapostproc)
+            self.pipeline.add(vapostproc_capsfilter)
             self.pipeline.add(vah264enc)
             self.pipeline.add(vah264enc_capsfilter)
             self.pipeline.add(rtph264pay)
@@ -512,17 +514,17 @@ class GSTWebRTCApp:
                     "Failed to link rtph264pay_capsfilter -> webrtcbin")
 
         elif self.encoder == "vah264enc":
-            if not Gst.Element.link(self.ximagesrc_capsfilter, videoconvert):
+            if not Gst.Element.link(self.ximagesrc_capsfilter, vapostproc):
                 raise GSTWebRTCAppError(
-                    "Failed to link ximagesrc_capsfilter -> videoconvert")
+                    "Failed to link ximagesrc_capsfilter -> vapostproc")
 
-            if not Gst.Element.link(videoconvert, videoconvert_capsfilter):
+            if not Gst.Element.link(vapostproc, vapostproc_capsfilter):
                 raise GSTWebRTCAppError(
-                    "Failed to link videoconvert -> videoconvert_capsfilter")
+                    "Failed to link vapostproc -> vapostproc_capsfilter")
 
-            if not Gst.Element.link(videoconvert_capsfilter, vah264enc):
+            if not Gst.Element.link(vapostproc_capsfilter, vah264enc):
                 raise GSTWebRTCAppError(
-                    "Failed to link videoconvert_capsfilter -> vah264enc")
+                    "Failed to link vapostproc_capsfilter -> vah264enc")
 
             if not Gst.Element.link(vah264enc, vah264enc_capsfilter):
                 raise GSTWebRTCAppError(
@@ -804,6 +806,9 @@ class GSTWebRTCApp:
 
         if self.encoder.startswith("nv"):
             element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
+            element.set_property("bitrate", bitrate)
+        elif self.encoder.startswith("va"):
+            element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
             element.set_property("bitrate", bitrate)
         elif self.encoder.startswith("x264"):
             element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
