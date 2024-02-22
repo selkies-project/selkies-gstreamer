@@ -308,17 +308,18 @@ class GSTWebRTCApp:
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
 
-        elif self.encoder in ["vah264enc", "vah264lpenc"]:
+        elif self.encoder in ["vah264enc"]:
             # colorspace conversion
-            # TODO: Change to vapostproc and use "video/x-raw(memory:VAMemory)", seems that BGRx is not supported yet
-            videoconvert = Gst.ElementFactory.make("videoconvert")
-            videoconvert_caps = Gst.caps_from_string("video/x-raw")
-            videoconvert_caps.set_value("format", "NV12")
-            videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
-            videoconvert_capsfilter.set_property("caps", videoconvert_caps)
+            vapostproc = Gst.ElementFactory.make("vapostproc")
+            vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
+            vapostproc_caps.set_value("format", "NV12")
+            vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
+            vapostproc_capsfilter.set_property("caps", vapostproc_caps)
 
             # encoder
-            vah264enc = Gst.ElementFactory.make(self.encoder, "vaenc")
+            vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
+            if vah264enc is None:
+                vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
             vah264enc.set_property("i-frames", 0)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("key-int-max", 0)
@@ -450,9 +451,9 @@ class GSTWebRTCApp:
             self.pipeline.add(rtph264pay)
             self.pipeline.add(rtph264pay_capsfilter)
 
-        elif self.encoder in ["vah264enc", "vah264lpenc"]:
-            self.pipeline.add(videoconvert)
-            self.pipeline.add(videoconvert_capsfilter)
+        elif self.encoder == "vah264enc":
+            self.pipeline.add(vapostproc)
+            self.pipeline.add(vapostproc_capsfilter)
             self.pipeline.add(vah264enc)
             self.pipeline.add(vah264enc_capsfilter)
             self.pipeline.add(rtph264pay)
@@ -513,18 +514,18 @@ class GSTWebRTCApp:
                 raise GSTWebRTCAppError(
                     "Failed to link rtph264pay_capsfilter -> webrtcbin")
 
-        elif self.encoder in ["vah264enc", "vah264lpenc"]:
-            if not Gst.Element.link(self.ximagesrc_capsfilter, videoconvert):
+        elif self.encoder == "vah264enc":
+            if not Gst.Element.link(self.ximagesrc_capsfilter, vapostproc):
                 raise GSTWebRTCAppError(
-                    "Failed to link ximagesrc_capsfilter -> videoconvert")
+                    "Failed to link ximagesrc_capsfilter -> vapostproc")
 
-            if not Gst.Element.link(videoconvert, videoconvert_capsfilter):
+            if not Gst.Element.link(vapostproc, vapostproc_capsfilter):
                 raise GSTWebRTCAppError(
-                    "Failed to link videoconvert -> videoconvert_capsfilter")
+                    "Failed to link vapostproc -> vapostproc_capsfilter")
 
-            if not Gst.Element.link(videoconvert_capsfilter, vah264enc):
+            if not Gst.Element.link(vapostproc_capsfilter, vah264enc):
                 raise GSTWebRTCAppError(
-                    "Failed to link videoconvert_capsfilter -> vah264enc")
+                    "Failed to link vapostproc_capsfilter -> vah264enc")
 
             if not Gst.Element.link(vah264enc, vah264enc_capsfilter):
                 raise GSTWebRTCAppError(
@@ -727,7 +728,7 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp",
                     "rtpmanager", "ximagesrc"]
 
-        supported = ["nvh264enc", "vah264enc", "vah264lpenc", "x264enc", "vp8enc", "vp9enc"]
+        supported = ["nvh264enc", "vah264enc", "x264enc", "vp8enc", "vp9enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
