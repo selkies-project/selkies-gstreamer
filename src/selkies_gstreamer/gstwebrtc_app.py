@@ -312,7 +312,8 @@ class GSTWebRTCApp:
             # color converter
             vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
-            vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
+            # TODO: Investigate the usage of 'GstVaDisplay' and 'video/x-raw(memory:VAMemory)' like how 'video/x-raw(memory:CUDAMemory)' is used with NVIDIA
+            vapostproc_caps = Gst.caps_from_string("video/x-raw")
             vapostproc_caps.set_value("format", "NV12")
             vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
             vapostproc_capsfilter.set_property("caps", vapostproc_caps)
@@ -450,7 +451,7 @@ class GSTWebRTCApp:
             self.pipeline.add(rtph264pay)
             self.pipeline.add(rtph264pay_capsfilter)
 
-        elif self.encoder == "vah264enc":
+        elif self.encoder in ["vah264enc", "vah264lpenc"]:
             self.pipeline.add(vapostproc)
             self.pipeline.add(vapostproc_capsfilter)
             self.pipeline.add(vah264enc)
@@ -513,7 +514,7 @@ class GSTWebRTCApp:
                 raise GSTWebRTCAppError(
                     "Failed to link rtph264pay_capsfilter -> webrtcbin")
 
-        elif self.encoder == "vah264enc":
+        elif self.encoder in ["vah264enc", "vah264lpenc"]:
             if not Gst.Element.link(self.ximagesrc_capsfilter, vapostproc):
                 raise GSTWebRTCAppError(
                     "Failed to link ximagesrc_capsfilter -> vapostproc")
@@ -727,7 +728,7 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp",
                     "rtpmanager", "ximagesrc"]
 
-        supported = ["nvh264enc", "vah264enc", "x264enc", "vp8enc", "vp9enc"]
+        supported = ["nvh264enc", "vah264enc", "vah264lpenc", "x264enc", "vp8enc", "vp9enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
