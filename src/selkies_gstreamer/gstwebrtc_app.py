@@ -308,7 +308,7 @@ class GSTWebRTCApp:
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
 
-        elif self.encoder in ["vah264enc"]:
+        elif self.encoder in ["vah264enc", "vah264lpenc"]:
             # color converter
             vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
@@ -318,7 +318,7 @@ class GSTWebRTCApp:
             vapostproc_capsfilter.set_property("caps", vapostproc_caps)
 
             # encoder
-            vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
+            vah264enc = Gst.ElementFactory.make(self.encoder, "vaenc")
             vah264enc.set_property("i-frames", 0)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("key-int-max", 0)
