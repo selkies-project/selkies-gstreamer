@@ -351,7 +351,7 @@ class GSTWebRTCApp:
             # Videoconvert for colorspace conversion
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
-            videoconvert_caps.set_value("format", "I420")
+            videoconvert_caps.set_value("format", "NV12")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
             videoconvert_capsfilter.set_property("caps", videoconvert_caps)
 
