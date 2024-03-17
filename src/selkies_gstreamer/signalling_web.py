@@ -29,7 +29,7 @@ import concurrent
 import functools
 import json
 
-from hashlib import sha1
+import hashlib
 import hmac
 import base64
 
@@ -54,13 +54,11 @@ def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp
 
     # credential expires in 24hrs
     exp = int(time.time()) + 24*3600
-    username = "{}-{}".format(exp, user)
+    username = "{}:{}".format(exp, user)
 
     # Generate HMAC credential.
-    key = bytes(shared_secret, "ascii")
-    raw = bytes(username, "ascii")
-    hashed = hmac.new(key, raw, sha1)
-    password = base64.b64encode(hashed.digest()).decode()
+    hashed = hmac.new(bytes(shared_secret, "utf-8"), bytes(username, "utf-8"), hashlib.sha1).digest()
+    password = base64.b64encode(hashed).decode()
 
     rtc_config = {}
     rtc_config["lifetimeDuration"] = "{}s".format(24 * 3600)
