@@ -20,21 +20,31 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         autoconf \
         automake \
         autotools-dev \
-        gettext \
         bison \
+        cmake \
         flex \
-        nasm \
+        gettext \
         gtk-doc-tools \
+        nasm \
+        valgrind \
+        libaa1-dev \
+        libbz2-dev \
+        libgcrypt20-dev \
         libgl-dev \
         libgles-dev \
         libglvnd-dev \
+        libgmp-dev \
+        libgtkglext1-dev \
         libgudev-1.0-dev \
         libgirepository1.0-dev \
         libgtk2.0-dev \
+        libgsl-dev \
         libtool-bin \
         libx11-xcb-dev \
+        libxcb-dri3-dev \
         libxkbcommon-dev \
         wayland-protocols \
+        libvulkan-dev \
         libwayland-dev \
         libwayland-egl-backend-dev \
         libdrm-dev \
@@ -50,8 +60,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libopenjp2-7-dev \
         libwebp-dev \
         libx264-dev \
+        libx265-dev \
         libvpx-dev \
-        libva-dev && \
+        libva-dev \
+        libvdpau-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
@@ -60,14 +72,14 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         python3-dev \
         python-gi-dev && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 install meson ninja
+    pip3 install gitlint meson ninja
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
 ARG GSTREAMER_VERSION=1.24.0
-RUN git clone "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && git checkout "${GSTREAMER_VERSION}" && \
+RUN git clone --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Db_lto=true -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled builddir && \
+    meson setup --prefix /opt/gstreamer --default-library=static -Ddefault_library=static -Dgst-full-target-type=static_library -Dbuildtype=release -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddevtools=disabled -Ddocumentation=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
