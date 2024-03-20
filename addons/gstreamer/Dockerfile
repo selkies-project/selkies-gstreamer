@@ -25,6 +25,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         flex \
         gettext \
         gtk-doc-tools \
+        khronos-api \
         nasm \
         valgrind \
         libaa1-dev \
@@ -34,7 +35,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libgles-dev \
         libglvnd-dev \
         libgmp-dev \
-        libgtkglext1-dev \
         libgudev-1.0-dev \
         libgirepository1.0-dev \
         libgtk2.0-dev \
@@ -68,7 +68,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         i965-va-driver-shaders \
         intel-media-va-driver-non-free \
         va-driver-all && \
-    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain stable && \
+    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
     cargo install cargo-c && \
     rm -rf /var/lib/apt/lists/*
@@ -82,16 +82,16 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         python3-pip \
         python3-dev \
         python-gi-dev && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip3 install meson ninja gitlint hotdoc tomli
+    pip3 install meson ninja gitlint hotdoc tomli && \
+    rm -rf /var/lib/apt/lists/*
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
 ARG GSTREAMER_VERSION=1.24.0
-RUN git clone --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
+RUN git clone -b "${GSTREAMER_VERSION}" --single-branch --depth 1 "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
     . "$HOME/.cargo/env" && \
-    meson setup --prefix /opt/gstreamer --default-library=static -Dgst-full-target-type=static_library -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddevtools=disabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Db_lto=true -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddevtools=disabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
