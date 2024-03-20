@@ -91,7 +91,7 @@ ARG GSTREAMER_VERSION=1.24.0
 RUN git clone -b "${GSTREAMER_VERSION}" --single-branch --depth 1 "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
     . "$HOME/.cargo/env" && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Db_lto=true -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddevtools=disabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
