@@ -68,7 +68,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         i965-va-driver-shaders \
         intel-media-va-driver-non-free \
         va-driver-all && \
-    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && \
+    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain stable && \
+    . "$HOME/.cargo/env" && \
+    cargo install cargo-c && \
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
@@ -88,7 +90,7 @@ WORKDIR /src
 ARG GSTREAMER_VERSION=1.24.0
 RUN git clone --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
-    . $HOME/.cargo/env && \
+    . "$HOME/.cargo/env" && \
     meson setup --prefix /opt/gstreamer --default-library=static -Dgst-full-target-type=static_library -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddevtools=disabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
