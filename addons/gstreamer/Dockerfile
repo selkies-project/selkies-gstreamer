@@ -73,15 +73,17 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
 
 # Install GST-Python dependencies, Meson, and Ninja
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+        gitlint \
         libglib2.0-dev \
         libjson-glib-dev \
         libxml2-dev \
         python3-libxml2 \
         python3-pip \
+        python3-toml \
         python3-dev \
         python-gi-dev && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 install meson ninja gitlint hotdoc
+    pip3 install meson ninja hotdoc
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
