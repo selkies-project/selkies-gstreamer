@@ -62,8 +62,13 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libx264-dev \
         libx265-dev \
         libvpx-dev \
+        libvdpau-dev \
         libva-dev \
-        libvdpau-dev && \
+        libmfx-dev \
+        i965-va-driver-shaders \
+        intel-media-va-driver-non-free \
+        va-driver-all && \
+    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && \
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
@@ -72,14 +77,15 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         python3-dev \
         python-gi-dev && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 install gitlint meson ninja
+    pip3 install meson ninja gitlint hotdoc
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
 ARG GSTREAMER_VERSION=1.24.0
 RUN git clone --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson setup --prefix /opt/gstreamer --default-library=static -Dgst-full-target-type=static_library -Dbuildtype=release -Dpython=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddevtools=disabled -Ddocs=disabled -Dexamples=disabled -Dtests=disabled builddir && \
+    . $HOME/.cargo/env && \
+    meson setup --prefix /opt/gstreamer --default-library=static -Dgst-full-target-type=static_library -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddevtools=disabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
