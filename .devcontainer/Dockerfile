@@ -74,7 +74,7 @@ COPY ./features/desktop-selkies/src/install-desktop-environment.sh /tmp/
 RUN /tmp/install-desktop-environment.sh ${DESKTOP}
 
 # Install Chrome browser
-RUN cd /tmp && curl -fsSL -o ./google-chrome-stable.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+RUN cd /tmp && curl -fsSL -o ./google-chrome-stable.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" && \
     sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xdg-utils ./google-chrome-stable.deb && \
     sudo rm -rf /var/lib/apt/lists/* && \
     sudo rm -f google-chrome-stable.deb && \
