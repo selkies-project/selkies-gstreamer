@@ -108,8 +108,7 @@ Pin-Priority: 1000" > /etc/apt/preferences.d/mozilla && \
         firefox \
         jstest-gtk \
         coturn && \
-    rm -rf /var/lib/apt/lists/* && \
-    update-alternatives --set x-www-browser /usr/bin/firefox
+    rm -rf /var/lib/apt/lists/*
 
 # Install Ubuntu 22.04 specific packages
 RUN if [ "${UBUNTU_RELEASE}"\> "20.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
