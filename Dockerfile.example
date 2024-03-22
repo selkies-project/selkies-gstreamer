@@ -168,7 +168,7 @@ RUN echo 'export DISPLAY=:0' \
         >> /etc/bash.bashrc && \
     echo 'export GSTREAMER_PATH=/opt/gstreamer' \
         >> /etc/bash.bashrc && \
-    echo 'source /opt/gstreamer/gst-env' \
+    echo '. /opt/gstreamer/gst-env' \
         >> /etc/bash.bashrc
 
 # Write turnserver script
@@ -195,7 +195,7 @@ RUN echo "#!/bin/bash\n\
 export DISPLAY=:0\n\
 export GST_DEBUG=*:2\n\
 export GSTREAMER_PATH=/opt/gstreamer\n\
-source /opt/gstreamer/gst-env\n\
+. /opt/gstreamer/gst-env\n\
 export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
 sudo mkdir -pm755 /dev/input\n\

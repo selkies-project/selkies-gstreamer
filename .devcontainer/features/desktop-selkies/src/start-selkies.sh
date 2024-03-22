@@ -61,7 +61,7 @@ case ${DESKTOP:-XFCE} in
 esac
 
 # Source gstreamer environment
-source /opt/gstreamer/gst-env
+. /opt/gstreamer/gst-env
 
 # Start turnserver
 ${SCRIPT_DIR}/start-turnserver.sh &

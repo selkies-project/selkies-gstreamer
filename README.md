@@ -109,7 +109,7 @@ export DISPLAY=:0
 export GST_DEBUG=*:2
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
-source "$GSTREAMER_PATH/gst-env"
+. "$GSTREAMER_PATH/gst-env"
 
 # Configure the Joystick Interposer
 export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so
@@ -215,7 +215,7 @@ export DISPLAY=:0
 export GST_DEBUG=*:2
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
 export GSTREAMER_PATH=/opt/gstreamer
-source "$GSTREAMER_PATH/gst-env"
+. "$GSTREAMER_PATH/gst-env"
 
 # Configure the Joystick Interposer
 export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so
@@ -416,7 +416,7 @@ docker-compose run --service-ports test
 
 ```bash
 export GSTREAMER_PATH=/opt/gstreamer
-source /opt/gstreamer/gst-env
+. /opt/gstreamer/gst-env
 
 export TURN_HOST="Your TURN Host"
 export TURN_PORT="Your TURN Port"

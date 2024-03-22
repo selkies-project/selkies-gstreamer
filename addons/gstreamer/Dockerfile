@@ -11,6 +11,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         ca-certificates \
         curl \
         git \
+        pkg-config \
         vim && \
     rm -rf /var/lib/apt/lists/*
 
@@ -62,12 +63,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         libx264-dev \
         libx265-dev \
         libvpx-dev \
-        libvdpau-dev \
-        libva-dev \
-        libmfx-dev \
-        i965-va-driver-shaders \
-        intel-media-va-driver-non-free \
-        va-driver-all && \
+        libvdpau-dev && \
     curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
     cargo install cargo-c && \
@@ -87,14 +83,23 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
-ARG GSTREAMER_VERSION=1.24.0
+ARG GSTREAMER_VERSION=1.24.1
 RUN git clone -b "${GSTREAMER_VERSION}" --single-branch --depth 1 "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
     . "$HOME/.cargo/env" && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
+# Generate environment file
+RUN MULTI_ARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
+    echo "export GSTREAMER\_PATH\=\$\{GSTREAMER\_PATH\:\-/opt/gstreamer\}\n\
+export PATH\=\$\{GSTREAMER\_PATH\}/bin\:\$\{PATH\}\n\
+export LD\_LIBRARY\_PATH\=\$\{GSTREAMER\_PATH\}/lib/${MULTI_ARCH}\:\$\{LD\_LIBRARY\_PATH\}\n\
+export GI\_TYPELIB\_PATH\=\$\{GSTREAMER\_PATH\}/lib/${MULTI_ARCH}/girepository\-1\.0\:/usr/lib/${MULTI_ARCH}/girepository\-1\.0\:\$\{GI\_TYPELIB\_PATH\}\n\
+GST\_PY\_PATH\=\$\(find \$\{GSTREAMER\_PATH\}/lib \-type d \-name \"python3\.\*\"\)\n\
+export PYTHONPATH\=\$\{GST\_PY\_PATH\}/site\-packages\:\$\{GSTREAMER\_PATH\}/lib/python3/dist\-packages\:\$\{PYTHONPATH\}\n\
+" > /opt/gstreamer/gst-env
+
 # Bundle build result to tarball
-COPY config/gst-env /opt/gstreamer/
 RUN cd /opt && tar -zcvf selkies-gstreamer-latest.tgz gstreamer
