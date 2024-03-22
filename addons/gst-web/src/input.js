@@ -495,8 +495,8 @@ class Input {
     /**
      * When fullscreen is entered, request keyboard and pointer lock.
      */
-    _onFullscreenChange() {
-        if (document.fullscreenElement !== null) {
+    _onFullscreenChange(e) {
+        if (e.matches) {
             // Enter fullscreen
             this.requestKeyboardLock();
             this.element.requestPointerLock();
@@ -540,7 +540,7 @@ class Input {
         this.listeners.push(addListener(this.element, 'resize', this._windowMath, this));
         this.listeners.push(addListener(this.element, 'wheel', this._mouseWheelWrapper, this));
         this.listeners.push(addListener(this.element, 'contextmenu', this._contextMenu, this));
-        this.listeners.push(addListener(this.element.parentElement, 'fullscreenchange', this._onFullscreenChange, this));
+        this.listeners.push(addListener(window.matchMedia('(display-mode: fullscreen)'), 'change', this._onFullscreenChange, this));
         this.listeners.push(addListener(document, 'pointerlockchange', this._pointerLock, this));
         this.listeners.push(addListener(window, 'keydown', this._key, this));
         this.listeners.push(addListener(window, 'keyup', this._key, this));

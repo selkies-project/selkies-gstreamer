@@ -87,18 +87,18 @@ ARG GSTREAMER_VERSION=1.24.1
 RUN git clone -b "${GSTREAMER_VERSION}" --single-branch --depth 1 "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
     . "$HOME/.cargo/env" && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
 # Generate environment file
 RUN MULTI_ARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
-    echo "export GSTREAMER\_PATH\=\$\{GSTREAMER\_PATH\:\-/opt/gstreamer\}\n\
-export PATH\=\$\{GSTREAMER\_PATH\}/bin\:\$\{PATH\}\n\
-export LD\_LIBRARY\_PATH\=\$\{GSTREAMER\_PATH\}/lib/${MULTI_ARCH}\:\$\{LD\_LIBRARY\_PATH\}\n\
-export GI\_TYPELIB\_PATH\=\$\{GSTREAMER\_PATH\}/lib/${MULTI_ARCH}/girepository\-1\.0\:/usr/lib/${MULTI_ARCH}/girepository\-1\.0\:\$\{GI\_TYPELIB\_PATH\}\n\
-GST\_PY\_PATH\=\$\(find \$\{GSTREAMER\_PATH\}/lib \-type d \-name \"python3\.\*\"\)\n\
-export PYTHONPATH\=\$\{GST\_PY\_PATH\}/site\-packages\:\$\{GSTREAMER\_PATH\}/lib/python3/dist\-packages\:\$\{PYTHONPATH\}\n\
+    echo "export GSTREAMER_PATH=\${GSTREAMER_PATH:-/opt/gstreamer}\n\
+export PATH=\${GSTREAMER_PATH}/bin:\${PATH}\n\
+export LD_LIBRARY_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}:\${LD_LIBRARY_PATH}\n\
+export GI_TYPELIB_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}/girepository-1.0:/usr/lib/${MULTI_ARCH}/girepository-1.0:\${GI_TYPELIB_PATH}\n\
+GST_PY_PATH=\$(find \${GSTREAMER_PATH}/lib -type d -name "python3.*")\n\
+export PYTHONPATH=\${GST_PY_PATH}/site-packages:\${GSTREAMER_PATH}/lib/python3/dist-packages:\${PYTHONPATH}\n\
 " > /opt/gstreamer/gst-env
 
 # Bundle build result to tarball
