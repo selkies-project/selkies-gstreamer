@@ -85,11 +85,11 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
 WORKDIR /opt
 
 # Install test dependencies
-RUN mkdir -pm755 /etc/apt/keyrings && curl -fsSL -o /etc/apt/keyrings/packages.mozilla.org.asc "https://packages.mozilla.org/apt/repo-signing-key.gpg" && \
-    mkdir -pm755 /etc/apt/sources.list.d && echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" > /etc/apt/sources.list.d/mozilla.list && \
-    mkdir -pm755 /etc/apt/preferences.d && echo "Package: *\n\
-Pin: origin packages.mozilla.org\n\
-Pin-Priority: 1000" > /etc/apt/preferences.d/mozilla && \
+RUN mkdir -pm755 /etc/apt/preferences.d && echo "Package: firefox*\n\
+Pin: version 1:1snap*\n\
+Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
+    mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0AB215679C571D1C8325275B9BDB3D89CE49EC21" | gpg --dearmor -o /etc/apt/trusted.gpg.d/mozillateam-ubuntu-ppa.gpg && \
+    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/mozillateam-ubuntu-ppa-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
         curl \
         git \
