@@ -632,7 +632,7 @@ webrtc.onsystemstats = (stats) => {
     if (stats.mem_used !== undefined) app.serverMemoryUsed = stats.mem_used;
 }
 
-// Safari withou Permission-Api enabled fails here
+// Safari without Permission API enabled fails
 if (navigator.permissions) {
     navigator.permissions.query({
         name: 'clipboard-read'

@@ -1,4 +1,4 @@
-/* Customized Line 2181: `overflow-y: hidden;` */
+/* Modified Lines 2181, 3393-3394: `overflow-y: hidden;` / `height: 100vh;` / `max-height: -webkit-fill-available;` */
 @-webkit-keyframes shake {
   59% {
     margin-left: 0;
@@ -3392,6 +3392,7 @@ p {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  max-height: -webkit-fill-available;
   max-width: 100%;
   position: relative;
 }
