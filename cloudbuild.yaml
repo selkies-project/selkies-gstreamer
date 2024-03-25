@@ -31,7 +31,7 @@ artifacts:
   objects:
     location: gs://${PROJECT_ID}-vdi/selkies-gstreamer/
     paths:
-      - ${_IMAGE_PREFIX}-${_APP_NAME}-${_IMAGE_TAG}.tgz
+      - ${_IMAGE_PREFIX}-${_APP_NAME}-${_IMAGE_TAG}.tar.xz
       - dist/selkies_gstreamer*.whl
 
 steps:
@@ -70,7 +70,7 @@ steps:
     - -exc
     - |
       docker create --name copy gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-${_APP_NAME}:${_IMAGE_TAG}
-      docker cp copy:/opt/selkies-gstreamer-latest.tgz ./${_IMAGE_PREFIX}-${_APP_NAME}-${_IMAGE_TAG}.tgz
+      docker cp copy:/opt/selkies-gstreamer-latest.tar.xz ./${_IMAGE_PREFIX}-${_APP_NAME}-${_IMAGE_TAG}.tar.xz
       docker cp copy:/opt/pypi/dist/ ./
       docker rm copy
 - name: 'gcr.io/cloud-builders/gcloud'

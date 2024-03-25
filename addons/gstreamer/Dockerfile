@@ -91,6 +91,11 @@ RUN git clone -b "${GSTREAMER_VERSION}" --single-branch --depth 1 "https://gitla
     ninja -C builddir -j "$(nproc)" && \
     meson install -C builddir
 
+# Extract NVRTC dependency, https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt
+RUN NVRTC_VERSION="11.4.152" && \
+    NVRTC_ARCH="$(dpkg --print-architecture | sed -e 's/arm64/sbsa/' -e 's/ppc64el/ppc64le/' -e 's/i.*86/x86/' -e 's/amd64/x86_64/' -e 's/unknown/x86_64/')" && \
+    cd /tmp && curl -fsSL "https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/linux-${NVRTC_ARCH}/cuda_nvrtc-linux-${NVRTC_ARCH}-${NVRTC_VERSION}-archive.tar.xz" | tar -xJf - -C /tmp && mv -f cuda_nvrtc* cuda_nvrtc && cd cuda_nvrtc/lib && chmod 755 libnvrtc* && mv -f libnvrtc* /opt/gstreamer/lib/$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/')/ && cd /tmp && rm -rf /tmp/cuda_nvrtc && \
+
 # Generate environment file
 RUN MULTI_ARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
     echo "export GSTREAMER_PATH=\${GSTREAMER_PATH:-/opt/gstreamer}\n\
@@ -102,4 +107,4 @@ export PYTHONPATH=\${GST_PY_PATH}/site-packages:\${GSTREAMER_PATH}/lib/python3/d
 " > /opt/gstreamer/gst-env
 
 # Bundle build result to tarball
-RUN cd /opt && tar -zcvf selkies-gstreamer-latest.tgz gstreamer
+RUN cd /opt && tar -cJvf selkies-gstreamer-latest.tar.xz gstreamer

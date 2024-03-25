@@ -5,9 +5,8 @@
 name: Publish release
 
 on:
-  release:
-    types: [ published ]
-  workflow_dispatch:
+  push:
+    tags: [ "v*.*.*" ]
 
 jobs:
   get_semver:
@@ -36,42 +35,52 @@ jobs:
       matrix:
         include:
         - name: coturn
-          source_directory: addons/coturn
+          context: addons/coturn
 
         - name: coturn-web
-          source_directory: addons/coturn-web
+          context: addons/coturn-web
 
         - name: gst-web
-          source_directory: addons/gst-web
+          context: addons/gst-web
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
-          build_args: UBUNTU_RELEASE=20.04
-          source_directory: addons/gstreamer
+          build_args: |
+            UBUNTU_RELEASE=20.04
+          context: addons/gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
-          build_args: UBUNTU_RELEASE=22.04
-          source_directory: addons/gstreamer
+          build_args: |
+            UBUNTU_RELEASE=22.04
+          context: addons/gstreamer
         
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          build_args: DISTRIB_RELEASE=20.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
-          source_directory: addons/js-interposer
+          build_args: |
+            DISTRIB_RELEASE=20.04
+            PKG_NAME=selkies-js-interposer
+            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
+          context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          build_args: DISTRIB_RELEASE=22.04;PKG_NAME=selkies-js-interposer;PKG_VERSION=${{ needs.get_semver.outputs.semver }}
-          source_directory: addons/js-interposer
+          build_args: |
+            DISTRIB_RELEASE=22.04
+            PKG_NAME=selkies-js-interposer
+            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
+          context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
 
         - name: infra-gcp-installer
-          source_directory: infra/gce/installer-image
+          context: infra/gce/installer-image
+          diff: infra/gce
 
         - name: py-build
-          build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
-          source_directory: .
+          build_args: |
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+          context: .
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
@@ -81,13 +90,12 @@ jobs:
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: $GITHUB_ACTOR
-        image_name: ${{ matrix.name }}
-        image_source_directory: ${{ matrix.source_directory }}
-        image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
-        image_version_2: latest${{ matrix.version_suffix }}
-        dockerfile: ${{ matrix.dockerfile || 'Dockerfile' }}
+        dockerfile: ${{ matrix.dockerfile }}
+        context: ${{ matrix.context }}
+        subproject: ${{ matrix.name }}
+        tags: |
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflows' image jobs.
   all_example_images:
@@ -100,15 +108,29 @@ jobs:
         include:
         - name: gst-py-example
           version_suffix: -ubuntu20.04
-          build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=20.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME;JS_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+          build_args: |
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+            UBUNTU_RELEASE=20.04
+            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
+            JS_BASE_IMAGE_RELEASE=${{ github.ref_name }}
+            JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
           dockerfile: Dockerfile.example
-          source_directory: .
+          context: .
 
         - name: gst-py-example
           version_suffix: -ubuntu22.04
-          build_args: PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }};UBUNTU_RELEASE=22.04;GSTREAMER_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:$GITHUB_REF_NAME;WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:$GITHUB_REF_NAME;JS_BASE_IMAGE_RELEASE=$GITHUB_REF_NAME;JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
+          build_args: |
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+            UBUNTU_RELEASE=22.04
+            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
+            JS_BASE_IMAGE_RELEASE=${{ github.ref_name }}
+            JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
           dockerfile: Dockerfile.example
-          source_directory: .
+          context: .
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
@@ -119,12 +141,11 @@ jobs:
       with:
         build_args: ${{ matrix.build_args }}
         dockerfile: ${{ matrix.dockerfile }}
-        github_personal_access_token: ${{ secrets.GITHUB_TOKEN }}
-        github_username: $GITHUB_ACTOR
-        image_name: ${{ matrix.name }}
-        image_source_directory: ${{ matrix.source_directory }}
-        image_version_1: $GITHUB_REF_NAME${{ matrix.version_suffix }}
-        image_version_2: latest${{ matrix.version_suffix }}
+        context: ${{ matrix.context }}
+        subproject: ${{ matrix.name }}
+        tags: |
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
   all_assets:
     needs:
@@ -136,78 +157,89 @@ jobs:
       matrix:
         include:
         - id: gst20
-          description: Ubuntu 20.04
-          image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu20.04
-          mimetype: application/tar+gzip
-          source_path: /opt/selkies-gstreamer-latest.tgz
+          description: GStreamer Ubuntu 20.04
+          image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu20.04
+          mimetype: application/x-gtar
+          source_path: /opt/selkies-gstreamer-latest.tar.xz
           target_directory: /tmp
-          target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu20.04.tgz
+          target_name: selkies-gstreamer-gpl-${{ github.ref_name }}-ubuntu20.04.tar.xz
 
         - id: gst22
-          description: Ubuntu 22.04
-          image_tag: ghcr.io/selkies-project/selkies-gstreamer/gstreamer:${{ github.ref_name }}-ubuntu22.04
-          mimetype: application/tar+gzip
-          source_path: /opt/selkies-gstreamer-latest.tgz
+          description: GStreamer Ubuntu 22.04
+          image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu22.04
+          mimetype: application/x-gtar
+          source_path: /opt/selkies-gstreamer-latest.tar.xz
           target_directory: /tmp
-          target_name: selkies-gstreamer-${{ github.ref_name }}-ubuntu22.04.tgz
+          target_name: selkies-gstreamer-gpl-${{ github.ref_name }}-ubuntu22.04.tar.xz
         
         - id: js20
-          description: JS Interposer Ubuntu 20.04
-          image_tag: ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}-ubuntu20.04
+          description: Joystick Interposer Ubuntu 20.04
+          image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu20.04
           mimetype: application/vnd.debian.binary-package
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_directory: /tmp
           target_name: selkies-js-interposer-${{ github.ref_name }}-ubuntu20.04.deb
         
         - id: js22
-          description: JS Interposer Ubuntu 22.04
-          image_tag: ghcr.io/selkies-project/selkies-gstreamer/js-interposer:${{ github.ref_name }}-ubuntu22.04
+          description: Joystick Interposer Ubuntu 22.04
+          image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu22.04
           mimetype: application/vnd.debian.binary-package
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_directory: /tmp
           target_name: selkies-js-interposer-${{ github.ref_name }}-ubuntu22.04.deb
 
         - id: py
-          description: Python
-          image_tag: ghcr.io/selkies-project/selkies-gstreamer/py-build:${{ github.ref_name }}
+          description: Python Wheel
+          image_tag: ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
           mimetype: application/x-pywheel+zip
           source_path: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
           target_directory: /tmp
           target_name: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
 
         - id: web
-          description: Web
-          image_tag: ghcr.io/selkies-project/selkies-gstreamer/gst-web:${{ github.ref_name }}
-          mimetype: application/tar+gzip
-          source_path: /opt/gst-web.tgz
+          description: Web Interface
+          image_tag: ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
+          mimetype: application/x-gtar
+          source_path: /opt/gst-web.tar.xz
           target_directory: /tmp
-          target_name: selkies-gstreamer-web-${{ github.ref_name }}.tgz
+          target_name: selkies-gstreamer-web-${{ github.ref_name }}.tar.xz
 
     name: ${{ matrix.description }} release artifact extraction & upload
     steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log into registry ${{ inputs.registry }}
+      if: ${{ inputs.push }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+
     - name: ${{ matrix.description }} release artifact extraction
       id: extract
       run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
         docker create --name copy "${{ matrix.image_tag }}"
         TARGET_PATH="${{ matrix.target_directory }}/${{ matrix.target_name }}"
         docker cp "copy:${{ matrix.source_path }}" "$TARGET_PATH"
         if [[ -d "$TARGET_PATH" ]]; then
           SOURCE_DIRNAME=$(echo "${{ matrix.source_path }}" | sed 's:.*/::')
           cd "${{ matrix.target_directory }}" && mv -f "$TARGET_PATH" "$SOURCE_DIRNAME"
-          tar -zcvf "temp.tgz" "$SOURCE_DIRNAME" && rm -rf "$SOURCE_DIRNAME" && mv -f "temp.tgz" "$TARGET_PATH"
+          tar -cJvf "temp.tar.xz" "$SOURCE_DIRNAME" && rm -rf "$SOURCE_DIRNAME" && mv -f "temp.tar.xz" "$TARGET_PATH"
         fi
         docker rm copy
 
     - name: ${{ matrix.description }} release artifact upload
       id: release
-      if: ${{ github.event_name == 'release' }}
-      uses: svenstaro/upload-release-action@v2
+      uses: softprops/action-gh-release@v2
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref }}
-        file: ${{ matrix.target_directory }}/${{ matrix.target_name }}
-        asset_name: ${{ matrix.target_name }}
-        overwrite: true
-        # Set release to latest manually when ready
-        make_latest: false
+        name: "Release ${{ github.ref }}"
+        tag_name: ${{ github.ref }}
+        body: "By downloading the GStreamer build files, you acknowledge and agree to the terms of libraries and executables licensed GPLv2/GPLv3 or https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt."
+        files: ${{ matrix.target_directory }}/${{ matrix.target_name }}
+        draft: true
+        generate_release_notes: true

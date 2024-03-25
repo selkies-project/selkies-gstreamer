@@ -4,79 +4,80 @@
 
 name: Build & publish image
 
-description: Build image from source, then publish it to GHCR
-
 inputs:
   build_args:
-    description: "`ARG=value`s to pass to `docker build`"
+    description: Docker container build arguments (ARG)
     required: false
   dockerfile:
     default: "Dockerfile"
-    description: Image source file name
+    description: Dockerfile path within context
     required: false
-  github_personal_access_token:
-    description: GitHub personal access token (PAT), for authentication
-    required: true
-  github_username:
-    description: GitHub username, for authentication
-    required: true
-  image_name:
-    description: The name for the image (i.e. "image" in "ghcr.io/user/repo/image:foo")
-    required: true
-  image_source_directory:
-    description: Image source directory path
-    required: true
-  image_version_1:
-    description: A tag for the image (i.e. "foo" in "ghcr.io/user/repo/image:foo")
-    required: true
-  image_version_2:
-    description: Another tag for the image (i.e. "bar" in "ghcr.io/user/repo/image:bar")
+  context:
+    default: "."
+    description: Image build context
     required: false
-  use_cache:
-    default: "false"
-    description: Use cached layers from pre-published image with version 1 (true/false)
-    required: false
-  push_image:
-    default: "true"
+  push:
+    default: ${{ github.event_name != 'pull_request' }}
     description: Push image to registry
     required: false
+  platforms:
+    default: |
+      linux/amd64
+    description: Build architectures
+    required: false
+  registry:
+    default: "ghcr.io"
+    description: Image registry
+    required: false
+  username:
+    default: "${{ github.actor }}"
+    description: Registry username
+    required: false
+  password:
+    default: "${{ secrets.GITHUB_TOKEN }}"
+    description: Registry password
+    required: false
+  prefix:
+    default: "${{ github.repository }}"
+    description: Image prefix
+    required: false
+  subproject:
+    description: Subproject name
+    required: true
+  tags:
+    description: Full image names with tags
+    required: true
 
 runs:
   using: composite
   steps:
-  - shell: bash
-    run: |
-      set -x
-      echo "${{ inputs.github_personal_access_token }}" | docker login ghcr.io -u "${{ inputs.github_username }}" --password-stdin
-      export BUILD_ARGS=""
-      if [[ -n "${{ inputs.build_args }}" ]]; then
-        IFS=";" read -ra args <<< "${{ inputs.build_args }}"
-        for arg in ${args[@]}; do
-          BUILD_ARGS+="--build-arg $arg "
-          if [[ "$arg" =~ "UBUNTU_RELEASE" ]]; then
-            # pull latest base image
-            eval "export $arg"
-            docker pull "ubuntu:${UBUNTU_RELEASE?}"
-          fi
-        done
-      fi
+  - name: Set up QEMU
+    uses: docker/setup-qemu-action@v3
 
-      export IMAGE_TAG_URL_PREFIX=ghcr.io/selkies-project/selkies-gstreamer/
-      export IMAGE_TAG_1="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_1 }}"
-      if [[ "${{ inputs.use_cache }}" == "true" ]]; then
-        docker pull "$IMAGE_TAG_1" || true
-        (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" --cache-from "$IMAGE_TAG_1" -t "$IMAGE_TAG_1" .)
-      else
-        (cd "${{ inputs.image_source_directory }}" && docker build $BUILD_ARGS -f "${{ inputs.dockerfile }}" -t "$IMAGE_TAG_1" .)
-      fi
-      if [[ "${{ inputs.push_image }}" == "true" ]]; then
-        docker push "$IMAGE_TAG_1"
-      fi
+  - name: Set up Docker Buildx
+    uses: docker/setup-buildx-action@v3
 
-      if [[ ! -z "${{ inputs.image_version_2 }}" ]]; then
-        export IMAGE_TAG_2="${IMAGE_TAG_URL_PREFIX}${{ inputs.image_name }}:${{ inputs.image_version_2 }}"
-        docker tag "$IMAGE_TAG_1" "$IMAGE_TAG_2"
-        if [[ "${{ inputs.push_image }}" == "true" ]]; then
-          docker push "$IMAGE_TAG_2"
-        fi
-      fi
+  - name: Log into registry ${{ inputs.registry }}
+    if: ${{ inputs.push }}
+    uses: docker/login-action@v3
+    with:
+      registry: ${{ inputs.registry }}
+      username: ${{ inputs.username }}
+      password: ${{ inputs.password }}
+
+  - name: Extract container metadata
+    id: meta
+    uses: docker/metadata-action@v5
+    with:
+      images: ${{ inputs.registry }}/${{ input.prefix }}/${{ input.subproject }}
+
+  - name: Build and push ${{ input.subproject }} container image
+    uses: docker/build-push-action@v5
+    with:
+      build_args: ${{ inputs.build_args }}
+      context: ${{ inputs.context }}
+      file: ${{ inputs.dockerfile }}
+      platforms: ${{ inputs.platforms }}
+      push: ${{ inputs.push }}
+      tags: ${{ inputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
