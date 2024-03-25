@@ -34,7 +34,7 @@ inputs:
     description: Registry username
     required: false
   password:
-    default: "${{ secrets.GITHUB_TOKEN }}"
+    default: "${{ github.token }}"
     description: Registry password
     required: false
   prefix:
@@ -69,9 +69,9 @@ runs:
     id: meta
     uses: docker/metadata-action@v5
     with:
-      images: ${{ inputs.registry }}/${{ input.prefix }}/${{ input.subproject }}
+      images: ${{ inputs.registry }}/${{ inputs.prefix }}/${{ inputs.subproject }}
 
-  - name: Build and push ${{ input.subproject }} container image
+  - name: Build and push ${{ inputs.subproject }} container image
     uses: docker/build-push-action@v5
     with:
       build_args: ${{ inputs.build_args }}
