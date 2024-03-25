@@ -12,7 +12,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         curl \
         git \
         pkg-config \
-        vim && \
+        tar \
+        vim \
+        xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
 # Install build dependencies
