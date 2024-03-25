@@ -74,7 +74,7 @@ runs:
   - name: Build and push ${{ inputs.subproject }} container image
     uses: docker/build-push-action@v5
     with:
-      build_args: ${{ inputs.build_args }}
+      build-args: ${{ inputs.build_args }}
       context: ${{ inputs.context }}
       file: ${{ inputs.dockerfile }}
       platforms: ${{ inputs.platforms }}
