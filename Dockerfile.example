@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-# Supported base images: ubuntu:22.04, ubuntu:20.04
+# Supported base images: Ubuntu 22.04, 20.04
 ARG UBUNTU_RELEASE=22.04
 ARG GSTREAMER_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer
 ARG GSTREAMER_BASE_IMAGE_RELEASE=main
@@ -80,6 +80,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
         vainfo \
         intel-gpu-tools \
         radeontop && \
+        # NVIDIA OpenCL ICD
+        mkdir -pm755 /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
@@ -108,11 +110,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         firefox \
         jstest-gtk \
         coturn && \
-    mkdir -pm755 /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Ubuntu 22.04 specific packages
-RUN if [ "${UBUNTU_RELEASE}"\> "20.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
+    if [ "${UBUNTU_RELEASE}"\> "20.04" ]; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xcvt; fi && \
     rm -rf /var/lib/apt/lists/*
 
 # Add Tini init script - take care of runaway processes
