@@ -190,7 +190,7 @@ export DISPLAY=:0\n\
 export GST_DEBUG=*:2\n\
 export GSTREAMER_PATH=/opt/gstreamer\n\
 . /opt/gstreamer/gst-env\n\
-export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so\n\
+export LD_PRELOAD='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
 sudo mkdir -pm755 /dev/input\n\
 sudo touch /dev/input/{js0,js1,js2,js3}\n\
