@@ -10,7 +10,7 @@ inputs:
     required: false
   dockerfile:
     default: "Dockerfile"
-    description: Dockerfile path within context
+    description: Dockerfile path relative to context
     required: false
   context:
     default: "."
@@ -76,7 +76,7 @@ runs:
     with:
       build-args: ${{ inputs.build_args }}
       context: ${{ inputs.context }}
-      file: ${{ inputs.dockerfile }}
+      file: ${{ inputs.context }}/${{ inputs.dockerfile }}
       platforms: ${{ inputs.platforms }}
       push: ${{ inputs.push }}
       tags: ${{ inputs.tags }}

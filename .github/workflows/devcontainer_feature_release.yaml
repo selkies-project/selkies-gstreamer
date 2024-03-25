@@ -24,4 +24,4 @@ jobs:
         base-path-to-features: ".devcontainer/features/desktop-selkies"
         generate-docs: "false"
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}

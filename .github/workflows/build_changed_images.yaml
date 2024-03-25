@@ -6,7 +6,7 @@ name: Build changed images
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches: [ main ]
 
 jobs:
