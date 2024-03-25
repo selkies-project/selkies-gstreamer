@@ -75,8 +75,8 @@ runs:
     uses: docker/build-push-action@v5
     with:
       build-args: ${{ inputs.build_args }}
-      context: ${{ inputs.context }}
-      file: ${{ inputs.context }}/${{ inputs.dockerfile }}
+      context: ${{ inputs.context || '.' }}
+      file: ${{ inputs.context || '.' }}/${{ inputs.dockerfile || 'Dockerfile' }}
       platforms: ${{ inputs.platforms }}
       push: ${{ inputs.push }}
       tags: ${{ inputs.tags }}
