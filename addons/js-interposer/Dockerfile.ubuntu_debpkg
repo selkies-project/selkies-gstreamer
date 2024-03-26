@@ -41,6 +41,7 @@ WORKDIR /opt
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
         gcc \
+        file \
         /opt/${PKG_NAME}_${PKG_VERSION}.deb && \
     rm -rf /var/lib/apt/lists/*
 
