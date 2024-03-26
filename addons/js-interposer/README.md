@@ -10,6 +10,8 @@ This allows the `selkies-gstreamer` WebRTC interface to pass gamepad events over
 gcc -shared -fPIC -o joystick_interposer.so joystick_interposer.c -ldl
 ```
 
+To compile the `i386` library for Wine and other packages, add `-m32` with the `gcc-multilib` package installed.
+
 ## Testing
 
 1. Start the Python joystick emulator:

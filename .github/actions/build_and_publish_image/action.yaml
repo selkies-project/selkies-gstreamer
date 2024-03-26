@@ -12,6 +12,7 @@ inputs:
     default: false
     description: Cache image
     required: false
+    type: boolean
   context:
     default: "{{defaultContext}}"
     description: Image build context
@@ -29,6 +30,7 @@ inputs:
     default: ${{ github.event_name != 'pull_request' }}
     description: Push image to registry
     required: false
+    type: boolean
   registry:
     default: "ghcr.io"
     description: Image registry
@@ -79,10 +81,10 @@ runs:
     uses: docker/build-push-action@v5
     with:
       build-args: ${{ inputs.build_args }}
-      context: ${{ inputs.context || '.' }}
+      context: ${{ inputs.context || '{{defaultContext}}' }}
       file: ${{ inputs.context || '.' }}/${{ inputs.dockerfile || 'Dockerfile' }}
-      no-cache: ${{ !inputs.cache }}
-      platforms: ${{ inputs.platforms }}
-      push: ${{ inputs.push }}
-      tags: ${{ inputs.tags }}
       labels: ${{ steps.meta.outputs.labels }}
+      no-cache: ${{ !inputs.cache }}
+      platforms: ${{ inputs.platforms || 'linux/amd64' }}
+      push: ${{ inputs.push || github.event_name != 'pull_request' }}
+      tags: ${{ inputs.tags }}

@@ -2,12 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-name: Build changed images
+name: Build & publish changed images
 
 on:
   workflow_dispatch:
   pull_request:
     branches: [ main ]
+  # push:
+  #   branches: [ main ]
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs.
@@ -37,6 +39,20 @@ jobs:
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
 
+        - name: gstreamer
+          version_suffix: -ubuntu20.04
+          build_args: |
+            DISTRIB_RELEASE=20.04
+          context: addons/gstreamer
+          platform: linux/arm64
+
+        - name: gstreamer
+          version_suffix: -ubuntu22.04
+          build_args: |
+            DISTRIB_RELEASE=22.04
+          context: addons/gstreamer
+          platform: linux/arm64
+
         - name: js-interposer
           version_suffix: -ubuntu20.04
           build_args: |
@@ -55,6 +71,26 @@ jobs:
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
 
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          build_args: |
+            DISTRIB_RELEASE=20.04
+            PKG_NAME=selkies-js-interposer
+            PKG_VERSION=0.0.0
+          context: addons/js-interposer
+          dockerfile: Dockerfile.ubuntu_debpkg
+          platform: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          build_args: |
+            DISTRIB_RELEASE=22.04
+            PKG_NAME=selkies-js-interposer
+            PKG_VERSION=0.0.0
+          context: addons/js-interposer
+          dockerfile: Dockerfile.ubuntu_debpkg
+          platform: linux/arm64
+
         - name: infra-gcp-installer
           context: infra/gce/installer-image
           diff: infra/gce
@@ -64,7 +100,7 @@ jobs:
             PACKAGE_VERSION=0.0.0.dev0
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platform || 'linux/amd64' }} image build & publish
     steps:
     - uses: actions/checkout@v4
       with:
@@ -76,7 +112,7 @@ jobs:
       with:
         files: ${{ matrix.diff || matrix.context }}
 
-    - name: Build ${{ matrix.name }} image
+    - name: Build & publish ${{ matrix.name }} image
       if: ${{ steps.check.outputs.any_modified }}
       uses: ./.github/actions/build_and_publish_image
       with:
@@ -84,8 +120,9 @@ jobs:
         dockerfile: ${{ matrix.dockerfile }}
         context: ${{ matrix.context }}
         subproject: ${{ matrix.name }}
+        platform: ${{ matrix.platform }}
+        push: ${{ github.event_name != 'pull_request' }}
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
-        push: false
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs.
   changed_example_images:
@@ -120,7 +157,7 @@ jobs:
           dockerfile: Dockerfile.example
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platform || 'linux/amd64' }} image build & publish
     steps:
     - uses: actions/checkout@v4
       with:
@@ -132,7 +169,7 @@ jobs:
       with:
         files: ${{ matrix.diff || matrix.context }}
 
-    - name: Build ${{ matrix.name }} image
+    - name: Build & publish ${{ matrix.name }} image
       if: ${{ steps.check.outputs.any_modified }}
       uses: ./.github/actions/build_and_publish_image
       with:
@@ -140,5 +177,6 @@ jobs:
         dockerfile: ${{ matrix.dockerfile }}
         context: ${{ matrix.context }}
         subproject: ${{ matrix.name }}
+        platform: ${{ matrix.platform }}
+        push: ${{ github.event_name != 'pull_request' }}
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
-        push: false

@@ -112,7 +112,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 . "$GSTREAMER_PATH/gst-env"
 
 # Configure the Joystick Interposer
-export LD_PRELOAD="selkies-js-interposer/joystick_interposer.so"
+export LD_PRELOAD='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
@@ -218,7 +218,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 . "$GSTREAMER_PATH/gst-env"
 
 # Configure the Joystick Interposer
-export LD_PRELOAD="selkies-js-interposer/joystick_interposer.so"
+export LD_PRELOAD='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}

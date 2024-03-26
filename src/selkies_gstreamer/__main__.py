@@ -464,8 +464,8 @@ def main():
     audio_peer_id = 3
 
     # Initialize metrics server.
-    using_metrics = args.enable_metrics.lower() == 'true'
-    if using_metrics:
+    self.using_metrics = args.enable_metrics.lower() == 'true'
+    if self.using_metrics:
         metrics = Metrics(int(args.metrics_port))
 
     # Initialize the signalling client
@@ -711,7 +711,7 @@ def main():
 
     webrtc_input.on_set_enable_resize = enable_resize_handler
 
-    if using_metrics:
+    if self.using_metrics:
         # Send client FPS to metrics
         webrtc_input.on_client_fps = lambda fps: metrics.set_fps(fps)
 
@@ -724,7 +724,7 @@ def main():
     # Send the GPU stats when available.
     def on_gpu_stats(load, memory_total, memory_used):
         app.send_gpu_stats(load, memory_total, memory_used)
-        if using_metrics:
+        if self.using_metrics:
             metrics.set_gpu_utilization(load * 100)
 
     gpu_mon.on_stats = on_gpu_stats
@@ -802,7 +802,7 @@ def main():
 
     try:
         asyncio.ensure_future(server.run(), loop=loop)
-        if enable_metrics:
+        if self.enable_metrics:
             metrics.start()
         loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
