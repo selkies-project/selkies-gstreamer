@@ -28,13 +28,13 @@ jobs:
         - name: gstreamer
           version_suffix: -ubuntu20.04
           build_args: |
-            UBUNTU_RELEASE=20.04
+            DISTRIB_RELEASE=20.04
           context: addons/gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
-            UBUNTU_RELEASE=22.04
+            DISTRIB_RELEASE=22.04
           context: addons/gstreamer
 
         - name: js-interposer
@@ -87,7 +87,7 @@ jobs:
           version_suffix: -ubuntu20.04
           build_args: |
             PACKAGE_VERSION=0.0.0.dev0
-            UBUNTU_RELEASE=20.04
+            DISTRIB_RELEASE=20.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
@@ -100,7 +100,7 @@ jobs:
           version_suffix: -ubuntu22.04
           build_args: |
             PACKAGE_VERSION=0.0.0.dev0
-            UBUNTU_RELEASE=22.04
+            DISTRIB_RELEASE=22.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}

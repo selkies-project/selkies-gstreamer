@@ -16,14 +16,14 @@ sed -i \
   -e "s|PWA_CACHE|${PWA_APP_PATH:-webrtc-desktop}-webrtc-pwa|g" \
   /usr/share/nginx/html/sw.js
 
-if [[ -n "${PWA_ICON_URL}" ]]; then
+if [ -n "${PWA_ICON_URL}" ]; then
   echo "INFO: Converting icon to PWA standard"
   if [[ "${PWA_ICON_URL}" =~ "data:image/png;base64" ]]; then
     echo "${PWA_ICON_URL}" | cut -d ',' -f2 | base64 -d > /tmp/icon.png
   else
     curl -s -L "${PWA_ICON_URL}" > /tmp/icon.png
   fi
-  if [[ -e /tmp/icon.png ]]; then
+  if [ -e /tmp/icon.png ]; then
     echo "INFO: Creating PWA icon sizes"
     convert /tmp/icon.png /usr/share/nginx/html/icon.png
     rm -f /tmp/icon.png

@@ -23,7 +23,7 @@ steps:
     args:
       - -exc
       - |
-        if [[ -z "$(gcloud -q container images list-tags gcr.io/${PROJECT_ID}/${_GCR_IMAGE_NAME} --filter='tags~${_IMAGE_TAG}' --format='value(tags[0])')" ]]; then
+        if [ -z "$(gcloud -q container images list-tags gcr.io/${PROJECT_ID}/${_GCR_IMAGE_NAME} --filter='tags~${_IMAGE_TAG}' --format='value(tags[0])')" ]; then
           echo "INFO: coturn-web image not found in project GCR, fetching access token to copy from GHCR"
           gcloud auth print-access-token > /workspace/access_token
         fi
@@ -36,7 +36,7 @@ steps:
     args:
       - -exc
       - |
-        if [[ -e /workspace/access_token ]]; then
+        if [ -e /workspace/access_token ]; then
           echo "INFO: Copying coturn-web image from GCHR to project GCR so it can be used with Cloud Run"
           cat /workspace/access_token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
           docker pull ${_GHCR_IMAGE}:${_IMAGE_TAG}

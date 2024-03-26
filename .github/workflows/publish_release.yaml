@@ -19,11 +19,11 @@ jobs:
       env:
         RELEASE_VERSION: ${{ github.ref_name }}
       run: |
-        # If ref name does not match semver, default to 0.0.0.
-        # This happens when running from a branch such as main.
         if [[ "${RELEASE_VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
           echo "semver=${RELEASE_VERSION/v/}" >> "$GITHUB_OUTPUT"
         else
+          # If ref name does not match semver, default to 0.0.0.
+          # This happens when running from a branch such as main.
           echo "semver=0.0.0" >> "$GITHUB_OUTPUT"
         fi
 
@@ -46,13 +46,13 @@ jobs:
         - name: gstreamer
           version_suffix: -ubuntu20.04
           build_args: |
-            UBUNTU_RELEASE=20.04
+            DISTRIB_RELEASE=20.04
           context: addons/gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
-            UBUNTU_RELEASE=22.04
+            DISTRIB_RELEASE=22.04
           context: addons/gstreamer
         
         - name: js-interposer
@@ -110,7 +110,7 @@ jobs:
           version_suffix: -ubuntu20.04
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
-            UBUNTU_RELEASE=20.04
+            DISTRIB_RELEASE=20.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
@@ -123,7 +123,7 @@ jobs:
           version_suffix: -ubuntu22.04
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
-            UBUNTU_RELEASE=22.04
+            DISTRIB_RELEASE=22.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
@@ -225,7 +225,7 @@ jobs:
         docker create --name copy "${{ matrix.image_tag }}"
         TARGET_PATH="${{ matrix.target_directory }}/${{ matrix.target_name }}"
         docker cp "copy:${{ matrix.source_path }}" "$TARGET_PATH"
-        if [[ -d "$TARGET_PATH" ]]; then
+        if [ -d "$TARGET_PATH" ]; then
           SOURCE_DIRNAME=$(echo "${{ matrix.source_path }}" | sed 's:.*/::')
           cd "${{ matrix.target_directory }}" && mv -f "$TARGET_PATH" "$SOURCE_DIRNAME"
           tar -cJvf "temp.tar.xz" "$SOURCE_DIRNAME" && rm -rf "$SOURCE_DIRNAME" && mv -f "temp.tar.xz" "$TARGET_PATH"

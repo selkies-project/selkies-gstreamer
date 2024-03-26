@@ -55,13 +55,13 @@ terraform init -input=false \
     -backend-config="bucket=${TF_VAR_project_id?}-${TF_VAR_name?}-tf-state" \
     -backend-config="prefix=${TF_VAR_name?}" || true
 
-if [[ "${ACTION?}" == "destroy" ]]; then
+if [ "${ACTION?}" = "destroy" ]; then
     log_cyan "Running terraform destroy..."
     terraform destroy -auto-approve -input=false
-elif [[ "${ACTION?}" == "plan" ]]; then
+elif [ "${ACTION?}" = "plan" ]; then
     log_cyan "Running terraform plan..."
     terraform plan -out terraform.tfplan -input=false
-elif [[ "${ACTION?}" == "apply" ]]; then
+elif [ "${ACTION?}" = "apply" ]; then
     log_cyan "Running terraform plan..."
     terraform plan -out terraform.tfplan -input=false
 

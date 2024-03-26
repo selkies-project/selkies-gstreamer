@@ -66,7 +66,7 @@ if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get install --no-install-recomm
 ./install-desktop-environment.sh ${DESKTOP}
 
 SELKIES_RELEASE_TAG=${RELEASE}
-if [[ "${RELEASE}" == "latest" ]]; then
+if [ "${RELEASE}" = "latest" ]; then
     # Automatically fetch the latest selkies-gstreamer version and install the components
     SELKIES_RELEASE_TAG=$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')
 else

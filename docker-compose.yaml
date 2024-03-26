@@ -19,19 +19,19 @@ services:
       dockerfile: Dockerfile
   test:
     ###
-    # NOTE: export the UBUNTU_RELEASE env var to change the base image during build and run.
+    # NOTE: export the DISTRIB_RELEASE env var to change the base image during build and run.
     ###
 
-    image: selkies-gstreamer-example:latest-ubuntu${UBUNTU_RELEASE:-22.04}
+    image: selkies-gstreamer-example:latest-ubuntu${DISTRIB_RELEASE:-22.04}
     entrypoint: ["/tini", "--", "/bin/bash"]
     build:
       context: .
       dockerfile: Dockerfile.example
       args:
-        UBUNTU_RELEASE: ${UBUNTU_RELEASE:-22.04}
+        DISTRIB_RELEASE: ${DISTRIB_RELEASE:-22.04}
 
         # Testing with gstreamer build in-repo:
-        # 1. (cd addons/gstreamer && docker build --build-arg UBUNTU_RELEASE=${UBUNTU_RELEASE?} -t gstreamer:latest-ubuntu${UBUNTU_RELEASE?} .)
+        # 1. (cd addons/gstreamer && docker build --build-arg DISTRIB_RELEASE=${DISTRIB_RELEASE?} -t gstreamer:latest-ubuntu${DISTRIB_RELEASE?} .)
         # 2. export GSTREAMER_BASE_IMAGE=gstreamer
         # 3. docker-compose build test
         GSTREAMER_BASE_IMAGE: ${GSTREAMER_BASE_IMAGE:-ghcr.io/selkies-project/selkies-gstreamer/gstreamer}

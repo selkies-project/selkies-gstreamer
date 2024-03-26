@@ -1,8 +1,10 @@
 ARG IMAGE_TAG=jammy
 FROM mcr.microsoft.com/devcontainers/base:${IMAGE_TAG}
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Install base dependencies
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         python3-pip \
         python3-dev \
         python3-gi \
@@ -59,7 +61,7 @@ RUN cd /opt && . /etc/lsb-release && SELKIES_VERSION=$(curl -fsSL "https://api.g
     curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.tar.xz" | tar -xJf -
 
 # Install development dependencies
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         xvfb \
         coturn \
         nginx \
@@ -75,13 +77,13 @@ RUN /tmp/install-desktop-environment.sh ${DESKTOP}
 
 # Install Chrome browser
 RUN cd /tmp && curl -fsSL -o ./google-chrome-stable.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" && \
-    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y xdg-utils ./google-chrome-stable.deb && \
+    sudo apt-get update && sudo apt-get install --no-install-recommends -y xdg-utils ./google-chrome-stable.deb && \
     sudo rm -rf /var/lib/apt/lists/* && \
     sudo rm -f google-chrome-stable.deb && \
     xdg-settings set default-web-browser google-chrome.desktop
 
 # Install other development utilities
-RUN sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         jstest-gtk \
         netcat && \
     sudo rm -rf /var/lib/apt/lists/*

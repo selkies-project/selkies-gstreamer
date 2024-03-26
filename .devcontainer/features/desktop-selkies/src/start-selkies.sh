@@ -16,7 +16,7 @@ function cleanup() {
 trap cleanup SIGINT SIGKILL EXIT
 
 # Start Xvfb Xserver
-if [[ ${XSERVER} == "XVFB" ]]; then
+if [ "${XSERVER}" = "XVFB" ]; then
     Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 fi
 
@@ -42,8 +42,8 @@ sudo mkdir -p /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
 
 # If installed, add the joystick interposer to the LD_PRELOAD environment
-if [[ -e /usr/$LIB/selkies-js-interposer/joystick_interposer.so ]]; then
-    export SELKIES_INTERPOSER='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'
+if [ -e /usr/lib/x86_64-linux-gnu/selkies-js-interposer/joystick_interposer.so ]; then
+    export SELKIES_INTERPOSER="selkies-js-interposer/joystick_interposer.so"
     export LD_PRELOAD="${LD_PRELOAD}:${SELKIES_INTERPOSER}"
     export SDL_JOYSTICK_DEVICE=/dev/input/js0
 fi

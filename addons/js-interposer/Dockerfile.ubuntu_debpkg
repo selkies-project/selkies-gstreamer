@@ -10,9 +10,11 @@
 ARG DISTRIB_RELEASE=22.04
 FROM ubuntu:${DISTRIB_RELEASE} as build
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        build-essential \
-        gcc-multilib && \
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        build-essential && \
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then apt-get update && apt-get install --no-install-recommends -y gcc-multilib; fi && \
     rm -rf /var/lib/apt/lists/*
 
 ARG PKG_NAME="selkies-js-interposer"
@@ -31,14 +33,16 @@ ARG PKG_VERSION
 ARG DEBFULLNAME
 ARG DEBEMAIL
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 COPY --from=build /opt/${PKG_NAME}_${PKG_VERSION}.deb /opt/${PKG_NAME}_${PKG_VERSION}.deb
 
 WORKDIR /opt
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        /opt/${PKG_NAME}_${PKG_VERSION}.deb \
-        gcc && \
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        gcc \
+        /opt/${PKG_NAME}_${PKG_VERSION}.deb && \
     rm -rf /var/lib/apt/lists/*
 
-RUN stat "/usr/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')/selkies-js-interposer/joystick_interposer.so" && \
-    if [ "$(dpkg --print-architecture)" == "amd64" ]; then stat "/usr/lib/$(gcc -m32 -print-multiarch | sed -e 's/i.*86/i386/')/selkies-js-interposer/joystick_interposer.so"; fi
+RUN file "/usr/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')/selkies-js-interposer/joystick_interposer.so" && \
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then file "/usr/lib/$(gcc -m32 -print-multiarch | sed -e 's/i.*86/i386/')/selkies-js-interposer/joystick_interposer.so"; fi

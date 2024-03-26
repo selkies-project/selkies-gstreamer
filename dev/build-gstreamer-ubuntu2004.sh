@@ -13,6 +13,6 @@ IMAGE_TAG=gstreamer:latest-ubuntu${BASE_IMAGE//*:/}
 (
     cd ${SCRIPT_DIR?}/..
     for image in dist web test; do
-        GSTREAMER_BASE_IMAGE=gstreamer GSTREAMER_BASE_IMAGE_RELEASE=latest TEST_IMAGE=selkies-gstreamer-example:${IMAGE_TAG//*:/} UBUNTU_RELEASE=${BASE_IMAGE//*:/} docker-compose build ${image}
+        GSTREAMER_BASE_IMAGE=gstreamer GSTREAMER_BASE_IMAGE_RELEASE=latest TEST_IMAGE=selkies-gstreamer-example:${IMAGE_TAG//*:/} DISTRIB_RELEASE=${BASE_IMAGE//*:/} docker-compose build ${image}
     done
 )

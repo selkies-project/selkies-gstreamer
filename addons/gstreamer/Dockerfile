@@ -2,11 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-ARG UBUNTU_RELEASE=22.04
-FROM ubuntu:${UBUNTU_RELEASE}
+ARG DISTRIB_RELEASE=22.04
+FROM ubuntu:${DISTRIB_RELEASE}
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Install essential dependencies
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         build-essential \
         ca-certificates \
         curl \
@@ -18,7 +20,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
     rm -rf /var/lib/apt/lists/*
 
 # Install build dependencies
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         autopoint \
         autoconf \
         automake \
@@ -72,7 +74,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         libglib2.0-dev \
         libjson-glib-dev \
         libxml2-dev \

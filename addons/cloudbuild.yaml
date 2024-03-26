@@ -29,7 +29,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   id: coturn-pull
   entrypoint: 'bash'
-  args: ["-c", "if [[ '${_USE_CACHE}' == 'true' ]]; then (docker pull gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-coturn:latest || exit 0); fi"]
+  args: ["-c", "if [ '${_USE_CACHE}' = 'true' ]; then (docker pull gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-coturn:latest || exit 0); fi"]
   waitFor: ["-"]
 - name: 'gcr.io/cloud-builders/docker'
   id: coturn
@@ -56,7 +56,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   id: coturn-web-pull
   entrypoint: 'bash'
-  args: ["-c", "if [[ '${_USE_CACHE}' == 'true' ]]; then (docker pull gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-coturn-web:latest || exit 0); fi"]
+  args: ["-c", "if [ '${_USE_CACHE}' = 'true' ]; then (docker pull gcr.io/${PROJECT_ID}/${_IMAGE_PREFIX}-coturn-web:latest || exit 0); fi"]
   waitFor: ["-"]
 - name: 'gcr.io/cloud-builders/docker'
   id: coturn-web

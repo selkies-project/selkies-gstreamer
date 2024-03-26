@@ -38,10 +38,10 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example) is available.
 
-Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**change `UBUNTU_RELEASE` to `20.04` or `22.04`, then replace `main` to `latest` for the release build instead of the development build**):
+Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**change `DISTRIB_RELEASE` to `20.04` or `22.04`, then replace `main` to `latest` for the release build instead of the development build**):
 
 ```bash
-docker run --pull=always --name selkies -it --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${UBUNTU_RELEASE}
+docker run --pull=always --name selkies -it --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
 ```
 
 Repositories [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or [`selkies-examples`](https://github.com/selkies-project/selkies-examples) from the [Selkies Project](https://github.com/selkies-project) provide containerized virtual desktop infrastructure (VDI) templates.
@@ -68,10 +68,10 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
-2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`), using your own GStreamer build may work **as long as it is the most recent version with the required plugins included**:
+2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `DISTRIB_RELEASE`), using your own GStreamer build may work **as long as it is the most recent version with the required plugins included**:
 
 ```bash
-cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.tgz | sudo tar -zxf -
+cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.tgz | sudo tar -zxf -
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
@@ -90,10 +90,10 @@ cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/relea
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
 
-5. Install the Joystick Interposer to process gamepad input (fill in `SELKIES_VERSION` and `UBUNTU_RELEASE`):
+5. Install the Joystick Interposer to process gamepad input (fill in `SELKIES_VERSION` and `DISTRIB_RELEASE`):
 
 ```bash
-cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${UBUNTU_RELEASE}.deb"
+cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb"
 ```
 
 6. If using NVIDIA GPUs for hardware acceleration, run this command to download NVRTC (you agree to the [NVIDIA License](https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt)):
@@ -112,7 +112,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 . "$GSTREAMER_PATH/gst-env"
 
 # Configure the Joystick Interposer
-export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so
+export LD_PRELOAD="selkies-js-interposer/joystick_interposer.so"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
@@ -158,11 +158,11 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
-2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `UBUNTU_RELEASE`):
+2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `DISTRIB_RELEASE`):
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${UBUNTU_RELEASE}
-docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${UBUNTU_RELEASE}
+docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
+docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
 sudo docker cp gstreamer:/opt/gstreamer /opt/gstreamer
 docker rm gstreamer
 ```
@@ -191,11 +191,11 @@ docker rm gst-web
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
 
-5. Install the Joystick Interposer to process gamepad input (fill in the OS version `UBUNTU_RELEASE`):
+5. Install the Joystick Interposer to process gamepad input (fill in the OS version `DISTRIB_RELEASE`):
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${UBUNTU_RELEASE}
-docker create --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${UBUNTU_RELEASE}
+docker pull ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
+docker create --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
 docker cp js-interposer:/opt/selkies-js-interposer_0.0.0.deb /tmp/selkies-js-interposer.deb
 docker rm js-interposer
 sudo apt-get update && sudo apt-get install --no-install-recommends -y /tmp/selkies-js-interposer.deb
@@ -218,7 +218,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 . "$GSTREAMER_PATH/gst-env"
 
 # Configure the Joystick Interposer
-export LD_PRELOAD=/usr/local/lib/selkies-js-interposer/joystick_interposer.so
+export LD_PRELOAD="selkies-js-interposer/joystick_interposer.so"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}

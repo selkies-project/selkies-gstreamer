@@ -36,10 +36,6 @@ resource "google_cloud_run_service" "turn-web" {
       containers {
         image = local.image
         env {
-          name  = "CLOUD_RUN"
-          value = "true"
-        }
-        env {
           name  = "TURN_PORT"
           value = "3478"
         }
