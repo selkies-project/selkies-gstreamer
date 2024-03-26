@@ -8,22 +8,26 @@ inputs:
   build_args:
     description: Docker container build arguments (ARG)
     required: false
+  cache:
+    default: false
+    description: Cache image
+    required: false
+  context:
+    default: "{{defaultContext}}"
+    description: Image build context
+    required: false
   dockerfile:
     default: "Dockerfile"
     description: Dockerfile path relative to context
-    required: false
-  context:
-    default: "."
-    description: Image build context
-    required: false
-  push:
-    default: ${{ github.event_name != 'pull_request' }}
-    description: Push image to registry
     required: false
   platforms:
     default: |
       linux/amd64
     description: Build architectures
+    required: false
+  push:
+    default: ${{ github.event_name != 'pull_request' }}
+    description: Push image to registry
     required: false
   registry:
     default: "ghcr.io"
@@ -77,6 +81,7 @@ runs:
       build-args: ${{ inputs.build_args }}
       context: ${{ inputs.context || '.' }}
       file: ${{ inputs.context || '.' }}/${{ inputs.dockerfile || 'Dockerfile' }}
+      no-cache: ${{ !inputs.cache }}
       platforms: ${{ inputs.platforms }}
       push: ${{ inputs.push }}
       tags: ${{ inputs.tags }}
