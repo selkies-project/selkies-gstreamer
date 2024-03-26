@@ -100,7 +100,7 @@ jobs:
             PACKAGE_VERSION=0.0.0.dev0
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platforms || 'linux/amd64' }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} image build & publish
     steps:
     - uses: actions/checkout@v4
       with:
@@ -117,11 +117,11 @@ jobs:
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}
-        dockerfile: ${{ matrix.dockerfile }}
         context: ${{ matrix.context }}
-        subproject: ${{ matrix.name }}
+        dockerfile: ${{ matrix.dockerfile }}
         platforms: ${{ matrix.platforms }}
         push: ${{ github.event_name != 'pull_request' }}
+        subproject: ${{ matrix.name }}
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs.
@@ -157,7 +157,7 @@ jobs:
           dockerfile: Dockerfile.example
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platforms || 'linux/amd64' }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} image build & publish
     steps:
     - uses: actions/checkout@v4
       with:
@@ -174,9 +174,9 @@ jobs:
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}
-        dockerfile: ${{ matrix.dockerfile }}
         context: ${{ matrix.context }}
-        subproject: ${{ matrix.name }}
+        dockerfile: ${{ matrix.dockerfile }}
         platforms: ${{ matrix.platforms }}
         push: ${{ github.event_name != 'pull_request' }}
+        subproject: ${{ matrix.name }}
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}

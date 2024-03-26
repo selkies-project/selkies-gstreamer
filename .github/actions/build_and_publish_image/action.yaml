@@ -22,9 +22,8 @@ inputs:
     description: Dockerfile path relative to context
     required: false
   platforms:
-    default: |
-      linux/amd64
-    description: Build architectures
+    default: "linux/amd64"
+    description: Docker build architectures (comma-separated)
     required: false
   push:
     default: ${{ github.event_name != 'pull_request' }}
