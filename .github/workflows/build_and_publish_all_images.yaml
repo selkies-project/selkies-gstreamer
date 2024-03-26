@@ -113,7 +113,7 @@ jobs:
         subproject: ${{ matrix.name }}
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
 
-  # Note: When modifying this job, copy modifications to all other workflows' image jobs.
+  # Note: When modifying this job, copy modifications to all other workflow image jobs.
   all_example_images:
     needs: all_component_images
     runs-on: ubuntu-latest
@@ -160,3 +160,98 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
+
+  # Note: When modifying this job, copy modifications to all other workflow image jobs.
+  upload_assets:
+    needs: all_component_images
+    runs-on: ubuntu-latest
+    env:
+      TEMP_DIR: /tmp
+    strategy:
+      matrix:
+        include:
+        - name: gst-web
+          dir: /opt
+          target: gst-web
+
+        - name: gstreamer
+          version_suffix: -ubuntu20.04
+          dir: /opt
+          target: gstreamer
+
+        - name: gstreamer
+          version_suffix: -ubuntu22.04
+          dir: /opt
+          target: gstreamer
+
+        - name: gstreamer
+          version_suffix: -ubuntu20.04
+          dir: /opt
+          target: gstreamer
+          platforms: linux/arm64
+
+        - name: gstreamer
+          version_suffix: -ubuntu22.04
+          dir: /opt
+          target: gstreamer
+          platforms: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          dir: /opt
+          target: "*.deb"
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          dir: /opt
+          target: "*.deb"
+
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          dir: /opt
+          target: "*.deb"
+          platforms: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          dir: /opt
+          target: "*.deb"
+          platforms: linux/arm64
+
+        - name: py-build
+          dir: /opt/pypi/dist
+          target: "*.whl"
+
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction & upload
+    steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log into registry ghcr.io
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+
+    - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
+      id: extract
+      run: |
+        docker system prune -a -f --volumes
+        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name=copy "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
+        DEST_PATH="${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}"
+        mkdir -pm755 "${DEST_PATH}"
+        docker container cp "copy:${{ matrix.dir }}/${{ matrix.target }}" "${DEST_PATH}"
+        docker container rm -f -l -v copy
+
+    - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
+      id: upload
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        overwrite: true
+        name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}
+        path: ${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}/${{ matrix.target }}

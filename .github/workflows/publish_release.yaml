@@ -27,7 +27,7 @@ jobs:
           echo "semver=0.0.0" >> "$GITHUB_OUTPUT"
         fi
 
-  # Note: When modifying this job, copy modifications to all other workflows' image jobs.
+  # Note: When modifying this job, copy modifications to all other workflow image jobs.
   all_component_images:
     needs: get_semver
     runs-on: ubuntu-latest
@@ -133,7 +133,7 @@ jobs:
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
-  # Note: When modifying this job, copy modifications to all other workflows' image jobs.
+  # Note: When modifying this job, copy modifications to all other workflow image jobs.
   all_example_images:
     needs:
     - get_semver
@@ -226,14 +226,14 @@ jobs:
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu22.04_amd64.tar.xz
 
         - id: gst20-arm64
-          description: GStreamer Ubuntu 20.04
+          description: GStreamer Ubuntu 20.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu20.04
           platforms: linux/arm64
           source_path: /opt/selkies-gstreamer-latest.tar.xz
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu20.04_arm64.tar.xz
 
         - id: gst22-arm64
-          description: GStreamer Ubuntu 22.04
+          description: GStreamer Ubuntu 22.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu22.04
           platforms: linux/arm64
           source_path: /opt/selkies-gstreamer-latest.tar.xz
@@ -252,14 +252,14 @@ jobs:
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_amd64.deb
 
         - id: js20-arm64
-          description: Joystick Interposer Ubuntu 20.04
+          description: Joystick Interposer Ubuntu 20.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu20.04
           platforms: linux/arm64
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_arm64.deb
 
         - id: js22-arm64
-          description: Joystick Interposer Ubuntu 22.04
+          description: Joystick Interposer Ubuntu 22.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu22.04
           platforms: linux/arm64
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
