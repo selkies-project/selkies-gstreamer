@@ -36,9 +36,11 @@ jobs:
         include:
         - name: coturn
           context: addons/coturn
+          platforms: linux/amd64,linux/arm64
 
         - name: coturn-web
           context: addons/coturn-web
+          platforms: linux/amd64,linux/arm64
 
         - name: gst-web
           context: addons/gst-web
@@ -48,26 +50,14 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=20.04
           context: addons/gstreamer
+          platforms: linux/amd64,linux/arm64
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
-
-        - name: gstreamer
-          version_suffix: -ubuntu20.04
-          build_args: |
-            DISTRIB_RELEASE=20.04
-          context: addons/gstreamer
-          platforms: linux/arm64
-
-        - name: gstreamer
-          version_suffix: -ubuntu22.04
-          build_args: |
-            DISTRIB_RELEASE=22.04
-          context: addons/gstreamer
-          platforms: linux/arm64
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
@@ -77,6 +67,7 @@ jobs:
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
@@ -86,26 +77,7 @@ jobs:
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
-
-        - name: js-interposer
-          version_suffix: -ubuntu20.04
-          build_args: |
-            DISTRIB_RELEASE=20.04
-            PKG_NAME=selkies-js-interposer
-            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
-          context: addons/js-interposer
-          dockerfile: Dockerfile.ubuntu_debpkg
-          platforms: linux/arm64
-
-        - name: js-interposer
-          version_suffix: -ubuntu22.04
-          build_args: |
-            DISTRIB_RELEASE=22.04
-            PKG_NAME=selkies-js-interposer
-            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
-          context: addons/js-interposer
-          dockerfile: Dockerfile.ubuntu_debpkg
-          platforms: linux/arm64
+          platforms: linux/amd64,linux/arm64
 
         - name: infra-gcp-installer
           context: infra/gce/installer-image
@@ -116,7 +88,7 @@ jobs:
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
     - uses: actions/checkout@v4
 
@@ -168,7 +140,7 @@ jobs:
           dockerfile: Dockerfile.example
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
     - uses: actions/checkout@v4
 
