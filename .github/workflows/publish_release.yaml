@@ -60,14 +60,14 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=20.04
           context: addons/gstreamer
-          platform: linux/arm64
+          platforms: linux/arm64
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
-          platform: linux/arm64
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
@@ -95,7 +95,7 @@ jobs:
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
-          platform: linux/arm64
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
@@ -105,7 +105,7 @@ jobs:
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
-          platform: linux/arm64
+          platforms: linux/arm64
 
         - name: infra-gcp-installer
           context: infra/gce/installer-image
@@ -116,7 +116,7 @@ jobs:
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platform || 'linux/amd64' }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platforms || 'linux/amd64' }} image build & publish
     steps:
     - uses: actions/checkout@v4
 
@@ -127,7 +127,7 @@ jobs:
         dockerfile: ${{ matrix.dockerfile }}
         context: ${{ matrix.context }}
         subproject: ${{ matrix.name }}
-        platform: ${{ matrix.platform }}
+        platforms: ${{ matrix.platforms }}
         push: true
         tags: |
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
@@ -168,7 +168,7 @@ jobs:
           dockerfile: Dockerfile.example
           context: .
 
-    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platform || 'linux/amd64' }} image build & publish
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}-${{ matrix.platforms || 'linux/amd64' }} image build & publish
     steps:
     - uses: actions/checkout@v4
 
@@ -179,7 +179,7 @@ jobs:
         dockerfile: ${{ matrix.dockerfile }}
         context: ${{ matrix.context }}
         subproject: ${{ matrix.name }}
-        platform: ${{ matrix.platform }}
+        platforms: ${{ matrix.platforms }}
         push: true
         tags: |
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
@@ -231,7 +231,7 @@ jobs:
           description: GStreamer Ubuntu 20.04
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu20.04
           mimetype: application/x-gtar
-          platform: linux/arm64
+          platforms: linux/arm64
           source_path: /opt/selkies-gstreamer-latest.tar.xz
           target_directory: /tmp
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu20.04_arm64.tar.xz
@@ -240,7 +240,7 @@ jobs:
           description: GStreamer Ubuntu 22.04
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu22.04
           mimetype: application/x-gtar
-          platform: linux/arm64
+          platforms: linux/arm64
           source_path: /opt/selkies-gstreamer-latest.tar.xz
           target_directory: /tmp
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu22.04_arm64.tar.xz
@@ -265,7 +265,7 @@ jobs:
           description: Joystick Interposer Ubuntu 20.04
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu20.04
           mimetype: application/vnd.debian.binary-package
-          platform: linux/arm64
+          platforms: linux/arm64
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_directory: /tmp
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_arm64.deb
@@ -274,7 +274,7 @@ jobs:
           description: Joystick Interposer Ubuntu 22.04
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu22.04
           mimetype: application/vnd.debian.binary-package
-          platform: linux/arm64
+          platforms: linux/arm64
           source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_directory: /tmp
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_arm64.deb
@@ -314,7 +314,7 @@ jobs:
       id: extract
       run: |
         docker system prune -a -f --volumes
-        docker container create --platform="${{ matrix.platform || 'linux/amd64' }}" --name=copy "${{ matrix.image_tag }}"
+        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name=copy "${{ matrix.image_tag }}"
         TARGET_PATH="${{ matrix.target_directory }}/${{ matrix.target_name }}"
         docker container cp "copy:${{ matrix.source_path }}" "$TARGET_PATH"
         if [ -d "$TARGET_PATH" ]; then
