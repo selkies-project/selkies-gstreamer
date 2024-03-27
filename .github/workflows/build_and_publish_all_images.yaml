@@ -32,14 +32,14 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=20.04
           context: addons/gstreamer
-          platforms: linux/amd64 #,linux/arm64
+          platforms: linux/amd64,linux/arm64
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
-          platforms: linux/amd64 #,linux/arm64
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04

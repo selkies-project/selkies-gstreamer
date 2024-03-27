@@ -72,7 +72,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-pip \
         python3-dev \
         python-gi-dev && \
-    pip3 install cmake meson ninja gitlint tomli && ninja --help && \
+    pip3 install cmake meson ninja gitlint tomli && ninja --help || : && \
     rm -rf /var/lib/apt/lists/*
 
 # GStreamer monorepo build with prefix for standalone install
