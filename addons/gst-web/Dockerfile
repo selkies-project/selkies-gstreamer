@@ -29,6 +29,7 @@ COPY . .
 RUN INSTALL_DIR="/usr/share/nginx/html" ./install.sh
 
 # Create release tarball
+ARG XZ_OPT='-T0'
 RUN cp -R /usr/share/nginx/html /tmp/gst-web && \
     cd /tmp && tar -cJvf /opt/gst-web.tar.xz gst-web && \
     rm -rf /tmp/gst-web

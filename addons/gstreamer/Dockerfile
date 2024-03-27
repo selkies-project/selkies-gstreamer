@@ -9,13 +9,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Install essential dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
+        apt-utils \
         build-essential \
         ca-certificates \
         curl \
         git \
         pkg-config \
         tar \
-        vim \
         xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
@@ -25,11 +25,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         autoconf \
         automake \
         autotools-dev \
+        binutils \
         bison \
-        cmake \
         flex \
         gettext \
-        gtk-doc-tools \
         khronos-api \
         nasm \
         valgrind \
@@ -39,35 +38,29 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libgl-dev \
         libgles-dev \
         libglvnd-dev \
+        libvulkan-dev \
         libgmp-dev \
-        libgudev-1.0-dev \
-        libgirepository1.0-dev \
-        libgtk2.0-dev \
         libgsl-dev \
         libtool-bin \
+        libgudev-1.0-dev \
         libx11-xcb-dev \
         libxcb-dri3-dev \
         libxkbcommon-dev \
         wayland-protocols \
-        libvulkan-dev \
         libwayland-dev \
         libwayland-egl-backend-dev \
         libdrm-dev \
         libmp3lame-dev \
-        libopus-dev \
         libpulse-dev \
         libwebrtc-audio-processing-dev \
-        libsoup2.4-dev \
-        libsoup-gnome2.4-dev \
         libsrtp2-dev \
         libssl-dev \
         libjpeg-dev \
         libopenjp2-7-dev \
+        libvdpau-dev \
         libwebp-dev \
         libx264-dev \
-        libx265-dev \
-        libvpx-dev \
-        libvdpau-dev && \
+        libx265-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
@@ -79,7 +72,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-pip \
         python3-dev \
         python-gi-dev && \
-    pip3 install meson ninja gitlint hotdoc tomli && \
+    pip3 install cmake meson ninja gitlint tomli && ninja --help && \
     rm -rf /var/lib/apt/lists/*
 
 # GStreamer monorepo build with prefix for standalone install
@@ -88,7 +81,7 @@ ARG GSTREAMER_VERSION=1.24.1
 RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
     cargo install cargo-c && \
-    git clone -b "${GSTREAMER_VERSION}" --single-branch --depth 1 "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
+    git clone --single-branch --depth 1 --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
     meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
     ninja -C builddir && \
@@ -111,4 +104,5 @@ export PYTHONPATH=\${GST_PY_PATH}/site-packages:\${GSTREAMER_PATH}/lib/python3/d
 " > /opt/gstreamer/gst-env
 
 # Bundle build result to tarball
+ARG XZ_OPT='-T0'
 RUN cd /opt && tar -cJvf selkies-gstreamer-latest.tar.xz gstreamer
