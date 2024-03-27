@@ -4,7 +4,7 @@
 
 FROM hashicorp/terraform:1.0.7 as terraform
 
-FROM google/cloud-sdk:alpine
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine
 
 COPY --from=terraform /bin/terraform /bin/
 
