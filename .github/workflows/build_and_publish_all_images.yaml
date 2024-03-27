@@ -143,56 +143,46 @@ jobs:
       matrix:
         include:
         - name: gst-web
-          dir: /opt
-          target: gst-web
+          target: /usr/share/nginx/html
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
-          dir: /opt
-          target: gstreamer
+          target: /opt/gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
-          dir: /opt
-          target: gstreamer
+          target: /opt/gstreamer
 
-        - name: gstreamer
-          version_suffix: -ubuntu20.04
-          dir: /opt
-          target: gstreamer
-          platforms: linux/arm64
+        # - name: gstreamer
+        #   version_suffix: -ubuntu20.04
+        #   target: /opt/gstreamer
+        #   platforms: linux/arm64
 
-        - name: gstreamer
-          version_suffix: -ubuntu22.04
-          dir: /opt
-          target: gstreamer
-          platforms: linux/arm64
+        # - name: gstreamer
+        #   version_suffix: -ubuntu22.04
+        #   target: /opt/gstreamer
+        #   platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          dir: /opt
-          target: "*.deb"
+          target: /opt/selkies-js-interposer_0.0.0.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          dir: /opt
-          target: "*.deb"
+          target: /opt/selkies-js-interposer_0.0.0.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          dir: /opt
-          target: "*.deb"
+          target: /opt/selkies-js-interposer_0.0.0.deb
           platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          dir: /opt
-          target: "*.deb"
+          target: /opt/selkies-js-interposer_0.0.0.deb
           platforms: linux/arm64
 
         - name: py-build
-          dir: /opt/pypi/dist
-          target: "*.whl"
+          target: /opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction & upload
     steps:
@@ -212,11 +202,10 @@ jobs:
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
       id: extract
       run: |
-        docker system prune -a -f --volumes
         docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name=copy "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
         DEST_PATH="${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}"
         mkdir -pm755 "${DEST_PATH}"
-        docker container cp "copy:${{ matrix.dir }}/${{ matrix.target }}" "${DEST_PATH}"
+        docker container cp "copy:${{ matrix.target }}" "${DEST_PATH}"
         docker container rm -f -l -v copy
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload

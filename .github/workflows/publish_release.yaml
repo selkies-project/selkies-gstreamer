@@ -188,65 +188,65 @@ jobs:
         - id: gst20
           description: GStreamer Ubuntu 20.04
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu20.04
-          source_path: /opt/selkies-gstreamer-latest.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.xz
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu20.04_amd64.tar.xz
 
         - id: gst22
           description: GStreamer Ubuntu 22.04
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu22.04
-          source_path: /opt/selkies-gstreamer-latest.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.xz
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu22.04_amd64.tar.xz
 
         - id: gst20-arm64
           description: GStreamer Ubuntu 20.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu20.04
           platforms: linux/arm64
-          source_path: /opt/selkies-gstreamer-latest.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.xz
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu20.04_arm64.tar.xz
 
         - id: gst22-arm64
           description: GStreamer Ubuntu 22.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/gstreamer:${{ github.ref_name }}-ubuntu22.04
           platforms: linux/arm64
-          source_path: /opt/selkies-gstreamer-latest.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.xz
           target_name: gstreamer-gpl-selkies_${{ github.ref_name }}_ubuntu22.04_arm64.tar.xz
 
         - id: js20
           description: Joystick Interposer Ubuntu 20.04
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu20.04
-          source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_amd64.deb
 
         - id: js22
           description: Joystick Interposer Ubuntu 22.04
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu22.04
-          source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_amd64.deb
 
         - id: js20-arm64
           description: Joystick Interposer Ubuntu 20.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu20.04
           platforms: linux/arm64
-          source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_arm64.deb
 
         - id: js22-arm64
           description: Joystick Interposer Ubuntu 22.04 arm64
           image_tag: ghcr.io/${{ github.repository }}/js-interposer:${{ github.ref_name }}-ubuntu22.04
           platforms: linux/arm64
-          source_path: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_arm64.deb
 
         - id: py
           description: Python Wheel
           image_tag: ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
-          source_path: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
+          source: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
           target_name: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
 
         - id: web
           description: Web Interface
           image_tag: ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
-          source_path: /opt/gst-web.tar.xz
+          source: /opt/gst-web.tar.xz
           target_name: selkies-gstreamer-web_${{ github.ref_name }}.tar.xz
 
     name: ${{ matrix.description }} release artifact extraction & upload
@@ -267,12 +267,11 @@ jobs:
     - name: ${{ matrix.description }} release artifact extraction
       id: extract
       run: |
-        docker system prune -a -f --volumes
         docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name=copy "${{ matrix.image_tag }}"
         TARGET_PATH="${{ env.TEMP_DIR }}/${{ matrix.target_name }}"
-        docker container cp "copy:${{ matrix.source_path }}" "${TARGET_PATH}"
+        docker container cp "copy:${{ matrix.source }}" "${TARGET_PATH}"
         if [ -d "${TARGET_PATH}" ]; then
-          SOURCE_DIRNAME=$(echo "${{ matrix.source_path }}" | sed 's:.*/::')
+          SOURCE_DIRNAME=$(echo "${{ matrix.source }}" | sed 's:.*/::')
           cd "${{ env.TEMP_DIR }}" && mv -f "${TARGET_PATH}" "${SOURCE_DIRNAME}"
           tar -cJvf "temp.tar.xz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.xz" "${TARGET_PATH}"
         fi
