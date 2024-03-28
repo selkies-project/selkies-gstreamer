@@ -26,7 +26,7 @@ RUN go mod download
 COPY *.go ./
 RUN go build
 
-FROM alpine:3.9
+FROM alpine
 
 # Install tools
 RUN apk add -u bash jq bind-tools curl

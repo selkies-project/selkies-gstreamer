@@ -96,13 +96,8 @@ This will install the HTML5 components to the default directory of `/opt/gst-web
 cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb"
 ```
 
-6. If using NVIDIA GPUs for hardware acceleration, run this command to download NVRTC (you agree to the [NVIDIA License](https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt)):
 
-```bash
-NVRTC_VERSION="11.4.152" && NVRTC_ARCH="$(dpkg --print-architecture | sed -e 's/arm64/sbsa/' -e 's/ppc64el/ppc64le/' -e 's/i.*86/x86/' -e 's/amd64/x86_64/' -e 's/unknown/x86_64/')" && cd /tmp && curl -fsSL "https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/linux-${NVRTC_ARCH}/cuda_nvrtc-linux-${NVRTC_ARCH}-${NVRTC_VERSION}-archive.tar.xz" | tar -xJf - -C /tmp && mv -f cuda_nvrtc* cuda_nvrtc && cd cuda_nvrtc/lib && chmod 755 libnvrtc* && sudo mv -f libnvrtc* /opt/gstreamer/lib/$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/')/ && cd /tmp && rm -rf /tmp/cuda_nvrtc && \
-```
-
-7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
+6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
 export DISPLAY=:0
@@ -202,13 +197,8 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y /tmp/selk
 rm -f /tmp/selkies-js-interposer.deb
 ```
 
-6. If using NVIDIA GPUs for hardware acceleration, run this command to download NVRTC (you agree to the [NVIDIA License](https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt)):
 
-```bash
-NVRTC_VERSION="11.4.152" && NVRTC_ARCH="$(dpkg --print-architecture | sed -e 's/arm64/sbsa/' -e 's/ppc64el/ppc64le/' -e 's/i.*86/x86/' -e 's/amd64/x86_64/' -e 's/unknown/x86_64/')" && cd /tmp && curl -fsSL "https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/linux-${NVRTC_ARCH}/cuda_nvrtc-linux-${NVRTC_ARCH}-${NVRTC_VERSION}-archive.tar.xz" | tar -xJf - -C /tmp && mv -f cuda_nvrtc* cuda_nvrtc && cd cuda_nvrtc/lib && chmod 755 libnvrtc* && sudo mv -f libnvrtc* /opt/gstreamer/lib/$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/')/ && cd /tmp && rm -rf /tmp/cuda_nvrtc && \
-```
-
-7. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
+6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
 export DISPLAY=:0
@@ -246,7 +236,7 @@ selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/
 
 ### Locking the cursor and fullscreen mode
 
-The cursor can be locked into the web interface using `Control + Shift + Left Click` in web browsers supporting the Pointer Lock API. Press `Escape` to exit this remote cursor mode. This remote cursor capability is useful for most games or graphics applications where the cursor must be confined to the remote screen. Fullscreen mode is available with the shortcut `Control + Shift + F`, or by pressing the fullscreen button in the configuration menu. Press `Escape` for a long time to exit fullscreen mode. The configuration menu is available by clicking the small button on the right of the interface with fullscreen turned off, or by using the shortcut `Control + Shift + M`.
+The cursor can be locked into the web interface using `Control + Alt + Left Click` in web browsers supporting the Pointer Lock API. Press `Escape` to exit this remote cursor mode. This remote cursor capability is useful for most games or graphics applications where the cursor must be confined to the remote screen. Fullscreen mode is available with the shortcut `Control + Alt + F`, or by pressing the fullscreen button in the configuration menu. Press `Escape` for a long time to exit fullscreen mode. The configuration menu is available by clicking the small button on the right of the interface with fullscreen turned off, or by using the shortcut `Control + Alt + M`.
 
 ### Command-line options and environment variables
 

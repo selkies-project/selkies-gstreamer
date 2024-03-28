@@ -143,8 +143,8 @@ class Input {
                 event.target.requestPointerLock();
         }
 
-        // Hotkey to enable pointer lock, CTRL-SHIFT-LeftButton
-        if (down && event.button === 0 && event.ctrlKey && event.shiftKey) {
+        // Hotkey to enable pointer lock, Ctrl-Alt-LeftButton
+        if (down && event.button === 0 && event.ctrlKey && event.altKey) {
             event.target.requestPointerLock();
             return;
         }
@@ -323,7 +323,7 @@ class Input {
     }
 
     /**
-     * Captures keyboard events to detect pressing of CTRL-SHIFT hotkey.
+     * Captures keyboard events to detect pressing of hotkeys.
      * @param {KeyboardEvent} event
      */
     _key(event) {
@@ -337,7 +337,7 @@ class Input {
         }
 
         // capture menu hotkey
-        if (event.type === 'keydown' && event.code === 'KeyM' && event.ctrlKey && event.shiftKey) {
+        if (event.type === 'keydown' && event.code === 'KeyM' && event.ctrlKey && event.altKey) {
             if (document.fullscreenElement === null && this.onmenuhotkey !== null) {
                 this.onmenuhotkey();
                 event.preventDefault();
@@ -347,7 +347,7 @@ class Input {
         }
 
         // capture fullscreen hotkey
-        if (event.type === 'keydown' && event.code === 'KeyF' && event.ctrlKey && event.shiftKey) {
+        if (event.type === 'keydown' && event.code === 'KeyF' && event.ctrlKey && event.altKey) {
             if (document.fullscreenElement === null && this.onfullscreenhotkey !== null) {
                 this.onfullscreenhotkey();
                 event.preventDefault();
