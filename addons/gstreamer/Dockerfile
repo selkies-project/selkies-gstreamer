@@ -101,8 +101,7 @@ RUN MULTI_ARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
 export PATH=\${GSTREAMER_PATH}/bin:\${PATH}\n\
 export LD_LIBRARY_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}:\${LD_LIBRARY_PATH}\n\
 export GI_TYPELIB_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}/girepository-1.0:/usr/lib/${MULTI_ARCH}/girepository-1.0:\${GI_TYPELIB_PATH}\n\
-GST_PY_PATH=\$(find \${GSTREAMER_PATH}/lib -type d -name \"python3*\")\n\
-export PYTHONPATH=\${GST_PY_PATH}/site-packages:\${GSTREAMER_PATH}/lib/python3/dist-packages:\${PYTHONPATH}\n\
+export PYTHONPATH=\${GSTREAMER_PATH}/lib/python3/dist-packages:\${PYTHONPATH}\n\
 " > /opt/gstreamer/gst-env
 
 # Bundle build result to tarball

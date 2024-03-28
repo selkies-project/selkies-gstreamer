@@ -138,19 +138,6 @@ COPY --from=selkies-js-interposer /opt/*.deb /opt/selkies-js-interposer.deb
 RUN apt-get update && apt-get install --no-install-recommends -y /opt/selkies-js-interposer.deb && rm -f /opt/selkies-js-interposer.deb && \
     rm -rf /var/lib/apt/lists/*
 
-# Update PWA manifest.json with application information and route.
-ARG PWA_APP_NAME="Selkies WebRTC"
-ARG PWA_APP_SHORT_NAME="selkies"
-ARG PWA_START_URL="/index.html"
-RUN sed -i \
-        -e "s|PWA_APP_NAME|${PWA_APP_NAME}|g" \
-        -e "s|PWA_APP_SHORT_NAME|${PWA_APP_SHORT_NAME}|g" \
-        -e "s|PWA_START_URL|${PWA_START_URL}|g" \
-    /opt/gst-web/manifest.json && \
-    sed -i \
-        -e "s|PWA_CACHE|${PWA_APP_SHORT_NAME}-webrtc-pwa|g" \
-    /opt/gst-web/sw.js
-
 # Install Selkies-GStreamer Python application
 ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=0.0.0.dev0
