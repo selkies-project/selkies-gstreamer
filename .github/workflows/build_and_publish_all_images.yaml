@@ -6,8 +6,8 @@ name: Build & publish all images
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
@@ -32,14 +32,14 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=20.04
           context: addons/gstreamer
-          platforms: linux/amd64 #,linux/arm64
+          platforms: linux/amd64,linux/arm64
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
-          platforms: linux/amd64 #,linux/arm64
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
@@ -137,6 +137,7 @@ jobs:
   upload_artifacts:
     needs: component_images
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
     env:
       TEMP_DIR: /tmp
     strategy:
@@ -156,17 +157,17 @@ jobs:
           dir: /opt
           target: gstreamer
 
-        # - name: gstreamer
-        #   version_suffix: -ubuntu20.04
-        #   dir: /opt
-        #   target: gstreamer
-        #   platforms: linux/arm64
+        - name: gstreamer
+          version_suffix: -ubuntu20.04
+          dir: /opt
+          target: gstreamer
+          platforms: linux/arm64
 
-        # - name: gstreamer
-        #   version_suffix: -ubuntu22.04
-        #   dir: /opt
-        #   target: gstreamer
-        #   platforms: linux/arm64
+        - name: gstreamer
+          version_suffix: -ubuntu22.04
+          dir: /opt
+          target: gstreamer
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04

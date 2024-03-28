@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [ main ]
-  # push:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
@@ -157,6 +157,7 @@ jobs:
   upload_artifacts:
     needs: component_images
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
     env:
       TEMP_DIR: /tmp
     strategy:

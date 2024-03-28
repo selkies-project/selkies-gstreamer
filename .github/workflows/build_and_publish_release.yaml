@@ -99,7 +99,7 @@ jobs:
         context: ${{ matrix.context }}
         dockerfile: ${{ matrix.dockerfile }}
         platforms: ${{ matrix.platforms }}
-        push: true
+        push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
         tags: |
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
@@ -151,7 +151,7 @@ jobs:
         context: ${{ matrix.context }}
         dockerfile: ${{ matrix.dockerfile }}
         platforms: ${{ matrix.platforms }}
-        push: true
+        push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
         tags: |
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
@@ -180,6 +180,7 @@ jobs:
     - example_images
     - create_release
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
     env:
       TEMP_DIR: /tmp
     strategy:
