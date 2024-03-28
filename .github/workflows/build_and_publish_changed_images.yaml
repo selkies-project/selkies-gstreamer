@@ -222,11 +222,11 @@ jobs:
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
       id: extract
       run: |
-        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name="${{ matrix.name }}${{ matrix.version_suffix }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
+        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
         DEST_PATH="${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}"
         mkdir -pm755 "${DEST_PATH}"
-        docker container cp "${{ matrix.name }}${{ matrix.version_suffix }}:${{ matrix.target }}" "${DEST_PATH}"
-        docker container rm -f -l -v "${{ matrix.name }}${{ matrix.version_suffix }}"
+        docker container cp "copy:${{ matrix.target }}" "${DEST_PATH}"
+        docker container rm --force --volumes copy
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
       id: upload

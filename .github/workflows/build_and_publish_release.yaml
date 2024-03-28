@@ -267,15 +267,15 @@ jobs:
     - name: ${{ matrix.description }} release artifact extraction
       id: extract
       run: |
-        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name="${{ matrix.id }}" "${{ matrix.image_tag }}"
+        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "${{ matrix.image_tag }}"
         TARGET_PATH="${{ env.TEMP_DIR }}/${{ matrix.target_name }}"
-        docker container cp "${{ matrix.id }}:${{ matrix.source }}" "${TARGET_PATH}"
+        docker container cp "copy:${{ matrix.source }}" "${TARGET_PATH}"
         if [ -d "${TARGET_PATH}" ]; then
           SOURCE_DIRNAME=$(echo "${{ matrix.source }}" | sed 's:.*/::')
           cd "${{ env.TEMP_DIR }}" && mv -f "${TARGET_PATH}" "${SOURCE_DIRNAME}"
           XZ_OPT='-T0' tar -cJvf "temp.tar.xz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.xz" "${TARGET_PATH}"
         fi
-        docker container rm -f -l -v "${{ matrix.id }}"
+        docker container rm --force --volumes copy
 
     - name: ${{ matrix.description }} upload
       id: upload
