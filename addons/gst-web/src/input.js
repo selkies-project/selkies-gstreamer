@@ -143,8 +143,8 @@ class Input {
                 event.target.requestPointerLock();
         }
 
-        // Hotkey to enable pointer lock, Ctrl-Alt-LeftButton
-        if (down && event.button === 0 && event.ctrlKey && event.altKey) {
+        // Hotkey to enable pointer lock, Ctrl-Shift-LeftButton
+        if (down && event.button === 0 && event.ctrlKey && event.shiftKey) {
             event.target.requestPointerLock();
             return;
         }
@@ -323,21 +323,24 @@ class Input {
     }
 
     /**
-     * Captures keyboard events to detect pressing of hotkeys.
+     * Captures keyboard events to detect pressing of CTRL-SHIFT hotkeys.
      * @param {KeyboardEvent} event
      */
     _key(event) {
 
         // disable problematic browser shortcuts
-        if (event.code === 'F5' && event.ctrlKey ||
+        if (event.code === 'F4' && event.ctrlKey ||
+            event.code === 'F5' && event.ctrlKey ||
             event.code === 'KeyI' && event.ctrlKey && event.shiftKey ||
+            event.code === 'KeyW' && event.ctrlKey ||
+            event.code === 'KeyW' && event.ctrlKey && event.shiftKey ||
             event.code === 'F11') {
             event.preventDefault();
             return;
         }
 
         // capture menu hotkey
-        if (event.type === 'keydown' && event.code === 'KeyM' && event.ctrlKey && event.altKey) {
+        if (event.type === 'keydown' && event.code === 'KeyM' && event.ctrlKey && event.shiftKey) {
             if (document.fullscreenElement === null && this.onmenuhotkey !== null) {
                 this.onmenuhotkey();
                 event.preventDefault();
@@ -347,7 +350,7 @@ class Input {
         }
 
         // capture fullscreen hotkey
-        if (event.type === 'keydown' && event.code === 'KeyF' && event.ctrlKey && event.altKey) {
+        if (event.type === 'keydown' && event.code === 'KeyF' && event.ctrlKey && event.shiftKey) {
             if (document.fullscreenElement === null && this.onfullscreenhotkey !== null) {
                 this.onfullscreenhotkey();
                 event.preventDefault();
