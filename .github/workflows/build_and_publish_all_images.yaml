@@ -156,17 +156,17 @@ jobs:
           dir: /opt
           target: gstreamer
 
-        - name: gstreamer
-          version_suffix: -ubuntu20.04
-          dir: /opt
-          target: gstreamer
-          platforms: linux/arm64
+        # - name: gstreamer
+        #   version_suffix: -ubuntu20.04
+        #   dir: /opt
+        #   target: gstreamer
+        #   platforms: linux/arm64
 
-        - name: gstreamer
-          version_suffix: -ubuntu22.04
-          dir: /opt
-          target: gstreamer
-          platforms: linux/arm64
+        # - name: gstreamer
+        #   version_suffix: -ubuntu22.04
+        #   dir: /opt
+        #   target: gstreamer
+        #   platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
@@ -214,11 +214,12 @@ jobs:
         docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
         docker container cp "copy:${{ matrix.dir }}/${{ matrix.target }}" "${{ env.TEMP_DIR }}/${{ matrix.target }}"
         docker container rm --force --volumes copy
+        echo "release_arch=$(echo ${{ matrix.platforms || 'linux/amd64' }} | sed -e 's/\//\-/')" >> "$GITHUB_ENV"
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
       uses: actions/upload-artifact@v4
       with:
         if-no-files-found: error
         overwrite: true
-        name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}
+        name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ env.release_arch }}
         path: ${{ env.TEMP_DIR }}/${{ matrix.target }}
