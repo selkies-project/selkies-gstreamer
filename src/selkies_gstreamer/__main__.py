@@ -97,7 +97,7 @@ class CoturnRTCMonitor:
         self.running = False
 
         self.coturn_web_uri = coturn_web_uri
-        self.coturn_web_username = coturn_web_username
+        self.coturn_web_username = coturn_web_username.replace(":", "-")
         self.coturn_auth_header_name = coturn_auth_header_name
 
         self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning(
@@ -293,135 +293,135 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--json_config',
                         default=os.environ.get(
-                            'JSON_CONFIG', '/tmp/selkies_config.json'),
+                            'SELKIES_JSON_CONFIG', '/tmp/selkies_config.json'),
                         help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables, this path must be writable.')
     parser.add_argument('--addr',
                         default=os.environ.get(
-                            'LISTEN_HOST', '0.0.0.0'),
+                            'SELKIES_LISTEN_HOST', '0.0.0.0'),
                         help='Host to listen on for the signaling and web server, default: "0.0.0.0"')
     parser.add_argument('--port',
                         default=os.environ.get(
-                            'LISTEN_PORT', '8080'),
+                            'SELKIES_LISTEN_PORT', '8080'),
                         help='Port to listen on for the signaling and web server, default: "8080"')
     parser.add_argument('--web_root',
                         default=os.environ.get(
-                            'WEB_ROOT', '/opt/gst-web'),
+                            'SELKIES_WEB_ROOT', '/opt/gst-web'),
                         help='Path to directory containing web app source, default: "/opt/gst-web"')
     parser.add_argument('--enable_https',
                         default=os.environ.get(
-                            'ENABLE_HTTPS_WEB', 'false'),
+                            'SELKIES_ENABLE_HTTPS_WEB', 'false'),
                         help='Enable or disable HTTPS for the web app, specifing a valid server certificate is recommended.')
     parser.add_argument('--https_cert',
                         default=os.environ.get(
-                            'HTTPS_WEB_CERT', '/etc/ssl/certs/ssl-cert-snakeoil.pem'),
+                            'SELKIES_HTTPS_WEB_CERT', '/etc/ssl/certs/ssl-cert-snakeoil.pem'),
                         help='Path to the TLS server certificate file when HTTPS is enabled.')
     parser.add_argument('--https_key',
                         default=os.environ.get(
-                            'HTTPS_WEB_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
+                            'SELKIES_HTTPS_WEB_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
                         help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate.')
     parser.add_argument('--enable_basic_auth',
                         default=os.environ.get(
-                            'ENABLE_BASIC_AUTH', 'true'),
-                        help='Enable basic authentication on server. Must set basic_auth_password and optionally basic_auth_user to enforce basic authentication.')
+                            'SELKIES_ENABLE_BASIC_AUTH', 'true'),
+                        help='Enable basic authentication on server. Must set --basic_auth_password and optionally --basic_auth_user to enforce basic authentication.')
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
-                            'BASIC_AUTH_USER', os.environ.get('USER', '')),
-                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set basic_auth_password to enforce basic authentication.')
+                            'SELKIES_BASIC_AUTH_USER', os.environ.get('USER', '')),
+                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set --basic_auth_password to enforce basic authentication.')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
-                            'BASIC_AUTH_PASSWORD', 'password'),
+                            'SELKIES_BASIC_AUTH_PASSWORD', 'password'),
                         help='Password used when basic authentication is set.')
     parser.add_argument('--coturn_web_uri',
                         default=os.environ.get(
-                            'COTURN_WEB_URI', ''),
+                            'SELKIES_COTURN_WEB_URI', ''),
                         help='URI for coturn REST API service, example: http://localhost:8081')
     parser.add_argument('--coturn_web_username',
                         default=os.environ.get(
-                            'COTURN_WEB_USERNAME', "selkies-{}".format(socket.gethostname())),
+                            'SELKIES_COTURN_WEB_USERNAME', "selkies-{}".format(socket.gethostname())),
                         help='URI for coturn REST API service, default is the system hostname')
     parser.add_argument('--coturn_auth_header_name',
                         default=os.environ.get(
-                            'COTURN_AUTH_HEADER_NAME', 'x-auth-user'),
+                            'SELKIES_COTURN_AUTH_HEADER_NAME', 'x-auth-user'),
                         help='Header name to pass user to coturn web service')
     parser.add_argument('--rtc_config_json',
                         default=os.environ.get(
-                            'RTC_CONFIG_JSON', '/tmp/rtc.json'),
+                            'SELKIES_RTC_CONFIG_JSON', '/tmp/rtc.json'),
                         help='JSON file with RTC config to use as alternative to coturn service, read periodically')
     parser.add_argument('--turn_host',
                         default=os.environ.get(
-                            'TURN_HOST', ''),
-                        help='TURN host when generating RTC config from shared secret or legacy credentials.')
+                            'SELKIES_TURN_HOST', ''),
+                        help='TURN host when generating RTC config from shared secret or using long-term credentials.')
     parser.add_argument('--turn_port',
                         default=os.environ.get(
-                            'TURN_PORT', ''),
-                        help='TURN port when generating RTC config from shared secret or legacy credentials.')
+                            'SELKIES_TURN_PORT', ''),
+                        help='TURN port when generating RTC config from shared secret or using long-term credentials.')
     parser.add_argument('--turn_protocol',
                         default=os.environ.get(
-                            'TURN_PROTOCOL', 'udp'),
+                            'SELKIES_TURN_PROTOCOL', 'udp'),
                         help='TURN protocol for the client to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network.')
     parser.add_argument('--turn_tls',
                         default=os.environ.get(
-                            'TURN_TLS', 'false'),
+                            'SELKIES_TURN_TLS', 'false'),
                         help='Enable or disable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
     parser.add_argument('--turn_shared_secret',
                         default=os.environ.get(
-                            'TURN_SHARED_SECRET', ''),
-                        help='Shared TURN secret used to generate HMAC credentials, also requires TURN_HOST and TURN_PORT.')
+                            'SELKIES_TURN_SHARED_SECRET', ''),
+                        help='Shared TURN secret used to generate HMAC credentials, also requires --turn_host and --turn_port.')
     parser.add_argument('--turn_username',
                         default=os.environ.get(
-                            'TURN_USERNAME', ''),
-                        help='Legacy non-HMAC TURN credential username, also requires TURN_HOST and TURN_PORT.')
+                            'SELKIES_TURN_USERNAME', ''),
+                        help='Legacy non-HMAC TURN credential username, also requires --turn_host and --turn_port.')
     parser.add_argument('--turn_password',
                         default=os.environ.get(
-                            'TURN_PASSWORD', ''),
-                        help='Legacy non-HMAC TURN credential password, also requires TURN_HOST and TURN_PORT.')
+                            'SELKIES_TURN_PASSWORD', ''),
+                        help='Legacy non-HMAC TURN credential password, also requires --turn_host and --turn_port.')
     parser.add_argument('--app_auto_init',
-                        default=os.environ.get('APP_AUTO_INIT', 'true'),
-                        help='If true, skips wait for APP_READY_FILE to exist before starting stream.')
+                        default=os.environ.get('SELKIES_APP_AUTO_INIT', 'false'),
+                        help='If true, skips wait for SELKIES_APP_READY_FILE to exist before starting stream.')
     parser.add_argument('--app_ready_file',
-                        default=os.environ.get('APP_READY_FILE', '/var/run/appconfig/appready'),
+                        default=os.environ.get('SELKIES_APP_READY_FILE', '/var/run/appconfig/appready'),
                         help='File set by sidecar used to indicate that app is initialized and ready')
     parser.add_argument('--uinput_mouse_socket',
-                        default=os.environ.get('UINPUT_MOUSE_SOCKET', ''),
+                        default=os.environ.get('SELKIES_UINPUT_MOUSE_SOCKET', ''),
                         help='Path to the uinput mouse socket provided by the uinput-device-plugin, if not provided uinput is used directly.')
     parser.add_argument('--js_socket_path',
                         default=os.environ.get('SELKIES_JS_SOCKET_PATH', '/tmp'),
                         help='Directory to write the selkies joystick interposer communication sockets to, default: /tmp results in socket files: /tmp/selkies_js{0-3}.sock')
     parser.add_argument('--encoder',
-                        default=os.environ.get('WEBRTC_ENCODER', 'x264enc'),
+                        default=os.environ.get('SELKIES_ENCODER', 'x264enc'),
                         help='GStreamer encoder plugin to use')
     parser.add_argument('--framerate',
-                        default=os.environ.get('WEBRTC_FRAMERATE', '30'),
+                        default=os.environ.get('SELKIES_FRAMERATE', '30'),
                         help='Framerate of the streaming pipeline')
     parser.add_argument('--video_bitrate',
-                        default=os.environ.get('WEBRTC_VIDEO_BITRATE', '2000'),
+                        default=os.environ.get('SELKIES_VIDEO_BITRATE', '2000'),
                         help='Default video bitrate')
     parser.add_argument('--audio_bitrate',
-                        default=os.environ.get('WEBRTC_AUDIO_BITRATE', '64000'),
+                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '64000'),
                         help='Default audio bitrate')
     parser.add_argument('--audio_channels',
-                        default=os.environ.get('WEBRTC_AUDIO_CHANNELS', '2'),
+                        default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
                         help='Number of audio channels, defaults to stereo (2 channels)')
     parser.add_argument('--enable_clipboard',
-                        default=os.environ.get('ENABLE_CLIPBOARD', 'true'),
+                        default=os.environ.get('SELKIES_ENABLE_CLIPBOARD', 'true'),
                         help='Enable or disable the clipboard features, supported values: true, false, in, out')
     parser.add_argument('--enable_resize',
-                        default=os.environ.get('WEBRTC_ENABLE_RESIZE', 'false'),
+                        default=os.environ.get('SELKIES_ENABLE_RESIZE', 'false'),
                         help='Enable dynamic resizing to match browser size')
     parser.add_argument('--enable_cursors',
-                        default=os.environ.get('WEBRTC_ENABLE_CURSORS', 'true'),
+                        default=os.environ.get('SELKIES_ENABLE_CURSORS', 'true'),
                         help='Enable passing remote cursors to client')
     parser.add_argument('--debug_cursors',
-                        default=os.environ.get('WEBRTC_DEBUG_CURSORS', 'false'),
+                        default=os.environ.get('SELKIES_DEBUG_CURSORS', 'false'),
                         help='Enable cursor debug logging')
     parser.add_argument('--cursor_size',
-                        default=os.environ.get('WEBRTC_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '-1')),
+                        default=os.environ.get('SELKIES_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '-1')),
                         help='Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
     parser.add_argument('--enable_metrics',
-                        default=os.environ.get('WEBRTC_ENABLE_METRICS', 'false'),
+                        default=os.environ.get('SELKIES_ENABLE_METRICS', 'false'),
                         help='Enable the Prometheus metrics server')
     parser.add_argument('--metrics_port',
-                        default=os.environ.get('WEBRTC_METRICS_PORT', '8000'),
+                        default=os.environ.get('SELKIES_METRICS_PORT', '8000'),
                         help='Port to start the Prometheus metrics server on')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug logging')
@@ -514,6 +514,7 @@ def main():
 
     # [START main_setup]
     # Fetch the TURN server and credentials
+    coturn_web_username = args.coturn_web_username.replace(":", "-")
     rtc_config = None
     turn_protocol = 'tcp' if args.turn_protocol.lower() == 'tcp' else 'udp'
     using_turn_tls = args.turn_tls.lower() == 'true'
@@ -532,20 +533,20 @@ def main():
                 logger.error("missing turn host and turn port")
                 sys.exit(1)
             using_hmac_turn = True
-            data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, args.coturn_web_username, turn_protocol, using_turn_tls)
+            data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, coturn_web_username, turn_protocol, using_turn_tls)
             stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
         elif args.turn_username and args.turn_password:
             if not (args.turn_host and args.turn_port):
                 logger.error("missing turn host and turn port")
                 sys.exit(1)
-            logger.warning("using legacy non-HMAC TURN credentials.")
+            logger.info("using long-term non-HMAC TURN credentials.")
             config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
             stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
         else:
             # Use existing coturn-web infrastructure.
             try:
                 stun_servers, turn_servers, rtc_config = fetch_coturn(
-                    args.coturn_web_uri, args.coturn_web_username, args.coturn_auth_header_name)
+                    args.coturn_web_uri, coturn_web_username, args.coturn_auth_header_name)
                 using_coturn = True
             except Exception as e:
                 logger.warning("error fetching coturn RTC config, using DEFAULT_RTC_CONFIG: {}".format(str(e)))
@@ -780,7 +781,7 @@ def main():
         args.turn_host,
         args.turn_port,
         args.turn_shared_secret,
-        args.coturn_web_username,
+        coturn_web_username,
         turn_protocol=turn_protocol,
         turn_tls=using_turn_tls,
         enabled=using_hmac_turn, period=60)
@@ -789,7 +790,7 @@ def main():
     # Initialize coturn RTC config monitor to periodically refresh the coturn RTC config.
     coturn_mon = CoturnRTCMonitor(
         args.coturn_web_uri,
-        args.coturn_web_username,
+        coturn_web_username,
         args.coturn_auth_header_name,
         enabled=using_coturn, period=60)
     coturn_mon.on_rtc_config = mon_rtc_config

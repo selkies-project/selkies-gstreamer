@@ -88,7 +88,7 @@ cd /tmp && curl -O -fsSL https://github.com/selkies-project/selkies-gstreamer/re
 cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web-v${SELKIES_VERSION}.tgz | sudo tar -zxf -
 ```
 
-This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
+This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `SELKIES_WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
 
 5. Install the Joystick Interposer to process gamepad input (fill in `SELKIES_VERSION` and `DISTRIB_RELEASE`):
 
@@ -189,7 +189,7 @@ sudo docker cp gst-web:/usr/share/nginx/html /opt/gst-web
 docker rm gst-web
 ```
 
-This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
+This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `SELKIES_WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
 
 5. Install the Joystick Interposer to process gamepad input (fill in the OS version `DISTRIB_RELEASE`):
 
@@ -256,9 +256,9 @@ Use `selkies-gstreamer --help` for all command-line options, after sourcing `gst
 
 Below are GStreamer components which are implemented and therefore may be used with `selkies-gstreamer`. Some include environment variables or command-line options which may be used select one type of component, and others are chosen automatically based on the operating system or configuration. This section is to be continuously updated.
 
-This table specifies the currently implemented video encoders and their corresponding codecs, which may be set using the environment variable `WEBRTC_ENCODER` or the command-line option `--encoder`.
+This table specifies the currently implemented video encoders and their corresponding codecs, which may be set using the environment variable `SELKIES_ENCODER` or the command-line option `--encoder`.
 
-| Plugin (set `WEBRTC_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
+| Plugin (set `SELKIES_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
 | [`nvh264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvh264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | libnvidia-encode, NVRTC | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
 | [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver | N/A |
@@ -358,11 +358,11 @@ More information is available in the [coTURN container image](https://hub.docker
 
 ### Start `selkies-gstreamer` with the TURN server credentials
 
-Provide the TURN server host address (the environment variable `TURN_HOST` or the command-line option `--turn_host`), port (the environment variable `TURN_PORT` or the command-line option `--turn_port`), and the shared secret (`TURN_SHARED_SECRET`/`--turn_shared_secret`) or the legacy long-term authentication username/password (`TURN_USERNAME`/`--turn_username` and `TURN_PASSWORD`/`--turn_password`) in order to take advantage of the TURN relay capabilities and guarantee connection success.
+Provide the TURN server host address (the environment variable `SELKIES_TURN_HOST` or the command-line option `--turn_host`), port (the environment variable `SELKIES_TURN_PORT` or the command-line option `--turn_port`), and the shared secret (`SELKIES_TURN_SHARED_SECRET`/`--turn_shared_secret`) or the legacy long-term authentication username/password (`SELKIES_TURN_USERNAME`/`--turn_username` and `SELKIES_TURN_PASSWORD`/`--turn_password`) in order to take advantage of the TURN relay capabilities and guarantee connection success.
 
-You may set the environment variable `TURN_PROTOCOL` to `tcp` or set the command-line option `--turn_protocol=tcp` if you are unable to open the UDP listening port to the internet for the coTURN container, or if the UDP protocol is blocked or throttled in your client network.
+You may set the environment variable `SELKIES_TURN_PROTOCOL` to `tcp` or set the command-line option `--turn_protocol=tcp` if you are unable to open the UDP listening port to the internet for the coTURN container, or if the UDP protocol is blocked or throttled in your client network.
 
-You may also set `TURN_TLS` to `true` or set `--turn_tls=true` if TURN over TLS/DTLS was properly configured from the TURN server with a valid certificate issued from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS).
+You may also set `SELKIES_TURN_TLS` to `true` or set `--turn_tls=true` if TURN over TLS/DTLS was properly configured from the TURN server with a valid certificate issued from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS).
 
 ## Development
 
@@ -396,7 +396,7 @@ However, it might be that the parameters for the WebRTC interface, video encoder
 
 ### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
 
-Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.105`.
+Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.105`.
 
 ### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 
@@ -418,12 +418,12 @@ docker-compose run --service-ports test
 export GSTREAMER_PATH=/opt/gstreamer
 . /opt/gstreamer/gst-env
 
-export TURN_HOST="Your TURN Host"
-export TURN_PORT="Your TURN Port"
-export TURN_SECRET="Your Shared Secret"
-export TURN_USER="user"
+export SELKIES_TURN_HOST="Your TURN Host"
+export SELKIES_TURN_PORT="Your TURN Port"
+export SELKIES_TURN_SECRET="Your Shared Secret"
+export SELKIES_TURN_USER="user"
 
-python3 -c 'import os;from selkies_gstreamer.signalling_web import generate_rtc_config; print(generate_rtc_config(os.environ["TURN_HOST"], os.environ["TURN_PORT"], os.environ["TURN_SECRET"], os.environ["TURN_USER"]))'
+python3 -c 'import os;from selkies_gstreamer.signalling_web import generate_rtc_config; print(generate_rtc_config(os.environ["SELKIES_TURN_HOST"], os.environ["SELKIES_TURN_PORT"], os.environ["SELKIES_TURN_SECRET"], os.environ["SELKIES_TURN_USER"]))'
 ```
 
 > You can then test your TURN server configuration from the [Trickle ICE](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/) webpage.

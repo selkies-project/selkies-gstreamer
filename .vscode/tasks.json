@@ -34,7 +34,7 @@
             "problemMatcher": [],
             "options": {
                 "env": {
-                    "WEB_ROOT": "${workspaceFolder}/addons/gst-web/src"
+                    "SELKIES_WEB_ROOT": "${workspaceFolder}/addons/gst-web/src"
                 }
             }
         },

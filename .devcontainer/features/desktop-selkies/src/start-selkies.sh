@@ -72,12 +72,12 @@ selkies-gstreamer-resize 1920x1080
 selkies-gstreamer \
     --addr="0.0.0.0" \
     --port="${WEB_PORT:-6080}" \
-    --metrics_port=${WEBRTC_METRICS_PORT:-19090} \
-    --cursor_size=${WEBRTC_CURSOR_SIZE:-"-1"} \
-    --enable_resize=${WEBRTC_ENABLE_RESIZE:-true} \
-    --turn_host=${TURN_HOST:-localhost} \
-    --turn_port=${TURN_PORT:-3478} \
-    --turn_username=${TURN_USERNAME:-selkies} \
-    --turn_password=${TURN_PASSWORD:-selkies} \
-    --turn_protocol=${TURN_PROTOCOL:-tcp} \
+    --metrics_port=${SELKIES_METRICS_PORT:-19090} \
+    --cursor_size=${SELKIES_CURSOR_SIZE:-"-1"} \
+    --enable_resize=${SELKIES_ENABLE_RESIZE:-true} \
+    --turn_host=${SELKIES_TURN_HOST:-localhost} \
+    --turn_port=${SELKIES_TURN_PORT:-3478} \
+    --turn_username=${SELKIES_TURN_USERNAME:-selkies} \
+    --turn_password=${SELKIES_TURN_PASSWORD:-selkies} \
+    --turn_protocol=${SELKIES_TURN_PROTOCOL:-tcp} \
     $@
