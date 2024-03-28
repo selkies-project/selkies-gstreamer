@@ -22,7 +22,7 @@ Third, `selkies-gstreamer` was designed not only for desktops and bare metal ser
 
 Fourth, `selkies-gstreamer` is easy to use and expand to various usage cases, attracting users and developers from diverse backgrounds, as it uses [GStreamer](https://gstreamer.freedesktop.org). GStreamer allows pluggable components to be mixed and matched like LEGO blocks to form arbitrary pipelines, providing an easier interface with more comprehensive documentation compared to [FFmpeg](https://ffmpeg.org). Therefore, `selkies-gstreamer` is meant from the start to be a community-built project, where developers from all backgrounds can easily contribute to or expand upon. `selkies-gstreamer` mainly uses [`gst-python`](https://gitlab.freedesktop.org/gstreamer/gstreamer/-/tree/main/subprojects/gst-python), the [Python](https://www.python.org) bindings for GStreamer, [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html), which provides the ability to send a WebRTC remote desktop stream to web browsers from GStreamer, and many more community plugins provided by GStreamer.
 
-# NOTE: PLEASE GO TO v1.5.2. The below instructions will break with the current release.
+# NOTE: PLEASE GO TO v1.5.2. The below instructions are intended for v1.6.0 and will break with the current release.
 
 ## How do I get started?
 
@@ -62,7 +62,7 @@ While this instruction assumes that you are installing this project systemwide, 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 libsoup2.4-1 libsoup-gnome2.4-1 libsrtp2-1 lame libopus0 libwebrtc-audio-processing1 pulseaudio libpulse0 libcairo-gobject2 libpangocairo-1.0-0 libgirepository-1.0-1 libopenjp2-7 libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
 ```
 
-Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
+Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
@@ -70,10 +70,10 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
-2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION` and `DISTRIB_RELEASE`), using your own GStreamer build may work **as long as it is the most recent version with the required plugins included**:
+2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION`, `DISTRIB_RELEASE`, and `ARCH` of either `amd64` for x86_64, and `arm64` for ARMv8), using your own GStreamer build on any architecture may work **as long as it is the most recent stable version with the required plugins included**:
 
 ```bash
-cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.tgz | sudo tar -zxf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.tar.xz" | sudo tar -xJf -
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
@@ -81,23 +81,22 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Install the Python components of `selkies-gstreamer` (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`):
 
 ```bash
-cd /tmp && curl -O -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && sudo pip3 install selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl && rm -f selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl
+cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && sudo pip3 install "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl"
 ```
 
 4. Unpack the HTML5 components of `selkies-gstreamer`:
 
 ```bash
-cd /opt && curl -fsSL https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web-v${SELKIES_VERSION}.tgz | sudo tar -zxf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_${SELKIES_VERSION}.tar.xz" | sudo tar -xJf -
 ```
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `SELKIES_WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
 
-5. Install the Joystick Interposer to process gamepad input (fill in `SELKIES_VERSION` and `DISTRIB_RELEASE`):
+5. Install the Joystick Interposer to process gamepad input (fill in `SELKIES_VERSION`, `DISTRIB_RELEASE`, and `ARCH` of either `amd64` for x86_64, and `arm64` for ARMv8):
 
 ```bash
-cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y "./selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb" && rm -f "selkies-js-interposer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.deb"
+cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_arm64.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y ./selkies-js-interposer.deb && rm -f selkies-js-interposer.deb
 ```
-
 
 6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
@@ -114,6 +113,7 @@ export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
 
+# Commented sections are optional
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
 # Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
@@ -135,7 +135,9 @@ selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/
 
 ### Install the latest build on a standalone machine or cloud instance
 
-Docker (or an equivalent) is required if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. **Change `main` to `latest` if you want the latest release version instead of the latest development version.**
+**Build artifacts for every commit are available as an after logging into GitHub in [Actions](https://github.com/selkies-project/selkies-gstreamer/actions), and you do not need Docker to download them.**
+
+Otherwise, Docker (or an equivalent) may be used if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. Change `main` to `latest` if you want the latest release version instead of the latest development version.
 
 **NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](#using-a-turn-server) in order to make the container work using an external TURN server.**
 
@@ -147,7 +149,7 @@ While this instruction assumes that you are installing this project systemwide, 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libgdk-pixbuf2.0-0 libgtk2.0-bin libgl-dev libgles-dev libglvnd-dev libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 libsoup2.4-1 libsoup-gnome2.4-1 libsrtp2-1 lame libopus0 libwebrtc-audio-processing1 pulseaudio libpulse0 libcairo-gobject2 libpangocairo-1.0-0 libgirepository-1.0-1 libopenjp2-7 libjpeg-dev libwebp-dev libvpx-dev zlib1g-dev x264
 ```
 
-Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or an equivalent version of another operating system:
+Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
@@ -155,50 +157,45 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
-2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `DISTRIB_RELEASE`):
+2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `DISTRIB_RELEASE` and set platform to `linux/arm64` in ARMv8):
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
-docker create --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
+docker create --platform="linux/amd64" --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
 sudo docker cp gstreamer:/opt/gstreamer /opt/gstreamer
 docker rm gstreamer
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
 
-3. Copy the Python Wheel file from the container image and install it:
+3. Copy the Python Wheel file from the container image and install it (DO NOT change the platform in ARMv8, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/py-build:main
-docker create --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
+docker create --platform="linux/amd64" --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
 sudo pip3 install --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 ```
 
-4. Install the HTML5 components to the container image:
+4. Install the HTML5 components to the container image (DO NOT change the platform in ARMv8, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
-docker create --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
+docker create --platform="linux/amd64" --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
 sudo docker cp gst-web:/usr/share/nginx/html /opt/gst-web
 docker rm gst-web
 ```
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `SELKIES_WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
 
-5. Install the Joystick Interposer to process gamepad input (fill in the OS version `DISTRIB_RELEASE`):
+5. Install the Joystick Interposer to process gamepad input (fill in the OS version `DISTRIB_RELEASE` and set platform to `linux/arm64` in ARMv8):
 
 ```bash
-docker pull ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
-docker create --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
+docker create --platform="linux/amd64" --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
 docker cp js-interposer:/opt/selkies-js-interposer_0.0.0.deb /tmp/selkies-js-interposer.deb
 docker rm js-interposer
 sudo apt-get update && sudo apt-get install --no-install-recommends -y /tmp/selkies-js-interposer.deb
 rm -f /tmp/selkies-js-interposer.deb
 ```
-
 
 6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
@@ -382,7 +379,7 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 **Usually, the issue arises from using a WiFi router with bufferbloat issues, especially if you observe stuttering. Try using the [Bufferbloat Test](https://www.waveform.com/tools/bufferbloat) to identify the issue first before moving on.** Using wired ethernet or a good 5GHz WiFi connection is important. Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any remote desktop application. Also note that a higher framerate will improve performance if you have the sufficient bandwidth. This is because one screen refresh from a 60 fps screen takes 16.67 ms at a time, while one screen refresh from a 15 fps screen inevitably takes 66.67 ms, and therefore inherently causes a visible lag.
 
-Disable all power saving or efficiency features available in the web browser. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to encode the screen.
+Disable all power saving or efficiency features available in the web browser. In Windows, try setting `Start > Settings > System > Power & battery > Power mode > Best performance`. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to decode the screen.
 
 However, it might be that the parameters for the WebRTC interface, video encoders, RTSP, or other [GStreamer](https://gstreamer.freedesktop.org) plugins are not optimized enough. If you find that it is the case, we always welcome contributions. If your changes show noticeably better results in the same conditions, please make a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls), or tell us about the parameters in any channel that we can reach so that we can also test.
 
