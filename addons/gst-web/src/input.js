@@ -329,11 +329,8 @@ class Input {
     _key(event) {
 
         // disable problematic browser shortcuts
-        if (event.code === 'F4' && event.ctrlKey ||
-            event.code === 'F5' && event.ctrlKey ||
+        if (event.code === 'F5' && event.ctrlKey ||
             event.code === 'KeyI' && event.ctrlKey && event.shiftKey ||
-            event.code === 'KeyW' && event.ctrlKey ||
-            event.code === 'KeyW' && event.ctrlKey && event.shiftKey ||
             event.code === 'F11') {
             event.preventDefault();
             return;
