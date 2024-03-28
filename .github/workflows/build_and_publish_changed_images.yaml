@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [ main ]
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
@@ -34,14 +34,12 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=20.04
           context: addons/gstreamer
-          platforms: linux/amd64,linux/arm64
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
-          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
@@ -176,18 +174,6 @@ jobs:
           version_suffix: -ubuntu22.04
           dir: /opt
           target: gstreamer
-
-        - name: gstreamer
-          version_suffix: -ubuntu20.04
-          dir: /opt
-          target: gstreamer
-          platforms: linux/arm64
-
-        - name: gstreamer
-          version_suffix: -ubuntu22.04
-          dir: /opt
-          target: gstreamer
-          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04

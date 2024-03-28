@@ -50,14 +50,12 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=20.04
           context: addons/gstreamer
-          platforms: linux/amd64,linux/arm64
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
-          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
@@ -195,18 +193,6 @@ jobs:
           version_suffix: -ubuntu22.04
           source: /opt/selkies-gstreamer-latest.tar.xz
           target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_amd64.tar.xz
-
-        - name: gstreamer
-          version_suffix: -ubuntu20.04
-          platforms: linux/arm64
-          source: /opt/selkies-gstreamer-latest.tar.xz
-          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu20.04_arm64.tar.xz
-
-        - name: gstreamer
-          version_suffix: -ubuntu22.04
-          platforms: linux/arm64
-          source: /opt/selkies-gstreamer-latest.tar.xz
-          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_arm64.tar.xz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04

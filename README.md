@@ -70,13 +70,13 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
-2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION`, `DISTRIB_RELEASE`, and `ARCH` of either `amd64` for x86_64, and `arm64` for ARMv8), using your own GStreamer build on any architecture may work **as long as it is the most recent stable version with the required plugins included**:
+2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION`, `DISTRIB_RELEASE`), using your own GStreamer build on any architecture may work **as long as it is the most recent stable version with the required plugins included**:
 
 ```bash
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.tar.xz" | sudo tar -xJf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_amd64.tar.xz" | sudo tar -xJf -
 ```
 
-This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
+This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`. GStreamer builds for ARMv8 are not provided but can be built following procedures in the [GStreamer Dockerfile](addons/gstreamer/Dockerfile).
 
 3. Install the Python components of `selkies-gstreamer` (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`):
 
@@ -157,7 +157,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
-2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `DISTRIB_RELEASE` and set platform to `linux/arm64` in ARMv8):
+2. Copy the GStreamer build from the container image and move it to `/opt/gstreamer` (fill in the OS version `DISTRIB_RELEASE`):
 
 ```bash
 docker create --platform="linux/amd64" --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
@@ -165,7 +165,7 @@ sudo docker cp gstreamer:/opt/gstreamer /opt/gstreamer
 docker rm gstreamer
 ```
 
-This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`.
+This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`. GStreamer builds for ARMv8 are not provided but can be built following procedures in the [GStreamer Dockerfile](addons/gstreamer/Dockerfile).
 
 3. Copy the Python Wheel file from the container image and install it (DO NOT change the platform in ARMv8, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
 
