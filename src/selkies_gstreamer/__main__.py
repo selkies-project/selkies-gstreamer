@@ -419,7 +419,7 @@ def main():
                         help='Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
     parser.add_argument('--enable_metrics',
                         default=os.environ.get('SELKIES_ENABLE_METRICS', 'false'),
-                        help='Enable the Prometheus metrics server')
+                        help='Enable the Prometheus metrics port')
     parser.add_argument('--metrics_port',
                         default=os.environ.get('SELKIES_METRICS_PORT', '8000'),
                         help='Port to start the Prometheus metrics server on')
@@ -465,8 +465,7 @@ def main():
 
     # Initialize metrics server.
     using_metrics = args.enable_metrics.lower() == 'true'
-    if using_metrics:
-        metrics = Metrics(int(args.metrics_port))
+    metrics = Metrics(int(args.metrics_port))
 
     # Initialize the signalling client
     using_https = args.enable_https.lower() == 'true'
@@ -712,12 +711,11 @@ def main():
 
     webrtc_input.on_set_enable_resize = enable_resize_handler
 
-    if using_metrics:
-        # Send client FPS to metrics
-        webrtc_input.on_client_fps = lambda fps: metrics.set_fps(fps)
+    # Send client FPS to metrics
+    webrtc_input.on_client_fps = lambda fps: metrics.set_fps(fps)
 
-        # Send client latency to metrics
-        webrtc_input.on_client_latency = lambda latency_ms: metrics.set_latency(latency_ms)
+    # Send client latency to metrics
+    webrtc_input.on_client_latency = lambda latency_ms: metrics.set_latency(latency_ms)
 
     # Initialize GPU monitor
     gpu_mon = GPUMonitor(enabled=args.encoder.startswith("nv"))
@@ -725,8 +723,7 @@ def main():
     # Send the GPU stats when available.
     def on_gpu_stats(load, memory_total, memory_used):
         app.send_gpu_stats(load, memory_total, memory_used)
-        if using_metrics:
-            metrics.set_gpu_utilization(load * 100)
+        metrics.set_gpu_utilization(load * 100)
 
     gpu_mon.on_stats = on_gpu_stats
 

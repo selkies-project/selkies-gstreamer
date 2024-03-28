@@ -85,7 +85,7 @@ RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && 
     cargo install cargo-c && \
     git clone --single-branch --depth 1 --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dtests=disabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dgst-examples=disabled builddir && \
     ninja -C builddir && \
     meson install -C builddir && \
     rm -rf builddir && rustup self uninstall -y
@@ -101,7 +101,7 @@ RUN MULTI_ARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
 export PATH=\${GSTREAMER_PATH}/bin:\${PATH}\n\
 export LD_LIBRARY_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}:\${LD_LIBRARY_PATH}\n\
 export GI_TYPELIB_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}/girepository-1.0:/usr/lib/${MULTI_ARCH}/girepository-1.0:\${GI_TYPELIB_PATH}\n\
-GST_PY_PATH=\$(find \${GSTREAMER_PATH}/lib -type d -name \"python3.*\")\n\
+GST_PY_PATH=\$(find \${GSTREAMER_PATH}/lib -type d -name \"python3*\")\n\
 export PYTHONPATH=\${GST_PY_PATH}/site-packages:\${GSTREAMER_PATH}/lib/python3/dist-packages:\${PYTHONPATH}\n\
 " > /opt/gstreamer/gst-env
 
