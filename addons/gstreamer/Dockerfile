@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         khronos-api \
         nasm \
         valgrind \
+        yasm \
         libaa1-dev \
         libbz2-dev \
         libgcrypt20-dev \

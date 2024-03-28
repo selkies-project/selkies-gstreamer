@@ -267,15 +267,16 @@ jobs:
     - name: ${{ matrix.description }} release artifact extraction
       id: extract
       run: |
-        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name=copy "${{ matrix.image_tag }}"
+        RANDOM_NAME=$(tr -dc A-Za-z </dev/urandom | head -c 16)
+        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name="${RANDOM_NAME}" "${{ matrix.image_tag }}"
         TARGET_PATH="${{ env.TEMP_DIR }}/${{ matrix.target_name }}"
-        docker container cp "copy:${{ matrix.source }}" "${TARGET_PATH}"
+        docker container cp "${RANDOM_NAME}:${{ matrix.source }}" "${TARGET_PATH}"
         if [ -d "${TARGET_PATH}" ]; then
           SOURCE_DIRNAME=$(echo "${{ matrix.source }}" | sed 's:.*/::')
           cd "${{ env.TEMP_DIR }}" && mv -f "${TARGET_PATH}" "${SOURCE_DIRNAME}"
-          tar -cJvf "temp.tar.xz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.xz" "${TARGET_PATH}"
+          XZ_OPT='-T0' tar -cJvf "temp.tar.xz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.xz" "${TARGET_PATH}"
         fi
-        docker container rm -f -l -v copy
+        docker container rm -f -l -v "${RANDOM_NAME}"
 
     - name: ${{ matrix.description }} upload
       id: upload
