@@ -28,7 +28,7 @@ jobs:
         fi
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
-  all_component_images:
+  component_images:
     needs: get_semver
     runs-on: ubuntu-latest
     strategy:
@@ -106,10 +106,10 @@ jobs:
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
-  all_example_images:
+  example_images:
     needs:
     - get_semver
-    - all_component_images
+    - component_images
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -160,8 +160,8 @@ jobs:
   create_release:
     needs:
     - get_semver
-    - all_component_images
-    - all_example_images
+    - component_images
+    - example_images
     runs-on: ubuntu-latest
     name: Create ${{ github.ref }} draft release
     steps:
@@ -173,11 +173,11 @@ jobs:
         draft: true
         generate_release_notes: true
 
-  all_assets:
+  upload_artifacts:
     needs:
     - get_semver
-    - all_component_images
-    - all_example_images
+    - component_images
+    - example_images
     - create_release
     runs-on: ubuntu-latest
     env:
@@ -188,54 +188,54 @@ jobs:
         - name: gstreamer
           version_suffix: -ubuntu20.04
           source: /opt/selkies-gstreamer-latest.tar.xz
-          target_name: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu20.04_amd64.tar.xz
+          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu20.04_amd64.tar.xz
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           source: /opt/selkies-gstreamer-latest.tar.xz
-          target_name: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_amd64.tar.xz
+          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_amd64.tar.xz
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
           platforms: linux/arm64
           source: /opt/selkies-gstreamer-latest.tar.xz
-          target_name: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu20.04_arm64.tar.xz
+          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu20.04_arm64.tar.xz
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           platforms: linux/arm64
           source: /opt/selkies-gstreamer-latest.tar.xz
-          target_name: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_arm64.tar.xz
+          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_arm64.tar.xz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_amd64.deb
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_amd64.deb
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_arm64.deb
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_arm64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target_name: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_arm64.deb
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_arm64.deb
 
         - name: py-build
           source: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
-          target_name: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
+          target: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
 
         - name: gst-web
           source: /opt/gst-web.tar.xz
-          target_name: selkies-gstreamer-web_${{ github.ref_name }}.tar.xz
+          target: selkies-gstreamer-web_${{ github.ref_name }}.tar.xz
 
     name: ${{ matrix.description }} release artifact extraction & upload
     steps:
@@ -255,7 +255,7 @@ jobs:
     - name: ${{ matrix.description }} release artifact extraction
       run: |
         docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
-        TARGET_PATH="${{ env.TEMP_DIR }}/${{ matrix.target_name }}"
+        TARGET_PATH="${{ env.TEMP_DIR }}/${{ matrix.target }}"
         docker container cp "copy:${{ matrix.source }}" "${TARGET_PATH}"
         if [ -d "${TARGET_PATH}" ]; then
           SOURCE_DIRNAME=$(echo "${{ matrix.source }}" | sed 's:.*/::')
@@ -270,4 +270,4 @@ jobs:
         draft: true
         overwrite: true
         tag: ${{ github.ref }}
-        file: ${{ env.TEMP_DIR }}/${{ matrix.target_name }}
+        file: ${{ env.TEMP_DIR }}/${{ matrix.target }}

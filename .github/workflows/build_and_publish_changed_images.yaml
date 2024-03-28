@@ -13,7 +13,7 @@ on:
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
-  changed_component_images:
+  component_images:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -97,8 +97,8 @@ jobs:
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
-  changed_example_images:
-    needs: changed_component_images
+  example_images:
+    needs: component_images
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -154,8 +154,8 @@ jobs:
         tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
-  upload_assets:
-    needs: changed_component_images
+  upload_artifacts:
+    needs: component_images
     runs-on: ubuntu-latest
     env:
       TEMP_DIR: /tmp
@@ -163,46 +163,56 @@ jobs:
       matrix:
         include:
         - name: gst-web
-          target: /usr/share/nginx/html
+          dir: /usr/share/nginx
+          target: html
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
-          target: /opt/gstreamer
+          dir: /opt
+          target: gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
-          target: /opt/gstreamer
+          dir: /opt
+          target: gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
-          target: /opt/gstreamer
+          dir: /opt
+          target: gstreamer
           platforms: linux/arm64
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
-          target: /opt/gstreamer
+          dir: /opt
+          target: gstreamer
           platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          target: /opt/selkies-js-interposer_0.0.0.deb
+          dir: /opt
+          target: selkies-js-interposer_0.0.0.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          target: /opt/selkies-js-interposer_0.0.0.deb
+          dir: /opt
+          target: selkies-js-interposer_0.0.0.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          target: /opt/selkies-js-interposer_0.0.0.deb
+          dir: /opt
+          target: selkies-js-interposer_0.0.0.deb
           platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          target: /opt/selkies-js-interposer_0.0.0.deb
+          dir: /opt
+          target: selkies-js-interposer_0.0.0.deb
           platforms: linux/arm64
 
         - name: py-build
-          target: /opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+          dir: /opt/pypi/dist
+          target: selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction & upload
     steps:
@@ -222,9 +232,7 @@ jobs:
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
       run: |
         docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
-        DEST_PATH="${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}"
-        mkdir -pm755 "${DEST_PATH}"
-        docker container cp "copy:${{ matrix.target }}" "${DEST_PATH}"
+        docker container cp "copy:${{ matrix.dir }}/${{ matrix.target }}" "${{ env.TEMP_DIR }}/${{ matrix.target }}"
         docker container rm --force --volumes copy
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
@@ -233,4 +241,4 @@ jobs:
         if-no-files-found: error
         overwrite: true
         name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}
-        path: ${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}/${{ matrix.target }}
+        path: ${{ env.TEMP_DIR }}/${{ matrix.target }}
