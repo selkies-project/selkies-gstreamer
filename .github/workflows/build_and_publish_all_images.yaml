@@ -202,11 +202,11 @@ jobs:
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
       id: extract
       run: |
-        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name="${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
-        DEST_PATH="${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}"
+        docker container create --platform="${{ matrix.platforms || 'linux/amd64' }}" --name="${{ matrix.name }}${{ matrix.version_suffix }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
+        DEST_PATH="${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}"
         mkdir -pm755 "${DEST_PATH}"
-        docker container cp "${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}:${{ matrix.target }}" "${DEST_PATH}"
-        docker container rm -f -l -v "${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}"
+        docker container cp "${{ matrix.name }}${{ matrix.version_suffix }}:${{ matrix.target }}" "${DEST_PATH}"
+        docker container rm -f -l -v "${{ matrix.name }}${{ matrix.version_suffix }}"
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
       id: upload
@@ -215,4 +215,4 @@ jobs:
         if-no-files-found: error
         overwrite: true
         name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}
-        path: ${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }}/${{ matrix.target }}
+        path: ${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}/${{ matrix.target }}
