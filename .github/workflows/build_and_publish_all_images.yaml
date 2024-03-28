@@ -9,6 +9,8 @@ on:
   push:
     branches: [ main ]
 
+env:
+  registry: "ghcr.io"
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs.
   all_component_images:
@@ -83,7 +85,7 @@ jobs:
         platforms: ${{ matrix.platforms }}
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
-        tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
+        tags: ${{ env.registry }}/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs.
   all_example_images:
@@ -98,10 +100,10 @@ jobs:
             PACKAGE_VERSION=0.0.0.dev0
             DISTRIB_RELEASE=20.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
-            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
-            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
+            PY_BUILD_IMAGE=${{ env.registry }}/${{ github.repository }}/py-build:${{ github.ref_name }}
+            WEB_IMAGE=${{ env.registry }}/${{ github.repository }}/gst-web:${{ github.ref_name }}
             JS_BASE_IMAGE_RELEASE=${{ github.ref_name }}
-            JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
+            JS_BASE_IMAGE=${{ env.registry }}/${{ github.repository }}/js-interposer
           dockerfile: Dockerfile.example
           context: .
 
@@ -111,10 +113,10 @@ jobs:
             PACKAGE_VERSION=0.0.0.dev0
             DISTRIB_RELEASE=22.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
-            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
-            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
+            PY_BUILD_IMAGE=${{ env.registry }}/${{ github.repository }}/py-build:${{ github.ref_name }}
+            WEB_IMAGE=${{ env.registry }}/${{ github.repository }}/gst-web:${{ github.ref_name }}
             JS_BASE_IMAGE_RELEASE=${{ github.ref_name }}
-            JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
+            JS_BASE_IMAGE=${{ env.registry }}/${{ github.repository }}/js-interposer
           dockerfile: Dockerfile.example
           context: .
 
@@ -131,7 +133,7 @@ jobs:
         platforms: ${{ matrix.platforms }}
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
-        tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
+        tags: ${{ env.registry }}/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs.
   upload_assets:
@@ -192,24 +194,22 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Log into registry ghcr.io
+    - name: Log into registry ${{ env.registry }}
       uses: docker/login-action@v3
       with:
-        registry: ghcr.io
+        registry: ${{ env.registry }}
         username: ${{ github.actor }}
         password: ${{ github.token }}
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
-      id: extract
       run: |
-        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
+        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "${{ env.registry }}/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
         DEST_PATH="${{ env.TEMP_DIR }}/${{ matrix.name }}${{ matrix.version_suffix }}"
         mkdir -pm755 "${DEST_PATH}"
         docker container cp "copy:${{ matrix.target }}" "${DEST_PATH}"
         docker container rm --force --volumes copy
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
-      id: upload
       uses: actions/upload-artifact@v4
       with:
         if-no-files-found: error
