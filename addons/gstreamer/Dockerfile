@@ -49,16 +49,13 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libx11-xcb-dev \
         libxcb-dri3-dev \
         libxkbcommon-dev \
-        wayland-protocols \
         libwayland-dev \
         libwayland-egl-backend-dev \
         libdrm-dev \
         libmp3lame-dev \
         libpulse-dev \
-        libwebrtc-audio-processing-dev \
         libsrtp2-dev \
         libssl-dev \
-        libjpeg-dev \
         libopenjp2-7-dev \
         libvdpau-dev \
         libwebp-dev \

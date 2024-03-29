@@ -249,19 +249,19 @@ def fetch_coturn(uri, user, auth_header_name):
         raise Exception("data from coturn web service was empty")
     return parse_rtc_config(data)
 
-def wait_for_app_ready(ready_file, app_auto_init = True):
+def wait_for_app_ready(ready_file, app_wait_ready = False):
     """Wait for streaming app ready signal.
 
-    returns when either app_auto_init is True OR the file at ready_file exists.
+    returns when either app_wait_ready is True OR the file at ready_file exists.
 
     Keyword Arguments:
-        app_auto_init {bool} -- skip wait for appready file (default: {True})
+        app_wait_ready {bool} -- skip wait for appready file (default: {True})
     """
 
     logger.info("Waiting for streaming app ready")
-    logging.debug("app_auto_init=%s, ready_file=%s" % (app_auto_init, ready_file))
+    logging.debug("app_wait_ready=%s, ready_file=%s" % (app_wait_ready, ready_file))
 
-    while not (app_auto_init or os.path.exists(ready_file)):
+    while app_wait_ready and not os.path.exists(ready_file):
         time.sleep(0.2)
 
 def set_json_app_argument(config_path, key, value):
@@ -375,11 +375,11 @@ def main():
                         default=os.environ.get(
                             'SELKIES_TURN_PASSWORD', ''),
                         help='Legacy non-HMAC TURN credential password, also requires --turn_host and --turn_port.')
-    parser.add_argument('--app_auto_init',
-                        default=os.environ.get('SELKIES_APP_AUTO_INIT', 'false'),
+    parser.add_argument('--app_wait_ready',
+                        default=os.environ.get('SELKIES_APP_WAIT_READY', 'false'),
                         help='If true, skips wait for SELKIES_APP_READY_FILE to exist before starting stream.')
     parser.add_argument('--app_ready_file',
-                        default=os.environ.get('SELKIES_APP_READY_FILE', '/var/run/appconfig/appready'),
+                        default=os.environ.get('SELKIES_APP_READY_FILE', '/tmp/selkies-appready'),
                         help='File set by sidecar used to indicate that app is initialized and ready')
     parser.add_argument('--uinput_mouse_socket',
                         default=os.environ.get('SELKIES_UINPUT_MOUSE_SOCKET', ''),
@@ -455,7 +455,7 @@ def main():
         logging.basicConfig(level=logging.INFO)
 
     # Wait for streaming app to initialize
-    wait_for_app_ready(args.app_ready_file, args.app_auto_init.lower() == "true")
+    wait_for_app_ready(args.app_ready_file, args.app_wait_ready.lower() == "true")
 
     # Peer id for this app, default is 0, expecting remote peer id to be 1
     my_id = 0
