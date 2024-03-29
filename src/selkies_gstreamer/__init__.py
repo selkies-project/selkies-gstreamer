@@ -18,7 +18,7 @@ while retry:
         from gi.repository import Gst
 
         Gst.init(None)
-        f = Gst.Fraction(60/1)
+        f = Gst.Fraction(60, 1)
         print("INFO: gst-python install looks OK")
         break
     except Exception as e:
@@ -30,16 +30,9 @@ If GStreamer is installed at a certain location, set its path to the environment
 export PATH=${GSTREAMER_PATH}/bin:${PATH}
 export LD_LIBRARY_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
 export GI_TYPELIB_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:${GI_TYPELIB_PATH}
-GST_PY_PATH=$(find ${GSTREAMER_PATH}/lib -type d -name "python3.*")
-export PYTHONPATH=${GST_PY_PATH}/site-packages:${GSTREAMER_PATH}/lib/python3/dist-packages:${PYTHONPATH}
+export PYTHONPATH=${GSTREAMER_PATH}/lib/python3/dist-packages:${PYTHONPATH}
 
-For ARM 64 bit:
-
-export PATH=${GSTREAMER_PATH}/bin:${PATH}
-export LD_LIBRARY_PATH=${GSTREAMER_PATH}/lib/aarch64-linux-gnu:${LD_LIBRARY_PATH}
-export GI_TYPELIB_PATH=${GSTREAMER_PATH}/lib/aarch64-linux-gnu/girepository-1.0:/usr/lib/aarch64-linux-gnu/girepository-1.0:${GI_TYPELIB_PATH}
-GST_PY_PATH=$(find ${GSTREAMER_PATH}/lib -type d -name "python3.*")
-export PYTHONPATH=${GST_PY_PATH}/site-packages:${GSTREAMER_PATH}/lib/python3/dist-packages:${PYTHONPATH}
+Replace x86_64-linux-gnu in other architectures from gcc -print-multiarch.
 """
         print(msg)
         sys.exit(1)

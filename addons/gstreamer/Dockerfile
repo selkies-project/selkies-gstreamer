@@ -6,7 +6,6 @@ ARG DISTRIB_RELEASE=22.04
 FROM ubuntu:${DISTRIB_RELEASE}
 
 ARG DEBIAN_FRONTEND=noninteractive
-
 # Install essential dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
         apt-utils \
@@ -27,7 +26,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         autotools-dev \
         binutils \
         bison \
-        cmake \
         flex \
         gettext \
         khronos-api \
@@ -43,8 +41,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libvulkan-dev \
         libgmp-dev \
         libgsl-dev \
-        libtool-bin \
+        libgirepository1.0-dev \
+        libglib2.0-dev \
+        libjson-glib-dev \
         libgudev-1.0-dev \
+        libtool-bin \
         libx11-xcb-dev \
         libxcb-dri3-dev \
         libxkbcommon-dev \
@@ -61,20 +62,15 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libopenjp2-7-dev \
         libvdpau-dev \
         libwebp-dev \
-        libx264-dev \
         libx265-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
 RUN apt-get update && apt-get install --no-install-recommends -y \
-        libglib2.0-dev \
-        libjson-glib-dev \
-        libxml2-dev \
-        python3-libxml2 \
         python3-pip \
         python3-dev \
         python-gi-dev && \
-    pip3 install meson ninja gitlint tomli && \
+    pip3 install cmake meson ninja gitlint tomli && \
     rm -rf /var/lib/apt/lists/*
 
 # GStreamer monorepo build with prefix for standalone install
@@ -85,7 +81,7 @@ RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && 
     cargo install cargo-c && \
     git clone --single-branch --depth 1 --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Ddoc=disabled -Dexamples=disabled -Dgst-examples=disabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Dintrospection=enabled -Dwebrtc=enabled -Dtls=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-good:ximagesrc=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Dgst-plugins-bad:x265=enabled -Dgst-plugins-rs:rav1e=enabled -Ddoc=disabled -Ddevtools=disabled -Dexamples=disabled -Dgst-examples=disabled -Dtests=disabled builddir && \
     ninja -C builddir && \
     meson install -C builddir && \
     rm -rf builddir && rustup self uninstall -y

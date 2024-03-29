@@ -40,11 +40,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         wmctrl \
         jq \
         gdebi-core \
-        libgdk-pixbuf2.0-0 \
-        libgtk2.0-bin \
         libgl-dev \
         libgles-dev \
         libglvnd-dev \
+        libgirepository-1.0-1 \
         libgudev-1.0-0 \
         xclip \
         x11-utils \
@@ -57,23 +56,18 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libx11-xcb1 \
         libxkbcommon0 \
         libxdamage1 \
-        libsoup2.4-1 \
-        libsoup-gnome2.4-1 \
         libsrtp2-1 \
         lame \
         libopus0 \
         libwebrtc-audio-processing1 \
         pulseaudio \
         libpulse0 \
-        libcairo-gobject2 \
-        libpangocairo-1.0-0 \
-        libgirepository-1.0-1 \
         libopenjp2-7 \
         libjpeg-dev \
         libwebp-dev \
         libvpx-dev \
         zlib1g-dev \
-        x264 \
+        x265 \
         # AMD/Intel graphics driver dependencies
         va-driver-all \
         i965-va-driver-shaders \
