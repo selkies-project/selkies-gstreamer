@@ -129,7 +129,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Choose your video encoder, change to x264enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
 # Starts the remote desktop process
-selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvh264enc --enable_resize=false &
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvcudah264enc --enable_resize=false &
 ```
 
 ### Install the latest build on a standalone machine or cloud instance
@@ -227,7 +227,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Choose your video encoder, change to x264enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
 # Starts the remote desktop process
-selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvh264enc --enable_resize=false &
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvcudah264enc --enable_resize=false &
 ```
 
 ## Usage
@@ -248,7 +248,7 @@ This table specifies the currently implemented video encoders and their correspo
 
 | Plugin (set `SELKIES_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
-| [`nvh264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvh264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | libnvidia-encode, NVRTC | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+| [`nvcudah264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | libnvidia-encode, NVRTC | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
 | [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver | N/A |
 | [`x264enc`](https://gstreamer.freedesktop.org/documentation/x264/index.html) | H.264 AVC | Software | All | All Major | `x264` | N/A |
 | [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
@@ -258,7 +258,7 @@ This table specifies the currently implemented video frame converters used to co
 
 | Plugin | Encoders | Acceleration | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvh264enc` | NVIDIA GPU | All | libnvidia-encode, NVRTC | N/A |
+| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvcudah264enc` | NVIDIA GPU | All | libnvidia-encode, NVRTC | N/A |
 | [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc` | AMD, Intel GPU | All | VA-API Driver | N/A |
 | [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `vp8enc`, `vp9enc` | Software | All | Various | N/A |
 
