@@ -137,7 +137,7 @@ RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 
 # Setup global bashrc to configure X11 environment
 ENV DISPLAY ":0"
-RUN echo "export DISPLAY=${DISPLAY:-\:0}" >> /etc/bash.bashrc && \
+RUN echo "export DISPLAY=${DISPLAY:-\:0}" >> /etc/bash.bashrc
 
 # Write turnserver script
 RUN echo "#!/bin/bash\n\

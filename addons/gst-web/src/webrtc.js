@@ -47,7 +47,7 @@ class WebRTCDemo {
      * @param {WebRTCDemoSignalling} [signalling]
      *    Instance of WebRTCDemoSignalling used to communicate with signalling server.
      * @param {Element} [element]
-     *    video element to attach stream to.
+     *    Element to attach stream to.
      */
     constructor(signalling, element, peer_id) {
         /**
