@@ -40,6 +40,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         wmctrl \
         jq \
         gdebi-core \
+        libaa1 \
         libgl-dev \
         libgles-dev \
         libglvnd-dev \
@@ -100,6 +101,8 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         jstest-gtk \
         coturn && \
     if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get update && apt-get install --no-install-recommends -y xcvt; fi && \
+    # Prevent dialogs at Xfce4 desktop environment start
+    cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
     rm -rf /var/lib/apt/lists/*
 
 # Add Tini init script - take care of runaway processes
@@ -131,60 +134,52 @@ ARG PACKAGE_VERSION=0.0.0.dev0
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 
-# Setup global bashrc to configure GStreamer environment
-RUN echo 'export DISPLAY=:0' \
-        >> /etc/bash.bashrc && \
-    echo 'export GST_DEBUG=*:2' \
-        >> /etc/bash.bashrc && \
-    echo 'export GSTREAMER_PATH=/opt/gstreamer' \
-        >> /etc/bash.bashrc && \
-    echo '. /opt/gstreamer/gst-env' \
-        >> /etc/bash.bashrc
+# Setup global bashrc to configure X11 environment
+ENV DISPLAY ":0"
+RUN echo "export DISPLAY=${DISPLAY:-\:0}" >> /etc/bash.bashrc && \
 
 # Write turnserver script
 RUN echo "#!/bin/bash\n\
-exec turnserver \\\n\
-    --verbose \\\n\
-    --no-tls \\\n\
-    --listening-ip=0.0.0.0 \\\n\
-    --listening-port=\${TURN_PORT:-3478} \\\n\
-    --realm=\${TURN_REALM:-example.com} \\\n\
-    --channel-lifetime=\${TURN_CHANNEL_LIFETIME:--1} \\\n\
-    --min-port=\${TURN_MIN_PORT:-49152} \\\n\
-    --max-port=\${TURN_MAX_PORT:-65535} \\\n\
-    --user selkies:selkies \\\n\
-    --no-cli \\\n\
-    --cli-password selkies \\\n\
-    --allow-loopback-peers \\\n\
-    --db \${HOME}/.config/turndb \\\n\
-    \${EXTRA_ARGS} \$@ \\\n\
+exec turnserver\n\
+    --verbose\n\
+    --listening-ip=0.0.0.0\n\
+    --listening-port=\${SELKIES_TURN_PORT:-3478}\n\
+    --realm=\${TURN_REALM:-example.com}\n\
+    --min-port=\${TURN_MIN_PORT:-49152}\n\
+    --max-port=\${TURN_MAX_PORT:-65535}\n\
+    --lt-cred-mech\n\
+    --user selkies:selkies\n\
+    --no-cli\n\
+    --allow-loopback-peers\n\
+    --db /tmp/coturn-turndb\n\
+    \${EXTRA_ARGS} \$@\n\
 " > /start-turnserver.sh && chmod +x /start-turnserver.sh
 
 # Write startup script
 RUN echo "#!/bin/bash\n\
-export DISPLAY=:0\n\
-export GST_DEBUG=*:2\n\
-export GSTREAMER_PATH=/opt/gstreamer\n\
-. /opt/gstreamer/gst-env\n\
+sudo /start-turnserver.sh &\n\
+export DISPLAY=\"\${DISPLAY:-\:0}\"\n\
 export LD_PRELOAD='/usr/\$LIB/selkies-js-interposer/joystick_interposer.so'\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
 sudo mkdir -pm755 /dev/input\n\
 sudo touch /dev/input/{js0,js1,js2,js3}\n\
-Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
-until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'\n\
+Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
+until [ -S /tmp/.X11-unix/X0 ]; do sleep 1; done && echo 'X Server is ready'\n\
 export PULSE_SERVER=unix:/run/pulse/native\n\
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1\n\
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
-[ \${START_XFCE4:-true} = 'true' ] && rm -rf ~/.config/xfce4 && xfce4-session &\n\
-sudo /start-turnserver.sh &\n\
+[ \"\${START_XFCE4:-true}\" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &\n\
 export SELKIES_ENCODER=\${SELKIES_ENCODER:-x264enc}\n\
 export SELKIES_ENABLE_RESIZE=\${SELKIES_ENABLE_RESIZE:-true}\n\
-export SELKIES_TURN_HOST=\${SELKIES_TURN_HOST:-\$(curl checkip.amazonaws.com)}\n\
+export SELKIES_TURN_HOST=\${SELKIES_TURN_HOST:-\$(curl -fsSL checkip.amazonaws.com)}\n\
 export SELKIES_TURN_PORT=\${SELKIES_TURN_PORT:-3478}\n\
 export SELKIES_TURN_USERNAME=\${SELKIES_TURN_USERNAME:-selkies}\n\
 export SELKIES_TURN_PASSWORD=\${SELKIES_TURN_PASSWORD:-selkies}\n\
 export SELKIES_TURN_PROTOCOL=\${SELKIES_TURN_PROTOCOL:-tcp}\n\
-selkies-gstreamer-resize 1280x720\n\
+export GST_DEBUG=\"*:2\"\n\
+export GSTREAMER_PATH=/opt/gstreamer\n\
+. /opt/gstreamer/gst-env\n\
+selkies-gstreamer-resize 1920x1080\n\
 selkies-gstreamer\n\
 " > /entrypoint.sh && chmod +x /entrypoint.sh
 
@@ -221,9 +216,6 @@ RUN groupadd -g 1000 user && \
     chown -R user:user /home/user && \
     echo "user:${PASSWD}" | chpasswd && \
     ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
-
-# Prevent dialogs at Xfce4 desktop environment start
-RUN cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 
 USER user
 ENV USER=user

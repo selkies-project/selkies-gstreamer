@@ -101,31 +101,30 @@ cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-p
 6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
-export DISPLAY=:0
-export GST_DEBUG=*:2
-# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
-export GSTREAMER_PATH=/opt/gstreamer
-. "$GSTREAMER_PATH/gst-env"
-
+export DISPLAY="${DISPLAY:-\:0}"
 # Configure the Joystick Interposer
 export LD_PRELOAD='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
-
 # Commented sections are optional
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
-# Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
+# Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
-# until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
+# until [ -S /tmp/.X11-unix/X0 ]; do sleep 1; done && echo 'X Server is ready'
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group), omit the below lines if a PulseAudio server is already running
-# export PULSE_SERVER=tcp:127.0.0.1:4713
+# export PULSE_SERVER=unix:/run/pulse/native
 # sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 # sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
-# [[ "${START_XFCE4:-true}" == "true" ]] && rm -rf ~/.config/xfce4 && xfce4-session &
+# [ "${START_XFCE4:-true}" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &
+
+# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
+export GST_DEBUG="*:2"
+export GSTREAMER_PATH=/opt/gstreamer
+. /opt/gstreamer/gst-env
 # Replace to your resolution if using without resize, skip if there is a physical display
-# selkies-gstreamer-resize 1280x720
+# selkies-gstreamer-resize 1920x1080
 
 # Choose your video encoder, change to x264enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
@@ -200,30 +199,30 @@ rm -f /tmp/selkies-js-interposer.deb
 6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
-export DISPLAY=:0
-export GST_DEBUG=*:2
-# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
-export GSTREAMER_PATH=/opt/gstreamer
-. "$GSTREAMER_PATH/gst-env"
-
+export DISPLAY="${DISPLAY:-\:0}"
 # Configure the Joystick Interposer
 export LD_PRELOAD='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
-
+# Commented sections are optional
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
-# Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
+# Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem 2>&1 >/tmp/Xvfb.log &
 # Ensure the X server is ready
-# until [[ -S /tmp/.X11-unix/X0 ]]; do sleep 1; done && echo 'X Server is ready'
+# until [ -S /tmp/.X11-unix/X0 ]; do sleep 1; done && echo 'X Server is ready'
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group), omit the below lines if a PulseAudio server is already running
-# export PULSE_SERVER=tcp:127.0.0.1:4713
+# export PULSE_SERVER=unix:/run/pulse/native
 # sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 # sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
-# [[ "${START_XFCE4:-true}" == "true" ]] && rm -rf ~/.config/xfce4 && xfce4-session &
+# [ "${START_XFCE4:-true}" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &
+
+# Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
+export GST_DEBUG="*:2"
+export GSTREAMER_PATH=/opt/gstreamer
+. /opt/gstreamer/gst-env
 # Replace to your resolution if using without resize, skip if there is a physical display
-# selkies-gstreamer-resize 1280x720
+# selkies-gstreamer-resize 1920x1080
 
 # Choose your video encoder, change to x264enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
@@ -305,7 +304,7 @@ For all other major operating systems including Windows, [Pion TURN](https://git
 
 ### Install and run coTURN on a standalone machine or cloud instance
 
-It is possible to install [coTURN](https://github.com/coturn/coturn) on your own server or PC from a package repository, as long as the listing port and the relay ports may be opened. In short, `/etc/turnserver.conf` must have either the lines `use-auth-secret` and `static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)`, or the lines `lt-cred-mech` and `user=yourusername:yourpassword`. It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies your relay ports between TURN servers (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
+It is possible to install [coTURN](https://github.com/coturn/coturn) on your own server or PC from a package repository, as long as the listing port and the relay ports may be opened. In short, `/etc/turnserver.conf` must have the lines `listening-ip=0.0.0.0` and `realm=example.com` (change the realm as appropriate), and either the lines `use-auth-secret` and `static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)`, or the lines `lt-cred-mech` and `user=yourusername:yourpassword`. It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies your relay ports between TURN servers (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
 The `cert=` and `pkey=` options, which lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS), are required for using TURN over TLS/DTLS, but are otherwise optional.
 
@@ -316,13 +315,13 @@ In order to deploy a coTURN container, use the following command (consult this [
 For time-limited shared secret TURN authentication:
 
 ```
-docker run -d -p 3478:3478 -p 3478:3478/udp -p 49160-49200:49160-49200/udp coturn/coturn -n --realm=example.com --min-port=49160 --max-port=49200 --use-auth-secret --static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)
+docker run -d -p 3478:3478 -p 3478:3478/udp -p 49160-49200:49160-49200/udp coturn/coturn -n --listening-ip=0.0.0.0 --realm=example.com --min-port=49160 --max-port=49200 --use-auth-secret --static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)
 ```
 
 For legacy long-term TURN authentication:
 
 ```
-docker run -d -p 3478:3478 -p 3478:3478/udp -p 49160-49200:49160-49200/udp coturn/coturn -n --realm=example.com --min-port=49160 --max-port=49200 --lt-cred-mech --user=yourusername:yourpassword
+docker run -d -p 3478:3478 -p 3478:3478/udp -p 49160-49200:49160-49200/udp coturn/coturn -n --listening-ip=0.0.0.0 --realm=example.com --min-port=49160 --max-port=49200 --lt-cred-mech --user=yourusername:yourpassword
 ```
 
 If you want to use TURN over TLS/DTLS, you must have a valid hostname, and also provision a valid certificate issued from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) (Let's Encrypt may have issues depending on the OS), and provide the certificate and private files to the coTURN container with `-v /mylocalpath/coturncert.pem:/etc/coturncert.pem -v /mylocalpath/coturnkey.pem:/etc/coturnkey.pem`, then add the command-line arguments `-n --cert=/etc/coturncert.pem --pkey=/etc/coturnkey.pem` (the specified paths are an example).
@@ -333,7 +332,7 @@ More information available in the [coTURN container image](https://hub.docker.co
 
 Before you read, [STUNner](https://github.com/l7mp/stunner) is a pretty good method to deploy a TURN or STUN server on Kubernetes if you are able to use Helm.
 
-You are recommended to use a `ConfigMap` for creating the configuration file for coTURN. Use the [example coTURN configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) as a reference to create a `ConfigMap` which mounts to `/etc/turnserver.conf`. The only mandatory lines are either `use-auth-secret` and `static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)` or `lt-cred-mech` and `user=yourusername:yourpassword`, but specifying `min-port=` and `max-port=` are strongly recommended to restrict the range of the relay ports.
+You are recommended to use a `ConfigMap` for creating the configuration file for coTURN. Use the [example coTURN configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) as a reference to create a `ConfigMap` which mounts to `/etc/turnserver.conf`. The only mandatory lines are the lines `listening-ip=0.0.0.0` and `realm=example.com` (change the realm as appropriate), and either `use-auth-secret` and `static-auth-secret=(PUT RANDOM 64 BYTE BASE64 KEY HERE)` or `lt-cred-mech` and `user=yourusername:yourpassword`, but specifying `min-port=` and `max-port=` are strongly recommended to restrict the range of the relay ports.
 
 Use `Deployment` or `DaemonSet` and use `containerPort` and `hostPort` under `ports:` to open the listening port 3478 (or any other port you set in `/etc/turnserver.conf` with `listening-port=`).
 
@@ -383,9 +382,17 @@ Disable all power saving or efficiency features available in the web browser. In
 
 However, it might be that the parameters for the WebRTC interface, video encoders, RTSP, or other [GStreamer](https://gstreamer.freedesktop.org) plugins are not optimized enough. If you find that it is the case, we always welcome contributions. If your changes show noticeably better results in the same conditions, please make a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls), or tell us about the parameters in any channel that we can reach so that we can also test.
 
+### My touchpad does not move while pressing a key with the keyboard.
+
+This is a setting from the client operating system and will show the same behavior with other applications. In Windows, go to `Settings > Bluetooth & devices > Touchpad > Taps` to increase your touchpad sensitivity. In Linux or Mac, turn off the setting `Touchpad > Disable while typing`.
+
+### The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
+
+This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use. In order to use the web interface when this is not possible (or when you are using SSH or remote access), check `sudo systemctl status sddm` or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running `selkies-gstreamer`.
+
 ### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
 
-Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.105`.
+Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.2`.
 
 ### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 

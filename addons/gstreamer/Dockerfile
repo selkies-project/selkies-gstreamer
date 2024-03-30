@@ -38,7 +38,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libgl-dev \
         libgles-dev \
         libglvnd-dev \
-        libvulkan-dev \
         libgmp-dev \
         libgsl-dev \
         libgirepository1.0-dev \
