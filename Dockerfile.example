@@ -212,16 +212,15 @@ ARG TZ=UTC
 ARG PASSWD=mypasswd
 RUN groupadd -g 1000 user && \
     useradd -ms /bin/bash user -u 1000 -g 1000 && \
-    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,input,plugdev,pulse-access,ssl-cert,sudo,tape,tty,video,voice user && \
+    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,input,lp,lpadmin,plugdev,pulse-access,render,scanner,ssl-cert,sudo,tape,tty,video,voice user && \
     echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    chown -R user:user /home/user && \
+    chown user:user /home/user && \
     echo "user:${PASSWD}" | chpasswd && \
     ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
 
 USER user
 ENV USER=user
 WORKDIR /home/user
-RUN touch ${HOME}/.sudo_as_admin_successful
 
 ENTRYPOINT ["/tini", "--"]
 CMD ["/entrypoint.sh"]
