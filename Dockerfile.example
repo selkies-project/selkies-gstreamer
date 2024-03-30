@@ -94,15 +94,16 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         xvfb \
         xfce4 \
         xfce4-terminal \
+        mesa-utils \
         adwaita-icon-theme-full \
         dbus-x11 \
         x11-apps \
         firefox \
         jstest-gtk \
         coturn && \
-    if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get update && apt-get install --no-install-recommends -y xcvt; fi && \
+    if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
     # Prevent dialogs at Xfce4 desktop environment start
-    cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+    cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml && \
     rm -rf /var/lib/apt/lists/*
 
 # Add Tini init script - take care of runaway processes
