@@ -142,43 +142,43 @@ jobs:
       matrix:
         include:
         - name: gst-web
-          dir: /usr/share/nginx
-          target: html
+          source: /opt/gst-web.tar.xz
+          target: gst-web.tar.xz
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
-          dir: /opt
-          target: gstreamer
+          source: /opt/selkies-gstreamer-latest.tar.xz
+          target: selkies-gstreamer.tar.xz
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
-          dir: /opt
-          target: gstreamer
+          source: /opt/selkies-gstreamer-latest.tar.xz
+          target: selkies-gstreamer.tar.xz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          dir: /opt
-          target: selkies-js-interposer_0.0.0.deb
+          source: /opt/selkies-js-interposer_0.0.0.deb
+          target: selkies-js-interposer.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          dir: /opt
-          target: selkies-js-interposer_0.0.0.deb
+          source: /opt/selkies-js-interposer_0.0.0.deb
+          target: selkies-js-interposer.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          dir: /opt
-          target: selkies-js-interposer_0.0.0.deb
+          source: /opt/selkies-js-interposer_0.0.0.deb
+          target: selkies-js-interposer.deb
           platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          dir: /opt
-          target: selkies-js-interposer_0.0.0.deb
+          source: /opt/selkies-js-interposer_0.0.0.deb
+          target: selkies-js-interposer.deb
           platforms: linux/arm64
 
         - name: py-build
-          dir: /opt/pypi/dist
+          source: /opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
           target: selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction & upload
@@ -199,7 +199,7 @@ jobs:
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
       run: |
         docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
-        docker container cp "copy:${{ matrix.dir }}/${{ matrix.target }}" "${{ env.TEMP_DIR }}/${{ matrix.target }}"
+        docker container cp "copy:${{ matrix.source }}" "${{ env.TEMP_DIR }}/${{ matrix.target }}"
         docker container rm --force --volumes copy
         echo "release_arch=$(echo ${{ matrix.platforms || 'linux/amd64' }} | sed -e 's/\//\-/')" >> "$GITHUB_ENV"
 

@@ -23,6 +23,7 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import re
 import time
 
@@ -357,6 +358,7 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
+            x264enc.set_property("threads", min(16, len(os.sched_getaffinity(0))))
             x264enc.set_property("aud", False)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
