@@ -52,6 +52,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         wayland-protocols \
         libwayland-dev \
         libwayland-egl-backend-dev \
+        libdrm-dev \
         libpulse-dev \
         libssl-dev \
         libvdpau-dev \

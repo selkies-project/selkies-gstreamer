@@ -271,11 +271,17 @@ class GSTWebRTCApp:
             # See this link for details on each preset:
             #   https://docs.nvidia.com/video-technologies/video-codec-sdk/12.2/nvenc-preset-migration-guide/index.html
             #   https://streamquality.report/docs/report.html#1080p60-nvenc-h264-picture-quality
+            nvh264enc.set_property("aud", True)
+            nvh264enc.set_property("b-adapt", False)
+            nvh264enc.set_property("i-adapt", False)
+            nvh264enc.set_property("rc-lookahead", 0)
             if not nv_legacy_plugin:
+                nvh264enc.set_property("b-frames", 0)
                 nvh264enc.set_property("preset", "p4")
                 nvh264enc.set_property("tune", "ultra-low-latency")
                 nvh264enc.set_property("zero-reorder-delay", True)
             else:
+                nvh264enc.set_property("bframes", 0)
                 nvh264enc.set_property("preset", "low-latency-hq")
                 nvh264enc.set_property("zerolatency", True)
 
@@ -291,14 +297,15 @@ class GSTWebRTCApp:
             vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
             if vah264enc is None:
                 vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
-            vah264enc.set_property("i-frames", 0)
+            vah264enc.set_property("aud", True)
             vah264enc.set_property("b-frames", 0)
+            vah264enc.set_property("i-frames", 0)
+            vah264enc.set_property("dct8x8", False)
             vah264enc.set_property("key-int-max", 0)
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
             vah264enc.set_property("qos", True)
             vah264enc.set_property("bitrate", self.video_bitrate)
-
 
         elif self.encoder in ["x264enc"]:
             # Videoconvert for colorspace conversion
@@ -310,15 +317,17 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-            x264enc.set_property("threads", len(os.sched_getaffinity(0)) - 1)
-            x264enc.set_property("aud", False)
+            x264enc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
+            x264enc.set_property("aud", True)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("key-int-max", 0)
+            x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("sliced-threads", True)
             x264enc.set_property("byte-stream", True)
-            x264enc.set_property("tune", "zerolatency")
+            x264enc.set_property("pass", "cbr")
             x264enc.set_property("speed-preset", "veryfast")
+            x264enc.set_property("tune", "zerolatency")
             x264enc.set_property("qos", True)
             x264enc.set_property("bitrate", self.video_bitrate)
 
@@ -338,12 +347,14 @@ class GSTWebRTCApp:
                 vpenc.set_property("row-mt", True)
 
             # VPX Parameters
-            vpenc.set_property("threads", len(os.sched_getaffinity(0)) - 1)
+            vpenc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
+            vpenc.set_property("auto-alt-ref", True)
             vpenc.set_property("cpu-used", 4)
             vpenc.set_property("deadline", 1)
+            vpenc.set_property("end-usage", "cbr")
             vpenc.set_property("error-resilient", "partitions")
             vpenc.set_property("keyframe-max-dist", 10)
-            vpenc.set_property("auto-alt-ref", True)
+            vpenc.set_property("static-threshold", 100)
             vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.video_bitrate*1000)
 
