@@ -278,7 +278,8 @@ class GSTWebRTCApp:
             if not nv_legacy_plugin:
                 nvh264enc.set_property("b-frames", 0)
                 nvh264enc.set_property("preset", "p4")
-                nvh264enc.set_property("tune", "ultra-low-latency")
+                if Gst.version().minor >= 24:
+                    nvh264enc.set_property("tune", "ultra-low-latency")
                 nvh264enc.set_property("zero-reorder-delay", True)
             else:
                 nvh264enc.set_property("bframes", 0)
