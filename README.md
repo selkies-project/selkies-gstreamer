@@ -59,7 +59,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libaa1 libgl-dev libgles-dev libglvnd-dev libsoup2.4-1 libgirepository-1.0-1 libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 pulseaudio libpulse0 libwebp-dev x265
+sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libaa1 libgl-dev libgles-dev libglvnd-dev libsoup2.4-1 libgirepository-1.0-1 libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxkbcommon0 libxdamage1 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 pulseaudio libpulse0 libwebp-dev x265
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or a higher equivalent version of another operating system:
@@ -145,7 +145,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libaa1 libgl-dev libgles-dev libglvnd-dev libsoup2.4-1 libgirepository-1.0-1 libgudev-1.0-0 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libx11-xcb1 libxkbcommon0 libxdamage1 pulseaudio libpulse0 libwebp-dev x265
+sudo apt-get update && sudo apt-get install --no-install-recommends -y python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl jq gdebi-core libaa1 libgl-dev libgles-dev libglvnd-dev libsoup2.4-1 libgirepository-1.0-1 libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxkbcommon0 libxdamage1 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 pulseaudio libpulse0 libwebp-dev x265
 ```
 
 Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or a higher equivalent version of another operating system:

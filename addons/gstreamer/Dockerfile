@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         flex \
         gettext \
         khronos-api \
+        libtool-bin \
         nasm \
         valgrind \
         yasm \
@@ -45,14 +46,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libglib2.0-dev \
         libjson-glib-dev \
         libgudev-1.0-dev \
-        libtool-bin \
         libx11-xcb-dev \
         libxcb-dri3-dev \
         libxkbcommon-dev \
         wayland-protocols \
         libwayland-dev \
         libwayland-egl-backend-dev \
-        libdrm-dev \
         libpulse-dev \
         libssl-dev \
         libvdpau-dev \

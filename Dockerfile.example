@@ -46,7 +46,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libglvnd-dev \
         libsoup2.4-1 \
         libgirepository-1.0-1 \
+        libglib2.0-0 \
+        libjson-glib-1.0-0 \
         libgudev-1.0-0 \
+        libx11-xcb1 \
+        libxkbcommon0 \
+        libxdamage1 \
         xclip \
         x11-utils \
         xdotool \
@@ -55,9 +60,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         wayland-protocols \
         libwayland-dev \
         libwayland-egl1 \
-        libx11-xcb1 \
-        libxkbcommon0 \
-        libxdamage1 \
         pulseaudio \
         libpulse0 \
         libwebp-dev \
