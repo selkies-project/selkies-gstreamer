@@ -634,6 +634,12 @@ class GSTWebRTCApp:
         # Use full band audio bandwidth
         opusenc.set_property("bandwidth", "fullband")
 
+        opusenc.set_property("audio-type", "generic")
+        opusenc.set_property("bitrate-type", "cbr")
+        opusenc.set_property("frame-size", "2.5")
+        opusenc.set_property("inband-fec", True)
+        opusenc.set_property("max-payload-size", 4000)
+
         # Set audio bitrate to 64kbps.
         # This can be dynamically changed using set_audio_bitrate()
         opusenc.set_property("bitrate", self.audio_bitrate)
@@ -668,13 +674,14 @@ class GSTWebRTCApp:
         rtpopuspay_caps.set_value("media", "audio")
 
         # Set the audio encoding name to match our encoded format.
-        rtpopuspay_caps.set_value("encoding-name", "OPUS")
+        rtpopuspay_caps.set_value("encoding-name", "OPUS" if self.audio_channels <= 2 else "MULTIOPUS")
 
         # Set the payload type to match the encoding format.
         # A value of 96 is the default that most browsers use for Opus.
         # See the RFC for details:
         #   https://tools.ietf.org/html/rfc4566#section-6
         rtpopuspay_caps.set_value("payload", 96)
+        rtpopuspay_caps.set_value("clock-rate", 48000)
 
         # Create a capability filter for the rtpopuspay_caps.
         rtpopuspay_capsfilter = Gst.ElementFactory.make("capsfilter")

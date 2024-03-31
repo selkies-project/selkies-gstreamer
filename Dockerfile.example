@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libgl-dev \
         libgles-dev \
         libglvnd-dev \
+        libsoup2.4-1 \
         libgirepository-1.0-1 \
         libgudev-1.0-0 \
         xclip \
@@ -51,16 +52,14 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         xdotool \
         x11-xserver-utils \
         xserver-xorg-core \
+        wayland-protocols \
         libwayland-dev \
         libwayland-egl1 \
         libx11-xcb1 \
         libxkbcommon0 \
         libxdamage1 \
-        libsrtp2-1 \
-        lame \
         pulseaudio \
         libpulse0 \
-        libopenjp2-7 \
         libwebp-dev \
         x265 \
         # AMD/Intel graphics driver dependencies

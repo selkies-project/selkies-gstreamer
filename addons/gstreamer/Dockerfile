@@ -40,6 +40,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libglvnd-dev \
         libgmp-dev \
         libgsl-dev \
+        libsoup2.4-dev \
         libgirepository1.0-dev \
         libglib2.0-dev \
         libjson-glib-dev \
@@ -48,14 +49,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libx11-xcb-dev \
         libxcb-dri3-dev \
         libxkbcommon-dev \
+        wayland-protocols \
         libwayland-dev \
         libwayland-egl-backend-dev \
         libdrm-dev \
-        libmp3lame-dev \
         libpulse-dev \
-        libsrtp2-dev \
         libssl-dev \
-        libopenjp2-7-dev \
         libvdpau-dev \
         libwebp-dev \
         libx265-dev && \
