@@ -43,10 +43,19 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libglx-dev \
         libgmp-dev \
         libgsl-dev \
-        libudev-dev \
+        libsoup2.4-dev \
+        libsoup-gnome2.4-dev \
+        libgirepository1.0-dev \
+        libglib2.0-dev \
+        libjson-glib-dev \
+        libgudev-1.0-dev \
         libx11-xcb-dev \
         libxcb-dri3-dev \
         libxkbcommon-dev \
+        libxdamage-dev \
+        libxfixes-dev \
+        libxtst-dev \
+        libxext-dev \
         wayland-protocols \
         libwayland-dev \
         libwayland-egl-backend-dev \
@@ -63,8 +72,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # Install GST-Python dependencies, Meson, and Ninja
 RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-pip \
-        python3-dev && \
-    pip3 install cmake meson ninja gitlint pygobject tomli && \
+        python3-dev \
+        python-gi-dev && \
+    pip3 install cmake meson ninja gitlint tomli && \
     rm -rf /var/lib/apt/lists/*
 
 # GStreamer monorepo build with prefix for standalone install
@@ -75,7 +85,7 @@ RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && 
     cargo install cargo-c && \
     git clone --single-branch --depth 1 --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \
     mkdir -p /opt/gstreamer && \
-    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Dintrospection=enabled -Dorc=enabled -Dwebrtc=enabled -Dgst-plugins-bad:webrtcdsp=enabled -Drtsp_server=enabled -Dtls=enabled -Dlibnice=enabled -Dtools=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-base:alsa=enabled -Dgst-plugins-base:gl=enabled -Dgst-plugins-base:opus=enabled -Dgst-plugins-good:pulse=enabled -Dgst-plugins-good:jack=enabled -Dgst-plugins-good:ximagesrc=enabled -Dgst-plugins-good:ximagesrc-xshm=enabled -Dgst-plugins-good:ximagesrc-xfixes=enabled -Dgst-plugins-good:ximagesrc-xdamage=enabled -Dgst-plugins-good:ximagesrc-navigation=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Dgst-plugins-bad:x265=enabled -Dgst-plugins-rs:rav1e=enabled -Ddoc=disabled -Ddevtools=disabled -Dexamples=disabled -Dgst-examples=disabled -Dnls=disabled -Dtests=disabled builddir && \
+    meson setup --prefix /opt/gstreamer -Dbuildtype=release -Dpython=enabled -Dintrospection=enabled -Dorc=enabled -Dwebrtc=enabled -Dgst-plugins-bad:webrtcdsp=enabled -Drtsp_server=enabled -Dtls=enabled -Dlibnice=enabled -Dtools=enabled -Drs=enabled -Dgpl=enabled -Dbad=enabled -Dugly=enabled -Dlibav=enabled -Dgst-plugins-base:alsa=enabled -Dgst-plugins-base:gl=enabled -Dgst-plugins-base:opus=enabled -Dgst-plugins-good:pulse=enabled -Dgst-plugins-good:jack=enabled -Dgst-plugins-good:ximagesrc=enabled -Dgst-plugins-good:ximagesrc-xshm=enabled -Dgst-plugins-good:ximagesrc-xfixes=enabled -Dgst-plugins-good:ximagesrc-xdamage=enabled -Dgst-plugins-good:ximagesrc-navigation=enabled -Dgst-plugins-bad:qsv=enabled -Dgst-plugins-bad:va=enabled -Dgst-plugins-bad:nvcodec=enabled -Dgst-plugins-good:v4l2=enabled -Dgst-plugins-bad:v4l2codecs=enabled -Dgst-plugins-good:vpx=enabled -Dgst-plugins-bad:openh264=enabled -Dgst-plugins-ugly:x264=enabled -Dgst-plugins-bad:x265=enabled -Dgst-plugins-rs:rav1e=enabled -Ddoc=disabled -Ddevtools=disabled -Dexamples=disabled -Dgst-examples=disabled -Dnls=disabled -Dtests=disabled builddir && \
     ninja -C builddir && \
     meson install -C builddir && \
     rm -rf builddir && rustup self uninstall -y
