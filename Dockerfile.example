@@ -80,6 +80,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         pulseaudio \
         libpulse0 \
         libwebp-dev \
+        x264 \
         x265 \
         # AMD/Intel graphics driver dependencies
         va-driver-all \

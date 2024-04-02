@@ -52,6 +52,7 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         pulseaudio \
         libpulse0 \
         libwebp-dev \
+        x264 \
         x265 && \
     sudo rm -rf /var/lib/apt/lists/*
 

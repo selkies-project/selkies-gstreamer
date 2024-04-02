@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libgsl-dev \
         libcairo2-dev \
         libpango1.0-dev \
-        libgdk-pixbuf-2.0-dev \
+        libgdk-pixbuf2.0-dev \
         libsoup2.4-dev \
         libsoup-gnome2.4-dev \
         libgirepository1.0-dev \
@@ -69,6 +69,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libssl-dev \
         libvdpau-dev \
         libwebp-dev \
+        libx264-dev \
         libx265-dev && \
     rm -rf /var/lib/apt/lists/*
 
