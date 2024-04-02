@@ -85,6 +85,9 @@ class GSTWebRTCApp:
         self.video_bitrate = video_bitrate
         self.audio_bitrate = audio_bitrate
 
+        # Keyframe distance in seconds
+        self.keyframe_dist = 3
+
         # WebRTC ICE and SDP events
         self.on_ice = lambda mlineindex, candidate: logger.warn(
             'unhandled ice event')
@@ -271,15 +274,10 @@ class GSTWebRTCApp:
 
             # Group of Pictures (GOP) size is the distance between I-Frames that
             # contain the full frame data needed to render a whole frame.
-            # Infinite GOP is best for streaming because it reduces the number
-            # of large I-Frames being transmitted. At higher resolutions, these
-            # I-Frames can dominate the bandwidth and add additional latency.
-            # With infinite GOP, you can use a higher bitrate to increase quality
-            # without a linear increase in total bandwidth.
             # A negative consequence when using infinite GOP size is that
-            # when packets are lost, it may take the decoder longer to recover.
+            # when packets are lost, the decoder may never recover.
             # NVENC supports infinite GOP by setting this to -1.
-            nvh264enc.set_property("gop-size", -1)
+            nvh264enc.set_property("gop-size", int(self.framerate * self.keyframe_dist))
 
             # Instructs encoder to handle Quality of Service (QOS) events from
             # the rest of the pipeline. Setting this to true increases
@@ -294,8 +292,9 @@ class GSTWebRTCApp:
             #
             # See this link for details on each preset:
             #   https://docs.nvidia.com/video-technologies/video-codec-sdk/12.2/nvenc-preset-migration-guide/index.html
-            nvh264enc.set_property("aud", True)
+            nvh264enc.set_property("aud", False)
             nvh264enc.set_property("b-adapt", False)
+            nvh264enc.set_property("i-adapt", True)
             nvh264enc.set_property("rc-lookahead", 0)
             if not nv_legacy_plugin:
                 nvh264enc.set_property("b-frames", 0)
@@ -322,9 +321,9 @@ class GSTWebRTCApp:
             vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
             if vah264enc is None:
                 vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
-            vah264enc.set_property("aud", True)
+            vah264enc.set_property("aud", False)
             vah264enc.set_property("b-frames", 0)
-            vah264enc.set_property("i-frames", 0)
+            vah264enc.set_property("key-int-max", int(self.framerate * self.keyframe_dist))
             vah264enc.set_property("dct8x8", False)
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
@@ -342,9 +341,10 @@ class GSTWebRTCApp:
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
             x264enc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
-            x264enc.set_property("aud", True)
+            x264enc.set_property("aud", False)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
+            x264enc.set_property("key-int-max", int(self.framerate * self.keyframe_dist))
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("sliced-threads", True)
             x264enc.set_property("byte-stream", True)
@@ -376,7 +376,7 @@ class GSTWebRTCApp:
             vpenc.set_property("deadline", 1)
             vpenc.set_property("end-usage", "cbr")
             vpenc.set_property("error-resilient", "partitions")
-            vpenc.set_property("keyframe-max-dist", 10)
+            vpenc.set_property("keyframe-max-dist", int(self.framerate * self.keyframe_dist))
             vpenc.set_property("static-threshold", 100)
             vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.video_bitrate*1000)
@@ -530,7 +530,7 @@ class GSTWebRTCApp:
         opusenc.set_property("bitrate-type", "cbr")
         opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("inband-fec", True)
-        opusenc.set_property("packet-loss-percentage", 20)
+        opusenc.set_property("packet-loss-percentage", 15)
         opusenc.set_property("max-payload-size", 4000)
 
         # Set audio bitrate to 64kbps.
@@ -680,6 +680,20 @@ class GSTWebRTCApp:
         self.ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
         self.ximagesrc_capsfilter.set_property("caps", self.ximagesrc_caps)
         logger.info("framerate set to: %d" % framerate)
+
+        # ADD_ENCODER: GOP/IDR Keyframe distance to keep the stream from freezing (in keyframe_dist seconds)
+        if self.encoder.startswith("nv"):
+            element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
+            element.set_property("gop-size", int(self.framerate * self.keyframe_dist))
+        if self.encoder.startswith("va"):
+            element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
+            element.set_property("key-int-max", int(self.framerate * self.keyframe_dist))
+        if self.encoder in ["x264enc"]:
+            element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
+            element.set_property("key-int-max", int(self.framerate * self.keyframe_dist))
+        if self.encoder.startswith("vp"):
+            element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
+            element.set_property("keyframe-max-dist", int(self.framerate * self.keyframe_dist))
 
     def set_video_bitrate(self, bitrate):
         """Set video encoder target bitrate in bps
