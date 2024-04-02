@@ -503,13 +503,13 @@ class GSTWebRTCApp:
         # default packetized streaming format for the web.
         opusenc = Gst.ElementFactory.make("opusenc", "opusenc")
 
-        # Use full band audio bandwidth
+        # Low-latency and high-quality configurations
+        opusenc.set_property("audio-type", "restricted-lowdelay")
         opusenc.set_property("bandwidth", "fullband")
-
-        opusenc.set_property("audio-type", "generic")
         opusenc.set_property("bitrate-type", "cbr")
-        # opusenc.set_property("frame-size", "20")
+        opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("inband-fec", True)
+        opusenc.set_property("packet-loss-percentage", 20)
         opusenc.set_property("max-payload-size", 4000)
 
         # Set audio bitrate to 64kbps.
