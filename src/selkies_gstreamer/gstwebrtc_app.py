@@ -130,13 +130,17 @@ class GSTWebRTCApp:
         # Add STUN server
         # TODO: figure out how to add more than 1 stun server.
         if self.stun_servers:
+            logger.info("adding STUN server: %s" % self.stun_servers[0])
             self.webrtcbin.set_property("stun-server", self.stun_servers[0])
 
         # Add TURN server
         if self.turn_servers:
-            for turn_server in self.turn_servers:
+            for i, turn_server in enumerate(self.turn_servers):
                 logger.info("adding TURN server: %s" % turn_server)
-                self.webrtcbin.emit("add-turn-server", turn_server)
+                if i == 0:
+                    self.webrtcbin.set_property("turn-server", turn_server)
+                else:
+                    self.webrtcbin.emit("add-turn-server", turn_server)
 
         # Add element to the pipeline.
         self.pipeline.add(self.webrtcbin)

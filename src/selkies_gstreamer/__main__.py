@@ -766,11 +766,17 @@ def main():
     options.turn_auth_header_name = args.coturn_auth_header_name
     server = WebRTCSimpleServer(loop, options)
 
-    # Callback method to update turn servers of a running pipeline.
+    # Callback method to update TURN servers of a running pipeline.
     def mon_rtc_config(stun_servers, turn_servers, rtc_config):
-        for turn_server in turn_servers:
+        logger.info("adding STUN server: %s" % stun_servers[0])
+        app.webrtcbin.set_property("stun-server", stun_servers[0])
+        for i, turn_server in enumerate(turn_servers):
             if app.webrtcbin:
-                app.webrtcbin.emit("add-turn-server", turn_server)
+                logger.info("adding TURN server: %s" % turn_server)
+                if i == 0:
+                    app.webrtcbin.set_property("turn-server", turn_server)
+                else:
+                    app.webrtcbin.emit("add-turn-server", turn_server)
         server.set_rtc_config(rtc_config)
 
     # Initialize periodic montior to refresh TURN RTC config when using shared secret.
