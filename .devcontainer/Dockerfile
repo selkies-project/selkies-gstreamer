@@ -12,14 +12,30 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         python3-wheel \
         udev \
         wmctrl \
-        jq \
-        gdebi-core \
+        libaa1 \
+        bzip2 \
+        libgcrypt20 \
+        libegl1 \
+        libgl1 \
+        libgles1 \
+        libglvnd0 \
+        libglx0 \
+        libcairo-gobject2 \
+        libpangocairo-1.0-0 \
         libgdk-pixbuf2.0-0 \
-        libgtk2.0-bin \
-        libgl-dev \
-        libgles-dev \
-        libglvnd-dev \
+        libsoup2.4-1 \
+        libsoup-gnome2.4-1 \
+        libgirepository-1.0-1 \
+        libglib2.0-0 \
+        libjson-glib-1.0-0 \
         libgudev-1.0-0 \
+        libx11-xcb1 \
+        libxcb-dri3-0 \
+        libxkbcommon0 \
+        libxdamage1 \
+        libxfixes3 \
+        libxtst6 \
+        libxext6 \
         xclip \
         x11-utils \
         xdotool \
@@ -28,26 +44,15 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         wayland-protocols \
         libwayland-dev \
         libwayland-egl1 \
-        libx11-xcb1 \
-        libxkbcommon0 \
-        libxdamage1 \
-        libsoup2.4-1 \
-        libsoup-gnome2.4-1 \
-        libsrtp2-1 \
-        lame \
-        libopus0 \
-        libwebrtc-audio-processing1 \
+        libdrm2 \
+        alsa-utils \
+        libasound2 \
+        jackd2 \
+        libjack-jackd2-0 \
         pulseaudio \
         libpulse0 \
-        libcairo-gobject2 \
-        libpangocairo-1.0-0 \
-        libgirepository-1.0-1 \
-        libopenjp2-7 \
-        libjpeg-dev \
         libwebp-dev \
-        libvpx-dev \
-        zlib1g-dev \
-        x264 && \
+        x265 && \
     sudo rm -rf /var/lib/apt/lists/*
 
 RUN . /etc/lsb-release; if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then \

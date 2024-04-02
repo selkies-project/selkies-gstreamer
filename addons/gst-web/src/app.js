@@ -632,7 +632,7 @@ webrtc.onsystemaction = (action) => {
             app.scaleLocal = (action.split(",")[1].toLowerCase() === 'true');
         }
     } else if (action.startsWith("encoder")) {
-        if (action.split(",")[1].startsWith("x264")) {
+        if (action.split(",")[1].startsWith("x26") || action.split(",")[1].startsWith("vp")) {
             app.encoderName = "software";
         } else {
             app.encoderName = "hardware";
