@@ -292,7 +292,6 @@ class WebRTCSimpleServer(object):
 
     ############### Handler functions ###############
 
-    
     async def connection_handler(self, ws, uid, meta=None):
         raddr = ws.remote_address
         peer_status = None

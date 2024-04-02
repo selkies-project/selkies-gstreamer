@@ -29,6 +29,7 @@ apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-re
     libsoup2.4-1 \
     libsoup-gnome2.4-1 \
     libgirepository-1.0-1 \
+    glib-networking \
     libglib2.0-0 \
     libjson-glib-1.0-0 \
     libgudev-1.0-0 \

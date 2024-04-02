@@ -49,6 +49,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libsoup2.4-dev \
         libsoup-gnome2.4-dev \
         libgirepository1.0-dev \
+        glib-networking \
         libglib2.0-dev \
         libjson-glib-dev \
         libgudev-1.0-dev \
