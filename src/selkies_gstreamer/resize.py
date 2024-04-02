@@ -62,7 +62,7 @@ def get_new_res(res):
         # Set max resolution for hardware accelerator.
         max_res = "2560x1600"
     else:
-        max_res = "4096x2160"
+        max_res = "7680x4320"
 
     max_w, max_h = [int(i) for i in max_res.split('x')]
     new_w, new_h = fit_res(w, h, max_w, max_h)
@@ -84,8 +84,6 @@ def resize_display(res):
     if res not in resolutions:
         logger.info("adding mode %s to xrandr screen '%s'" % (res, screen_name))
 
-        # Generate modeline, this works for Xvfb, not sure about xserver with nvidia driver
-        # https://securitronlinux.com/debian-testing/how-to-calculate-vesa-gtf-modelines-with-the-command-line-on-linux/
         mode, modeline = generate_xrandr_gtf_modeline(res)
 
         # Create new mode from modeline
