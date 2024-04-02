@@ -267,25 +267,25 @@ class GSTWebRTCApp:
             # These presets are different than the open x264 standard.
             # The presets control the picture coding technique, bitrate,
             # and encoding quality.
-            # The low-latency-hq is the NVENC preset reccomended for streaming.
+            # low-latency-hq is the NVENC preset recommended for streaming.
             #
             # See this link for details on each preset:
             #   https://docs.nvidia.com/video-technologies/video-codec-sdk/12.2/nvenc-preset-migration-guide/index.html
-            #   https://streamquality.report/docs/report.html#1080p60-nvenc-h264-picture-quality
             nvh264enc.set_property("aud", True)
             nvh264enc.set_property("b-adapt", False)
-            nvh264enc.set_property("i-adapt", False)
             nvh264enc.set_property("rc-lookahead", 0)
             if not nv_legacy_plugin:
                 nvh264enc.set_property("b-frames", 0)
-                nvh264enc.set_property("preset", "p4")
-                if Gst.version().minor >= 24:
-                    nvh264enc.set_property("tune", "ultra-low-latency")
                 nvh264enc.set_property("zero-reorder-delay", True)
+                if Gst.version().major == 1 and Gst.version().minor <= 22:
+                    nvh264enc.set_property("preset", "low-latency-hq")
+                else:
+                    nvh264enc.set_property("preset", "p4")
+                    nvh264enc.set_property("tune", "ultra-low-latency")
             else:
                 nvh264enc.set_property("bframes", 0)
-                nvh264enc.set_property("preset", "low-latency-hq")
                 nvh264enc.set_property("zerolatency", True)
+                nvh264enc.set_property("preset", "low-latency-hq")
 
         elif self.encoder in ["vah264enc", "vah264lpenc"]:
             # colorspace conversion
@@ -303,7 +303,6 @@ class GSTWebRTCApp:
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("i-frames", 0)
             vah264enc.set_property("dct8x8", False)
-            vah264enc.set_property("key-int-max", 0)
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
             vah264enc.set_property("qos", True)
@@ -323,7 +322,6 @@ class GSTWebRTCApp:
             x264enc.set_property("aud", True)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
-            x264enc.set_property("key-int-max", 0)
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("sliced-threads", True)
             x264enc.set_property("byte-stream", True)
