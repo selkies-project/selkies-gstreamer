@@ -49,9 +49,14 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         libasound2 \
         jackd2 \
         libjack-jackd2-0 \
+        libogg0 \
+        libopus0 \
         pulseaudio \
         libpulse0 \
+        libvorbis-dev \
+        libvpx-dev \
         libwebp-dev \
+        libwebrtc-audio-processing1 \
         x264 \
         x265 && \
     sudo rm -rf /var/lib/apt/lists/*

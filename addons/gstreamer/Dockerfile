@@ -65,10 +65,15 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libdrm-dev \
         libasound2-dev \
         libjack-jackd2-dev \
+        libogg-dev \
+        libopus-dev \
         libpulse-dev \
         libssl-dev \
         libvdpau-dev \
+        libvorbis-dev \
+        libvpx-dev \
         libwebp-dev \
+        libwebrtc-audio-processing-dev \
         libx264-dev \
         libx265-dev && \
     rm -rf /var/lib/apt/lists/*
