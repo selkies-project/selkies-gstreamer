@@ -25,21 +25,40 @@ import json
 import logging
 import os
 import re
+import sys
 import time
-
-import gi
-gi.require_version('GLib', '2.0')
-gi.require_version("Gst", "1.0")
-gi.require_version('GstSdp', '1.0')
-gi.require_version('GstWebRTC', '1.0')
-from gi.repository import GLib, Gst, GstSdp, GstWebRTC
 
 logger = logging.getLogger("gstwebrtc_app")
 logger.setLevel(logging.INFO)
 
+try:
+    import gi
+    gi.require_version('GLib', "2.0")
+    gi.require_version("Gst", "1.0")
+    gi.require_version('GstSdp', "1.0")
+    gi.require_version('GstWebRTC', "1.0")
+    from gi.repository import GLib, Gst, GstSdp, GstWebRTC
+    fract = Gst.Fraction(60, 1)
+    del fract
+except Exception as e:
+    msg = """ERROR: could not find working gst-python installation.
+
+If GStreamer is installed at a certain location, set its path to the environment variable $GSTREAMER_PATH, then make sure your environment is set correctly using the below commands:
+
+export PATH=${GSTREAMER_PATH}/bin:${PATH}
+export LD_LIBRARY_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
+export GI_TYPELIB_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:${GI_TYPELIB_PATH}
+export PYTHONPATH=${GSTREAMER_PATH}/lib/python3/dist-packages:${PYTHONPATH}
+
+Replace x86_64-linux-gnu in other architectures manually or with "$(gcc -print-multiarch)".
+"""
+    logger.error(msg)
+    logger.error(e)
+    sys.exit(1)
+logger.info("GStreamer-Python install looks OK")
+
 class GSTWebRTCAppError(Exception):
     pass
-
 
 class GSTWebRTCApp:
     def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000):

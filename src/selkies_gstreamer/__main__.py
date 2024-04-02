@@ -31,6 +31,9 @@ import time
 import urllib.parse
 import traceback
 
+logger = logging.getLogger("main")
+logger.setLevel(logging.INFO)
+
 from watchdog.observers import Observer
 from watchdog.events import FileClosedEvent, FileSystemEventHandler
 from webrtc_input import WebRTCInput
@@ -41,9 +44,6 @@ from system_monitor import SystemMonitor
 from metrics import Metrics
 from resize import resize_display, get_new_res, set_dpi, set_cursor_size
 from signalling_web import WebRTCSimpleServer, generate_rtc_config
-
-logger = logging.getLogger("main")
-logger.setLevel(logging.INFO)
 
 DEFAULT_RTC_CONFIG = """{
   "lifetimeDuration": "86400s",
