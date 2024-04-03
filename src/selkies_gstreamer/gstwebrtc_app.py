@@ -86,7 +86,9 @@ class GSTWebRTCApp:
         self.audio_bitrate = audio_bitrate
 
         # Keyframe distance in seconds
-        self.keyframe_dist = 3
+        self.keyframe_dist = 5
+        # Packet loss base percentage
+        self.packetloss_percent = 25
 
         # WebRTC ICE and SDP events
         self.on_ice = lambda mlineindex, candidate: logger.warn(
@@ -140,7 +142,7 @@ class GSTWebRTCApp:
         # See also: https://webrtcstandards.info/sdp-bundle/
         self.webrtcbin.set_property("bundle-policy", "max-compat")
 
-        # Set jitterbuffer latency to the minimum possible
+        # Set default jitterbuffer latency to the minimum possible
         self.webrtcbin.set_property("latency", 1)
 
         # Connect signal handlers
@@ -292,26 +294,34 @@ class GSTWebRTCApp:
             #
             # See this link for details on each preset:
             #   https://docs.nvidia.com/video-technologies/video-codec-sdk/12.2/nvenc-preset-migration-guide/index.html
-            nvh264enc.set_property("aud", False)
+            nvh264enc.set_property("aud", True)
+            # Do not automatically add b-frames
             nvh264enc.set_property("b-adapt", False)
-            nvh264enc.set_property("i-adapt", True)
+            # Automatic insertion of non-reference P-frames
+            nvh264enc.set_property("nonref-p", True)
+            # Disable lookahead
             nvh264enc.set_property("rc-lookahead", 0)
             if not nv_legacy_plugin:
                 nvh264enc.set_property("b-frames", 0)
+                # Insert sequence headers (SPS/PPS) per IDR
+                nvh264enc.set_property("repeat-sequence-header", True)
+                # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zero-reorder-delay", True)
                 if Gst.version().major == 1 and Gst.version().minor <= 22:
                     nvh264enc.set_property("preset", "low-latency-hq")
                 else:
                     nvh264enc.set_property("preset", "p4")
-                    nvh264enc.set_property("tune", "ultra-low-latency")
+                    nvh264enc.set_property("tune", "low-latency")
             else:
                 nvh264enc.set_property("bframes", 0)
+                # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zerolatency", True)
                 nvh264enc.set_property("preset", "low-latency-hq")
 
         elif self.encoder in ["vah264enc", "vah264lpenc"]:
             # colorspace conversion
             vapostproc = Gst.ElementFactory.make("vapostproc")
+            vapostproc.set_property("scale-method", "fast")
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
             vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -321,10 +331,9 @@ class GSTWebRTCApp:
             vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
             if vah264enc is None:
                 vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
-            vah264enc.set_property("aud", False)
+            vah264enc.set_property("aud", True)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("key-int-max", int(self.framerate * self.keyframe_dist))
-            vah264enc.set_property("dct8x8", False)
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
             vah264enc.set_property("qos", True)
@@ -333,6 +342,7 @@ class GSTWebRTCApp:
         elif self.encoder in ["x264enc"]:
             # Videoconvert for colorspace conversion
             videoconvert = Gst.ElementFactory.make("videoconvert")
+            videoconvert.set_property("n-threads", max(1, len(os.sched_getaffinity(0)) - 1))
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "NV12")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -341,11 +351,13 @@ class GSTWebRTCApp:
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
             x264enc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
-            x264enc.set_property("aud", False)
+            x264enc.set_property("aud", True)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
+            x264enc.set_property("insert-vui", True)
             x264enc.set_property("key-int-max", int(self.framerate * self.keyframe_dist))
             x264enc.set_property("rc-lookahead", 0)
+            x264enc.set_property("vbv-buf-capacity", 120)
             x264enc.set_property("sliced-threads", True)
             x264enc.set_property("byte-stream", True)
             x264enc.set_property("pass", "cbr")
@@ -356,6 +368,7 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vp8enc", "vp9enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
+            videoconvert.set_property("n-threads", max(1, len(os.sched_getaffinity(0)) - 1))
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -372,18 +385,24 @@ class GSTWebRTCApp:
             # VPX Parameters
             vpenc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
             vpenc.set_property("auto-alt-ref", True)
-            vpenc.set_property("cpu-used", 4)
+            vpenc.set_property("buffer-initial-size", 100)
+            vpenc.set_property("buffer-optimal-size", 120)
+            vpenc.set_property("buffer-size", 150)
+            vpenc.set_property("max-intra-bitrate", 250)
+            vpenc.set_property("cpu-used", -16)
             vpenc.set_property("deadline", 1)
             vpenc.set_property("end-usage", "cbr")
-            vpenc.set_property("error-resilient", "partitions")
+            vpenc.set_property("error-resilient", "default")
+            vpenc.set_property("keyframe-mode", False)
             vpenc.set_property("keyframe-max-dist", int(self.framerate * self.keyframe_dist))
-            vpenc.set_property("static-threshold", 100)
+            vpenc.set_property("lag-in-frames", 0)
+            vpenc.set_property("static-threshold", 1)
             vpenc.set_property("qos", True)
-            vpenc.set_property("target-bitrate", self.video_bitrate*1000)
+            vpenc.set_property("target-bitrate", self.video_bitrate * 1000)
 
         else:
             raise GSTWebRTCAppError("Unsupported encoder for pipeline: %s" % self.encoder)
-        
+
         if "h264" in self.encoder or "x264" in self.encoder:
             # Set the capabilities for the H.264 codec.
             h264enc_caps = Gst.caps_from_string("video/x-h264")
@@ -404,9 +423,13 @@ class GSTWebRTCApp:
             # Create the rtph264pay element to convert buffers into
             # RTP packets that are sent over the connection transport.
             rtph264pay = Gst.ElementFactory.make("rtph264pay")
+            rtph264pay.set_property("mtu", 1200)
 
             # Default aggregate mode for WebRTC
             rtph264pay.set_property("aggregate-mode", "zero-latency")
+
+            # Send SPS and PPS Insertion with every IDR frame
+            rtph264pay.set_property("config-interval", -1)
 
             # Set the capabilities for the rtph264pay element.
             rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
@@ -418,15 +441,11 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("encoding-name", "H264")
 
             # Set the payload type to one that matches the encoding profile.
-            # Payload number 123 corresponds to H.264 encoding with the high profile.
+            # Fake to the constrained-baseline profile for Firefox
+            # High profile will still be decoded
             # Other payloads can be derived using WebRTC specification:
             #   https://tools.ietf.org/html/rfc6184#section-8.2.1
-            rtph264pay_caps.set_value("payload", 123)
-
-            # Set caps that help with frame retransmits that will avoid screen freezing on packet loss.
-            rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
-            rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
-            rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+            rtph264pay_caps.set_value("payload", 97)
 
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -438,14 +457,13 @@ class GSTWebRTCApp:
             vpenc_capsfilter.set_property("caps", vpenc_caps)
 
             rtpvppay = Gst.ElementFactory.make("rtpvp8pay", "rtpvppay")
+            rtpvppay.set_property("mtu", 1200)
+            rtpvppay.set_property("picture-id-mode", "15-bit")
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
             rtpvppay_caps.set_value("encoding-name", "VP8")
-            rtpvppay_caps.set_value("payload", 123)
-            rtpvppay_caps.set_value("rtcp-fb-nack-pli", True)
-            rtpvppay_caps.set_value("rtcp-fb-ccm-fir", True)
-            rtpvppay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+            rtpvppay_caps.set_value("payload", 96)
             rtpvppay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtpvppay_capsfilter.set_property("caps", rtpvppay_caps)
 
@@ -455,19 +473,18 @@ class GSTWebRTCApp:
             vpenc_capsfilter.set_property("caps", vpenc_caps)
 
             rtpvppay = Gst.ElementFactory.make("rtpvp9pay", "rtpvppay")
+            rtpvppay.set_property("mtu", 1200)
+            rtpvppay.set_property("picture-id-mode", "15-bit")
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
             rtpvppay_caps.set_value("encoding-name", "VP9")
-            rtpvppay_caps.set_value("payload", 123)
-            rtpvppay_caps.set_value("rtcp-fb-nack-pli", True)
-            rtpvppay_caps.set_value("rtcp-fb-ccm-fir", True)
-            rtpvppay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+            rtpvppay_caps.set_value("payload", 98)
             rtpvppay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtpvppay_capsfilter.set_property("caps", rtpvppay_caps)
 
         # Add all elements to the pipeline.
-        pipeline_elements = [ximagesrc, self.ximagesrc_capsfilter]
+        pipeline_elements = [self.ximagesrc, self.ximagesrc_capsfilter]
 
         # ADD_ENCODER: add new encoder to this list
         if self.encoder in ["nvcudah264enc", "nvh264enc"]:
@@ -491,6 +508,10 @@ class GSTWebRTCApp:
         for i in range(len(pipeline_elements) - 1):
             if not Gst.Element.link(pipeline_elements[i], pipeline_elements[i + 1]):
                 raise GSTWebRTCAppError("Failed to link {} -> {}".format(pipeline_elements[i].get_name(), pipeline_elements[i + 1].get_name()))
+
+        # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
+        transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        transceiver.set_property("do-nack", True)
     # [END build_video_pipeline]
 
     # [START build_audio_pipeline]
@@ -506,7 +527,7 @@ class GSTWebRTCApp:
         # jitter buffers in sync. If there is skew between the video and audio
         # buffers, features like NetEQ will continuously increase the size of the
         # jitter buffer to catch up and will never recover.
-        pulsesrc.set_property("provide-clock", True)
+        # pulsesrc.set_property("provide-clock", True)
 
         # Create capabilities for pulsesrc and set channels
         pulsesrc_caps = Gst.caps_from_string("audio/x-raw")
@@ -518,7 +539,7 @@ class GSTWebRTCApp:
 
         # Apply stream time to buffers, this helps with pipeline synchronization.
         # Disabled by default because pulsesrc should not be re-timestamped with the current stream time when pushed out to the GStreamer pipeline and destroy the original synchronization.
-        # pulsesrc.set_property("do-timestamp", True)
+        pulsesrc.set_property("do-timestamp", False)
 
         # Encode the raw pulseaudio stream to opus format which is the
         # default packetized streaming format for the web.
@@ -529,9 +550,11 @@ class GSTWebRTCApp:
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
         opusenc.set_property("frame-size", "2.5")
+        opusenc.set_property("hard-resync", True)
         opusenc.set_property("inband-fec", True)
-        opusenc.set_property("packet-loss-percentage", 15)
+        opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)
+        opusenc.set_property("packet-loss-percentage", self.packetloss_percent)
 
         # Set audio bitrate to 64kbps.
         # This can be dynamically changed using set_audio_bitrate()
@@ -540,6 +563,7 @@ class GSTWebRTCApp:
         # Create the rtpopuspay element to convert buffers into
         # RTP packets that are sent over the connection transport.
         rtpopuspay = Gst.ElementFactory.make("rtpopuspay")
+        rtpopuspay.set_property("mtu", 1200)
 
         # Insert a queue for the RTP packets.
         rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
@@ -570,10 +594,10 @@ class GSTWebRTCApp:
         rtpopuspay_caps.set_value("encoding-name", "OPUS" if self.audio_channels <= 2 else "MULTIOPUS")
 
         # Set the payload type to match the encoding format.
-        # A value of 96 is the default that most browsers use for Opus.
         # See the RFC for details:
         #   https://tools.ietf.org/html/rfc4566#section-6
-        rtpopuspay_caps.set_value("payload", 96)
+        rtpopuspay_caps.set_value("payload", 111)
+
         rtpopuspay_caps.set_value("clock-rate", 48000)
 
         # Create a capability filter for the rtpopuspay_caps.
@@ -592,6 +616,11 @@ class GSTWebRTCApp:
         for i in range(len(pipeline_elements) - 1):
             if not Gst.Element.link(pipeline_elements[i], pipeline_elements[i + 1]):
                 raise GSTWebRTCAppError("Failed to link {} -> {}".format(pipeline_elements[i].get_name(), pipeline_elements[i + 1].get_name()))
+
+        # Enable forward error correction (FEC) in the audio stream
+        transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
+        transceiver.set_property("fec-percentage", self.packetloss_percent)
     # [END build_audio_pipeline]
 
     def check_plugins(self):
@@ -714,7 +743,7 @@ class GSTWebRTCApp:
             element.set_property("bitrate", bitrate)
         elif self.encoder in ["vp8enc", "vp9enc"]:
             element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
-            element.set_property("target-bitrate", bitrate*1000)
+            element.set_property("target-bitrate", bitrate * 1000)
         else:
             logger.warning("set_video_bitrate not supported with encoder: %s" % self.encoder)
 
@@ -787,7 +816,6 @@ class GSTWebRTCApp:
     def send_reload_window(self):
         """Sends reload window command to the data channel
         """
-
         logger.info("sending window reload")
         self.__send_data_channel_message(
             "system", {"action": "reload"})
@@ -795,7 +823,6 @@ class GSTWebRTCApp:
     def send_framerate(self, framerate):
         """Sends the current framerate to the data channel
         """
-
         logger.info("sending framerate")
         self.__send_data_channel_message(
             "system", {"action": "framerate,"+str(framerate)})
@@ -817,7 +844,6 @@ class GSTWebRTCApp:
     def send_encoder(self, encoder):
         """Sends the encoder name to the data channel
         """
-
         logger.info("sending encoder: " + encoder)
         self.__send_data_channel_message(
             "system", {"action": "encoder,%s" % encoder})
@@ -825,7 +851,6 @@ class GSTWebRTCApp:
     def send_resize_enabled(self, resize_enabled):
         """Sends the current resize enabled state
         """
-
         logger.info("sending resize enabled state")
         self.__send_data_channel_message(
             "system", {"action": "resize,"+str(resize_enabled)})
@@ -833,7 +858,6 @@ class GSTWebRTCApp:
     def send_remote_resolution(self, res):
         """sends the current remote resolution to the client
         """
-
         logger.info("sending remote resolution of: " + res)
         self.__send_data_channel_message(
             "system", {"action": "resolution," + res})
@@ -841,21 +865,18 @@ class GSTWebRTCApp:
     def send_ping(self, t):
         """Sends a ping request over the data channel to measure latency
         """
-
         self.__send_data_channel_message(
             "ping", {"start_time": float("%.3f" % t)})
 
     def send_latency_time(self, latency):
         """Sends measured latency response time in ms
         """
-
         self.__send_data_channel_message(
             "latency_measurement", {"latency_ms": latency})
 
     def send_system_stats(self, cpu_percent, mem_total, mem_used):
         """Sends system stats
         """
-
         self.__send_data_channel_message(
             "system_stats", {
                 "cpu_percent": cpu_percent,
@@ -869,7 +890,6 @@ class GSTWebRTCApp:
         Returns:
             [bool] -- true if data channel is open
         """
-
         return self.data_channel and self.data_channel.get_property("ready-state") == GstWebRTC.WebRTCDataChannelState.OPEN
 
     def __send_data_channel_message(self, msg_type, data):
@@ -881,7 +901,6 @@ class GSTWebRTCApp:
             msg_type {string} -- the type of message being sent
             data {dict} -- data to send, this is JSON serialized.
         """
-
         if not self.is_data_channel_ready():
             logger.debug(
                 "skipping message because data channel is not ready: %s" % msg_type)
@@ -921,7 +940,7 @@ class GSTWebRTCApp:
         # Firefox needs profile-level-id=42e01f in the offer, but webrtcbin does not add this.
         # TODO: Remove when fixed in webrtcbin.
         #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1106
-        if '264' in self.encoder:
+        if "h264" in self.encoder or "x264" in self.encoder:
             if 'profile-level-id' not in sdp_text:
                 logger.warning("injecting profile-level-id to SDP")
                 sdp_text = sdp_text.replace('packetization-mode=1', 'profile-level-id=42e01f;packetization-mode=1')
@@ -936,7 +955,6 @@ class GSTWebRTCApp:
         Arguments:
             webrtcbin {GstWebRTCBin gobject} -- webrtcbin gobject
         """
-
         logger.info("handling on-negotiation-needed, creating offer.")
         promise = Gst.Promise.new_with_change_func(
             self.__on_offer_created, webrtcbin, None)
@@ -950,7 +968,6 @@ class GSTWebRTCApp:
             mlineindex {integer} -- ice candidate mlineindex
             candidate {string} -- ice candidate string
         """
-
         logger.debug("received ICE candidate: %d %s", mlineindex, candidate)
         loop = asyncio.new_event_loop()
         loop.run_until_complete(self.on_ice(mlineindex, candidate))
@@ -1015,10 +1032,6 @@ class GSTWebRTCApp:
             self.data_channel.connect('on-error', lambda _: self.on_data_error())
             self.data_channel.connect(
                 'on-message-string', lambda _, msg: self.on_data_message(msg))
-
-            # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
-            transceiver = self.webrtcbin.emit("get-transceiver", 0)
-            transceiver.set_property("do-nack", True)
 
         logger.info("{} pipeline started".format("audio" if audio_only else "video"))
 
