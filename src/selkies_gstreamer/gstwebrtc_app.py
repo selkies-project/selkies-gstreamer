@@ -350,7 +350,8 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-            x264enc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
+            # TODO: Chromium cannot decode more than 4 sliced threads, fix when it changes
+            x264enc.set_property("threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
             x264enc.set_property("aud", True)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
@@ -383,7 +384,7 @@ class GSTWebRTCApp:
                 vpenc.set_property("row-mt", True)
 
             # VPX Parameters
-            vpenc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
+            vpenc.set_property("threads", min(16, max(1, len(os.sched_getaffinity(0)) - 1)))
             vpenc.set_property("auto-alt-ref", True)
             vpenc.set_property("buffer-initial-size", 100)
             vpenc.set_property("buffer-optimal-size", 120)
