@@ -280,13 +280,22 @@ class WebRTCDemo {
                 .then((local_sdp) => {
                     // Override SDP to enable stereo on WebRTC Opus with Chromium, must be munged before the Local Description
                     if (local_sdp.sdp.indexOf('multiopus') === -1) {
-                        if (!(/[^-]stereo=1/gm.test(local_sdp.sdp))) {
+                        if (!(/[^-]stereo=1[^\d]/gm.test(local_sdp.sdp))) {
                             console.log("Overriding WebRTC SDP to allow stereo audio");
-                            if (/[^-]stereo=0/gm.test(local_sdp.sdp)) {
-                                local_sdp.sdp = local_sdp.sdp.replace('stereo=0', 'stereo=1');
+                            if (/[^-]stereo=\d+/gm.test(local_sdp.sdp)) {
+                                local_sdp.sdp = local_sdp.sdp.replace(/stereo=\d+/gm, 'stereo=1');
                             } else {
                                 local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'stereo=1;useinbandfec=');
                             }
+                        }
+                    }
+                    // Override SDP to reduce Opus packet size to 2.5 ms
+                    if (!(/[^-]minptime=3[^\d]/gm.test(local_sdp.sdp))) {
+                        console.log("Overriding WebRTC SDP to allow low-latency audio packet");
+                        if (/[^-]minptime=\d+/gm.test(local_sdp.sdp)) {
+                            local_sdp.sdp = local_sdp.sdp.replace(/minptime=\d+/gm, 'minptime=3');
+                        } else {
+                            local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'minptime=3;useinbandfec=')
                         }
                     }
                     console.log("Created local SDP", local_sdp);
