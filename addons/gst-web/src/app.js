@@ -55,6 +55,7 @@ var app = new Vue({
             videoBitRateOptions: [
                 { text: '250 kbps', value: 250 },
                 { text: '500 kbps', value: 500 },
+                { text: '750 kbps', value: 750 },
                 { text: '1 mbps', value: 1000 },
                 { text: '2 mbps', value: 2000 },
                 { text: '3 mbps', value: 3000 },

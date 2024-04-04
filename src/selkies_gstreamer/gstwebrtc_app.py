@@ -86,7 +86,7 @@ class GSTWebRTCApp:
         self.audio_bitrate = audio_bitrate
 
         # Keyframe distance in seconds
-        self.keyframe_dist = 5
+        self.keyframe_dist = 3
         # Packet loss base percentage
         self.packetloss_percent = 25
 
