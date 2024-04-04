@@ -86,9 +86,12 @@ class GSTWebRTCApp:
         self.audio_bitrate = audio_bitrate
 
         # Keyframe distance in seconds
-        self.keyframe_dist = 2.5
+        self.keyframe_dist = 3
         # Packet loss base percentage
-        self.packetloss_percent = 50
+        self.packetloss_percent = 5
+        # Prevent bitrate from overshooting because of FEC
+        self.fec_video_bitrate = int(self.video_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
+        self.fec_audio_bitrate = int(self.audio_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
 
         # WebRTC ICE and SDP events
         self.on_ice = lambda mlineindex, candidate: logger.warn(
@@ -263,7 +266,7 @@ class GSTWebRTCApp:
             # set_video_bitrate() method. This helps to match the available
             # bandwidth. If set too high, the cliend side jitter buffer will
             # not be unable to lock on to the stream and it will fail to render.
-            nvh264enc.set_property("bitrate", self.video_bitrate)
+            nvh264enc.set_property("bitrate", self.fec_video_bitrate)
 
             # Rate control mode tells the encoder how to compress the frames to
             # reach the target bitrate. A Constant Bit Rate (CBR) setting is best
@@ -339,7 +342,7 @@ class GSTWebRTCApp:
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
             vah264enc.set_property("qos", True)
-            vah264enc.set_property("bitrate", self.video_bitrate)
+            vah264enc.set_property("bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["x264enc"]:
             # Videoconvert for colorspace conversion
@@ -367,7 +370,7 @@ class GSTWebRTCApp:
             x264enc.set_property("speed-preset", "veryfast")
             x264enc.set_property("tune", "zerolatency")
             x264enc.set_property("qos", True)
-            x264enc.set_property("bitrate", self.video_bitrate)
+            x264enc.set_property("bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["vp8enc", "vp9enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
@@ -401,7 +404,7 @@ class GSTWebRTCApp:
             vpenc.set_property("lag-in-frames", 0)
             vpenc.set_property("static-threshold", 1)
             vpenc.set_property("qos", True)
-            vpenc.set_property("target-bitrate", self.video_bitrate * 1000)
+            vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
 
         else:
             raise GSTWebRTCAppError("Unsupported encoder for pipeline: %s" % self.encoder)
@@ -562,9 +565,9 @@ class GSTWebRTCApp:
         opusenc.set_property("max-payload-size", 4000)
         opusenc.set_property("packet-loss-percentage", self.packetloss_percent)
 
-        # Set audio bitrate to 64kbps.
+        # Set audio bitrate
         # This can be dynamically changed using set_audio_bitrate()
-        opusenc.set_property("bitrate", self.audio_bitrate)
+        opusenc.set_property("bitrate", self.fec_audio_bitrate)
 
         # Create the rtpopuspay element to convert buffers into
         # RTP packets that are sent over the connection transport.
@@ -737,42 +740,49 @@ class GSTWebRTCApp:
             bitrate {integer} -- bitrate in bits per second, for example, 2000 for 2kbits/s or 10000 for 1mbit/sec.
         """
 
-        # ADD_ENCODER: add new encoder to this list
-        if self.encoder.startswith("nv"):
-            element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
-            element.set_property("bitrate", bitrate)
-        elif self.encoder.startswith("va"):
-            element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
-            element.set_property("bitrate", bitrate)
-        elif self.encoder in ["x264enc"]:
-            element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
-            element.set_property("bitrate", bitrate)
-        elif self.encoder in ["vp8enc", "vp9enc"]:
-            element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
-            element.set_property("target-bitrate", bitrate * 1000)
-        else:
-            logger.warning("set_video_bitrate not supported with encoder: %s" % self.encoder)
+        if self.pipeline:
+            # Prevent bitrate from overshooting because of FEC
+            fec_bitrate = int(bitrate / (1.0 + (self.packetloss_percent / 100.0)))
+            # ADD_ENCODER: add new encoder to this list
+            if self.encoder.startswith("nv"):
+                element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
+                element.set_property("bitrate", fec_bitrate)
+            elif self.encoder.startswith("va"):
+                element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
+                element.set_property("bitrate", fec_bitrate)
+            elif self.encoder in ["x264enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
+                element.set_property("bitrate", fec_bitrate)
+            elif self.encoder in ["vp8enc", "vp9enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
+                element.set_property("target-bitrate", fec_bitrate * 1000)
+            else:
+                logger.warning("set_video_bitrate not supported with encoder: %s" % self.encoder)
 
-        logger.info("video bitrate set to: %d" % bitrate)
+            logger.info("video bitrate set to: %d" % bitrate)
 
-        self.video_bitrate = bitrate
+            self.video_bitrate = bitrate
+            self.fec_video_bitrate = fec_bitrate
 
-        self.__send_data_channel_message(
-            "pipeline", {"status": "Video bitrate set to: %d" % bitrate})
+            self.__send_data_channel_message(
+                "pipeline", {"status": "Video bitrate set to: %d" % bitrate})
 
     def set_audio_bitrate(self, bitrate):
         """Set Opus encoder target bitrate in bps
 
         Arguments:
-            bitrate {integer} -- bitrate in bits per second, for example, 96000 for 96kbits/s.
+            bitrate {integer} -- bitrate in bits per second, for example, 96000 for 96 kbits/s.
         """
 
         if self.pipeline:
+            # Prevent bitrate from overshooting because of FEC
+            fec_bitrate = int(bitrate / (1.0 + (self.packetloss_percent / 100.0)))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
-            element.set_property("bitrate", bitrate)
+            element.set_property("bitrate", fec_bitrate)
 
             logger.info("audio bitrate set to: %d" % bitrate)
             self.audio_bitrate = bitrate
+            self.fec_audio_bitrate = fec_bitrate
             self.__send_data_channel_message(
                 "pipeline", {"status": "Audio bitrate set to: %d" % bitrate})
 
