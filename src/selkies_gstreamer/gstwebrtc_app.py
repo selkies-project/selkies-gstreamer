@@ -229,6 +229,8 @@ class GSTWebRTCApp:
         self.ximagesrc_capsfilter.set_property("caps", self.ximagesrc_caps)
 
         # ADD_ENCODER: add new encoder to this list
+        # Reference configuration for fixing when something is broken in web browsers:
+        #   https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/blob/main/net/webrtc/src/webrtcsink/imp.rs
         if self.encoder in ["nvcudah264enc", "nvh264enc"]:
             # Upload buffers from ximagesrc directly to CUDA memory where
             # the colorspace conversion will be performed.
@@ -550,6 +552,7 @@ class GSTWebRTCApp:
         opusenc.set_property("audio-type", "restricted-lowdelay")
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
+        # Browser-side SDP munging for minptime=3 in Chrome is required for effect
         opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("hard-resync", True)
         opusenc.set_property("inband-fec", True)
@@ -992,11 +995,9 @@ class GSTWebRTCApp:
                     return False
         elif t == Gst.MessageType.LATENCY:
             if self.pipeline:
-                try:
-                    self.pipeline.recalculate_latency()
-                except Exception as e:
-                    logger.warning("failed to recalculate warning, exception: %s" % str(e))
-
+                return_output = self.pipeline.recalculate_latency()
+                if not return_output:
+                    logger.warning("failed to recalculate pipeline latency")
         return True
 
     def start_pipeline(self, audio_only=False):
