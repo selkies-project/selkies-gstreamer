@@ -86,9 +86,9 @@ class GSTWebRTCApp:
         self.audio_bitrate = audio_bitrate
 
         # Keyframe distance in seconds
-        self.keyframe_dist = 3
+        self.keyframe_dist = 2.5
         # Packet loss base percentage
-        self.packetloss_percent = 25
+        self.packetloss_percent = 50
 
         # WebRTC ICE and SDP events
         self.on_ice = lambda mlineindex, candidate: logger.warn(
@@ -515,6 +515,8 @@ class GSTWebRTCApp:
         # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
         transceiver.set_property("do-nack", True)
+        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
+        transceiver.set_property("fec-percentage", self.packetloss_percent)
     # [END build_video_pipeline]
 
     # [START build_audio_pipeline]
