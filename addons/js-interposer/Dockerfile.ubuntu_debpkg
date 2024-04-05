@@ -13,7 +13,9 @@ FROM ubuntu:${DISTRIB_RELEASE} as build
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
-        build-essential && \
+        build-essential \
+        gzip \
+        tar && \
     if [ "$(dpkg --print-architecture)" = "amd64" ]; then apt-get update && apt-get install --no-install-recommends -y gcc-multilib; fi && \
     rm -rf /var/lib/apt/lists/*
 
@@ -24,7 +26,8 @@ ARG DEBEMAIL="danisla@users.noreply.github.com"
 
 WORKDIR /opt/build
 COPY . .
-RUN ./build_ubuntu_deb.sh
+RUN ./build_ubuntu_deb.sh && \
+    tar -czvf /opt/${PKG_NAME}_${PKG_VERSION}.tar.gz joystick_interposer*.so
 
 ARG DISTRIB_RELEASE
 FROM ubuntu:${DISTRIB_RELEASE} as test
@@ -36,6 +39,7 @@ ARG DEBEMAIL
 ARG DEBIAN_FRONTEND=noninteractive
 
 COPY --from=build /opt/${PKG_NAME}_${PKG_VERSION}.deb /opt/${PKG_NAME}_${PKG_VERSION}.deb
+COPY --from=build /opt/${PKG_NAME}_${PKG_VERSION}.tar.gz /opt/${PKG_NAME}_${PKG_VERSION}.tar.gz
 
 WORKDIR /opt
 

@@ -59,6 +59,10 @@ jobs:
           dockerfile: Dockerfile.ubuntu_debpkg
           platforms: linux/amd64,linux/arm64
 
+        - name: turn-rest
+          context: addons/turn-rest
+          platforms: linux/amd64,linux/arm64
+
         - name: infra-gcp-installer
           context: infra/gce/installer-image
           diff: infra/gce
@@ -142,39 +146,61 @@ jobs:
       matrix:
         include:
         - name: gst-web
-          source: /opt/gst-web.tar.xz
-          target: gst-web.tar.xz
+          source: /opt/gst-web.tar.gz
+          target: gst-web.tar.gz
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
-          source: /opt/selkies-gstreamer-latest.tar.xz
-          target: selkies-gstreamer.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.gz
+          target: selkies-gstreamer.tar.gz
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
-          source: /opt/selkies-gstreamer-latest.tar.xz
-          target: selkies-gstreamer.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.gz
+          target: selkies-gstreamer.tar.gz
 
-        - name: js-interposer
+        - name: js-interposer-deb
           version_suffix: -ubuntu20.04
           source: /opt/selkies-js-interposer_0.0.0.deb
           target: selkies-js-interposer.deb
 
-        - name: js-interposer
+        - name: js-interposer-deb
           version_suffix: -ubuntu22.04
           source: /opt/selkies-js-interposer_0.0.0.deb
           target: selkies-js-interposer.deb
 
-        - name: js-interposer
+        - name: js-interposer-deb
           version_suffix: -ubuntu20.04
           source: /opt/selkies-js-interposer_0.0.0.deb
           target: selkies-js-interposer.deb
           platforms: linux/arm64
 
-        - name: js-interposer
+        - name: js-interposer-deb
           version_suffix: -ubuntu22.04
           source: /opt/selkies-js-interposer_0.0.0.deb
           target: selkies-js-interposer.deb
+          platforms: linux/arm64
+
+        - name: js-interposer-tar
+          version_suffix: -ubuntu20.04
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+
+        - name: js-interposer-tar
+          version_suffix: -ubuntu22.04
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+
+        - name: js-interposer-tar
+          version_suffix: -ubuntu20.04
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+          platforms: linux/arm64
+
+        - name: js-interposer-tar
+          version_suffix: -ubuntu22.04
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
           platforms: linux/arm64
 
         - name: py-build

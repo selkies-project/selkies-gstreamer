@@ -79,26 +79,26 @@ class HMACRTCMonitor:
         while self.running:
             if self.enabled and int(time.time()) % self.period == 0:
                 try:
-                    data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls)
-                    stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
+                    hmac_data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls)
+                    stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
                     self.on_rtc_config(stun_servers, turn_servers, rtc_config)
                 except Exception as e:
-                    logger.warning("could not fetch coturn config in periodic monitor: {}".format(e))
+                    logger.warning("could not fetch TURN HMAC config in periodic monitor: {}".format(e))
             time.sleep(0.5)
         logger.info("HMAC RTC monitor stopped")
 
     def stop(self):
         self.running = False
 
-class CoturnRTCMonitor:
-    def __init__(self, coturn_web_uri, coturn_web_username, coturn_auth_header_name, period=60, enabled=True):
+class RESTRTCMonitor:
+    def __init__(self, turn_rest_uri, turn_rest_username, turn_rest_authheader, period=60, enabled=True):
         self.period = period
         self.enabled = enabled
         self.running = False
 
-        self.coturn_web_uri = coturn_web_uri
-        self.coturn_web_username = coturn_web_username.replace(":", "-")
-        self.coturn_auth_header_name = coturn_auth_header_name
+        self.turn_rest_uri = turn_rest_uri
+        self.turn_rest_username = turn_rest_username.replace(":", "-")
+        self.turn_rest_authheader = turn_rest_authheader
 
         self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning(
             "unhandled on_rtc_config")
@@ -108,12 +108,12 @@ class CoturnRTCMonitor:
         while self.running:
             if self.enabled and int(time.time()) % self.period == 0:
                 try:
-                    stun_servers, turn_servers, rtc_config = fetch_coturn(self.coturn_web_uri, self.coturn_web_username, self.coturn_auth_header_name)
+                    stun_servers, turn_servers, rtc_config = fetch_turn_rest(self.turn_rest_uri, self.turn_rest_username, self.turn_rest_authheader)
                     self.on_rtc_config(stun_servers, turn_servers, rtc_config)
                 except Exception as e:
-                    logger.warning("could not fetch coturn config in periodic monitor: {}".format(e))
+                    logger.warning("could not fetch TURN REST config in periodic monitor: {}".format(e))
             time.sleep(0.5)
-        logger.info("coturn RTC monitor stopped")
+        logger.info("TURN REST RTC monitor stopped")
 
     def stop(self):
         self.running = False
@@ -159,8 +159,8 @@ def make_turn_rtc_config_json(host, port, username, password, protocol='udp', tl
   "iceServers": [
     {
       "urls": [
-        "stun:stun.l.google.com:19302",
         "stun:%s:%s"
+        "stun:stun.l.google.com:19302",
       ]
     },
     {
@@ -215,12 +215,12 @@ def parse_rtc_config(data):
                 turn_uris.append(turn_uri)
     return stun_uris, turn_uris, data
 
-def fetch_coturn(uri, user, auth_header_name):
-    """Fetches TURN uri from a coturn web API
+def fetch_turn_rest(uri, user, auth_header_name):
+    """Fetches TURN uri from a REST API
 
     Arguments:
-        uri {string} -- uri of coturn web service, example: http://localhost:8081/
-        user {string} -- username used to generate coturn credential, for example: <hostname>
+        uri {string} -- uri of REST API service, example: http://localhost:8081/
+        user {string} -- username used to generate TURN credential, for example: <hostname>
 
     Raises:
         Exception -- if response http status code is >= 400
@@ -244,9 +244,9 @@ def fetch_coturn(uri, user, auth_header_name):
     resp = conn.getresponse()
     data = resp.read()
     if resp.status >= 400:
-        raise Exception("error fetching coturn web config. Status code: {}. {}, {}".format(resp.status, resp.reason, data))
+        raise Exception("error fetching REST API config. Status code: {}. {}, {}".format(resp.status, resp.reason, data))
     if not data:
-        raise Exception("data from coturn web service was empty")
+        raise Exception("data from REST API service was empty")
     return parse_rtc_config(data)
 
 def wait_for_app_ready(ready_file, app_wait_ready = False):
@@ -331,29 +331,29 @@ def main():
                         default=os.environ.get(
                             'SELKIES_BASIC_AUTH_PASSWORD', 'password'),
                         help='Password used when basic authentication is set.')
-    parser.add_argument('--coturn_web_uri',
+    parser.add_argument('--turn_rest_uri',
                         default=os.environ.get(
-                            'SELKIES_COTURN_WEB_URI', ''),
-                        help='URI for coturn REST API service, example: http://localhost:8081')
-    parser.add_argument('--coturn_web_username',
+                            'SELKIES_TURN_REST_URI', ''),
+                        help='URI for TURN REST API service, example: http://localhost:8081')
+    parser.add_argument('--turn_rest_username',
                         default=os.environ.get(
-                            'SELKIES_COTURN_WEB_USERNAME', "selkies-{}".format(socket.gethostname())),
-                        help='URI for coturn REST API service, default is the system hostname')
-    parser.add_argument('--coturn_auth_header_name',
+                            'SELKIES_TURN_REST_USERNAME', "selkies-{}".format(socket.gethostname())),
+                        help='URI for TURN REST API service, default is the system hostname')
+    parser.add_argument('--turn_rest_authheader',
                         default=os.environ.get(
-                            'SELKIES_COTURN_AUTH_HEADER_NAME', 'x-auth-user'),
-                        help='Header name to pass user to coturn web service')
+                            'SELKIES_TURN_REST_AUTHHEADER', 'x-auth-user'),
+                        help='Header name to pass user to TURN REST API service')
     parser.add_argument('--rtc_config_json',
                         default=os.environ.get(
                             'SELKIES_RTC_CONFIG_JSON', '/tmp/rtc.json'),
-                        help='JSON file with RTC config to use as alternative to coturn service, read periodically')
+                        help='JSON file with RTC config to use instead of other TURN services, read periodically')
     parser.add_argument('--turn_host',
                         default=os.environ.get(
-                            'SELKIES_TURN_HOST', ''),
+                            'SELKIES_TURN_HOST', 'staticauth.openrelay.metered.ca'),
                         help='TURN host when generating RTC config from shared secret or using long-term credentials.')
     parser.add_argument('--turn_port',
                         default=os.environ.get(
-                            'SELKIES_TURN_PORT', ''),
+                            'SELKIES_TURN_PORT', '443'),
                         help='TURN port when generating RTC config from shared secret or using long-term credentials.')
     parser.add_argument('--turn_protocol',
                         default=os.environ.get(
@@ -365,7 +365,7 @@ def main():
                         help='Enable or disable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
     parser.add_argument('--turn_shared_secret',
                         default=os.environ.get(
-                            'SELKIES_TURN_SHARED_SECRET', ''),
+                            'SELKIES_TURN_SHARED_SECRET', 'openrelayprojectsecret'),
                         help='Shared TURN secret used to generate HMAC credentials, also requires --turn_host and --turn_port.')
     parser.add_argument('--turn_username',
                         default=os.environ.get(
@@ -397,7 +397,7 @@ def main():
                         default=os.environ.get('SELKIES_VIDEO_BITRATE', '2000'),
                         help='Default video bitrate')
     parser.add_argument('--audio_bitrate',
-                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '64000'),
+                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '48000'),
                         help='Default audio bitrate')
     parser.add_argument('--audio_channels',
                         default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
@@ -513,11 +513,11 @@ def main():
 
     # [START main_setup]
     # Fetch the TURN server and credentials
-    coturn_web_username = args.coturn_web_username.replace(":", "-")
+    turn_rest_username = args.turn_rest_username.replace(":", "-")
     rtc_config = None
     turn_protocol = 'tcp' if args.turn_protocol.lower() == 'tcp' else 'udp'
     using_turn_tls = args.turn_tls.lower() == 'true'
-    using_coturn = False
+    using_turn_rest = False
     using_hmac_turn = False
     using_rtc_config_json = False
     if os.path.exists(args.rtc_config_json):
@@ -526,30 +526,32 @@ def main():
             stun_servers, turn_servers, rtc_config = parse_rtc_config(f.read())
         using_rtc_config_json = True
     else:
-        if args.turn_shared_secret:
-            # Get HMAC credentials from built-in web server.
-            if not args.turn_host and args.turn_port:
-                logger.error("missing turn host and turn port")
-                sys.exit(1)
-            using_hmac_turn = True
-            data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, coturn_web_username, turn_protocol, using_turn_tls)
-            stun_servers, turn_servers, rtc_config = parse_rtc_config(data)
-        elif args.turn_username and args.turn_password:
-            if not (args.turn_host and args.turn_port):
-                logger.error("missing turn host and turn port")
-                sys.exit(1)
-            logger.info("using long-term non-HMAC TURN credentials")
-            config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
-            stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
-        else:
-            # Use existing coturn-web infrastructure.
+        if args.turn_rest_uri:
+            # Use REST API credentials
             try:
-                stun_servers, turn_servers, rtc_config = fetch_coturn(
-                    args.coturn_web_uri, coturn_web_username, args.coturn_auth_header_name)
-                using_coturn = True
+                stun_servers, turn_servers, rtc_config = fetch_turn_rest(
+                    args.turn_rest_uri, turn_rest_username, args.turn_rest_authheader)
+                using_turn_rest = True
             except Exception as e:
-                logger.warning("error fetching coturn RTC config, using DEFAULT_RTC_CONFIG: {}".format(str(e)))
+                logger.warning("error fetching REST API RTC config, falling back to other methods: {}".format(str(e)))
+                using_turn_rest = False
+        if (args.turn_username and args.turn_password) and not using_turn_rest:
+            if not (args.turn_host and args.turn_port):
+                logger.warning("missing TURN host and TURN port, using DEFAULT_RTC_CONFIG")
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
+            else:
+                logger.info("using long-term non-HMAC TURN credentials")
+                config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
+                stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
+        else:
+            if not (args.turn_host and args.turn_port):
+                logger.warning("missing TURN host and TURN port, using DEFAULT_RTC_CONFIG")
+                stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
+            else:
+                # Get HMAC credentials from shared secret
+                hmac_data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, turn_rest_username, turn_protocol, using_turn_tls)
+                stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
+                using_hmac_turn = True
 
     logger.info("initial server RTC config fetched")
 
@@ -763,7 +765,7 @@ def main():
     options.turn_port = args.turn_port
     options.turn_protocol = turn_protocol
     options.turn_tls = using_turn_tls
-    options.turn_auth_header_name = args.coturn_auth_header_name
+    options.turn_authheader_name = args.turn_rest_authheader
     server = WebRTCSimpleServer(loop, options)
 
     # Callback method to update TURN servers of a running pipeline.
@@ -784,19 +786,19 @@ def main():
         args.turn_host,
         args.turn_port,
         args.turn_shared_secret,
-        coturn_web_username,
+        turn_rest_username,
         turn_protocol=turn_protocol,
         turn_tls=using_turn_tls,
         enabled=using_hmac_turn, period=60)
     hmac_turn_mon.on_rtc_config = mon_rtc_config
 
-    # Initialize coturn RTC config monitor to periodically refresh the coturn RTC config.
-    coturn_mon = CoturnRTCMonitor(
-        args.coturn_web_uri,
-        coturn_web_username,
-        args.coturn_auth_header_name,
-        enabled=using_coturn, period=60)
-    coturn_mon.on_rtc_config = mon_rtc_config
+    # Initialize REST API RTC config monitor to periodically refresh the REST API RTC config.
+    turn_rest_mon = RESTRTCMonitor(
+        args.turn_rest_uri,
+        turn_rest_username,
+        args.turn_rest_authheader,
+        enabled=using_turn_rest, period=60)
+    turn_rest_mon.on_rtc_config = mon_rtc_config
 
     # Initialize file watcher for RTC config JSON file.
     rtc_file_mon = RTCConfigFileMonitor(
@@ -813,7 +815,7 @@ def main():
         loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
         loop.run_in_executor(None, lambda: gpu_mon.start())
         loop.run_in_executor(None, lambda: hmac_turn_mon.start())
-        loop.run_in_executor(None, lambda: coturn_mon.start())
+        loop.run_in_executor(None, lambda: turn_rest_mon.start())
         loop.run_in_executor(None, lambda: rtc_file_mon.start())
         loop.run_in_executor(None, lambda: system_mon.start())
 
@@ -844,7 +846,7 @@ def main():
         webrtc_input.disconnect()
         gpu_mon.stop()
         hmac_turn_mon.stop()
-        coturn_mon.stop()
+        turn_rest_mon.stop()
         rtc_file_mon.stop()
         system_mon.stop()
         loop.run_until_complete(server.stop())

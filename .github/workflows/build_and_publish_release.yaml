@@ -77,6 +77,10 @@ jobs:
           dockerfile: Dockerfile.ubuntu_debpkg
           platforms: linux/amd64,linux/arm64
 
+        - name: turn-rest
+          context: addons/turn-rest
+          platforms: linux/amd64,linux/arm64
+
         - name: infra-gcp-installer
           context: infra/gce/installer-image
           diff: infra/gce
@@ -186,13 +190,13 @@ jobs:
         include:
         - name: gstreamer
           version_suffix: -ubuntu20.04
-          source: /opt/selkies-gstreamer-latest.tar.xz
-          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu20.04_amd64.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.gz
+          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu20.04_amd64.tar.gz
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
-          source: /opt/selkies-gstreamer-latest.tar.xz
-          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_amd64.tar.xz
+          source: /opt/selkies-gstreamer-latest.tar.gz
+          target: gstreamer-selkies_gpl_${{ github.ref_name }}_ubuntu22.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
@@ -216,13 +220,35 @@ jobs:
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_arm64.deb
 
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_amd64.tar.gz
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_amd64.tar.gz
+
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          platforms: linux/arm64
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu20.04_arm64.tar.gz
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          platforms: linux/arm64
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
+          target: selkies-js-interposer_${{ github.ref_name }}_ubuntu22.04_arm64.tar.gz
+
         - name: py-build
           source: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
           target: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
 
         - name: gst-web
-          source: /opt/gst-web.tar.xz
-          target: selkies-gstreamer-web_${{ github.ref_name }}.tar.xz
+          source: /opt/gst-web.tar.gz
+          target: selkies-gstreamer-web_${{ github.ref_name }}.tar.gz
 
     name: ${{ matrix.description }} release artifact extraction & upload
     steps:
@@ -247,7 +273,7 @@ jobs:
         if [ -d "${TARGET_PATH}" ]; then
           SOURCE_DIRNAME=$(echo "${{ matrix.source }}" | sed 's:.*/::')
           cd "${{ env.TEMP_DIR }}" && mv -f "${TARGET_PATH}" "${SOURCE_DIRNAME}"
-          XZ_OPT='-T0' tar -cJvf "temp.tar.xz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.xz" "${TARGET_PATH}"
+          tar -czvf "temp.tar.gz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.gz" "${TARGET_PATH}"
         fi
         docker container rm --force --volumes copy
 

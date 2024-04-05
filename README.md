@@ -73,7 +73,7 @@ If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If 
 2. Unpack the GStreamer components of `selkies-gstreamer` (fill in `SELKIES_VERSION`, `DISTRIB_RELEASE`), using your own GStreamer build on any architecture may work **as long as it is the most recent stable version with the required plugins included**:
 
 ```bash
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_amd64.tar.xz" | sudo tar -xJf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_amd64.tar.gz" | sudo tar -xzf -
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `GSTREAMER_PATH`. GStreamer builds for ARMv8 are not provided but can be built following procedures in the [GStreamer Dockerfile](addons/gstreamer/Dockerfile).
@@ -87,7 +87,7 @@ cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/r
 4. Unpack the HTML5 components of `selkies-gstreamer`:
 
 ```bash
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_${SELKIES_VERSION}.tar.xz" | sudo tar -xJf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_${SELKIES_VERSION}.tar.gz" | sudo tar -xzf -
 ```
 
 This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `SELKIES_WEB_ROOT` or add the command-line option `--web_root` to `selkies-gstreamer`. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.

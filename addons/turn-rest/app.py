@@ -1,0 +1,50 @@
+from flask import Flask, request
+import os, time, hmac, hashlib, base64, json
+app = Flask(__name__)
+
+@app.route('/', methods=['GET','POST'])
+def turn_rest():
+    shared_secret = os.environ.get('TURN_SHARED_SECRET')
+    turn_host = os.environ.get('TURN_HOST')
+    turn_port = os.environ.get('TURN_PORT')
+    turn_tls = os.environ.get('TURN_TLS').lower() == 'true'
+    protocol = os.environ.get('TURN_PROTOCOL').lower() or 'tcp'
+
+    service_input = request.form.get('service') or 'turn'
+    username_input = request.form.get('username') or request.headers.get('x-auth-user') or 'turn-rest'
+
+    # Sanitize user for credential compatibility
+    user = username_input.replace(":", "-")
+
+    # credential expires in 24hrs
+    expiry_hour = 24
+
+    exp = int(time.time()) + expiry_hour * 3600
+    username = "{}:{}".format(exp, user)
+
+    # Generate HMAC credential.
+    hashed = hmac.new(bytes(shared_secret, "utf-8"), bytes(username, "utf-8"), hashlib.sha1).digest()
+    password = base64.b64encode(hashed).decode()
+
+    rtc_config = {}
+    rtc_config["lifetimeDuration"] = "{}s".format(expiry_hour * 3600)
+    rtc_config["blockStatus"] = "NOT_BLOCKED"
+    rtc_config["iceTransportPolicy"] = "all"
+    rtc_config["iceServers"] = []
+    rtc_config["iceServers"].append({
+        "urls": [
+            "stun:{}:{}".format(turn_host, turn_port)
+        ]
+    })
+    rtc_config["iceServers"].append({
+        "urls": [
+            "{}:{}:{}?transport={}".format('turns' if turn_tls else 'turn', turn_host, turn_port, protocol)
+        ],
+        "username": username,
+        "credential": password
+    })
+
+    return json.dumps(rtc_config, indent=2)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port="8008")

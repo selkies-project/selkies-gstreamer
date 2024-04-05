@@ -22,16 +22,15 @@
 FROM nginx:alpine
 
 # Install dependencies
-RUN apk add -u --no-cache imagemagick bash tar xz
+RUN apk add -u --no-cache imagemagick bash gzip tar
 
 WORKDIR /opt/gst-web
 COPY . .
 RUN INSTALL_DIR="/usr/share/nginx/html" ./install.sh
 
 # Create release tarball
-ARG XZ_OPT='-T0'
 RUN cp -R /usr/share/nginx/html /tmp/gst-web && \
-    cd /tmp && tar -cJvf /opt/gst-web.tar.xz gst-web && \
+    cd /tmp && tar -czvf /opt/gst-web.tar.gz gst-web && \
     rm -rf /tmp/gst-web
 
 ENV GST_WEB_PORT 80

@@ -31,8 +31,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         software-properties-common \
         sudo \
         tzdata \
-        # GStreamer dependencies
         jq \
+        # GStreamer dependencies
         python3-pip \
         python3-dev \
         python3-gi \
@@ -115,7 +115,6 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         zip \
         unzip \
         ssl-cert \
-        jq \
         xvfb \
         xfce4 \
         xfce4-terminal \
