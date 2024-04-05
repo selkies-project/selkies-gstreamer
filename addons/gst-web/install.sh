@@ -26,7 +26,7 @@ cp src/*.js src/*.html src/manifest.json src/*.png src/*.ico "${INSTALL_DIR}/"
 ###
 (cd "${INSTALL_DIR}" && \
     export CACHE_VERSION=$(date +%s) && \
-    sed -i 's|script src="\(.*\)?ts=.*"|script src="\1?ts='${CACHE_VERSION}}'"|g' index.html && \
+    sed -i 's|script src="\(.*\)?ts=.*"|script src="\1?ts='${CACHE_VERSION}'"|g' index.html && \
     sed -i "s|CACHE_VERSION|${CACHE_VERSION}|g" sw.js app.js)
 
 echo "INFO: Done."

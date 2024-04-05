@@ -372,11 +372,31 @@ signalling.onstatus = (message) => {
 signalling.onerror = (message) => { app.logEntries.push(applyTimestamp("[signalling] [ERROR] " + message)) };
 
 signalling.ondisconnect = () => {
+    var app_check = app.status == app_check;
+    // if (app.status !== "connected") return;
     console.log("signalling disconnected");
     app.status = 'connecting';
     videoElement.style.cursor = "auto";
     webrtc.reset();
+    app.status = 'app_check';
+    if (!app_check) audio_signalling.disconnect();
+}
+
+audio_signalling.onstatus = (message) => {
+    app.loadingText = message;
+    app.logEntries.push(applyTimestamp("[audio signalling] " + message));
+};
+audio_signalling.onerror = (message) => { app.logEntries.push(applyTimestamp("[audio signalling] [ERROR] " + message)) };
+
+audio_signalling.ondisconnect = () => {
+    var app_check = app.status == app_check;
+    // if (app.status !== "connected") return;
+    console.log("audio signalling disconnected");
+    app.status = 'connecting';
+    videoElement.style.cursor = "auto";
     audio_webrtc.reset();
+    app.status = 'app_check';
+    if (!app_check) signalling.disconnect();
 }
 
 // Send webrtc status and error messages to logs.
@@ -387,6 +407,7 @@ audio_webrtc.onerror = (message) => { app.logEntries.push(applyTimestamp("[audio
 
 if (app.debug) {
     signalling.ondebug = (message) => { app.debugEntries.push("[signalling] " + message); };
+    audio_signalling.ondebug = (message) => { app.debugEntries.push("[audio signalling] " + message); };
     webrtc.ondebug = (message) => { app.debugEntries.push(applyTimestamp("[webrtc] " + message)) };
     audio_webrtc.ondebug = (message) => { app.debugEntries.push(applyTimestamp("[audio webrtc] " + message)) };
 }
@@ -397,18 +418,20 @@ webrtc.ongpustats = (data) => {
     app.gpuMemoryUsed = data.memory_used;
 }
 
+var videoConnected = "";
+var audioConnected = "";
 // Bind vue status to connection state.
-webrtc.onconnectionstatechange = (state) => {
-    app.status = state;
-
-    if (state === "connected") {
-        // Start watching stats.
-        var videoBytesReceivedStart = 0;
-        var audioBytesReceivedStart = 0;
-        var statsStart = new Date().getTime() / 1000;
-        var statsLoop = () => {
-
-            webrtc.getConnectionStats().then((stats) => {
+function onBothStreamConnected() {
+    // Start watching stats.
+    var videoBytesReceivedStart = 0;
+    var audioBytesReceivedStart = 0;
+    var statsStart = new Date().getTime() / 1000;
+    var statsLoop = () => {
+        if (videoConnected !== "connected" || audioConnected !== "connected") return;
+        webrtc.getConnectionStats().then((stats) => {
+            if (videoConnected !== "connected" || audioConnected !== "connected") return;
+            audio_webrtc.getConnectionStats().then((audioStats) => {
+                if (videoConnected !== "connected" || audioConnected !== "connected") return;
                 var now = new Date().getTime() / 1000;
 
                 // Sum of video+audio+server latency in ms.
@@ -420,10 +443,10 @@ webrtc.onconnectionstatechange = (state) => {
                 app.connectionPacketsLost = 0;
 
                 // Connection stats
-                app.connectionStatType = stats.general.connectionType;
-                app.connectionBytesReceived = (stats.general.bytesReceived * 1e-6).toFixed(2) + " MBytes";
-                app.connectionBytesSent = (stats.general.bytesSent * 1e-6).toFixed(2) + " MBytes";
-                app.connectionAvailableBandwidth = (parseInt(stats.general.availableReceiveBandwidth) / 1e+6).toFixed(2) + " mbps";
+                app.connectionStatType = stats.general.connectionType == audioStats.general.connectionType ? stats.general.connectionType : (stats.general.connectionType + " / " + audioStats.general.connectionType);
+                app.connectionBytesReceived = ((stats.general.bytesReceived + audioStats.general.bytesReceived) * 1e-6).toFixed(2) + " MBytes";
+                app.connectionBytesSent = ((stats.general.bytesSent + audioStats.general.bytesSent) * 1e-6).toFixed(2) + " MBytes";
+                app.connectionAvailableBandwidth = ((parseInt(stats.general.availableReceiveBandwidth) + parseInt(audioStats.general.availableReceiveBandwidth)) / 1e+6).toFixed(2) + " mbps";
 
                 // Video stats.
                 app.connectionVideoLatency = parseInt(stats.video.jitterBufferDelay * 1000);
@@ -438,13 +461,13 @@ webrtc.onconnectionstatechange = (state) => {
                 videoBytesReceivedStart = stats.video.bytesReceived;
 
                 // Audio stats.
-                app.connectionLatency += stats.audio.jitterBufferDelay * 1000;
-                app.connectionPacketsReceived += stats.audio.packetsReceived;
-                app.connectionPacketsLost += stats.audio.packetsLost;
-                app.connectionAudioLatency = parseInt(stats.audio.jitterBufferDelay * 1000);
-                app.connectionAudioCodecName = stats.audio.codecName;
-                app.connectionAudioBitrate = (((stats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
-                audioBytesReceivedStart = stats.audio.bytesReceived;
+                app.connectionLatency += audioStats.audio.jitterBufferDelay * 1000;
+                app.connectionPacketsReceived += audioStats.audio.packetsReceived;
+                app.connectionPacketsLost += audioStats.audio.packetsLost;
+                app.connectionAudioLatency = parseInt(audioStats.audio.jitterBufferDelay * 1000);
+                app.connectionAudioCodecName = audioStats.audio.codecName;
+                app.connectionAudioBitrate = (((audioStats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
+                audioBytesReceivedStart = audioStats.audio.bytesReceived;
 
                 // Format latency
                 app.connectionLatency = parseInt(app.connectionLatency);
@@ -454,8 +477,26 @@ webrtc.onconnectionstatechange = (state) => {
                 // Stats refresh loop.
                 setTimeout(statsLoop, 1000);
             });
-        };
-        statsLoop();
+        });
+    };
+    statsLoop();
+}
+webrtc.onconnectionstatechange = (state) => {
+    videoConnected = state;
+    if (videoConnected === "connected" && audioConnected === "connected") {
+        app.status = state;
+        onBothStreamConnected();
+    } else {
+        app.status = state === "connected" ? audioConnected : videoConnected;
+    }
+};
+audio_webrtc.onconnectionstatechange = (state) => {
+    audioConnected = state;
+    if (videoConnected === "connected" && audioConnected === "connected") {
+        app.status = state;
+        onBothStreamConnected();
+    } else {
+        app.status = state === "connected" ? videoConnected : audioConnected;
     }
 };
 
