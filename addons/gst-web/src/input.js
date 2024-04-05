@@ -498,8 +498,8 @@ class Input {
     _onFullscreenChange() {
         if (document.fullscreenElement !== null) {
             // Enter fullscreen
-            this.requestKeyboardLock();
             this.element.requestPointerLock();
+            this.requestKeyboardLock();
         }
         // Reset local keyboard. When holding to exit full-screen the escape key can get stuck.
         this.keyboard.reset();
@@ -534,7 +534,7 @@ class Input {
     }
 
     /**
-     * Attaches input event handles to docuemnt, window and element.
+     * Attaches input event handles to document, window and element.
      */
     attach() {
         this.listeners.push(addListener(this.element, 'resize', this._windowMath, this));
