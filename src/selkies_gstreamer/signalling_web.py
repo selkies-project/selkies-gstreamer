@@ -53,7 +53,9 @@ def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp
     user = user.replace(":", "-")
 
     # credential expires in 24hrs
-    exp = int(time.time()) + 24*3600
+    expiry_hour = 24
+
+    exp = int(time.time()) + expiry_hour * 3600
     username = "{}:{}".format(exp, user)
 
     # Generate HMAC credential.
@@ -61,7 +63,7 @@ def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp
     password = base64.b64encode(hashed).decode()
 
     rtc_config = {}
-    rtc_config["lifetimeDuration"] = "{}s".format(24 * 3600)
+    rtc_config["lifetimeDuration"] = "{}s".format(expiry_hour * 3600)
     rtc_config["blockStatus"] = "NOT_BLOCKED"
     rtc_config["iceTransportPolicy"] = "all"
     rtc_config["iceServers"] = []
