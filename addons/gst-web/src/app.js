@@ -162,8 +162,11 @@ var app = new Vue({
                 },
 
                 validname: value => {
-                    if (value.length > 63 || !new RegExp('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$').exec(value)) {
-                        return 'length more than 63 characters or invalid name'
+                    if (value.length > 63) {
+                        return 'must be less than 63 characters.';
+                    }
+                    if (!new RegExp('^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$').exec(value)) {
+                        return 'invalid name'
                     }
                     if (value === this.appName) {
                         return 'must be different than current name'
