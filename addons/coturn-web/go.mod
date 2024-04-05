@@ -1,6 +1,6 @@
 module selkies.io/coturn-web
 
-go 1.17
+go 1.22
 
 require (
 	cloud.google.com/go v0.96.0

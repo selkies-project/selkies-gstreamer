@@ -19,7 +19,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-FROM golang:1.17-alpine as build
+FROM golang:1.22-alpine as build
 WORKDIR /go/src/coturn-web
 COPY go.mod go.sum ./
 RUN go mod download

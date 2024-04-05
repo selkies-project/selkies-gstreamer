@@ -160,14 +160,14 @@ func main() {
 	var htpasswdFile *htpasswd.File
 	if len(htpasswdFilePath) > 0 {
 		if _, err := os.Stat(htpasswdFilePath); os.IsNotExist(err) {
-			log.Fatalf("htaccess file not found: %s", htpasswdFilePath)
+			log.Fatalf("htaccess file not found")
 		}
-		log.Printf("INFO: using htaccess file from: %s", htpasswdFilePath)
 		var err error
 		htpasswdFile, err = htpasswd.New(htpasswdFilePath, htpasswd.DefaultSystems, nil)
 		if err != nil {
 			log.Fatalf("ERROR: failed to read htpasswd file: %v", err)
 		}
+		log.Printf("INFO: htaccess file read in provided path")
 		log.Printf("INFO: forcing auth header to: 'authorization' for basic authentication with htaccess file")
 		authHeaderName = "authorization"
 	}

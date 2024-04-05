@@ -521,7 +521,7 @@ def main():
     using_hmac_turn = False
     using_rtc_config_json = False
     if os.path.exists(args.rtc_config_json):
-        logger.warning("Using file for RTC config: %s", args.rtc_config_json)
+        logger.warning("Using JSON file from argument for RTC config")
         with open(args.rtc_config_json, 'r') as f:
             stun_servers, turn_servers, rtc_config = parse_rtc_config(f.read())
         using_rtc_config_json = True
@@ -538,7 +538,7 @@ def main():
             if not (args.turn_host and args.turn_port):
                 logger.error("missing turn host and turn port")
                 sys.exit(1)
-            logger.info("using long-term non-HMAC TURN credentials.")
+            logger.info("using long-term non-HMAC TURN credentials")
             config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
             stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
         else:
@@ -551,7 +551,7 @@ def main():
                 logger.warning("error fetching coturn RTC config, using DEFAULT_RTC_CONFIG: {}".format(str(e)))
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
 
-    logger.info("initial server RTC config: {}".format(rtc_config))
+    logger.info("initial server RTC config fetched")
 
     # Extract arguments
     enable_resize = args.enable_resize.lower() == "true"

@@ -428,7 +428,7 @@ class WebRTCSimpleServer(object):
             return None
         # Create an SSL context to be used by the websocket server
         cert_pem, key_pem = self.get_https_certs()
-        logger.info('Using TLS with certificate in {!r} and private key in {!r}'.format(cert_pem, key_pem))
+        logger.info('Using TLS with provided certificate and private key from arguments')
         ssl_purpose = ssl.Purpose.CLIENT_AUTH if https_server else ssl.Purpose.SERVER_AUTH
         sslctx = ssl.create_default_context(purpose=ssl_purpose)
         sslctx.check_hostname = False
