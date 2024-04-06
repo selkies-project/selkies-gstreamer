@@ -518,7 +518,7 @@ class GSTWebRTCApp:
         # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
         transceiver.set_property("do-nack", True)
-        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
+        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
         transceiver.set_property("fec-percentage", self.packetloss_percent)
     # [END build_video_pipeline]
 
@@ -557,10 +557,12 @@ class GSTWebRTCApp:
         opusenc.set_property("audio-type", "restricted-lowdelay")
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
+        # Do not transmit empty packets when silent
+        opusenc.set_property("dtx", True)
         # Browser-side SDP munging for minptime=3 in Chrome is required for effect
         opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("hard-resync", True)
-        opusenc.set_property("inband-fec", True)
+        opusenc.set_property("inband-fec", self.packetloss_percent > 0)
         opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)
         opusenc.set_property("packet-loss-percentage", self.packetloss_percent)
@@ -573,6 +575,9 @@ class GSTWebRTCApp:
         # RTP packets that are sent over the connection transport.
         rtpopuspay = Gst.ElementFactory.make("rtpopuspay")
         rtpopuspay.set_property("mtu", 1200)
+
+        # Do not transmit empty packets when silent
+        rtpopuspay.set_property("dtx", True)
 
         # Insert a queue for the RTP packets.
         rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
@@ -628,7 +633,7 @@ class GSTWebRTCApp:
 
         # Enable forward error correction (FEC) in the audio stream
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED)
+        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
         transceiver.set_property("fec-percentage", self.packetloss_percent)
     # [END build_audio_pipeline]
 
