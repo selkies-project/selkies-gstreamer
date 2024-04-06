@@ -37,6 +37,10 @@ import time
 from PIL import Image
 from gamepad import SelkiesGamepad
 
+from datetime import datetime 
+import csv
+import json
+
 import logging
 logger = logging.getLogger("webrtc_input")
 logger.setLevel(logging.INFO)
@@ -113,6 +117,8 @@ class WebRTCInput:
         self.button_mask = 0
 
         self.ping_start = None
+        self.stats_file_path = "/tmp/stats.csv"
+        self.written_headers = None
 
         self.on_video_encoder_bit_rate = lambda bitrate: logger.warn(
             'unhandled on_video_encoder_bit_rate')
@@ -719,5 +725,39 @@ class WebRTCInput:
             except:
                 logger.error(
                     "failed to parse latency report from client" + str(toks))
+        elif toks[0] == "_stats":
+            # Webrtc Statistics API data from client
+            try:
+                stats_obj = json.loads(",".join(toks[1:]))
+                self.write_webrtc_stats(stats_obj)
+            except:
+                logger.error("failed to deserialize JSON object to python object")
         else:
             logger.info('unknown data channel message: %s' % msg)
+    
+    def write_webrtc_stats(self, obj_list):
+        """Writes the webrtc statistics to a CSV file.
+
+        Arguments:
+            obj_list {[list of object]} -- list of python objects/dict.
+        """
+        
+        dt = datetime.now()
+        timestamp = dt.strftime("%d/%B/%Y:%H:%M:%S")
+        
+        headers = ["timestamp"]
+        values = [timestamp]
+        try: 
+            with open(self.stats_file_path, "a") as stats_file:
+                csv_writer = csv.writer(stats_file)
+                for obj in obj_list:
+                    headers.extend(list(obj.keys()))
+                    values.extend(list(obj.values()))
+
+                if not self.written_headers:
+                    csv_writer.writerow(headers)
+                    self.written_headers = True
+
+                csv_writer.writerow(values)
+        except Exception as e:
+            logger.error("Error writing the webrtc-stats to CSV file "+ str(e))

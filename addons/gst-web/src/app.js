@@ -474,6 +474,9 @@ function onBothStreamConnected() {
 
                 statsStart = now;
 
+                var jsonString = JSON.stringify(stats.allReports);
+                webrtc.sendDataChannelMessage("_stats," + jsonString)
+
                 // Stats refresh loop.
                 setTimeout(statsLoop, 1000);
             });
