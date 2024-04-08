@@ -43,7 +43,7 @@ try:
 except Exception as e:
     msg = """ERROR: could not find working gst-python installation.
 
-If GStreamer is installed at a certain location, set its path to the environment variable $GSTREAMER_PATH, then make sure your environment is set correctly using the below commands:
+If GStreamer is installed at a certain location, set its path to the environment variable GSTREAMER_PATH, then make sure your environment is set correctly using the below commands:
 
 export PATH=${GSTREAMER_PATH}/bin:${PATH}
 export LD_LIBRARY_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}

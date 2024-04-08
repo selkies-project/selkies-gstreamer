@@ -94,8 +94,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         intel-media-va-driver-non-free \
         libva2 \
         vainfo \
-        intel-gpu-tools \
-        radeontop && \
+        nvtop && \
         # NVIDIA OpenCL ICD
         mkdir -pm755 /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
     rm -rf /var/lib/apt/lists/*
