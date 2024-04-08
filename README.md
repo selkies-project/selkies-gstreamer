@@ -16,7 +16,7 @@ There are several strengths of `selkies-gstreamer` compared to other game stream
 
 First, `selkies-gstreamer` is much more flexible to be used across various types of environments compared to other services or projects. Its focus on a single web interface instead of multiple native client implementations allow any operating system with a recent web browser to work as a client. Either the built-in HTTP basic authentication feature of `selkies-gstreamer` or any HTTP web server may provide protection to the web interface. Compared to many remote desktop or game streaming applications requiring multiple ports open to stream your desktop across the internet, `selkies-gstreamer` only requires one HTTP web server or reverse proxy which supports WebSocket, or a single TCP port from the server. A TURN server for actual traffic relaying can be flexibly configured within any location at or between the server and the client.
 
-Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, VP8, and VP9 codecs. Audio streaming from the server is supported using the Opus codec. WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC and AMD, Intel GPUs are supported with VA-API, with progress on supporting other GPU hardware.
+Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, VP8, VP9, and AV1 codecs. Audio streaming from the server is supported using the Opus codec. WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC and AMD, Intel GPUs are supported with VA-API, with progress on supporting other GPU hardware.
 
 Third, `selkies-gstreamer` was designed not only for desktops and bare metal servers, but also for unprivileged Docker and Kubernetes containers. Unlike other similar Linux solutions, there are no dependencies that require access to special devices not available inside containers by default, and is also not dependent on `systemd`. This enables virtual desktop infrastructure (VDI) using containers instead of virtual machines (VMs) which have high overhead. Root permissions are also not required at all, and all components can be installed completely to the userspace.
 
@@ -253,6 +253,7 @@ This table specifies the currently implemented video encoders and their correspo
 | [`x264enc`](https://gstreamer.freedesktop.org/documentation/x264/index.html) | H.264 AVC | Software | All | All Major | `x264` | N/A |
 | [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
 | [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | Chromium-based, Firefox | `libvpx` | N/A |
+| [`rav1enc`](https://gstreamer.freedesktop.org/documentation/rav1e/index.html) | AV1 | Software | All | Chromium-based | [`gst-plugins-rs`](https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs) | N/A |
 
 This table specifies the currently implemented video frame converters used to convert the YUV formats from `BGRx` to `I420` or `NV12`, which are automatically decided based on the encoder types.
 
@@ -260,7 +261,7 @@ This table specifies the currently implemented video frame converters used to co
 |---|---|---|---|---|---|
 | [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvcudah264enc` | NVIDIA GPU | All | libnvidia-encode, NVRTC | N/A |
 | [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc` | AMD, Intel GPU | All | VA-API Driver | N/A |
-| [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `vp8enc`, `vp9enc` | Software | All | Various | N/A |
+| [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `vp8enc`, `vp9enc`, `rav1enc` | Software | All | Various | N/A |
 
 This table specifies the currently supported display interfaces and how each plugin selects each video device.
 
@@ -278,7 +279,7 @@ This table specifies the currently supported audio interfaces and how each plugi
 
 | Plugin | Device Selector | Audio Interfaces | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` environment | PulseAudio | Linux | `libpulse` | N/A |
+| [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` environment | PulseAudio, PipeWire-Pulse | Linux | `libpulse` | N/A |
 
 This table specifies the currently supported transport protocol components.
 
