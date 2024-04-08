@@ -439,12 +439,11 @@ class GSTWebRTCApp:
             videoconvert_capsfilter.set_property("caps", videoconvert_caps)
 
             rav1enc = Gst.ElementFactory.make("rav1enc", "rav1enc")
-            rav1enc.set_property("error-resilient", True)
             rav1enc.set_property("low-latency", True)
             rav1enc.set_property("max-key-frame-interval", int(self.framerate * self.keyframe_dist))
             rav1enc.set_property("rdo-lookahead-frames", 0)
-            rav1enc.set_property("speed-preset", 8)
-            rav1enc.set_property("threads", min(16, max(1, len(os.sched_getaffinity(0)) - 1)))
+            rav1enc.set_property("speed-preset", 10)
+            rav1enc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
             rav1enc.set_property("qos", True)
             rav1enc.set_property("bitrate", self.fec_video_bitrate)
 
