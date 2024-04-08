@@ -85,7 +85,7 @@ jobs:
         platforms: ${{ matrix.platforms }}
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
-        tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
+        tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   example_images:
@@ -99,10 +99,10 @@ jobs:
           build_args: |
             PACKAGE_VERSION=0.0.0.dev0
             DISTRIB_RELEASE=20.04
-            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
-            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
-            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
-            JS_BASE_IMAGE_RELEASE=${{ github.ref_name }}
+            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
           dockerfile: Dockerfile.example
           context: .
@@ -112,10 +112,10 @@ jobs:
           build_args: |
             PACKAGE_VERSION=0.0.0.dev0
             DISTRIB_RELEASE=22.04
-            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.ref_name }}
-            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.ref_name }}
-            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.ref_name }}
-            JS_BASE_IMAGE_RELEASE=${{ github.ref_name }}
+            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
           dockerfile: Dockerfile.example
           context: .
@@ -133,7 +133,7 @@ jobs:
         platforms: ${{ matrix.platforms }}
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
-        tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}
+        tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   upload_artifacts:
@@ -232,7 +232,7 @@ jobs:
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
       run: |
-        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_name }}${{ matrix.version_suffix }}"
+        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}"
         docker container cp "copy:${{ matrix.source }}" "${{ env.TEMP_DIR }}/${{ matrix.target }}"
         docker container rm --force --volumes copy
         echo "release_arch=$(echo ${{ matrix.platforms || 'linux/amd64' }} | sed -e 's/\//\-/')" >> "$GITHUB_ENV"
