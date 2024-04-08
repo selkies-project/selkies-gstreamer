@@ -88,7 +88,7 @@ class GSTWebRTCApp:
         # Keyframe distance in seconds
         self.keyframe_dist = 3
         # Packet loss base percentage
-        self.packetloss_percent = 5
+        self.packetloss_percent = 0
         # Prevent bitrate from overshooting because of FEC
         self.fec_video_bitrate = int(self.video_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
         self.fec_audio_bitrate = int(self.audio_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
@@ -406,6 +406,24 @@ class GSTWebRTCApp:
             vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
 
+        elif self.encoder in ["rav1enc"]:
+            videoconvert = Gst.ElementFactory.make("videoconvert")
+            videoconvert.set_property("n-threads", max(1, len(os.sched_getaffinity(0)) - 1))
+            videoconvert_caps = Gst.caps_from_string("video/x-raw")
+            videoconvert_caps.set_value("format", "I420")
+            videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
+            videoconvert_capsfilter.set_property("caps", videoconvert_caps)
+
+            rav1enc = Gst.ElementFactory.make("rav1enc", "rav1enc")
+            rav1enc.set_property("error-resilient", True)
+            rav1enc.set_property("low-latency", True)
+            rav1enc.set_property("max-key-frame-interval", int(self.framerate * self.keyframe_dist))
+            rav1enc.set_property("rdo-lookahead-frames", 0)
+            rav1enc.set_property("speed-preset", 8)
+            rav1enc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
+            rav1enc.set_property("qos", True)
+            rav1enc.set_property("bitrate", self.fec_video_bitrate)
+
         else:
             raise GSTWebRTCAppError("Unsupported encoder for pipeline: %s" % self.encoder)
 
@@ -489,6 +507,24 @@ class GSTWebRTCApp:
             rtpvppay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtpvppay_capsfilter.set_property("caps", rtpvppay_caps)
 
+        if "av1" in self.encoder:
+            av1enc_caps = Gst.caps_from_string("video/x-av1")
+            av1enc_caps.set_value("parsed", True)
+            av1enc_caps.set_value("stream-format", "obu-stream")
+            av1enc_caps.set_value("alignment", "tu")
+            av1enc_capsfilter = Gst.ElementFactory.make("capsfilter")
+            av1enc_capsfilter.set_property("caps", av1enc_caps)
+
+            rtpav1pay = Gst.ElementFactory.make("rtpav1pay", "rtpav1pay")
+            rtpav1pay.set_property("mtu", 1200)
+            rtpav1pay_caps = Gst.caps_from_string("application/x-rtp")
+            rtpav1pay_caps.set_value("media", "video")
+            rtpav1pay_caps.set_value("clock-rate", 90000)
+            rtpav1pay_caps.set_value("encoding-name", "AV1")
+            rtpav1pay_caps.set_value("payload", 99)
+            rtpav1pay_capsfilter = Gst.ElementFactory.make("capsfilter")
+            rtpav1pay_capsfilter.set_property("caps", rtpav1pay_caps)
+
         # Add all elements to the pipeline.
         pipeline_elements = [self.ximagesrc, self.ximagesrc_capsfilter]
 
@@ -504,6 +540,9 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vp8enc", "vp9enc"]:
             pipeline_elements += [videoconvert, videoconvert_capsfilter, vpenc, vpenc_capsfilter, rtpvppay, rtpvppay_capsfilter]
+
+        elif self.encoder in ["rav1enc"]:
+            pipeline_elements += [videoconvert, videoconvert_capsfilter, rav1enc, av1enc_capsfilter, rtpav1pay, rtpav1pay_capsfilter]
 
         for pipeline_element in pipeline_elements:
             self.pipeline.add(pipeline_element)
@@ -648,7 +687,7 @@ class GSTWebRTCApp:
                     "rtpmanager", "ximagesrc"]
 
         # ADD_ENCODER: add new encoder to this list
-        supported = ["nvcudah264enc", "nvh264enc", "vah264enc", "vah264lpenc", "x264enc", "vp8enc", "vp9enc"]
+        supported = ["nvcudah264enc", "nvh264enc", "vah264enc", "vah264lpenc", "x264enc", "vp8enc", "vp9enc", "rav1enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
@@ -663,6 +702,9 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vp8enc", "vp9enc"]:
             required.append("vpx")
+
+        elif self.encoder in ["rav1enc"]:
+            required.append("rav1e")
 
         missing = list(
             filter(lambda p: Gst.Registry.get().find_plugin(p) is None, required))
@@ -737,6 +779,9 @@ class GSTWebRTCApp:
         if self.encoder.startswith("vp"):
             element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
             element.set_property("keyframe-max-dist", int(self.framerate * self.keyframe_dist))
+        if self.encoder in ["rav1enc"]:
+            element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
+            element.set_property("max-key-frame-interval", int(self.framerate * self.keyframe_dist))
 
     def set_video_bitrate(self, bitrate):
         """Set video encoder target bitrate in bps
@@ -761,6 +806,9 @@ class GSTWebRTCApp:
             elif self.encoder in ["vp8enc", "vp9enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
                 element.set_property("target-bitrate", fec_bitrate * 1000)
+            elif self.encoder in ["rav1enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
+                element.set_property("bitrate", fec_bitrate)
             else:
                 logger.warning("set_video_bitrate not supported with encoder: %s" % self.encoder)
 
