@@ -1,12 +1,3 @@
----
-name: Pull request
-about: Propose code changes to be merged
-title: ''
-labels: ''
-assignees: ''
-
----
-
 **Explain relevant issues and how this pull request solves them**
 A clear and concise description of the pull request. Ex. This pull request addresses issue [...]
 
