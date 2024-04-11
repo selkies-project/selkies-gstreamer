@@ -644,7 +644,6 @@ class GSTWebRTCApp:
         opusenc.set_property("bitrate-type", "cbr")
         # Browser-side SDP munging for minptime=3 in Chrome is required for effect
         opusenc.set_property("frame-size", "2.5")
-        opusenc.set_property("hard-resync", True)
         opusenc.set_property("inband-fec", self.packetloss_percent > 0)
         opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)

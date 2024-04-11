@@ -7,7 +7,7 @@ FROM python:3
 LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 # Install build deps
-RUN python3 -m pip install --upgrade build
+RUN python3 -m pip install --no-cache-dir --force-reinstall --upgrade build
 
 # Build a python package for the webrtc app.
 WORKDIR /opt/pypi

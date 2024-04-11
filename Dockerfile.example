@@ -24,6 +24,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install Selkies-GStreamer system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
         # System dependencies
+        apt-utils \
         build-essential \
         curl \
         gdebi-core \
@@ -156,7 +157,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y /opt/selkies-js
 ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=0.0.0.dev0
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
-RUN pip3 install /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
+RUN pip3 install --no-cache-dir --force-reinstall /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 
 # Setup global bashrc to configure X11 environment
 ENV DISPLAY ":0"
