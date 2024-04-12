@@ -820,6 +820,7 @@ def main():
         loop.run_in_executor(None, lambda: system_mon.start())
 
         while True:
+            webrtc_input.initialize_webrtc_stats_files()
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
 

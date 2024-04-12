@@ -117,8 +117,10 @@ class WebRTCInput:
         self.button_mask = 0
 
         self.ping_start = None
-        self.stats_file_path = "/tmp/stats.csv"
-        self.written_headers = None
+        self.stats_video_file_path = None
+        self.stats_audio_file_path = None
+        self.prev_stats_video_header_len = None 
+        self.prev_stats_audio_header_len = None
 
         self.on_video_encoder_bit_rate = lambda bitrate: logger.warn(
             'unhandled on_video_encoder_bit_rate')
@@ -725,17 +727,20 @@ class WebRTCInput:
             except:
                 logger.error(
                     "failed to parse latency report from client" + str(toks))
-        elif toks[0] == "_stats":
-            # Webrtc Statistics API data from client
+        elif toks[0] == "_stats_video" or toks[0] == "_stats_audio":
+            # Webrtc Statistics API data from client 
             try:
                 stats_obj = json.loads(",".join(toks[1:]))
-                self.write_webrtc_stats(stats_obj)
+                if toks[0] == "_stats_video":
+                    self.write_webrtc_stats(stats_obj, self.stats_video_file_path)
+                else:
+                    self.write_webrtc_stats(stats_obj, self.stats_audio_file_path)
             except:
                 logger.error("failed to deserialize JSON object to python object")
         else:
             logger.info('unknown data channel message: %s' % msg)
     
-    def write_webrtc_stats(self, obj_list):
+    def write_webrtc_stats(self, obj_list, file_path):
         """Writes the webrtc statistics to a CSV file.
 
         Arguments:
@@ -744,20 +749,113 @@ class WebRTCInput:
         
         dt = datetime.now()
         timestamp = dt.strftime("%d/%B/%Y:%H:%M:%S")
-        
-        headers = ["timestamp"]
-        values = [timestamp]
-        try: 
-            with open(self.stats_file_path, "a") as stats_file:
-                csv_writer = csv.writer(stats_file)
+        try:
+            with open(file_path, 'a+') as stats_file:
+                csv_writer = csv.writer(stats_file, quotechar='"')
+
+                # Prepare the data
+                headers = ["timestamp"]
                 for obj in obj_list:
                     headers.extend(list(obj.keys()))
-                    values.extend(list(obj.values()))
+                values = [timestamp]
+                for obj in obj_list:
+                    values.extend(['"{}"'.format(val) if isinstance(val, str) and ';' in val else val for val in obj.values()])
 
-                if not self.written_headers:
-                    csv_writer.writerow(headers)
-                    self.written_headers = True
-
-                csv_writer.writerow(values)
+                # Video stats
+                if 'video' in file_path:
+                    if self.prev_stats_video_header_len == None:
+                        csv_writer.writerow(headers)
+                        csv_writer.writerow(values)
+                        self.prev_stats_video_header_len = len(headers)
+                    elif self.prev_stats_video_header_len == len(headers):
+                        csv_writer.writerow(values)
+                    else:
+                        # We got new fields so update the data
+                        self.update_the_stats(file_path, headers, values)
+                        self.prev_stats_video_header_len = len(headers)
+                else:
+                    # Audio stats
+                    if self.prev_stats_audio_header_len == None:
+                        csv_writer.writerow(headers)
+                        csv_writer.writerow(values)
+                        self.prev_stats_audio_header_len = len(headers)
+                    elif self.prev_stats_audio_header_len == len(headers):
+                        csv_writer.writerow(values)
+                    else:
+                        # We got new fields so update the data
+                        self.update_the_stats(file_path, headers, values)
+                        self.prev_stats_audio_header_len = len(headers)
+                
+               
         except Exception as e:
-            logger.error("Error writing the webrtc-stats to CSV file "+ str(e))
+            logger.error("writing webrtc stats to csv file: " + str(e))
+
+    def update_the_stats(self, file_path, headers, values):
+        """Copies data from one csv file to another to facilite dynamic updates to the data structure
+           by handling empty values and appending new data.
+        """
+        prev_headers = None
+        prev_values = []
+
+        try: 
+            with open(file_path, 'r') as stats_file:
+                csv_reader = csv.reader(stats_file,  delimiter=',')
+
+                # Get all existing data
+                header_indicator = 0
+                for row in csv_reader:
+                    if header_indicator == 0:
+                        prev_headers = row
+                        header_indicator += 1
+                    else:
+                        prev_values.append(row)
+
+                i, j = 0, 0
+                while i < len(headers):
+                    if headers[i] != prev_headers[j]:
+                        # If there's a mismatch then we encountered a new filed, so update all previous rows with
+                        # a placeholder to represent an empty value, using `-1` here
+                        for row in prev_values:
+                            row.insert(i, -1)
+                        i += 1
+                    else:
+                        i += 1
+                        j += 1
+                
+                # if the new fileds are the end then take care of those as well
+                while j<i-1:
+                    for row in prev_values:
+                        row.insert(j, -1)
+                    j += 1
+
+                # Just some validation check to see if modified rows are of same lenght as new
+                if len(prev_values[0]) != len(values):
+                    logger.warn("There's a mismatch; the columns could be misaligned with headers")
+           
+            # Purge the existing file
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            else:
+                logger.warn("File {} doesn't exist to purge".format(file_path))
+
+            # create a new file with updated data
+            with open(file_path, 'a') as stats_file:
+                csv_writer = csv.writer(stats_file)
+
+                csv_writer.writerow(headers)
+                csv_writer.writerows(prev_values)
+                csv_writer.writerow(values)
+
+                logger.info("File {} created with updated data".format(stats_file))
+        except Exception as e:
+            raise e
+
+    def initialize_webrtc_stats_files(self):
+        """Initializes the Webrtc Statistics file upon every new webrtc connection
+        """
+        dt = datetime.now()
+        timestamp = dt.strftime("%Y-%m-%d:%H:%M:%S")
+        self.stats_video_file_path = '/tmp/stats-video-{}.csv'.format(timestamp)
+        self.stats_audio_file_path = '/tmp/stats-audio-{}.csv'.format(timestamp)
+        self.prev_stats_video_header_len = None
+        self.prev_stats_audio_header_len = None
