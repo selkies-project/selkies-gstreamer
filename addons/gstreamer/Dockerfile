@@ -91,7 +91,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
-ARG GSTREAMER_VERSION=1.24.1
+ARG GSTREAMER_VERSION=1.24.2
 RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
     cargo install cargo-c && \

@@ -248,21 +248,26 @@ This table specifies the currently implemented video encoders and their correspo
 
 | Plugin (set `SELKIES_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
-| [`nvcudah264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | libnvidia-encode, NVRTC | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
-| [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver, `libva` | N/A |
+| [`nvcudah264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | NVRTC, `libnvidia-encode` | [Requires NVENC - Encoding H.264 (AVCHD)](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+| [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver, `libva` | Requires supported GPU |
 | [`x264enc`](https://gstreamer.freedesktop.org/documentation/x264/index.html) | H.264 AVC | Software | All | All Major | `x264` | N/A |
 | [`openh264enc`](https://gstreamer.freedesktop.org/documentation/openh264/openh264enc.html) | H.264 AVC | Software | All | All Major | `openh264` | N/A |
+| [`nvcudah265enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah265enc.html) | H.265 HEVC | NVIDIA GPU | All | Safari | NVRTC, `libnvidia-encode` | [Requires NVENC - Encoding H.265 (HEVC)](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+| [`vah265enc`](https://gstreamer.freedesktop.org/documentation/va/vah265enc.html) | H.265 HEVC | AMD, Intel GPU | All | Safari | VA-API Driver, `libva` | Requires supported GPU |
+| [`x265enc`](https://gstreamer.freedesktop.org/documentation/x265/index.html) | H.265 HEVC | Software | All | Safari | `x265` | N/A |
 | [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
-| [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | Chromium-based, Firefox | `libvpx` | N/A |
-| [`rav1enc`](https://gstreamer.freedesktop.org/documentation/rav1e/index.html) | AV1 | Software | All | Chromium-based | [`gst-plugins-rs`](https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs) | N/A |
+| [`vavp9enc`](https://gstreamer.freedesktop.org/documentation/va/vavp9enc.html) | VP9 | AMD, Intel GPU | All | All Major | VA-API Driver, `libva` | Requires supported GPU and GStreamer >= 1.25 |
+| [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | All Major | `libvpx` | N/A |
+| [`vaav1enc`](https://gstreamer.freedesktop.org/documentation/va/vaav1enc.html) | AV1 | AMD, Intel GPU | All | Chromium-based, Safari | VA-API Driver, `libva`, [`gst-plugins-rs`](https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs) | Requires supported GPU and GStreamer >= 1.24 |
+| [`rav1enc`](https://gstreamer.freedesktop.org/documentation/rav1e/index.html) | AV1 | Software | All | Chromium-based, Safari | [`gst-plugins-rs`](https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs) | N/A |
 
 This table specifies the currently implemented video frame converters used to convert the YUV formats from `BGRx` to `I420` or `NV12`, which are automatically decided based on the encoder types.
 
 | Plugin | Encoders | Acceleration | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvcudah264enc` | NVIDIA GPU | All | libnvidia-encode, NVRTC | N/A |
-| [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc` | AMD, Intel GPU | All | VA-API Driver | N/A |
-| [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `openh264enc`, `vp8enc`, `vp9enc`, `rav1enc` | Software | All | Various | N/A |
+| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvcudah264enc`, `nvcudah265enc` | NVIDIA GPU | All | NVRTC | N/A |
+| [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc`, `vah265enc`, `vavp9enc`, `vaav1enc` | AMD, Intel GPU | All | VA-API Driver, `libva` | N/A |
+| [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `openh264enc`, `x265enc`, `vp8enc`, `vp9enc`, `rav1enc` | Software | All | N/A | N/A |
 
 This table specifies the currently supported display interfaces and how each plugin selects each video device.
 
@@ -270,7 +275,7 @@ This table specifies the currently supported display interfaces and how each plu
 |---|---|---|---|---|---|---|
 | [`ximagesrc`](https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html) | `DISPLAY` environment | X.Org / X11 | [`Xlib`](https://github.com/python-xlib/python-xlib) w/ [`pynput`](https://github.com/moses-palmer/pynput) | Linux | Various | N/A |
 
-This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only adequate media codec supported in web browsers by specification.
+This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only adequate fullband audio media codec supported in web browsers by specification.
 
 | Plugin | Codec | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|
