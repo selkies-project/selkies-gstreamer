@@ -516,7 +516,7 @@ class GSTWebRTCApp:
 
             # encoder
             x265enc = Gst.ElementFactory.make("x265enc", "x265enc")
-            x265enc.set_property("option-string", "frame-threads={}:b-adapt=0:bframes=0:aud=1:repeat-headers=1:rc-lookahead=0:wpp=1:strict-cbr=1".format(min(4, max(1, len(os.sched_getaffinity(0)) - 1))))
+            x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:aud:repeat-headers:pmode:wpp")
             x265enc.set_property("key-int-max", int(self.framerate * self.keyframe_dist))
             x265enc.set_property("qos", True)
             x265enc.set_property("speed-preset", "ultrafast")
