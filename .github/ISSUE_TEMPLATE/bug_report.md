@@ -24,9 +24,9 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
  - Host OS Version: [e.g. Ubuntu 24.04, Arch Linux 2024.01.01]
- - Host GPU Model and Driver/Encoder Version: [e.g. Intel UHD Graphics 750, libva 1.22.0 from `vainfo` / NVIDIA RTX 3070, 535.129.03 driver]
- - GStreamer Version: [e.g. 1.24.1]
- - Browser Version [e.g. Chrome 123, Safari 17.4]
+ - Host GPU Model and Driver/Encoder Version: [e.g. Intel UHD Graphics 750, VA-API 1.19, libva 2.12.0 (outputs from `vainfo`) / NVIDIA RTX 3070, 535.129.03 driver]
+ - GStreamer Version: [e.g. 1.26.0]
+ - Browser Version [e.g. Chrome 121, Safari 17.9]
  - Any other information specific to your environment
 
 **Additional context**
