@@ -381,6 +381,12 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 ## Troubleshooting
 
+### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
+
+First of all, use HTTPS or port forwarding to localhost. Some browsers do not support WebRTC or relevant features in HTTP outside localhost.
+
+Then, please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.2`.
+
 ### The HTML5 web interface is slow and laggy.
 
 **Usually, the issue arises from using a WiFi router with bufferbloat issues, especially if you observe stuttering. Try using the [Bufferbloat Test](https://www.waveform.com/tools/bufferbloat) to identify the issue first before moving on.** Using wired ethernet or a good 5GHz WiFi connection is important. Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any remote desktop application. Also note that a higher framerate will improve performance if you have the sufficient bandwidth. This is because one screen refresh from a 60 fps screen takes 16.67 ms at a time, while one screen refresh from a 15 fps screen inevitably takes 66.67 ms, and therefore inherently causes a visible lag.
@@ -396,10 +402,6 @@ This is a setting from the client operating system and will show the same behavi
 ### The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
 
 This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use. In order to use the web interface when this is not possible (or when you are using SSH or remote access), check `sudo systemctl status sddm` or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running `selkies-gstreamer`.
-
-### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
-
-Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.2`.
 
 ### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 

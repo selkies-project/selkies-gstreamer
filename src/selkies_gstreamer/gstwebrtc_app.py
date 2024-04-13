@@ -324,7 +324,7 @@ class GSTWebRTCApp:
                 nvh264enc.set_property("zerolatency", True)
                 nvh264enc.set_property("preset", "low-latency-hq")
 
-        if self.encoder in ["nvcudah265enc", "nvh265enc"]:
+        elif self.encoder in ["nvcudah265enc", "nvh265enc"]:
             cudaupload = Gst.ElementFactory.make("cudaupload")
             cudaconvert = Gst.ElementFactory.make("cudaconvert")
             cudaconvert_caps = Gst.caps_from_string("video/x-raw(memory:CUDAMemory)")
@@ -534,14 +534,13 @@ class GSTWebRTCApp:
             if self.encoder == "vp8enc":
                 vpenc = Gst.ElementFactory.make("vp8enc", "vpenc")
 
-            if self.encoder == "vp9enc":
+            elif self.encoder == "vp9enc":
                 vpenc = Gst.ElementFactory.make("vp9enc", "vpenc")
                 vpenc.set_property("frame-parallel-decoding", True)
                 vpenc.set_property("row-mt", True)
 
             # VPX Parameters
             vpenc.set_property("threads", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
-            vpenc.set_property("auto-alt-ref", True)
             vpenc.set_property("buffer-initial-size", 100)
             vpenc.set_property("buffer-optimal-size", 120)
             vpenc.set_property("buffer-size", 150)
@@ -550,10 +549,9 @@ class GSTWebRTCApp:
             vpenc.set_property("deadline", 1)
             vpenc.set_property("end-usage", "cbr")
             vpenc.set_property("error-resilient", "default")
-            vpenc.set_property("keyframe-mode", False)
+            vpenc.set_property("keyframe-mode", "disabled")
             vpenc.set_property("keyframe-max-dist", int(self.framerate * self.keyframe_dist))
             vpenc.set_property("lag-in-frames", 0)
-            vpenc.set_property("static-threshold", 1)
             vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
 
@@ -677,11 +675,10 @@ class GSTWebRTCApp:
             rtpvppay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtpvppay_capsfilter.set_property("caps", rtpvppay_caps)
 
-        if "av1" in self.encoder:
+        elif "av1" in self.encoder:
             av1enc_caps = Gst.caps_from_string("video/x-av1")
             av1enc_caps.set_value("parsed", True)
             av1enc_caps.set_value("stream-format", "obu-stream")
-            av1enc_caps.set_value("alignment", "tu")
             av1enc_capsfilter = Gst.ElementFactory.make("capsfilter")
             av1enc_capsfilter.set_property("caps", av1enc_caps)
 
@@ -702,7 +699,7 @@ class GSTWebRTCApp:
         if self.encoder in ["nvcudah264enc", "nvh264enc"]:
             pipeline_elements += [cudaupload, cudaconvert, cudaconvert_capsfilter, nvh264enc, h264enc_capsfilter, rtph264pay, rtph264pay_capsfilter]
 
-        if self.encoder in ["nvcudah265enc", "nvh265enc"]:
+        elif self.encoder in ["nvcudah265enc", "nvh265enc"]:
             pipeline_elements += [cudaupload, cudaconvert, cudaconvert_capsfilter, nvh265enc, h265enc_capsfilter, rtph265pay, rtph265pay_capsfilter]
 
         elif self.encoder in ["vah264enc", "vah264lpenc"]:
@@ -762,7 +759,7 @@ class GSTWebRTCApp:
         # jitter buffers in sync. If there is skew between the video and audio
         # buffers, features like NetEQ will continuously increase the size of the
         # jitter buffer to catch up and will never recover.
-        # pulsesrc.set_property("provide-clock", True)
+        pulsesrc.set_property("provide-clock", True)
 
         # Create capabilities for pulsesrc and set channels
         pulsesrc_caps = Gst.caps_from_string("audio/x-raw")
@@ -865,8 +862,7 @@ class GSTWebRTCApp:
             GSTWebRTCAppError -- thrown if any plugins are missing.
         """
 
-        required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp",
-                    "rtpmanager", "ximagesrc"]
+        required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp", "rtpmanager", "ximagesrc"]
 
         # ADD_ENCODER: add new encoder to this list
         supported = ["nvcudah264enc", "nvh264enc", "nvcudah265enc", "nvh265enc", "vah264enc", "vah264lpenc", "vah265enc", "vah265lpenc", "vavp9enc", "vavp9lpenc", "vaav1enc", "vaav1lpenc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "rav1enc"]
