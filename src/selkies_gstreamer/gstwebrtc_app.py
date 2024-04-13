@@ -568,6 +568,7 @@ class GSTWebRTCApp:
             rav1enc.set_property("max-key-frame-interval", int(self.framerate * self.keyframe_dist))
             rav1enc.set_property("rdo-lookahead-frames", 0)
             rav1enc.set_property("speed-preset", 10)
+            rav1enc.set_property("tiles", 16)
             rav1enc.set_property("threads", max(1, len(os.sched_getaffinity(0)) - 1))
             rav1enc.set_property("qos", True)
             rav1enc.set_property("bitrate", self.fec_video_bitrate)
