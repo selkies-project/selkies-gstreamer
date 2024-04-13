@@ -474,11 +474,8 @@ function onBothStreamConnected() {
 
                 statsStart = now;
 
-                var videoStatsString = JSON.stringify(stats.allReports);
-                var audioStatsString = JSON.stringify(audioStats.allReports);
-
-                webrtc.sendDataChannelMessage("_stats_video," + videoStatsString);
-                webrtc.sendDataChannelMessage("_stats_audio," + audioStatsString);
+                webrtc.sendDataChannelMessage("_stats_video," + JSON.stringify(stats.allReports));
+                webrtc.sendDataChannelMessage("_stats_audio," + JSON.stringify(audioStats.allReports));
 
                 // Stats refresh loop.
                 setTimeout(statsLoop, 1000);

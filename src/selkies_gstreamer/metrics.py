@@ -44,24 +44,24 @@ class Metrics:
 
     def set_gpu_utilization(self, utilization):
         self.gpu_utilization.set(utilization)
-    
+
     def set_latency(self, latency_ms):
         self.latency.set(latency_ms)
-    
-    def start(self):
+
+    def start_http(self):
         start_http_server(self.port)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    
+
     port = 8000
 
     m = Metrics(port)
     m.start()
 
     logger.info("Started metrics server on port %d" % port)
-    
-    # Generate some metrics.
+
+    # Generate random metrics
     while True:
         m.set_fps(int(random.random() * 100 % 60))
         m.set_gpu_utilization(int(random.random() * 100))
