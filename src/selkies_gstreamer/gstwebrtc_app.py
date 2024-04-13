@@ -494,9 +494,12 @@ class GSTWebRTCApp:
 
             # encoder
             openh264enc = Gst.ElementFactory.make("openh264enc", "openh264enc")
+            openh264enc.set_property("adaptive-quantization", False)
+            openh264enc.set_property("background-detection", False)
+            openh264enc.set_property("enable-frame-skip", False)
+            openh264enc.set_property("scene-change-detection", False)
             openh264enc.set_property("usage-type", "screen")
             openh264enc.set_property("complexity", "low")
-            openh264enc.set_property("enable-frame-skip", False)
             openh264enc.set_property("gop-size", int(self.framerate * self.keyframe_dist))
             # TODO: Chromium cannot decode more than 4 slices, fix when it changes
             openh264enc.set_property("multi-thread", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
