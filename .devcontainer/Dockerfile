@@ -80,7 +80,7 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         imagemagick \
         python3-venv && \
     sudo rm -rf /var/lib/apt/lists/* && \
-    sudo python3 -m pip install --upgrade build
+    sudo python3 -m pip install --no-cache-dir --upgrade build
 
 # Install desktop environment
 ARG DESKTOP=xfce

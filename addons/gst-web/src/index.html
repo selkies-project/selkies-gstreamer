@@ -173,7 +173,7 @@
 
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
-                      <v-progress-circular v-if="encoderName === 'hardware'" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                      <v-progress-circular v-if="encoderName.startsWith('hardware')" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
                         :width="4" :value="gpuLoad" color="blue">
                         {{ gpuLoad }}
                       </v-progress-circular>
@@ -182,13 +182,13 @@
                         {{ serverCPUUsage }}
                       </v-progress-circular>
                     </template>
-                    <span v-if="encoderName === 'hardware'">Current GPU load</span>
+                    <span v-if="encoderName.startsWith('hardware')">Current GPU load</span>
                     <span v-else>Server CPU Usage</span>
                   </v-tooltip>
 
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
-                      <v-progress-circular v-if="encoderName === 'hardware'" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
+                      <v-progress-circular v-if="encoderName.startsWith('hardware')" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
                         :width="4" :value="gpuMemoryTotal === 0 ? 0 : (gpuMemoryUsed / gpuMemoryTotal) * 100"
                         color="blue-grey">
                         {{ (gpuMemoryUsed / 1024).toFixed(2) }}
@@ -199,7 +199,7 @@
                         {{ (serverMemoryUsed / 1024 / 1024 / 1024).toFixed(2) }}
                       </v-progress-circular>
                     </template>
-                    <span v-if="encoderName === 'hardware'">Current GPU memory GB used of the {{ (gpuMemoryTotal / 1024).toFixed(0) }}GB available</span>
+                    <span v-if="encoderName.startsWith('hardware')">Current GPU memory GB used of the {{ (gpuMemoryTotal / 1024).toFixed(0) }}GB available</span>
                     <span v-else>Server Memory GB used of the {{ (serverMemoryTotal / 1024 / 1024 / 1024).toFixed(0) }}GB available</span>
                   </v-tooltip>
 

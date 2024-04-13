@@ -16,7 +16,7 @@ There are several strengths of `selkies-gstreamer` compared to other game stream
 
 First, `selkies-gstreamer` is much more flexible to be used across various types of environments compared to other services or projects. Its focus on a single web interface instead of multiple native client implementations allow any operating system with a recent web browser to work as a client. Either the built-in HTTP basic authentication feature of `selkies-gstreamer` or any HTTP web server may provide protection to the web interface. Compared to many remote desktop or game streaming applications requiring multiple ports open to stream your desktop across the internet, `selkies-gstreamer` only requires one HTTP web server or reverse proxy which supports WebSocket, or a single TCP port from the server. A TURN server for actual traffic relaying can be flexibly configured within any location at or between the server and the client.
 
-Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, VP8, and VP9 codecs. Audio streaming from the server is supported using the Opus codec. WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC and AMD, Intel GPUs are supported with VA-API, with progress on supporting other GPU hardware.
+Second, `selkies-gstreamer` can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, VP8, VP9, and AV1 codecs. Audio streaming from the server is supported using the Opus codec. WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC and AMD, Intel GPUs are supported with VA-API, with progress on supporting other GPU hardware.
 
 Third, `selkies-gstreamer` was designed not only for desktops and bare metal servers, but also for unprivileged Docker and Kubernetes containers. Unlike other similar Linux solutions, there are no dependencies that require access to special devices not available inside containers by default, and is also not dependent on `systemd`. This enables virtual desktop infrastructure (VDI) using containers instead of virtual machines (VMs) which have high overhead. Root permissions are also not required at all, and all components can be installed completely to the userspace.
 
@@ -81,7 +81,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Install the Python components of `selkies-gstreamer` (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`):
 
 ```bash
-cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && sudo pip3 install "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl"
+cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && sudo pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl"
 ```
 
 4. Unpack the HTML5 components of `selkies-gstreamer`:
@@ -126,7 +126,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Replace to your resolution if using without resize, skip if there is a physical display
 # selkies-gstreamer-resize 1920x1080
 
-# Choose your video encoder, change to x264enc for software encoding or other encoders for different hardware
+# Choose your video encoder, change to x264enc/openh264enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
 # Starts the remote desktop process
 selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvcudah264enc --enable_resize=false &
@@ -172,7 +172,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 docker create --platform="linux/amd64" --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
-sudo pip3 install --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+sudo pip3 install --no-cache-dir --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 ```
 
@@ -224,7 +224,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Replace to your resolution if using without resize, skip if there is a physical display
 # selkies-gstreamer-resize 1920x1080
 
-# Choose your video encoder, change to x264enc for software encoding or other encoders for different hardware
+# Choose your video encoder, change to x264enc/openh264enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
 # Starts the remote desktop process
 selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvcudah264enc --enable_resize=false &
@@ -248,19 +248,26 @@ This table specifies the currently implemented video encoders and their correspo
 
 | Plugin (set `SELKIES_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
-| [`nvcudah264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | libnvidia-encode, NVRTC | [Requires NVENC - Encoding H.264 AVCHD](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
-| [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver | N/A |
+| [`nvcudah264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | NVRTC, `libnvidia-encode` | [Requires NVENC - Encoding H.264 (AVCHD)](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+| [`vah264enc`](https://gstreamer.freedesktop.org/documentation/va/vah264enc.html) | H.264 AVC | AMD, Intel GPU | All | All Major | VA-API Driver, `libva` | Requires supported GPU |
 | [`x264enc`](https://gstreamer.freedesktop.org/documentation/x264/index.html) | H.264 AVC | Software | All | All Major | `x264` | N/A |
+| [`openh264enc`](https://gstreamer.freedesktop.org/documentation/openh264/openh264enc.html) | H.264 AVC | Software | All | All Major | `openh264` | N/A |
+| [`nvcudah265enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah265enc.html) | H.265 HEVC | NVIDIA GPU | All | Safari | NVRTC, `libnvidia-encode` | [Requires NVENC - Encoding H.265 (HEVC)](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
+| [`vah265enc`](https://gstreamer.freedesktop.org/documentation/va/vah265enc.html) | H.265 HEVC | AMD, Intel GPU | All | Safari | VA-API Driver, `libva` | Requires supported GPU |
+| [`x265enc`](https://gstreamer.freedesktop.org/documentation/x265/index.html) | H.265 HEVC | Software | All | Safari | `x265` | N/A |
 | [`vp8enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp8enc.html) | VP8 | Software | All | All Major | `libvpx` | N/A |
-| [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | Chromium-based, Firefox | `libvpx` | N/A |
+| [`vavp9enc`](https://gstreamer.freedesktop.org/documentation/va/vavp9enc.html) | VP9 | AMD, Intel GPU | All | All Major | VA-API Driver, `libva` | Requires supported GPU and GStreamer >= 1.25 |
+| [`vp9enc`](https://gstreamer.freedesktop.org/documentation/vpx/vp9enc.html) | VP9 | Software | All | All Major | `libvpx` | N/A |
+| [`vaav1enc`](https://gstreamer.freedesktop.org/documentation/va/vaav1enc.html) | AV1 | AMD, Intel GPU | All | Chromium-based, Safari | VA-API Driver, `libva`, [`gst-plugins-rs`](https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs) | Requires supported GPU and GStreamer >= 1.24 |
+| [`rav1enc`](https://gstreamer.freedesktop.org/documentation/rav1e/index.html) | AV1 | Software | All | Chromium-based, Safari | [`gst-plugins-rs`](https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs) | Performance Issues |
 
 This table specifies the currently implemented video frame converters used to convert the YUV formats from `BGRx` to `I420` or `NV12`, which are automatically decided based on the encoder types.
 
 | Plugin | Encoders | Acceleration | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvcudah264enc` | NVIDIA GPU | All | libnvidia-encode, NVRTC | N/A |
-| [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc` | AMD, Intel GPU | All | VA-API Driver | N/A |
-| [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `vp8enc`, `vp9enc` | Software | All | Various | N/A |
+| [`cudaconvert`](https://gstreamer.freedesktop.org/documentation/nvcodec/cudaconvert.html) | `nvcudah264enc`, `nvcudah265enc` | NVIDIA GPU | All | NVRTC | N/A |
+| [`vapostproc`](https://gstreamer.freedesktop.org/documentation/va/vapostproc.html) | `vah264enc`, `vah265enc`, `vavp9enc`, `vaav1enc` | AMD, Intel GPU | All | VA-API Driver, `libva` | N/A |
+| [`videoconvert`](https://gstreamer.freedesktop.org/documentation/videoconvertscale/videoconvert.html) | `x264enc`, `openh264enc`, `x265enc`, `vp8enc`, `vp9enc`, `rav1enc` | Software | All | N/A | N/A |
 
 This table specifies the currently supported display interfaces and how each plugin selects each video device.
 
@@ -268,7 +275,7 @@ This table specifies the currently supported display interfaces and how each plu
 |---|---|---|---|---|---|---|
 | [`ximagesrc`](https://gstreamer.freedesktop.org/documentation/ximagesrc/index.html) | `DISPLAY` environment | X.Org / X11 | [`Xlib`](https://github.com/python-xlib/python-xlib) w/ [`pynput`](https://github.com/moses-palmer/pynput) | Linux | Various | N/A |
 
-This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only adequate media codec supported in web browsers by specification.
+This table specifies the currently implemented audio encoders and their corresponding codecs. Opus is currently the only adequate fullband audio media codec supported in web browsers by specification.
 
 | Plugin | Codec | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|
@@ -278,7 +285,7 @@ This table specifies the currently supported audio interfaces and how each plugi
 
 | Plugin | Device Selector | Audio Interfaces | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` environment | PulseAudio | Linux | `libpulse` | N/A |
+| [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` environment | PulseAudio or PipeWire-Pulse | Linux | `libpulse` | N/A |
 
 This table specifies the currently supported transport protocol components.
 
@@ -374,6 +381,12 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 ## Troubleshooting
 
+### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
+
+First of all, use HTTPS or port forwarding to localhost. Some browsers do not support WebRTC or relevant features in HTTP outside localhost.
+
+Then, please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.2`.
+
 ### The HTML5 web interface is slow and laggy.
 
 **Usually, the issue arises from using a WiFi router with bufferbloat issues, especially if you observe stuttering. Try using the [Bufferbloat Test](https://www.waveform.com/tools/bufferbloat) to identify the issue first before moving on.** Using wired ethernet or a good 5GHz WiFi connection is important. Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any remote desktop application. Also note that a higher framerate will improve performance if you have the sufficient bandwidth. This is because one screen refresh from a 60 fps screen takes 16.67 ms at a time, while one screen refresh from a 15 fps screen inevitably takes 66.67 ms, and therefore inherently causes a visible lag.
@@ -389,10 +402,6 @@ This is a setting from the client operating system and will show the same behavi
 ### The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
 
 This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use. In order to use the web interface when this is not possible (or when you are using SSH or remote access), check `sudo systemctl status sddm` or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running `selkies-gstreamer`.
-
-### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
-
-Please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.2`.
 
 ### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 

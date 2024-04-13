@@ -372,14 +372,14 @@ signalling.onstatus = (message) => {
 signalling.onerror = (message) => { app.logEntries.push(applyTimestamp("[signalling] [ERROR] " + message)) };
 
 signalling.ondisconnect = () => {
-    var app_check = app.status == app_check;
+    var checkconnect = app.status == checkconnect;
     // if (app.status !== "connected") return;
     console.log("signalling disconnected");
     app.status = 'connecting';
     videoElement.style.cursor = "auto";
     webrtc.reset();
-    app.status = 'app_check';
-    if (!app_check) audio_signalling.disconnect();
+    app.status = 'checkconnect';
+    if (!checkconnect) audio_signalling.disconnect();
 }
 
 audio_signalling.onstatus = (message) => {
@@ -389,14 +389,14 @@ audio_signalling.onstatus = (message) => {
 audio_signalling.onerror = (message) => { app.logEntries.push(applyTimestamp("[audio signalling] [ERROR] " + message)) };
 
 audio_signalling.ondisconnect = () => {
-    var app_check = app.status == app_check;
+    var checkconnect = app.status == checkconnect;
     // if (app.status !== "connected") return;
     console.log("audio signalling disconnected");
     app.status = 'connecting';
     videoElement.style.cursor = "auto";
     audio_webrtc.reset();
-    app.status = 'app_check';
-    if (!app_check) signalling.disconnect();
+    app.status = 'checkconnect';
+    if (!checkconnect) signalling.disconnect();
 }
 
 // Send webrtc status and error messages to logs.
@@ -683,10 +683,10 @@ webrtc.onsystemaction = (action) => {
             app.scaleLocal = (action.split(",")[1].toLowerCase() === 'true');
         }
     } else if (action.startsWith("encoder")) {
-        if (action.split(",")[1].startsWith("x26") || action.split(",")[1].startsWith("vp")) {
-            app.encoderName = "software";
+        if (action.split(",")[1].startsWith("nv") || action.split(",")[1].startsWith("va")) {
+            app.encoderName = "hardware" + " (" + action.split(",")[1] + ")";
         } else {
-            app.encoderName = "hardware";
+            app.encoderName = "software" + " (" + action.split(",")[1] + ")";
         }
     } else {
         webrtc._setStatus('Unhandled system action: ' + action);
