@@ -358,7 +358,7 @@ def main():
     parser.add_argument('--turn_protocol',
                         default=os.environ.get(
                             'SELKIES_TURN_PROTOCOL', 'udp'),
-                        help='TURN protocol for the client to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network.')
+                        help='TURN protocol for the client to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network, "udp" is otherwise strongly recommended.')
     parser.add_argument('--turn_tls',
                         default=os.environ.get(
                             'SELKIES_TURN_TLS', 'false'),

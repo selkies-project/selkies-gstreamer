@@ -88,7 +88,7 @@ class GSTWebRTCApp:
         # Keyframe distance in seconds
         self.keyframe_dist = 3
         # Packet loss base percentage
-        self.packetloss_percent = 0
+        self.packetloss_percent = 5
         # Prevent bitrate from overshooting because of FEC
         self.fec_video_bitrate = int(self.video_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
         self.fec_audio_bitrate = int(self.audio_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
@@ -285,7 +285,6 @@ class GSTWebRTCApp:
             # when packets are lost, the decoder may never recover.
             # NVENC supports infinite GOP by setting this to -1.
             nvh264enc.set_property("gop-size", int(self.framerate * self.keyframe_dist))
-            nvh264enc.set_property("strict-gop", True)
 
             # Instructs encoder to handle Quality of Service (QOS) events from
             # the rest of the pipeline. Setting this to true increases
@@ -346,7 +345,6 @@ class GSTWebRTCApp:
                 nvh265enc.set_property("rc-mode", "cbr")
 
             nvh265enc.set_property("gop-size", int(self.framerate * self.keyframe_dist))
-            nvh265enc.set_property("strict-gop", True)
             nvh265enc.set_property("qos", True)
             nvh265enc.set_property("aud", True)
             nvh265enc.set_property("b-adapt", False)
