@@ -61,7 +61,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3, packetloss_percent=5):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, packetloss_percent=5.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -284,7 +284,7 @@ class GSTWebRTCApp:
             # A negative consequence when using infinite GOP size is that
             # when packets are lost, the decoder may never recover.
             # NVENC supports infinite GOP by setting this to -1.
-            nvh264enc.set_property("gop-size", int(self.framerate * self.keyframe_distance))
+            nvh264enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
 
             # Instructs encoder to handle Quality of Service (QOS) events from
             # the rest of the pipeline. Setting this to true increases
@@ -344,7 +344,7 @@ class GSTWebRTCApp:
             else:
                 nvh265enc.set_property("rc-mode", "cbr")
 
-            nvh265enc.set_property("gop-size", int(self.framerate * self.keyframe_distance))
+            nvh265enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             nvh265enc.set_property("qos", True)
             nvh265enc.set_property("aud", True)
             nvh265enc.set_property("b-adapt", False)
@@ -382,7 +382,7 @@ class GSTWebRTCApp:
             vah264enc.set_property("aud", True)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("dct8x8", False)
-            vah264enc.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
+            vah264enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
             vah264enc.set_property("qos", True)
@@ -405,7 +405,7 @@ class GSTWebRTCApp:
                 self.encoder = "vah265lpenc"
             vah265enc.set_property("aud", True)
             vah265enc.set_property("b-frames", 0)
-            vah265enc.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
+            vah265enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vah265enc.set_property("rate-control", "cbr")
             vah265enc.set_property("target-usage", 6)
             vah265enc.set_property("qos", True)
@@ -426,7 +426,7 @@ class GSTWebRTCApp:
             if vavp9enc is None:
                 vavp9enc = Gst.ElementFactory.make("vavp9lpenc", "vaenc")
                 self.encoder = "vavp9lpenc"
-            vavp9enc.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
+            vavp9enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vavp9enc.set_property("rate-control", "cbr")
             vavp9enc.set_property("target-usage", 6)
             vavp9enc.set_property("qos", True)
@@ -447,7 +447,7 @@ class GSTWebRTCApp:
             if vaav1enc is None:
                 vaav1enc = Gst.ElementFactory.make("vaav1lpenc", "vaenc")
                 self.encoder = "vaav1lpenc"
-            vaav1enc.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
+            vaav1enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vaav1enc.set_property("rate-control", "cbr")
             vaav1enc.set_property("target-usage", 6)
             vaav1enc.set_property("qos", True)
@@ -470,7 +470,7 @@ class GSTWebRTCApp:
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("insert-vui", True)
-            x264enc.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
+            x264enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("vbv-buf-capacity", 120)
             x264enc.set_property("sliced-threads", True)
@@ -498,7 +498,7 @@ class GSTWebRTCApp:
             openh264enc.set_property("scene-change-detection", False)
             openh264enc.set_property("usage-type", "screen")
             openh264enc.set_property("complexity", "low")
-            openh264enc.set_property("gop-size", int(self.framerate * self.keyframe_distance))
+            openh264enc.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             # TODO: Chromium cannot decode more than 4 slices, fix when it changes
             openh264enc.set_property("multi-thread", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
             openh264enc.set_property("slice-mode", "n-slices")
@@ -518,7 +518,7 @@ class GSTWebRTCApp:
             # encoder
             x265enc = Gst.ElementFactory.make("x265enc", "x265enc")
             x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:aud:repeat-headers:pmode:wpp")
-            x265enc.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
+            x265enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             x265enc.set_property("qos", True)
             x265enc.set_property("speed-preset", "ultrafast")
             x265enc.set_property("tune", "zerolatency")
@@ -551,7 +551,7 @@ class GSTWebRTCApp:
             vpenc.set_property("end-usage", "cbr")
             vpenc.set_property("error-resilient", "default")
             vpenc.set_property("keyframe-mode", "disabled")
-            vpenc.set_property("keyframe-max-dist", int(self.framerate * self.keyframe_distance))
+            vpenc.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vpenc.set_property("lag-in-frames", 0)
             vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
@@ -566,7 +566,7 @@ class GSTWebRTCApp:
 
             rav1enc = Gst.ElementFactory.make("rav1enc", "rav1enc")
             rav1enc.set_property("low-latency", True)
-            rav1enc.set_property("max-key-frame-interval", int(self.framerate * self.keyframe_distance))
+            rav1enc.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             rav1enc.set_property("rdo-lookahead-frames", 0)
             rav1enc.set_property("speed-preset", 10)
             rav1enc.set_property("tiles", 16)
@@ -954,29 +954,30 @@ class GSTWebRTCApp:
         logger.info("framerate set to: %d" % framerate)
 
         # ADD_ENCODER: GOP/IDR Keyframe distance to keep the stream from freezing (in keyframe_dist seconds)
-        if self.encoder.startswith("nv"):
-            element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
-            element.set_property("gop-size", int(self.framerate * self.keyframe_distance))
-        elif self.encoder.startswith("va"):
-            element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
-            element.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
-        elif self.encoder in ["x264enc"]:
-            element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
-            element.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
-        elif self.encoder in ["openh264enc"]:
-            element = Gst.Bin.get_by_name(self.pipeline, "openh264enc")
-            element.set_property("gop-size", int(self.framerate * self.keyframe_distance))
-        elif self.encoder in ["x265enc"]:
-            element = Gst.Bin.get_by_name(self.pipeline, "x265enc")
-            element.set_property("key-int-max", int(self.framerate * self.keyframe_distance))
-        elif self.encoder.startswith("vp"):
-            element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
-            element.set_property("keyframe-max-dist", int(self.framerate * self.keyframe_distance))
-        elif self.encoder in ["rav1enc"]:
-            element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
-            element.set_property("max-key-frame-interval", int(self.framerate * self.keyframe_distance))
-        else:
-            logger.warning("setting keyframe interval (GOP size) not supported with encoder: %s" % self.encoder)
+        if self.keyframe_distance != -1.0:
+            if self.encoder.startswith("nv"):
+                element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
+                element.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            elif self.encoder.startswith("va"):
+                element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
+                element.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            elif self.encoder in ["x264enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
+                element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            elif self.encoder in ["openh264enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "openh264enc")
+                element.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            elif self.encoder in ["x265enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "x265enc")
+                element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            elif self.encoder.startswith("vp"):
+                element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
+                element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            elif self.encoder in ["rav1enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
+                element.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            else:
+                logger.warning("setting keyframe interval (GOP size) not supported with encoder: %s" % self.encoder)
 
     def set_video_bitrate(self, bitrate):
         """Set video encoder target bitrate in bps

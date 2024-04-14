@@ -570,8 +570,8 @@ def main():
     enable_cursors = args.enable_cursors.lower() == "true"
     cursor_debug = args.debug_cursors.lower() == "true"
     cursor_size = int(args.cursor_size)
-    keyframe_distance = int(args.keyframe_distance)
-    packetloss_percent = int(args.packetloss_percent)
+    keyframe_distance = float(args.keyframe_distance)
+    packetloss_percent = float(args.packetloss_percent)
 
     # Create instance of app
     app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
