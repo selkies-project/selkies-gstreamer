@@ -381,7 +381,6 @@ class GSTWebRTCApp:
                 self.encoder = "vah264lpenc"
             vah264enc.set_property("aud", True)
             vah264enc.set_property("b-frames", 0)
-            vah264enc.set_property("dct8x8", False)
             vah264enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
