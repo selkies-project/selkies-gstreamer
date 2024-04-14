@@ -423,6 +423,12 @@ def main():
     parser.add_argument('--cursor_size',
                         default=os.environ.get('SELKIES_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '-1')),
                         help='Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
+    parser.add_argument('--enable_webrtc_csv',
+                        default=os.environ.get('SELKIES_ENABLE_WEBRTC_CSV, 'false'),
+                        help='Enable WebRTC Statistics CSV dumping to the directory --webrtc_statistics_dir with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv')
+    parser.add_argument('--webrtc_csv_dir',
+                        default=os.environ.get('SELKIES_WEBRTC_CSV_DIR, '/tmp'),
+                        help='Directory to save WebRTC Statistics CSV from client with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv')
     parser.add_argument('--enable_metrics_http',
                         default=os.environ.get('SELKIES_ENABLE_METRICS_HTTP', 'false'),
                         help='Enable the Prometheus HTTP metrics port')
@@ -471,7 +477,8 @@ def main():
 
     # Initialize metrics server.
     using_metrics_http = args.enable_metrics_http.lower() == 'true'
-    metrics = Metrics(int(args.metrics_http_port))
+    using_webrtc_csv = args.enable_webrtc_csv.lower() == 'true'
+    metrics = Metrics(int(args.metrics_http_port), using_webrtc_csv)
 
     # Initialize the signalling client
     using_https = args.enable_https.lower() == 'true'
@@ -727,6 +734,9 @@ def main():
     # Send client latency to metrics
     webrtc_input.on_client_latency = lambda latency_ms: metrics.set_latency(latency_ms)
 
+    # Send WebRTC stats to metrics
+    webrtc_input.on_client_webrtc_stats = lambda webrtc_stat_type, webrtc_stats: metrics.set_webrtc_stats(webrtc_stat_type, webrtc_stats)
+
     # Initialize GPU monitor
     gpu_mon = GPUMonitor(enabled=args.encoder.startswith("nv"))
 
@@ -828,7 +838,8 @@ def main():
         loop.run_in_executor(None, lambda: system_mon.start())
 
         while True:
-            webrtc_input.initialize_webrtc_stats_files()
+            if using_webrtc_csv:
+                metrics.initialize_webrtc_csv_file(args.webrtc_csv_dir)
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
 
