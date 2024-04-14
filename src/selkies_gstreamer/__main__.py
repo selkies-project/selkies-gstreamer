@@ -423,11 +423,11 @@ def main():
     parser.add_argument('--cursor_size',
                         default=os.environ.get('SELKIES_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '-1')),
                         help='Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
-    parser.add_argument('--enable_webrtc_csv',
-                        default=os.environ.get('SELKIES_ENABLE_WEBRTC_CSV, 'false'),
+    parser.add_argument('--enable_webrtc_statistics',
+                        default=os.environ.get('SELKIES_ENABLE_WEBRTC_STATISTICS', 'false'),
                         help='Enable WebRTC Statistics CSV dumping to the directory --webrtc_statistics_dir with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv')
-    parser.add_argument('--webrtc_csv_dir',
-                        default=os.environ.get('SELKIES_WEBRTC_CSV_DIR, '/tmp'),
+    parser.add_argument('--webrtc_statistics_dir',
+                        default=os.environ.get('SELKIES_WEBRTC_STATISTICS_DIR', '/tmp'),
                         help='Directory to save WebRTC Statistics CSV from client with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv')
     parser.add_argument('--enable_metrics_http',
                         default=os.environ.get('SELKIES_ENABLE_METRICS_HTTP', 'false'),
@@ -477,7 +477,7 @@ def main():
 
     # Initialize metrics server.
     using_metrics_http = args.enable_metrics_http.lower() == 'true'
-    using_webrtc_csv = args.enable_webrtc_csv.lower() == 'true'
+    using_webrtc_csv = args.enable_webrtc_statistics.lower() == 'true'
     metrics = Metrics(int(args.metrics_http_port), using_webrtc_csv)
 
     # Initialize the signalling client
@@ -839,7 +839,7 @@ def main():
 
         while True:
             if using_webrtc_csv:
-                metrics.initialize_webrtc_csv_file(args.webrtc_csv_dir)
+                metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
 
