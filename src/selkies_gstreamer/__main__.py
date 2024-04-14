@@ -400,7 +400,7 @@ def main():
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '3'),
                         help='Distance between video GOP frames/Keyframes in seconds, use "-1" for infinite distance')
     parser.add_argument('--packetloss_percent',
-                        default=os.environ.get('SELKIES_PACKETLOSS_PERCENT, '5'),
+                        default=os.environ.get('SELKIES_PACKETLOSS_PERCENT', '5'),
                         help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video and audio, use "0" to disable FEC')
     parser.add_argument('--audio_bitrate',
                         default=os.environ.get('SELKIES_AUDIO_BITRATE', '48000'),
