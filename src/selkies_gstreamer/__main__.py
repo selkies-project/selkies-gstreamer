@@ -390,6 +390,9 @@ def main():
     parser.add_argument('--encoder',
                         default=os.environ.get('SELKIES_ENCODER', 'x264enc'),
                         help='GStreamer encoder plugin to use')
+    parser.add_argument('--gpu_id',
+                        default=os.environ.get('SELKIES_GPU_ID', '0'),
+                        help='GPU ID for GStreamer hardware encoders, will use enumerated GPU ID (0, 1, ..., n) for NVIDIA and /dev/dri/renderD{128 + n} for VA-API')
     parser.add_argument('--framerate',
                         default=os.environ.get('SELKIES_FRAMERATE', '30'),
                         help='Framerate of the streaming pipeline')
@@ -572,6 +575,7 @@ def main():
     enable_resize = args.enable_resize.lower() == "true"
     audio_channels = int(args.audio_channels)
     curr_fps = int(args.framerate)
+    gpu_id = int(args.gpu_id)
     curr_video_bitrate = int(args.video_bitrate)
     curr_audio_bitrate = int(args.audio_bitrate)
     enable_cursors = args.enable_cursors.lower() == "true"
@@ -581,8 +585,8 @@ def main():
     packetloss_percent = float(args.packetloss_percent)
 
     # Create instance of app
-    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
-    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
+    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
+    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
 
     # [END main_setup]
 
@@ -831,7 +835,7 @@ def main():
         loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
         loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
-        loop.run_in_executor(None, lambda: gpu_mon.start())
+        loop.run_in_executor(None, lambda: gpu_mon.start(gpu_id))
         loop.run_in_executor(None, lambda: hmac_turn_mon.start())
         loop.run_in_executor(None, lambda: turn_rest_mon.start())
         loop.run_in_executor(None, lambda: rtc_file_mon.start())

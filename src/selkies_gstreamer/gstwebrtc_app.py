@@ -61,7 +61,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, packetloss_percent=5.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, packetloss_percent=5.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -80,6 +80,7 @@ class GSTWebRTCApp:
         self.webrtcbin = None
         self.data_channel = None
         self.encoder = encoder
+        self.gpu_id = gpu_id
 
         self.framerate = framerate
         self.video_bitrate = video_bitrate
@@ -238,11 +239,13 @@ class GSTWebRTCApp:
             # Upload buffers from ximagesrc directly to CUDA memory where
             # the colorspace conversion will be performed.
             cudaupload = Gst.ElementFactory.make("cudaupload")
+            cudaupload.set_property("cuda-device-id", self.gpu_id)
 
             # Convert the colorspace from BGRx to NVENC compatible format.
             # This is performed with CUDA which reduces the overall CPU load
             # compared to using the software videoconvert element.
             cudaconvert = Gst.ElementFactory.make("cudaconvert")
+            cudaconvert.set_property("cuda-device-id", self.gpu_id)
 
             # Convert ximagesrc BGRx format to NV12 using cudaconvert.
             # This is a more compatible format for client-side software decoders.
@@ -254,11 +257,18 @@ class GSTWebRTCApp:
             # Create the nvh264enc element named nvenc.
             # This is the heart of the video pipeline that converts the raw
             # frame buffers to an H.264 encoded byte-stream on the GPU.
-            nvh264enc = Gst.ElementFactory.make("nvcudah264enc", "nvenc")
-            self.encoder = "nvcudah264enc"
-            if nvh264enc is None:
-                nvh264enc = Gst.ElementFactory.make("nvh264enc", "nvenc")
-                self.encoder = "nvh264enc"
+            if self.gpu_id > 0:
+                nvh264enc = Gst.ElementFactory.make("nvcudah264device{}enc".format(self.gpu_id), "nvenc")
+                self.encoder = "nvcudah264enc"
+                if nvh264enc is None:
+                    nvh264enc = Gst.ElementFactory.make("nvh264device{}enc".format(self.gpu_id), "nvenc")
+                    self.encoder = "nvh264enc"
+            else:
+                nvh264enc = Gst.ElementFactory.make("nvcudah264enc", "nvenc")
+                self.encoder = "nvcudah264enc"
+                if nvh264enc is None:
+                    nvh264enc = Gst.ElementFactory.make("nvh264enc", "nvenc")
+                    self.encoder = "nvh264enc"
 
             # The initial bitrate of the encoder in bits per second.
             # Setting this to 0 will use the bitrate from the NVENC preset.
@@ -325,17 +335,26 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["nvcudah265enc", "nvh265enc"]:
             cudaupload = Gst.ElementFactory.make("cudaupload")
+            cudaupload.set_property("cuda-device-id", self.gpu_id)
             cudaconvert = Gst.ElementFactory.make("cudaconvert")
+            cudaconvert.set_property("cuda-device-id", self.gpu_id)
             cudaconvert_caps = Gst.caps_from_string("video/x-raw(memory:CUDAMemory)")
             cudaconvert_caps.set_value("format", "NV12")
             cudaconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
             cudaconvert_capsfilter.set_property("caps", cudaconvert_caps)
 
-            nvh265enc = Gst.ElementFactory.make("nvcudah265enc", "nvenc")
-            self.encoder = "nvcudah265enc"
-            if nvh265enc is None:
-                nvh265enc = Gst.ElementFactory.make("nvh265enc", "nvenc")
-                self.encoder = "nvh265enc"
+            if self.gpu_id > 0:
+                nvh265enc = Gst.ElementFactory.make("nvcudah265device{}enc".format(self.gpu_id), "nvenc")
+                self.encoder = "nvcudah265enc"
+                if nvh265enc is None:
+                    nvh265enc = Gst.ElementFactory.make("nvh265device{}enc".format(self.gpu_id), "nvenc")
+                    self.encoder = "nvh265enc"
+            else:
+                nvh265enc = Gst.ElementFactory.make("nvcudah265enc", "nvenc")
+                self.encoder = "nvcudah265enc"
+                if nvh265enc is None:
+                    nvh265enc = Gst.ElementFactory.make("nvh265enc", "nvenc")
+                    self.encoder = "nvh265enc"
 
             nvh265enc.set_property("bitrate", self.fec_video_bitrate)
 
@@ -366,7 +385,10 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vah264enc", "vah264lpenc"]:
             # colorspace conversion
-            vapostproc = Gst.ElementFactory.make("vapostproc")
+            if self.gpu_id > 0:
+                vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
+            else:
+                vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
@@ -374,11 +396,18 @@ class GSTWebRTCApp:
             vapostproc_capsfilter.set_property("caps", vapostproc_caps)
 
             # encoder
-            vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
-            self.encoder = "vah264enc"
-            if vah264enc is None:
-                vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
-                self.encoder = "vah264lpenc"
+            if self.gpu_id > 0:
+                vah264enc = Gst.ElementFactory.make("varenderD{}h264enc".format(128 + self.gpu_id), "vaenc")
+                self.encoder = "vah264enc"
+                if vah264enc is None:
+                    vah264enc = Gst.ElementFactory.make("varenderD{}h264lpenc".format(128 + self.gpu_id), "vaenc")
+                    self.encoder = "vah264lpenc"
+            else:
+                vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
+                self.encoder = "vah264enc"
+                if vah264enc is None:
+                    vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
+                    self.encoder = "vah264lpenc"
             vah264enc.set_property("aud", True)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
@@ -389,7 +418,10 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vah265enc", "vah265lpenc"]:
             # colorspace conversion
-            vapostproc = Gst.ElementFactory.make("vapostproc")
+            if self.gpu_id > 0:
+                vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
+            else:
+                vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
@@ -397,11 +429,18 @@ class GSTWebRTCApp:
             vapostproc_capsfilter.set_property("caps", vapostproc_caps)
 
             # encoder
-            vah265enc = Gst.ElementFactory.make("vah265enc", "vaenc")
-            self.encoder = "vah265enc"
-            if vah265enc is None:
-                vah265enc = Gst.ElementFactory.make("vah265lpenc", "vaenc")
-                self.encoder = "vah265lpenc"
+            if self.gpu_id > 0:
+                vah265enc = Gst.ElementFactory.make("varenderD{}h265enc".format(128 + self.gpu_id), "vaenc")
+                self.encoder = "vah265enc"
+                if vah265enc is None:
+                    vah265enc = Gst.ElementFactory.make("varenderD{}h265lpenc".format(128 + self.gpu_id), "vaenc")
+                    self.encoder = "vah265lpenc"
+            else:
+                vah265enc = Gst.ElementFactory.make("vah265enc", "vaenc")
+                self.encoder = "vah265enc"
+                if vah265enc is None:
+                    vah265enc = Gst.ElementFactory.make("vah265lpenc", "vaenc")
+                    self.encoder = "vah265lpenc"
             vah265enc.set_property("aud", True)
             vah265enc.set_property("b-frames", 0)
             vah265enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
@@ -412,7 +451,10 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vavp9enc", "vavp9lpenc"]:
             # colorspace conversion
-            vapostproc = Gst.ElementFactory.make("vapostproc")
+            if self.gpu_id > 0:
+                vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
+            else:
+                vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
@@ -420,11 +462,18 @@ class GSTWebRTCApp:
             vapostproc_capsfilter.set_property("caps", vapostproc_caps)
 
             # encoder
-            vavp9enc = Gst.ElementFactory.make("vavp9enc", "vaenc")
-            self.encoder = "vavp9enc"
-            if vavp9enc is None:
-                vavp9enc = Gst.ElementFactory.make("vavp9lpenc", "vaenc")
-                self.encoder = "vavp9lpenc"
+            if self.gpu_id > 0:
+                vavp9enc = Gst.ElementFactory.make("varenderD{}vp9enc".format(128 + self.gpu_id), "vaenc")
+                self.encoder = "vavp9enc"
+                if vavp9enc is None:
+                    vavp9enc = Gst.ElementFactory.make("varenderD{}vp9lpenc".format(128 + self.gpu_id), "vaenc")
+                    self.encoder = "vavp9lpenc"
+            else:
+                vavp9enc = Gst.ElementFactory.make("vavp9enc", "vaenc")
+                self.encoder = "vavp9enc"
+                if vavp9enc is None:
+                    vavp9enc = Gst.ElementFactory.make("vavp9lpenc", "vaenc")
+                    self.encoder = "vavp9lpenc"
             vavp9enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vavp9enc.set_property("rate-control", "cbr")
             vavp9enc.set_property("target-usage", 6)
@@ -433,7 +482,10 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vaav1enc", "vaav1lpenc"]:
             # colorspace conversion
-            vapostproc = Gst.ElementFactory.make("vapostproc")
+            if self.gpu_id > 0:
+                vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
+            else:
+                vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
@@ -441,11 +493,18 @@ class GSTWebRTCApp:
             vapostproc_capsfilter.set_property("caps", vapostproc_caps)
 
             # encoder
-            vaav1enc = Gst.ElementFactory.make("vaav1enc", "vaenc")
-            self.encoder = "vaav1enc"
-            if vaav1enc is None:
-                vaav1enc = Gst.ElementFactory.make("vaav1lpenc", "vaenc")
-                self.encoder = "vaav1lpenc"
+            if self.gpu_id > 0:
+                vaav1enc = Gst.ElementFactory.make("varenderD{}av1enc".format(128 + self.gpu_id), "vaenc")
+                self.encoder = "vaav1enc"
+                if vaav1enc is None:
+                    vaav1enc = Gst.ElementFactory.make("varenderD{}av1lpenc".format(128 + self.gpu_id), "vaenc")
+                    self.encoder = "vaav1lpenc"
+            else:
+                vaav1enc = Gst.ElementFactory.make("vaav1enc", "vaenc")
+                self.encoder = "vaav1enc"
+                if vaav1enc is None:
+                    vaav1enc = Gst.ElementFactory.make("vaav1lpenc", "vaenc")
+                    self.encoder = "vaav1lpenc"
             vaav1enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vaav1enc.set_property("rate-control", "cbr")
             vaav1enc.set_property("target-usage", 6)

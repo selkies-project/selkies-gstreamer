@@ -36,11 +36,11 @@ class GPUMonitor:
         self.on_stats = lambda load, memoryTotal, memoryUsed: logger.warn(
             "unhandled on_stats")
 
-    def start(self):
+    def start(self, gpu_id=0):
         self.running = True
         while self.running:
             if self.enabled and int(time.time()) % self.period == 0:
-                gpu = GPUtil.getGPUs()[0]
+                gpu = GPUtil.getGPUs()[gpu_id]
                 self.on_stats(gpu.load, gpu.memoryTotal, gpu.memoryUsed)
             time.sleep(0.5)
         logger.info("GPU monitor stopped")
