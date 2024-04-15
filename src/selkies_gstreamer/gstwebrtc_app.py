@@ -782,6 +782,7 @@ class GSTWebRTCApp:
         opusenc.set_property("audio-type", "restricted-lowdelay")
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
+        opusenc.set_property("dtx", True)
         # Browser-side SDP munging for minptime=3 in Chrome is required for effect
         opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("inband-fec", self.packetloss_percent > 0)
@@ -797,25 +798,26 @@ class GSTWebRTCApp:
         # RTP packets that are sent over the connection transport.
         rtpopuspay = Gst.ElementFactory.make("rtpopuspay")
         rtpopuspay.set_property("mtu", 1200)
+        rtpopuspay.set_property("dtx", True)
 
         # Insert a queue for the RTP packets.
-        rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
+        # rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
 
         # Make the queue leaky in the downstream direction, drop packets if the queue is behind.
-        rtpopuspay_queue.set_property("leaky", "downstream")
+        # rtpopuspay_queue.set_property("leaky", "downstream")
 
         # Discard all data in the queue when an EOS event is received
-        rtpopuspay_queue.set_property("flush-on-eos", True)
+        # rtpopuspay_queue.set_property("flush-on-eos", True)
 
         # Set the queue max time to 16ms (16000000ns)
         # If the pipeline is behind by more than 1s, the packets
         # will be dropped.
         # This helps buffer out latency in the audio source.
-        rtpopuspay_queue.set_property("max-size-time", 16000000)
+        # rtpopuspay_queue.set_property("max-size-time", 16000000)
 
         # Set the other queue sizes to 0 to make it only time-based.
-        rtpopuspay_queue.set_property("max-size-buffers", 0)
-        rtpopuspay_queue.set_property("max-size-bytes", 0)
+        # rtpopuspay_queue.set_property("max-size-buffers", 0)
+        # rtpopuspay_queue.set_property("max-size-bytes", 0)
 
         # Set the capabilities for the rtpopuspay element.
         rtpopuspay_caps = Gst.caps_from_string("application/x-rtp")
@@ -838,7 +840,7 @@ class GSTWebRTCApp:
         rtpopuspay_capsfilter.set_property("caps", rtpopuspay_caps)
 
         # Add all elements to the pipeline.
-        pipeline_elements = [pulsesrc, pulsesrc_capsfilter, opusenc, rtpopuspay, rtpopuspay_queue, rtpopuspay_capsfilter]
+        pipeline_elements = [pulsesrc, pulsesrc_capsfilter, opusenc, rtpopuspay, rtpopuspay_capsfilter] # rtpopuspay_queue
 
         for pipeline_element in pipeline_elements:
             self.pipeline.add(pipeline_element)
