@@ -173,14 +173,14 @@ class Metrics:
                 if len(headers) < len(prev_headers):
                     for i in prev_headers:
                         if i not in headers:
-                            values.insert(prev_headers.index(i), -1)
+                            values.insert(prev_headers.index(i), "NaN")
                 else:
                     i, j, k = 0, 0, 0
                     while i < len(headers):
                         if headers[i] != prev_headers[j]:
-                            # If there is a mismatch, update all previous rows with a placeholder to represent an empty value, using `-1` here
+                            # If there is a mismatch, update all previous rows with a placeholder to represent an empty value, using `NaN` here
                             for row in prev_values:
-                                row.insert(i, -1)
+                                row.insert(i, "NaN")
                             i += 1
                             k += 1  # track number of values added
                         else:
@@ -191,7 +191,7 @@ class Metrics:
                     # When new fields are at the end
                     while j < i:
                         for row in prev_values:
-                            row.insert(j, -1)
+                            row.insert(j, "NaN")
                         j += 1
 
                 # Validation check to confirm modified rows are of same length
