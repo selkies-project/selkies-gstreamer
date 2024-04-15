@@ -27,8 +27,11 @@ import json
 import logging
 import random
 import time
+import os
+from collections import OrderedDict
 
 logger = logging.getLogger("metrics")
+logger.setLevel(logging.INFO)
 
 FPS_HIST_BUCKETS = (0, 20, 40, 60)
 
@@ -62,14 +65,40 @@ class Metrics:
 
     def set_webrtc_stats(self, webrtc_stat_type, webrtc_stats):
         webrtc_stats_obj = json.loads(webrtc_stats)
+        sanitized_stats = self.sanitize_data(webrtc_stats_obj)
         if self.using_webrtc_csv:
             if webrtc_stat_type == "_stats_audio":
-                self.write_webrtc_stats_csv(webrtc_stats_obj, self.stats_audio_file_path)
+                self.write_webrtc_stats_csv(sanitized_stats, self.stats_audio_file_path)
             else:
-                self.write_webrtc_stats_csv(webrtc_stats_obj, self.stats_video_file_path)
-        self.webrtc_statistics.info(webrtc_stats_obj)
+                self.write_webrtc_stats_csv(sanitized_stats, self.stats_video_file_path)
+        
+        self.webrtc_statistics.info(sanitized_stats)
 
-    def write_webrtc_stats_csv(self, obj_list, file_path):
+    def sanitize_data(self, obj_list):
+        """A helper function to process data to a structure
+           For example: reportName.fieldName:value
+        """
+        obj_type = []
+        sanitized_stats = OrderedDict()
+        for i in range(len(obj_list)):
+            curr_key = obj_list[i].get('type')
+            if  curr_key in obj_type:
+                # Append id at suffix to eliminate duplicate types
+                curr_key = curr_key + str("-") + obj_list[i].get('id')
+                obj_type.append(curr_key)
+            else:
+                obj_type.append(curr_key)
+            
+            for key, val in obj_list[i].items():
+                unique_type = curr_key + str(".")  + key
+                if not isinstance(val, str):
+                    sanitized_stats[unique_type] =  str(val)
+                else:
+                    sanitized_stats[unique_type] = val
+
+        return sanitized_stats
+        
+    def write_webrtc_stats_csv(self, obj, file_path):
         """Writes the WebRTC statistics to a CSV file.
 
         Arguments:
@@ -82,13 +111,17 @@ class Metrics:
             with open(file_path, 'a+') as stats_file:
                 csv_writer = csv.writer(stats_file, quotechar='"')
 
-                # Prepare the data
+                # Prepare the data  
                 headers = ["timestamp"]
-                for obj in obj_list:
-                    headers.extend(list(obj.keys()))
+                headers += obj.keys()
+
+                # Upon reconnections the client could send a redundant objs just discard them
+                if len(headers) < 15: 
+                    return
+                
                 values = [timestamp]
-                for obj in obj_list:
-                    values.extend(['"{}"'.format(val) if isinstance(val, str) and ';' in val else val for val in obj.values()])
+                for val in obj.values():
+                    values.extend(['"{}"'.format(val) if isinstance(val, str) and ';' in val else val])
 
                 if 'audio' in file_path:
                     # Audio stats
@@ -100,8 +133,7 @@ class Metrics:
                         csv_writer.writerow(values)
                     else:
                         # We got new fields so update the data
-                        self.update_webrtc_stats_csv(file_path, headers, values)
-                        self.prev_stats_audio_header_len = len(headers)
+                        self.prev_stats_audio_header_len = self.update_webrtc_stats_csv(file_path, headers, values)
                 else:
                     # Video stats
                     if self.prev_stats_video_header_len == None:
@@ -112,8 +144,7 @@ class Metrics:
                         csv_writer.writerow(values)
                     else:
                         # We got new fields so update the data
-                        self.update_webrtc_stats_csv(file_path, headers, values)
-                        self.prev_stats_video_header_len = len(headers)
+                        self.prev_stats_video_header_len = self.update_webrtc_stats_csv(file_path, headers, values)
 
         except Exception as e:
             logger.error("writing WebRTC Statistics to CSV file: " + str(e))
@@ -138,22 +169,30 @@ class Metrics:
                     else:
                         prev_values.append(row)
 
-                i, j = 0, 0
-                while i < len(headers):
-                    if headers[i] != prev_headers[j]:
-                        # If there is a mismatch update all previous rows with a placeholder to represent an empty value, using `-1` here
+                # Sometimes few columns might not exist in new data
+                if len(headers) < len(prev_headers):
+                    for i in prev_headers:
+                        if i not in headers:
+                            values.insert(prev_headers.index(i), -1)
+                else:
+                    i, j, k = 0, 0, 0
+                    while i < len(headers):
+                        if headers[i] != prev_headers[j]:
+                            # If there is a mismatch update all previous rows with a placeholder to represent an empty value, using `-1` here
+                            for row in prev_values:
+                                row.insert(i, -1)
+                            i += 1
+                            k += 1  # track no of values added
+                        else:
+                            i += 1
+                            j += 1
+
+                    j += k
+                    # When new fields are at the end
+                    while j < i:
                         for row in prev_values:
-                            row.insert(i, -1)
-                        i += 1
-                    else:
-                        i += 1
+                            row.insert(j, -1)
                         j += 1
-                
-                # When new files are at the end
-                while j < i - 1:
-                    for row in prev_values:
-                        row.insert(j, -1)
-                    j += 1
 
                 # Validation check to confirm modified rows are of same length
                 if len(prev_values[0]) != len(values):
@@ -169,11 +208,15 @@ class Metrics:
             with open(file_path, "a") as stats_file:
                 csv_writer = csv.writer(stats_file)
 
-                csv_writer.writerow(headers)
+                if len(headers) > len(prev_headers):
+                    csv_writer.writerow(headers)
+                else:
+                    csv_writer.writerow(prev_headers)
                 csv_writer.writerows(prev_values)
                 csv_writer.writerow(values)
 
-                logger.info("WebRTC Statistics file {} created with updated data".format(stats_file))
+                logger.debug("WebRTC Statistics file {} created with updated data".format(file_path))
+            return len(headers) if len(headers) > len(prev_headers) else len(prev_headers)
         except Exception as e:
             logger.error("writing WebRTC Statistics to CSV file: " + str(e))
 

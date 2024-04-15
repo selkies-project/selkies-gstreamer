@@ -138,7 +138,7 @@ class WebRTCInput:
             'unhandled on_ping_response')
         self.on_cursor_change = lambda msg: logger.warn(
             'unhandled on_cursor_change')
-        self.on_webrtc_stats = lambda msg: logger.warn(
+        self.on_client_webrtc_stats = lambda type, stats: logger.warn(
             'unhandled on_webrtc_stats')
 
     def __keyboard_connect(self):
@@ -724,7 +724,7 @@ class WebRTCInput:
         elif toks[0] == "_stats_video" or toks[0] == "_stats_audio":
             # WebRTC Statistics API data from client 
             try:
-                self.on_webrtc_stats(toks[0], ",".join(toks[1:]))
+                self.on_client_webrtc_stats(toks[0], ",".join(toks[1:]))
             except:
                 logger.error("failed to parse WebRTC Statistics JSON object")
         else:
