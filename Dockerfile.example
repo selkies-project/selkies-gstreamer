@@ -89,15 +89,63 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libwebrtc-audio-processing1 \
         x264 \
         x265 \
-        # AMD/Intel graphics driver dependencies
+        # Graphics driver dependencies
         va-driver-all \
         i965-va-driver-shaders \
         intel-media-va-driver-non-free \
         libva2 \
         vainfo \
+        mesa-vulkan-drivers \
+        vulkan-tools \
         nvtop && \
-        # NVIDIA OpenCL ICD
-        mkdir -pm755 /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf && \
+    # Configure OpenCL manually
+    mkdir -pm755 /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd && \
+    # Configure Vulkan manually
+    VULKAN_API_VERSION=$(dpkg -s libvulkan1 | grep -oP 'Version: [0-9|\.]+' | grep -oP '[0-9]+(\.[0-9]+)(\.[0-9]+)') && \
+    mkdir -pm755 /etc/vulkan/icd.d/ && echo "{\n\
+    \"file_format_version\" : \"1.0.0\",\n\
+    \"ICD\": {\n\
+        \"library_path\": \"libGLX_nvidia.so.0\",\n\
+        \"api_version\" : \"${VULKAN_API_VERSION}\"\n\
+    }\n\
+}" > /etc/vulkan/icd.d/nvidia_icd.json && \
+    # Configure EGL manually
+    mkdir -pm755 /usr/share/glvnd/egl_vendor.d/ && echo "{\n\
+    \"file_format_version\" : \"1.0.0\",\n\
+    \"ICD\": {\n\
+        \"library_path\": \"libEGL_nvidia.so.0\"\n\
+    }\n\
+}" > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+# Expose NVIDIA libraries and paths
+ENV PATH /usr/local/nvidia/bin${PATH:+:${PATH}}
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+# Make all NVIDIA GPUs visible by default
+ENV NVIDIA_VISIBLE_DEVICES all
+# All NVIDIA driver capabilities should preferably be used, check `NVIDIA_DRIVER_CAPABILITIES` inside the container if things do not work
+ENV NVIDIA_DRIVER_CAPABILITIES all
+# Disable VSYNC for NVIDIA GPUs
+ENV __GL_SYNC_TO_VBLANK 0
+
+# Install VirtualGL and make libraries available for preload
+ENV VGL_DISPLAY egl
+RUN VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/VirtualGL/virtualgl/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+    dpkg --add-architecture i386 && \
+    curl -fsSL -O "https://github.com/VirtualGL/virtualgl/releases/download/${VIRTUALGL_VERSION}/virtualgl_${VIRTUALGL_VERSION}_amd64.deb" && \
+    curl -fsSL -O "https://github.com/VirtualGL/virtualgl/releases/download/${VIRTUALGL_VERSION}/virtualgl32_${VIRTUALGL_VERSION}_amd64.deb" && \
+    apt-get update && apt-get install -y --no-install-recommends ./virtualgl_${VIRTUALGL_VERSION}_amd64.deb ./virtualgl32_${VIRTUALGL_VERSION}_amd64.deb && \
+    rm -f "virtualgl_${VIRTUALGL_VERSION}_amd64.deb" "virtualgl32_${VIRTUALGL_VERSION}_amd64.deb" && \
+    chmod u+s /usr/lib/libvglfaker.so /usr/lib/libvglfaker-nodl.so /usr/lib/libvglfaker-opencl.so /usr/lib/libdlfaker.so /usr/lib/libgefaker.so && \
+    chmod u+s /usr/lib32/libvglfaker.so /usr/lib32/libvglfaker-nodl.so /usr/lib32/libvglfaker-opencl.so /usr/lib32/libdlfaker.so /usr/lib32/libgefaker.so && \
+    chmod u+s /usr/lib/i386-linux-gnu/libvglfaker.so /usr/lib/i386-linux-gnu/libvglfaker-nodl.so /usr/lib/i386-linux-gnu/libvglfaker-opencl.so /usr/lib/i386-linux-gnu/libdlfaker.so /usr/lib/i386-linux-gnu/libgefaker.so; \
+    elif [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+    curl -fsSL -O "https://github.com/VirtualGL/virtualgl/releases/download/${VIRTUALGL_VERSION}/virtualgl_${VIRTUALGL_VERSION}_arm64.deb" && \
+    apt-get update && apt-get install -y --no-install-recommends ./virtualgl_${VIRTUALGL_VERSION}_arm64.deb && \
+    rm -f "virtualgl_${VIRTUALGL_VERSION}_arm64.deb" && \
+    chmod u+s /usr/lib/libvglfaker.so /usr/lib/libvglfaker-nodl.so /usr/lib/libdlfaker.so /usr/lib/libgefaker.so; fi && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
@@ -183,7 +231,7 @@ exec turnserver\n\
 # Write startup script
 RUN echo "#!/bin/bash\n\
 sudo /start-turnserver.sh &\n\
-export DISPLAY=\"\${DISPLAY:-\:0}\"\n\
+export DISPLAY=\"\${DISPLAY:-:0}\"\n\
 export LD_PRELOAD='/usr/\$LIB/selkies-js-interposer/joystick_interposer.so'\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
 sudo mkdir -pm755 /dev/input\n\
@@ -193,7 +241,7 @@ until [ -S /tmp/.X11-unix/X0 ]; do sleep 1; done && echo 'X Server is ready'\n\
 export PULSE_SERVER=unix:/run/pulse/native\n\
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1\n\
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
-[ \"\${START_XFCE4:-true}\" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &\n\
+[ \"\${START_XFCE4:-true}\" = "true" ] && rm -rf ~/.config/xfce4 && vglrun -d \"\${VGL_DISPLAY:-egl}\" +wm xfce4-session &\n\
 export SELKIES_ENCODER=\${SELKIES_ENCODER:-x264enc}\n\
 export SELKIES_ENABLE_RESIZE=\${SELKIES_ENABLE_RESIZE:-true}\n\
 export SELKIES_TURN_HOST=\${SELKIES_TURN_HOST:-\$(curl -fsSL checkip.amazonaws.com)}\n\
