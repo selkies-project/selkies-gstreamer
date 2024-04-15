@@ -5,7 +5,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
 /*
-    This is a LD_PRELOAD interposer library to connect /dev/input/jsX devices to unix domain sockets.
+    This is an LD_PRELOAD interposer library to connect /dev/input/jsX devices to unix domain sockets.
     The unix domain sockets are used to send/receive joystick cofiguration and events.
 
     The open() SYSCALL is interposed to initiate the socket connection

@@ -103,7 +103,7 @@ cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-p
 ```bash
 export DISPLAY="${DISPLAY:-\:0}"
 # Configure the Joystick Interposer
-export LD_PRELOAD='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'
+export LD_PRELOAD="selkies_joystick_interposer.so${LD_PRELOAD:+:${LD_PRELOAD}}"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
@@ -201,7 +201,7 @@ rm -f /tmp/selkies-js-interposer.deb
 ```bash
 export DISPLAY="${DISPLAY:-\:0}"
 # Configure the Joystick Interposer
-export LD_PRELOAD='/usr/$LIB/selkies-js-interposer/joystick_interposer.so'
+export LD_PRELOAD="selkies_joystick_interposer.so${LD_PRELOAD:+:${LD_PRELOAD}}"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}

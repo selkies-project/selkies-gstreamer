@@ -5,16 +5,16 @@ set -ex
 PKG_DIR="/opt/${PKG_NAME?missing env}_${PKG_VERSION?missing env}"
 mkdir -p "${PKG_DIR}/DEBIAN"
 
-DEST_DIR="${PKG_DIR}/usr/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')/${PKG_NAME?missing env}"
+DEST_DIR="${PKG_DIR}/usr/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')"
 mkdir -p "${DEST_DIR}"
-gcc -shared -fPIC -o joystick_interposer.so joystick_interposer.c -ldl
-cp -f joystick_interposer.so "${DEST_DIR}/joystick_interposer.so"
+gcc -shared -fPIC -o selkies_joystick_interposer.so joystick_interposer.c -ldl
+cp -f selkies_joystick_interposer.so "${DEST_DIR}/selkies_joystick_interposer.so"
 
 if [ "$(dpkg --print-architecture)" = "amd64" ]; then
-  DEST_DIR="${PKG_DIR}/usr/lib/$(gcc -m32 -print-multiarch | sed -e 's/i.*86/i386/')/${PKG_NAME?missing env}"
+  DEST_DIR="${PKG_DIR}/usr/lib/$(gcc -m32 -print-multiarch | sed -e 's/i.*86/i386/')"
   mkdir -p "${DEST_DIR}"
-  gcc -m32 -shared -fPIC -o joystick_interposer_x86.so joystick_interposer.c -ldl
-  cp -f joystick_interposer_x86.so "${DEST_DIR}/joystick_interposer.so"
+  gcc -m32 -shared -fPIC -o selkies_joystick_interposer_x86.so joystick_interposer.c -ldl
+  cp -f selkies_joystick_interposer_x86.so "${DEST_DIR}/selkies_joystick_interposer.so"
 fi
 
 PKG_SIZE="$(du -s "${PKG_DIR}/usr" | awk '{print $1}' | xargs)"
@@ -28,7 +28,7 @@ Architecture: $(dpkg --print-architecture)
 Essential: no
 Installed-Size: ${PKG_SIZE?missing env}
 Maintainer: ${DEBFULLNAME?missing env} <${DEBEMAIL?missing env}>
-Description: Joystick device interposer for Selkies GStreamer project
+Description: Joystick device interposer for Selkies-GStreamer project
 EOF
 
 dpkg-deb --build ${PKG_DIR}

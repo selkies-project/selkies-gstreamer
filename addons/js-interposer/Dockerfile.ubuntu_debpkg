@@ -27,7 +27,7 @@ ARG DEBEMAIL="danisla@users.noreply.github.com"
 WORKDIR /opt/build
 COPY . .
 RUN ./build_ubuntu_deb.sh && \
-    tar -czvf /opt/${PKG_NAME}_${PKG_VERSION}.tar.gz joystick_interposer*.so
+    tar -czvf /opt/${PKG_NAME}_${PKG_VERSION}.tar.gz selkies_joystick_interposer*.so
 
 ARG DISTRIB_RELEASE
 FROM ubuntu:${DISTRIB_RELEASE} as test
@@ -49,5 +49,5 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         /opt/${PKG_NAME}_${PKG_VERSION}.deb && \
     rm -rf /var/lib/apt/lists/*
 
-RUN file "/usr/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')/selkies-js-interposer/joystick_interposer.so" && \
-    if [ "$(dpkg --print-architecture)" = "amd64" ]; then file "/usr/lib/$(gcc -m32 -print-multiarch | sed -e 's/i.*86/i386/')/selkies-js-interposer/joystick_interposer.so"; fi
+RUN file "/usr/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')/selkies_joystick_interposer.so" && \
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then file "/usr/lib/$(gcc -m32 -print-multiarch | sed -e 's/i.*86/i386/')/selkies_joystick_interposer.so"; fi

@@ -1,16 +1,16 @@
 # Selkies Joystick (Gamepad) Interposer
 
-LD_PRELOAD library for interposing application calls to open a Linux joystick device and pass data via a unix domain socket.
+`LD_PRELOAD` library for interposing application calls to open a Linux joystick device and pass data via a unix domain socket.
 
-This allows the `selkies-gstreamer` WebRTC interface to pass gamepad events over `RTCDataChannel`, and translate them to joystick events without requiring access to /dev/input/js0 or depending on kernel modules including uinput to emulate devices.
+This allows the `selkies-gstreamer` WebRTC interface to pass gamepad events over `RTCDataChannel`, and translate them to joystick events without requiring access to /dev/input/js0 or depending on kernel modules such as uinput to emulate devices.
 
 ## Compiling
 
 ```bash
-gcc -shared -fPIC -o joystick_interposer.so joystick_interposer.c -ldl
+gcc -shared -fPIC -o selkies_joystick_interposer.so joystick_interposer.c -ldl
 ```
 
-To compile the `i386` library for Wine and other packages, add `-m32` with the `gcc-multilib` package installed.
+To compile the `i386` library for Wine and other 32-bit packages, add `-m32` with the `gcc-multilib` package installed.
 
 ## Testing
 
@@ -25,5 +25,5 @@ This creates a new unix domain socket at `/tmp/selkies_js0.sock` and simulates j
 2. Run `jstest` with the interposer library:
 
 ```bash
-LD_PRELOAD=${PWD}/joystick_interposer.so jstest /dev/input/js0
+LD_PRELOAD=${PWD}/selkies_joystick_interposer.so jstest /dev/input/js0
 ```

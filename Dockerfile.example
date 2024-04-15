@@ -186,13 +186,6 @@ RUN chmod +x /tini
 # Install GStreamer distribution
 COPY --from=selkies-gstreamer /opt/gstreamer ./gstreamer
 
-# Make all NVIDIA GPUs visible by default
-ENV NVIDIA_VISIBLE_DEVICES all
-# All NVIDIA driver capabilities should be used
-ENV NVIDIA_DRIVER_CAPABILITIES all
-# Disable VSYNC for NVIDIA GPUs
-ENV __GL_SYNC_TO_VBLANK 0
-
 # Install web application
 COPY --from=selkies-web /usr/share/nginx/html ./gst-web
 
@@ -232,16 +225,16 @@ exec turnserver\n\
 RUN echo "#!/bin/bash\n\
 sudo /start-turnserver.sh &\n\
 export DISPLAY=\"\${DISPLAY:-:0}\"\n\
-export LD_PRELOAD='/usr/\$LIB/selkies-js-interposer/joystick_interposer.so'\n\
+export LD_PRELOAD=\"selkies_joystick_interposer.so\${LD_PRELOAD:+:\${LD_PRELOAD}}\"\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
 sudo mkdir -pm755 /dev/input\n\
 sudo touch /dev/input/{js0,js1,js2,js3}\n\
-Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
+Xvfb -screen :0 8192x4096x24 +extension \"COMPOSITE\" +extension \"DAMAGE\" +extension \"GLX\" +extension \"RANDR\" +extension \"RENDER\" +extension \"MIT-SHM\" +extension \"XFIXES\" +extension \"XTEST\" +iglx +render -nolisten \"tcp\" -noreset -shmem 2>&1 >/tmp/Xvfb.log &\n\
 until [ -S /tmp/.X11-unix/X0 ]; do sleep 1; done && echo 'X Server is ready'\n\
 export PULSE_SERVER=unix:/run/pulse/native\n\
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1\n\
 sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
-[ \"\${START_XFCE4:-true}\" = "true" ] && rm -rf ~/.config/xfce4 && vglrun -d \"\${VGL_DISPLAY:-egl}\" +wm xfce4-session &\n\
+[ \"\${START_XFCE4:-true}\" = \"true\" ] && rm -rf ~/.config/xfce4 && vglrun -d \"\${VGL_DISPLAY:-egl}\" +wm xfce4-session &\n\
 export SELKIES_ENCODER=\${SELKIES_ENCODER:-x264enc}\n\
 export SELKIES_ENABLE_RESIZE=\${SELKIES_ENABLE_RESIZE:-true}\n\
 export SELKIES_TURN_HOST=\${SELKIES_TURN_HOST:-\$(curl -fsSL checkip.amazonaws.com)}\n\
