@@ -474,6 +474,9 @@ function onBothStreamConnected() {
 
                 statsStart = now;
 
+                webrtc.sendDataChannelMessage("_stats_video," + JSON.stringify(stats.allReports));
+                webrtc.sendDataChannelMessage("_stats_audio," + JSON.stringify(audioStats.allReports));
+
                 // Stats refresh loop.
                 setTimeout(statsLoop, 1000);
             });

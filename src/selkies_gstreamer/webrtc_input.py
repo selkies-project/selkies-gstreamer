@@ -138,6 +138,8 @@ class WebRTCInput:
             'unhandled on_ping_response')
         self.on_cursor_change = lambda msg: logger.warn(
             'unhandled on_cursor_change')
+        self.on_client_webrtc_stats = lambda webrtc_stat_type, webrtc_stats: logger.warn(
+            'unhandled on_client_webrtc_stats')
 
     def __keyboard_connect(self):
         self.keyboard = pynput.keyboard.Controller()
@@ -719,5 +721,11 @@ class WebRTCInput:
             except:
                 logger.error(
                     "failed to parse latency report from client" + str(toks))
+        elif toks[0] == "_stats_video" or toks[0] == "_stats_audio":
+            # WebRTC Statistics API data from client 
+            try:
+                self.on_client_webrtc_stats(toks[0], ",".join(toks[1:]))
+            except:
+                logger.error("failed to parse WebRTC Statistics JSON object")
         else:
             logger.info('unknown data channel message: %s' % msg)

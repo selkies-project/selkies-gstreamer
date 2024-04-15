@@ -396,6 +396,12 @@ def main():
     parser.add_argument('--video_bitrate',
                         default=os.environ.get('SELKIES_VIDEO_BITRATE', '2000'),
                         help='Default video bitrate')
+    parser.add_argument('--keyframe_distance',
+                        default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '3'),
+                        help='Distance between video GOP frames/Keyframes in seconds, use "-1" for infinite distance')
+    parser.add_argument('--packetloss_percent',
+                        default=os.environ.get('SELKIES_PACKETLOSS_PERCENT', '5'),
+                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video and audio, use "0" to disable FEC')
     parser.add_argument('--audio_bitrate',
                         default=os.environ.get('SELKIES_AUDIO_BITRATE', '48000'),
                         help='Default audio bitrate')
@@ -417,11 +423,17 @@ def main():
     parser.add_argument('--cursor_size',
                         default=os.environ.get('SELKIES_CURSOR_SIZE', os.environ.get('XCURSOR_SIZE', '-1')),
                         help='Cursor size in points for the local cursor, set instead XCURSOR_SIZE without of this argument to configure the cursor size for both the local and remote cursors')
-    parser.add_argument('--enable_metrics',
-                        default=os.environ.get('SELKIES_ENABLE_METRICS', 'false'),
-                        help='Enable the Prometheus metrics port')
-    parser.add_argument('--metrics_port',
-                        default=os.environ.get('SELKIES_METRICS_PORT', '8000'),
+    parser.add_argument('--enable_webrtc_statistics',
+                        default=os.environ.get('SELKIES_ENABLE_WEBRTC_STATISTICS', 'false'),
+                        help='Enable WebRTC Statistics CSV dumping to the directory --webrtc_statistics_dir with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv')
+    parser.add_argument('--webrtc_statistics_dir',
+                        default=os.environ.get('SELKIES_WEBRTC_STATISTICS_DIR', '/tmp'),
+                        help='Directory to save WebRTC Statistics CSV from client with filenames selkies-stats-video-[timestamp].csv and selkies-stats-audio-[timestamp].csv')
+    parser.add_argument('--enable_metrics_http',
+                        default=os.environ.get('SELKIES_ENABLE_METRICS_HTTP', 'false'),
+                        help='Enable the Prometheus HTTP metrics port')
+    parser.add_argument('--metrics_http_port',
+                        default=os.environ.get('SELKIES_METRICS_HTTP_PORT', '8000'),
                         help='Port to start the Prometheus metrics server on')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug logging')
@@ -464,8 +476,9 @@ def main():
     audio_peer_id = 3
 
     # Initialize metrics server.
-    using_metrics = args.enable_metrics.lower() == 'true'
-    metrics = Metrics(int(args.metrics_port))
+    using_metrics_http = args.enable_metrics_http.lower() == 'true'
+    using_webrtc_csv = args.enable_webrtc_statistics.lower() == 'true'
+    metrics = Metrics(int(args.metrics_http_port), using_webrtc_csv)
 
     # Initialize the signalling client
     using_https = args.enable_https.lower() == 'true'
@@ -564,10 +577,12 @@ def main():
     enable_cursors = args.enable_cursors.lower() == "true"
     cursor_debug = args.debug_cursors.lower() == "true"
     cursor_size = int(args.cursor_size)
+    keyframe_distance = float(args.keyframe_distance)
+    packetloss_percent = float(args.packetloss_percent)
 
     # Create instance of app
-    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
-    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate)
+    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
+    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
 
     # [END main_setup]
 
@@ -719,6 +734,9 @@ def main():
     # Send client latency to metrics
     webrtc_input.on_client_latency = lambda latency_ms: metrics.set_latency(latency_ms)
 
+    # Send WebRTC stats to metrics
+    webrtc_input.on_client_webrtc_stats = lambda webrtc_stat_type, webrtc_stats: metrics.set_webrtc_stats(webrtc_stat_type, webrtc_stats)
+
     # Initialize GPU monitor
     gpu_mon = GPUMonitor(enabled=args.encoder.startswith("nv"))
 
@@ -808,8 +826,8 @@ def main():
 
     try:
         asyncio.ensure_future(server.run(), loop=loop)
-        if using_metrics:
-            metrics.start()
+        if using_metrics_http:
+            metrics.start_http()
         loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
         loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
@@ -820,6 +838,8 @@ def main():
         loop.run_in_executor(None, lambda: system_mon.start())
 
         while True:
+            if using_webrtc_csv:
+                metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
 
