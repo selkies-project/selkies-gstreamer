@@ -239,13 +239,15 @@ class GSTWebRTCApp:
             # Upload buffers from ximagesrc directly to CUDA memory where
             # the colorspace conversion will be performed.
             cudaupload = Gst.ElementFactory.make("cudaupload")
-            cudaupload.set_property("cuda-device-id", self.gpu_id)
+            if self.gpu_id >= 0:
+                cudaupload.set_property("cuda-device-id", self.gpu_id)
 
             # Convert the colorspace from BGRx to NVENC compatible format.
             # This is performed with CUDA which reduces the overall CPU load
             # compared to using the software videoconvert element.
             cudaconvert = Gst.ElementFactory.make("cudaconvert")
-            cudaconvert.set_property("cuda-device-id", self.gpu_id)
+            if self.gpu_id >= 0:
+                cudaconvert.set_property("cuda-device-id", self.gpu_id)
 
             # Convert ximagesrc BGRx format to NV12 using cudaconvert.
             # This is a more compatible format for client-side software decoders.
@@ -335,9 +337,11 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["nvcudah265enc", "nvh265enc"]:
             cudaupload = Gst.ElementFactory.make("cudaupload")
-            cudaupload.set_property("cuda-device-id", self.gpu_id)
+            if self.gpu_id >= 0:
+                cudaupload.set_property("cuda-device-id", self.gpu_id)
             cudaconvert = Gst.ElementFactory.make("cudaconvert")
-            cudaconvert.set_property("cuda-device-id", self.gpu_id)
+            if self.gpu_id >= 0:
+                cudaconvert.set_property("cuda-device-id", self.gpu_id)
             cudaconvert_caps = Gst.caps_from_string("video/x-raw(memory:CUDAMemory)")
             cudaconvert_caps.set_value("format", "NV12")
             cudaconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
