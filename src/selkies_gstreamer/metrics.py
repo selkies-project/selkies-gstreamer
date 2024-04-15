@@ -65,16 +65,16 @@ class Metrics:
 
     def set_webrtc_stats(self, webrtc_stat_type, webrtc_stats):
         webrtc_stats_obj = json.loads(webrtc_stats)
-        sanitized_stats = self.sanitize_data(webrtc_stats_obj)
+        sanitized_stats = self.sanitize_json_stats(webrtc_stats_obj)
         if self.using_webrtc_csv:
             if webrtc_stat_type == "_stats_audio":
                 self.write_webrtc_stats_csv(sanitized_stats, self.stats_audio_file_path)
             else:
                 self.write_webrtc_stats_csv(sanitized_stats, self.stats_video_file_path)
-        
+
         self.webrtc_statistics.info(sanitized_stats)
 
-    def sanitize_data(self, obj_list):
+    def sanitize_json_stats(self, obj_list):
         """A helper function to process data to a structure
            For example: reportName.fieldName:value
         """
@@ -88,7 +88,7 @@ class Metrics:
                 obj_type.append(curr_key)
             else:
                 obj_type.append(curr_key)
-            
+
             for key, val in obj_list[i].items():
                 unique_type = curr_key + str(".")  + key
                 if not isinstance(val, str):
@@ -97,7 +97,7 @@ class Metrics:
                     sanitized_stats[unique_type] = val
 
         return sanitized_stats
-        
+
     def write_webrtc_stats_csv(self, obj, file_path):
         """Writes the WebRTC statistics to a CSV file.
 
@@ -118,7 +118,7 @@ class Metrics:
                 # Upon reconnections the client could send a redundant objs just discard them
                 if len(headers) < 15: 
                     return
-                
+
                 values = [timestamp]
                 for val in obj.values():
                     values.extend(['"{}"'.format(val) if isinstance(val, str) and ';' in val else val])
@@ -132,7 +132,7 @@ class Metrics:
                     elif self.prev_stats_audio_header_len == len(headers):
                         csv_writer.writerow(values)
                     else:
-                        # We got new fields so update the data
+                        # Update the data after obtaining new fields
                         self.prev_stats_audio_header_len = self.update_webrtc_stats_csv(file_path, headers, values)
                 else:
                     # Video stats
@@ -143,7 +143,7 @@ class Metrics:
                     elif self.prev_stats_video_header_len == len(headers):
                         csv_writer.writerow(values)
                     else:
-                        # We got new fields so update the data
+                        # Update the data after obtaining new fields
                         self.prev_stats_video_header_len = self.update_webrtc_stats_csv(file_path, headers, values)
 
         except Exception as e:
@@ -169,7 +169,7 @@ class Metrics:
                     else:
                         prev_values.append(row)
 
-                # Sometimes few columns might not exist in new data
+                # Sometimes columns might not exist in new data
                 if len(headers) < len(prev_headers):
                     for i in prev_headers:
                         if i not in headers:
@@ -178,11 +178,11 @@ class Metrics:
                     i, j, k = 0, 0, 0
                     while i < len(headers):
                         if headers[i] != prev_headers[j]:
-                            # If there is a mismatch update all previous rows with a placeholder to represent an empty value, using `-1` here
+                            # If there is a mismatch, update all previous rows with a placeholder to represent an empty value, using `-1` here
                             for row in prev_values:
                                 row.insert(i, -1)
                             i += 1
-                            k += 1  # track no of values added
+                            k += 1  # track number of values added
                         else:
                             i += 1
                             j += 1
@@ -197,14 +197,14 @@ class Metrics:
                 # Validation check to confirm modified rows are of same length
                 if len(prev_values[0]) != len(values):
                     logger.warn("There's a mismatch; columns could be misaligned with headers")
-           
+
             # Purge existing file
             if os.path.exists(file_path):
                 os.remove(file_path)
             else:
                 logger.warn("File {} doesn't exist to purge".format(file_path))
 
-            # create a new file with updated data
+            # Create a new file with updated data
             with open(file_path, "a") as stats_file:
                 csv_writer = csv.writer(stats_file)
 

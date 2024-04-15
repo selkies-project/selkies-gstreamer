@@ -138,7 +138,7 @@ class WebRTCInput:
             'unhandled on_ping_response')
         self.on_cursor_change = lambda msg: logger.warn(
             'unhandled on_cursor_change')
-        self.on_client_webrtc_stats = lambda type, stats: logger.warn(
+        self.on_client_webrtc_stats = lambda webrtc_stat_type, webrtc_stats: logger.warn(
             'unhandled on_client_webrtc_stats')
 
     def __keyboard_connect(self):
