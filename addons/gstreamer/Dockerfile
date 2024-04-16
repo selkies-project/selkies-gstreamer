@@ -108,12 +108,12 @@ RUN NVRTC_VERSION="11.4.152" && \
     cd /tmp && curl -fsSL "https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/linux-${NVRTC_ARCH}/cuda_nvrtc-linux-${NVRTC_ARCH}-${NVRTC_VERSION}-archive.tar.xz" | tar -xJf - -C /tmp && mv -f cuda_nvrtc* cuda_nvrtc && cd cuda_nvrtc/lib && chmod 755 libnvrtc* && mv -f libnvrtc* /opt/gstreamer/lib/$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/')/ && cd /tmp && rm -rf /tmp/cuda_nvrtc
 
 # Generate environment file
-RUN MULTI_ARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
+RUN MULTIARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
     echo "export GSTREAMER_PATH=\${GSTREAMER_PATH:-/opt/gstreamer}\n\
-export PATH=\${GSTREAMER_PATH}/bin:\${PATH}\n\
-export LD_LIBRARY_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}:\${LD_LIBRARY_PATH}\n\
-export GI_TYPELIB_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}/girepository-1.0:/usr/lib/${MULTI_ARCH}/girepository-1.0:\${GI_TYPELIB_PATH}\n\
-export PYTHONPATH=\${GSTREAMER_PATH}/lib/python3/dist-packages:\${PYTHONPATH}\n\
+export PATH=\${GSTREAMER_PATH}/bin\${PATH:+:\${PATH}}\n\
+export LD_LIBRARY_PATH=\${GSTREAMER_PATH}/lib/${MULTIARCH}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}\n\
+export GI_TYPELIB_PATH=\${GSTREAMER_PATH}/lib/${MULTIARCH}/girepository-1.0:/usr/lib/${MULTIARCH}/girepository-1.0\${GI_TYPELIB_PATH:+:\${GI_TYPELIB_PATH}}\n\
+export PYTHONPATH=\${GSTREAMER_PATH}/lib/python3/dist-packages\${PYTHONPATH:+:\${PYTHONPATH}}\n\
 " > /opt/gstreamer/gst-env
 
 # Bundle build result to tarball
