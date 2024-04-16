@@ -793,10 +793,10 @@ def main():
     # Callback method to update TURN servers of a running pipeline.
     def mon_rtc_config(stun_servers, turn_servers, rtc_config):
         if app.webrtcbin:
-            logger.info("adding STUN server: %s" % stun_servers[0])
+            logger.info("updating STUN server")
             app.webrtcbin.set_property("stun-server", stun_servers[0])
             for i, turn_server in enumerate(turn_servers):
-                logger.info("adding TURN server: %s" % turn_server)
+                logger.info("updating TURN server")
                 if i == 0:
                     app.webrtcbin.set_property("turn-server", turn_server)
                 else:
