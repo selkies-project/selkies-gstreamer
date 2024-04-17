@@ -617,7 +617,7 @@ def main():
                     if meta["scale"]:
                         on_scaling_ratio_handler(meta["scale"])
                 else:
-                    logger.info("Setting cursor to defualt size")
+                    logger.info("setting cursor to default size")
                     set_cursor_size(16)
             logger.info("starting video pipeline")
             app.start_pipeline()
