@@ -616,6 +616,9 @@ def main():
                         on_resize_handler(meta["res"])
                     if meta["scale"]:
                         on_scaling_ratio_handler(meta["scale"])
+                else:
+                    logger.info("Setting cursor to defualt size")
+                    set_cursor_size(16)
             logger.info("starting video pipeline")
             app.start_pipeline()
         elif str(session_peer_id) == str(audio_peer_id):
