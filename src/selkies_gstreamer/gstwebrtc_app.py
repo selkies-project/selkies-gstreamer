@@ -137,6 +137,8 @@ class GSTWebRTCApp:
         The video and audio pipelines are linked to this in the
             build_video_pipeline() and build_audio_pipeline() methods.
         """
+        # Reference configuration for webrtcbin including congestion control:
+        #   https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/blob/main/net/webrtc/src/webrtcsink/imp.rs
 
         # Create webrtcbin element named app
         self.webrtcbin = Gst.ElementFactory.make("webrtcbin", "app")
