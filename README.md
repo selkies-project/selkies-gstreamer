@@ -381,11 +381,13 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 ## Troubleshooting
 
-### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and the remote desktop does not start.
+### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails or the remote desktop does not start.
 
-First of all, use HTTPS or port forwarding to localhost. Some browsers do not support WebRTC or relevant features in HTTP outside localhost.
+First of all, use HTTPS or HTTP port forwarding to localhost as much as possible. Browsers do not support WebRTC or relevant features including pointer and keyboard lock in HTTP outside localhost. Also check if the WebRTC video codec is supported in the web browser, as the server may panic if the codecs do not match.
 
-Then, please read [Using a TURN server](#using-a-turn-server). Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the VPN private IP of the TURN server host, such as `192.168.0.2`.
+Then, please read [Using a TURN server](#using-a-turn-server).
+
+Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the private VPN IP of the TURN server host, such as `192.168.0.2`.
 
 ### The HTML5 web interface is slow and laggy.
 
