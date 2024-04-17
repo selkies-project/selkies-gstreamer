@@ -344,6 +344,10 @@ if (videoElement === null) {
     throw 'videoElement not found on page';
 }
 
+videoElement.addEventListener('loadeddata', (e) => {
+    webrtc.input.getCursorScaleFactor();
+})
+
 var audioElement = document.getElementById("audio_stream");
 if (audioElement === null) {
     throw 'audioElement not found on page';
@@ -666,6 +670,9 @@ webrtc.onsystemaction = (action) => {
             var toks = remote_res.split("x");
             webrtc.element.style.width = toks[0]/window.devicePixelRatio+'px';
             webrtc.element.style.height = toks[1]/window.devicePixelRatio+'px';
+
+            // Update cursor scale factor
+            webrtc.input.getCursorScaleFactor({ remoteResolutionEnabled: true });
         }
     } else if (action.startsWith("local_scaling")) {
         // Local scaling default pushed from server
