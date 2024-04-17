@@ -419,12 +419,9 @@ This step is required when you want to test your TURN server configured with a s
 docker-compose run --service-ports test
 ```
 
-2. From inside the test container, source `gst-env` and call the `generate_rtc_config` method.
+2. From inside the test container, call the `generate_rtc_config` method.
 
 ```bash
-export GSTREAMER_PATH=/opt/gstreamer
-. /opt/gstreamer/gst-env
-
 export SELKIES_TURN_HOST="Your TURN Host"
 export SELKIES_TURN_PORT="Your TURN Port"
 export SELKIES_TURN_SECRET="Your Shared Secret"
