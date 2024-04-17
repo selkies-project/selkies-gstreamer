@@ -685,6 +685,11 @@ class GSTWebRTCApp:
             #   https://tools.ietf.org/html/rfc6184#section-8.2.1
             rtph264pay_caps.set_value("payload", 97)
 
+            # Set caps that help with frame retransmits that will avoid screen freezing on packet loss.
+            rtph264pay_caps.set_value("rtcp-fb-nack-pli", True)
+            rtph264pay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtph264pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
+
             # Create a capability filter for the rtph264pay_caps.
             rtph264pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph264pay_capsfilter.set_property("caps", rtph264pay_caps)
@@ -705,6 +710,9 @@ class GSTWebRTCApp:
             rtph265pay_caps.set_value("clock-rate", 90000)
             rtph265pay_caps.set_value("encoding-name", "H265")
             rtph265pay_caps.set_value("payload", 100)
+            rtph265pay_caps.set_value("rtcp-fb-nack-pli", True)
+            rtph265pay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtph265pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
             rtph265pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtph265pay_capsfilter.set_property("caps", rtph265pay_caps)
 
@@ -721,6 +729,9 @@ class GSTWebRTCApp:
             rtpvppay_caps.set_value("clock-rate", 90000)
             rtpvppay_caps.set_value("encoding-name", "VP8")
             rtpvppay_caps.set_value("payload", 96)
+            rtpvppay_caps.set_value("rtcp-fb-nack-pli", True)
+            rtpvppay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtpvppay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
             rtpvppay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtpvppay_capsfilter.set_property("caps", rtpvppay_caps)
 
@@ -737,6 +748,9 @@ class GSTWebRTCApp:
             rtpvppay_caps.set_value("clock-rate", 90000)
             rtpvppay_caps.set_value("encoding-name", "VP9")
             rtpvppay_caps.set_value("payload", 98)
+            rtpvppay_caps.set_value("rtcp-fb-nack-pli", True)
+            rtpvppay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtpvppay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
             rtpvppay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtpvppay_capsfilter.set_property("caps", rtpvppay_caps)
 
@@ -754,6 +768,9 @@ class GSTWebRTCApp:
             rtpav1pay_caps.set_value("clock-rate", 90000)
             rtpav1pay_caps.set_value("encoding-name", "AV1")
             rtpav1pay_caps.set_value("payload", 99)
+            rtpav1pay_caps.set_value("rtcp-fb-nack-pli", True)
+            rtpav1pay_caps.set_value("rtcp-fb-ccm-fir", True)
+            rtpav1pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
             rtpav1pay_capsfilter = Gst.ElementFactory.make("capsfilter")
             rtpav1pay_capsfilter.set_property("caps", rtpav1pay_caps)
 

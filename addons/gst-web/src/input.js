@@ -126,20 +126,20 @@ class Input {
         this._smallestDeltaY = 10000;
         this._wheelThreshold = 100;
         this._scrollMagnitude = 10;
-        
-        // variable used to scale the cursor speed
+
+        // variable used to scale cursor speed
         this.cursorScaleFactor = null;
     }
 
     /**
-     * Calculates the cursor scale factor when client and server are having different resolutions
+     * Calculates cursor scale factor when client and server have different resolutions
      * @param {Object}
      */
-    getCursorScaleFactor({remoteResolutionEnabled = false} = {}){
+    getCursorScaleFactor({ remoteResolutionEnabled = false } = {}) {
         // If user enabled remote resize then reset the values
-        if (remoteResolutionEnabled ) {
+        if (remoteResolutionEnabled) {
             this.cursorScaleFactor = null;
-            return
+            return;
         }
 
         var clientResolution = this.getWindowResolution();
@@ -151,12 +151,12 @@ class Input {
             return;
         }
 
-        // If width and height are in the range then scale factor is not required
+        // If width and height are in the same range then scale factor is not required
         if (Math.abs(clientResolution[0] - serverWidth) <= 10  && Math.abs(clientResolution[1] - serverHeight) <= 10) {
             return;
         }
 
-        this.cursorScaleFactor = Math.sqrt(serverWidth**2 + serverHeight**2) / Math.sqrt(clientResolution[0]**2 + clientResolution[1]**2);
+        this.cursorScaleFactor = Math.sqrt((serverWidth ** 2) + (serverHeight ** 2)) / Math.sqrt((clientResolution[0] ** 2) + (clientResolution[1] ** 2));
     }
 
     /**
@@ -185,11 +185,10 @@ class Input {
             if (this.cursorScaleFactor != null) {
                 this.x = Math.trunc(event.movementX * this.cursorScaleFactor);
                 this.y = Math.trunc(event.movementY * this.cursorScaleFactor);
-                
-            } else{
+            } else {
                 this.x = event.movementX;
                 this.y = event.movementY;
-            }            
+            }
         } else if (event.type === 'mousemove') {
             this.x = this._clientToServerX(event.clientX);
             this.y = this._clientToServerY(event.clientY);

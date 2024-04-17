@@ -671,8 +671,8 @@ webrtc.onsystemaction = (action) => {
             webrtc.element.style.width = toks[0]/window.devicePixelRatio+'px';
             webrtc.element.style.height = toks[1]/window.devicePixelRatio+'px';
 
-            // Update the cursor scale factor
-            webrtc.input.getCursorScaleFactor({remoteResolutionEnabled: true});
+            // Update cursor scale factor
+            webrtc.input.getCursorScaleFactor({ remoteResolutionEnabled: true });
         }
     } else if (action.startsWith("local_scaling")) {
         // Local scaling default pushed from server
