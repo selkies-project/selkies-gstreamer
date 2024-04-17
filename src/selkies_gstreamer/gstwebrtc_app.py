@@ -80,6 +80,7 @@ class GSTWebRTCApp:
         self.pipeline = None
         self.webrtcbin = None
         self.data_channel = None
+        self.rtpgccbwe = None
         self.encoder = encoder
         self.gpu_id = gpu_id
 
@@ -130,7 +131,7 @@ class GSTWebRTCApp:
             self.ximagesrc.set_state(Gst.State.PLAYING)
 
     # [START build_webrtcbin_pipeline]
-    def build_webrtcbin_pipeline(self):
+    def build_webrtcbin_pipeline(self, audio_only=False):
         """Adds the webrtcbin elements to the pipeline.
 
         The video and audio pipelines are linked to this in the
@@ -151,6 +152,9 @@ class GSTWebRTCApp:
         self.webrtcbin.set_property("latency", 1)
 
         # Connect signal handlers
+        if not audio_only:
+            self.webrtcbin.connect(
+                'request-aux-sender', lambda webrtcbin, dtls_transport: self.__request_aux_sender(webrtcbin, dtls_transport))
         self.webrtcbin.connect(
             'on-negotiation-needed', lambda webrtcbin: self.__on_negotiation_needed(webrtcbin))
         self.webrtcbin.connect('on-ice-candidate', lambda webrtcbin, mlineindex,
@@ -1061,16 +1065,20 @@ class GSTWebRTCApp:
             else:
                 logger.warning("setting keyframe interval (GOP size) not supported with encoder: %s" % self.encoder)
 
-    def set_video_bitrate(self, bitrate):
+    def set_video_bitrate(self, bitrate, cc=False):
         """Set video encoder target bitrate in bps
 
         Arguments:
             bitrate {integer} -- bitrate in bits per second, for example, 2000 for 2kbits/s or 10000 for 1mbit/sec.
+            cc {boolean} -- whether the congestion control element triggered the bitrate change.
         """
 
         if self.pipeline:
             # Prevent bitrate from overshooting because of FEC
             fec_bitrate = int(bitrate / (1.0 + (self.packetloss_percent / 100.0)))
+            # Change maximum bitrate range of congestion control element
+            if not cc and self.rtpgccbwe is not None:
+                self.rtpgccbwe.set_property("max-bitrate", int(fec_bitrate * 1000 * 1.1))
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
@@ -1302,6 +1310,24 @@ class GSTWebRTCApp:
                 sdp_text = sdp_text.replace('packetization-mode=1', 'level-asymmetry-allowed=1;packetization-mode=1')
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
+    def __request_aux_sender(self, webrtcbin, dtls_transport):
+        """Handles request-aux-header signal, initializing the rtpgccbwe element for video WebRTC
+
+        Arguments:
+            webrtcbin {GstWebRTCBin gobject} -- webrtcbin gobject
+            dtls_transport {GstWebRTCDTLSTransport gobject} -- DTLS Transport for which the aux sender will be used
+        """
+        self.rtpgccbwe = Gst.ElementFactory.make("rtpgccbwe")
+        if self.rtpgccbwe is None:
+            logger.warning("rtpgccbwe element is not available, not performing any congestion control.")
+            return None
+        logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
+        self.rtpgccbwe.set_property("min-bitrate", 1000)
+        self.rtpgccbwe.set_property("max-bitrate", int(self.fec_video_bitrate * 1000 * 1.1))
+        self.rtpgccbwe.set_property("estimated-bitrate", self.fec_video_bitrate * 1000)
+        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int(bwe.get_property(pspec.get_name()) / 1000), cc=True))
+        return self.rtpgccbwe
+
     def __on_negotiation_needed(self, webrtcbin):
         """Handles on-negotiation-needed signal, generates create-offer action
 
@@ -1358,7 +1384,7 @@ class GSTWebRTCApp:
         self.pipeline = Gst.Pipeline.new()
 
         # Construct the webrtcbin pipeline
-        self.build_webrtcbin_pipeline()
+        self.build_webrtcbin_pipeline(audio_only)
 
         if audio_only:
             self.build_audio_pipeline()
