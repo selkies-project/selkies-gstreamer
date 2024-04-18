@@ -539,6 +539,7 @@ class GSTWebRTCApp:
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("insert-vui", True)
+            x264enc.set_property("intra-refresh", True)
             x264enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("vbv-buf-capacity", 120)
@@ -586,7 +587,7 @@ class GSTWebRTCApp:
 
             # encoder
             x265enc = Gst.ElementFactory.make("x265enc", "x265enc")
-            x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:aud:repeat-headers:pmode:wpp")
+            x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:aud:intra-refresh:repeat-headers:pmode:wpp")
             x265enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             x265enc.set_property("qos", True)
             x265enc.set_property("speed-preset", "ultrafast")
