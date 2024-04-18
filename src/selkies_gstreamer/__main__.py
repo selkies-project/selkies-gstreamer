@@ -402,9 +402,12 @@ def main():
     parser.add_argument('--keyframe_distance',
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '3'),
                         help='Distance between video GOP frames/Keyframes in seconds, use "-1" for infinite distance')
+    parser.add_argument('--disable_congestion_control',
+                        default=os.environ.get('SELKIES_DISABLE_CONGESTION_CONTROL', 'false'),
+                        help='Disable Google Congestion Control (GCC), do not disable unless you understand the implications')
     parser.add_argument('--packetloss_percent',
-                        default=os.environ.get('SELKIES_PACKETLOSS_PERCENT', '5'),
-                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video and audio, use "0" to disable FEC')
+                        default=os.environ.get('SELKIES_PACKETLOSS_PERCENT', '0'),
+                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video and audio, use "0" to disable FEC, enabling not recommended when Congestion Control is active')
     parser.add_argument('--audio_bitrate',
                         default=os.environ.get('SELKIES_AUDIO_BITRATE', '48000'),
                         help='Default audio bitrate')
@@ -582,11 +585,12 @@ def main():
     cursor_debug = args.debug_cursors.lower() == "true"
     cursor_size = int(args.cursor_size)
     keyframe_distance = float(args.keyframe_distance)
+    congestion_control = args.disable_congestion_control.lower() != "true"
     packetloss_percent = float(args.packetloss_percent)
 
     # Create instance of app
-    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
-    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, packetloss_percent)
+    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, packetloss_percent)
+    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, packetloss_percent)
 
     # [END main_setup]
 

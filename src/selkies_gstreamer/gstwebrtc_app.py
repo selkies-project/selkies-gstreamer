@@ -34,14 +34,15 @@ logger.setLevel(logging.INFO)
 try:
     import gi
     gi.require_version('GLib', "2.0")
-    gi.require_version("Gst", "1.0")
+    gi.require_version('Gst', "1.0")
+    gi.require_version('GstRtp', "1.0")
     gi.require_version('GstSdp', "1.0")
     gi.require_version('GstWebRTC', "1.0")
-    from gi.repository import GLib, Gst, GstSdp, GstWebRTC
+    from gi.repository import GLib, Gst, GstRtp, GstSdp, GstWebRTC
     fract = Gst.Fraction(60, 1)
     del fract
 except Exception as e:
-    msg = """ERROR: could not find working gst-python installation.
+    msg = """ERROR: could not find working GStreamer-Python installation.
 
 If GStreamer is installed at a certain location, set the path to the environment variable GSTREAMER_PATH, then make sure your environment is set correctly using the below commands:
 
@@ -62,7 +63,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, packetloss_percent=5.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, congestion_control=True, packetloss_percent=0.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -81,6 +82,8 @@ class GSTWebRTCApp:
         self.webrtcbin = None
         self.data_channel = None
         self.rtpgccbwe = None
+        self.congestion_control = congestion_control
+        self.RTP_TWCC_URI = "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"
         self.encoder = encoder
         self.gpu_id = gpu_id
 
@@ -154,7 +157,7 @@ class GSTWebRTCApp:
         self.webrtcbin.set_property("latency", 1)
 
         # Connect signal handlers
-        if not audio_only:
+        if self.congestion_control and not audio_only:
             self.webrtcbin.connect(
                 'request-aux-sender', lambda webrtcbin, dtls_transport: self.__request_aux_sender(webrtcbin, dtls_transport))
         self.webrtcbin.connect(
@@ -675,6 +678,13 @@ class GSTWebRTCApp:
             # Send SPS and PPS Insertion with every IDR frame
             rtph264pay.set_property("config-interval", -1)
 
+            # Add Transport-Wide Congestion Control (TWCC) extension
+            twcc_id_video = self.__pick_twcc_extension_id(rtph264pay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtph264pay.emit("add-extension", twcc_extension_video)
+
             # Set the capabilities for the rtph264pay element.
             rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
 
@@ -712,6 +722,11 @@ class GSTWebRTCApp:
             rtph265pay.set_property("mtu", 1200)
             rtph265pay.set_property("aggregate-mode", "zero-latency")
             rtph265pay.set_property("config-interval", -1)
+            twcc_id_video = self.__pick_twcc_extension_id(rtph265pay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtph265pay.emit("add-extension", twcc_extension_video)
             rtph265pay_caps = Gst.caps_from_string("application/x-rtp")
             rtph265pay_caps.set_value("media", "video")
             rtph265pay_caps.set_value("clock-rate", 90000)
@@ -731,6 +746,11 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp8pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
+            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -750,6 +770,11 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp9pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
+            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -770,6 +795,11 @@ class GSTWebRTCApp:
 
             rtpav1pay = Gst.ElementFactory.make("rtpav1pay")
             rtpav1pay.set_property("mtu", 1200)
+            twcc_id_video = self.__pick_twcc_extension_id(rtpav1pay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtpav1pay.emit("add-extension", twcc_extension_video)
             rtpav1pay_caps = Gst.caps_from_string("application/x-rtp")
             rtpav1pay_caps.set_value("media", "video")
             rtpav1pay_caps.set_value("clock-rate", 90000)
@@ -887,6 +917,13 @@ class GSTWebRTCApp:
         rtpopuspay = Gst.ElementFactory.make("rtpopuspay")
         rtpopuspay.set_property("mtu", 1200)
         rtpopuspay.set_property("dtx", True)
+
+        # Add Transport-Wide Congestion Control (TWCC) extension
+        twcc_id_audio = self.__pick_twcc_extension_id(rtpopuspay)
+        if twcc_id_audio is not None:
+            twcc_extension_audio = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+            twcc_extension_audio.set_id(twcc_id_audio)
+            rtpopuspay.emit("add-extension", twcc_extension_audio)
 
         # Insert a queue for the RTP packets.
         # rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
@@ -1080,8 +1117,8 @@ class GSTWebRTCApp:
             # Prevent bitrate from overshooting because of FEC
             fec_bitrate = int(bitrate / (1.0 + (self.packetloss_percent / 100.0)))
             # Change maximum bitrate range of congestion control element
-            if not cc and self.rtpgccbwe is not None:
-                self.rtpgccbwe.set_property("max-bitrate", int(fec_bitrate * 1000 * 1.1))
+            if self.congestion_control and not cc and self.rtpgccbwe is not None:
+                self.rtpgccbwe.set_property("max-bitrate", int(fec_bitrate * 1000 * 1.01 + self.fec_audio_bitrate))
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
@@ -1125,6 +1162,9 @@ class GSTWebRTCApp:
         if self.pipeline:
             # Prevent bitrate from overshooting because of FEC
             fec_bitrate = int(bitrate / (1.0 + (self.packetloss_percent / 100.0)))
+            # Change maximum bitrate range of congestion control element
+            if self.congestion_control and not cc and self.rtpgccbwe is not None:
+                self.rtpgccbwe.set_property("max-bitrate", int(self.fec_video_bitrate * 1000 * 1.01 + fec_bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", fec_bitrate)
 
@@ -1301,6 +1341,13 @@ class GSTWebRTCApp:
         elif 'rtx-time=125' not in sdp_text:
             logger.warning("injecting modified rtx-time to SDP")
             sdp_text = re.sub(r'rtx-time=\d+', r'rtx-time=125', sdp_text)
+        # Add non-standard Chromium x-google-per-layer-pli fmtp for enabling per-layer keyframes in response to PLIs
+        if 'x-google-per-layer-pli' not in sdp_text:
+            logger.warning("injecting x-google-per-layer-pli to SDP")
+            sdp_text = re.sub(r'(apt=\d+)', r'\1;x-google-per-layer-pli=1', sdp_text)
+        elif 'x-google-per-layer-pli=1' not in sdp_text:
+            logger.warning("injecting x-google-per-layer-pli to SDP")
+            sdp_text = re.sub(r'x-google-per-layer-pli=\d+', r'x-google-per-layer-pli=1', sdp_text)
         # Firefox needs profile-level-id=42e01f in the offer, but webrtcbin does not add this.
         # TODO: Remove when fixed in webrtcbin.
         #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1106
@@ -1326,10 +1373,33 @@ class GSTWebRTCApp:
             return None
         logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
         self.rtpgccbwe.set_property("min-bitrate", 1000)
-        self.rtpgccbwe.set_property("max-bitrate", int(self.fec_video_bitrate * 1000 * 1.1))
-        self.rtpgccbwe.set_property("estimated-bitrate", self.fec_video_bitrate * 1000)
-        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int(bwe.get_property(pspec.get_name()) / 1000), cc=True))
+        self.rtpgccbwe.set_property("max-bitrate", int(self.fec_video_bitrate * 1000 * 1.01  + self.fec_audio_bitrate))
+        self.rtpgccbwe.set_property("estimated-bitrate", self.fec_video_bitrate * 1000 + self.fec_audio_bitrate)
+        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.fec_audio_bitrate) / 1000), cc=True))
         return self.rtpgccbwe
+
+    def __pick_twcc_extension_id(self, payloader):
+        """Finds extension ID for Transport-Wide Congestion Control (TWCC), required for rtcgccbwe
+
+        Arguments:
+            payloader {GstRTPBasePayload gobject} -- payloader gobject
+        """
+        payloader_properties = payloader.list_properties()
+        enabled_extensions = payloader.get_property("extensions") if "extensions" in [payloader_property.name for payloader_property in payloader_properties] else None
+        if not enabled_extensions:
+            logger.debug("extensions property in {} does not exist in payloader because GStreamer version is below 1.24, application code must ensure to select non-conflicting IDs for any additionally configured extensions".format(payloader.get_name()))
+            return 1
+        twcc = next((ext for ext in enabled_extensions if ext.get_uri() == self.RTP_TWCC_URI), None)
+        # When TWCC is already mapped
+        if twcc:
+            return None
+        used_numbers = set(ext.get_id() for ext in enabled_extensions)
+        # Find first extension ID that does not collide
+        num = 1
+        while True:
+            if num not in used_numbers:
+                return num
+            num += 1
 
     def __on_negotiation_needed(self, webrtcbin):
         """Handles on-negotiation-needed signal, generates create-offer action
