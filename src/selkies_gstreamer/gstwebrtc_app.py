@@ -34,14 +34,15 @@ logger.setLevel(logging.INFO)
 try:
     import gi
     gi.require_version('GLib', "2.0")
-    gi.require_version("Gst", "1.0")
+    gi.require_version('Gst', "1.0")
+    gi.require_version('GstRtp', "1.0")
     gi.require_version('GstSdp', "1.0")
     gi.require_version('GstWebRTC', "1.0")
-    from gi.repository import GLib, Gst, GstSdp, GstWebRTC
+    from gi.repository import GLib, Gst, GstRtp, GstSdp, GstWebRTC
     fract = Gst.Fraction(60, 1)
     del fract
 except Exception as e:
-    msg = """ERROR: could not find working gst-python installation.
+    msg = """ERROR: could not find working GStreamer-Python installation.
 
 If GStreamer is installed at a certain location, set the path to the environment variable GSTREAMER_PATH, then make sure your environment is set correctly using the below commands:
 
@@ -62,7 +63,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, packetloss_percent=5.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, congestion_control=True, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -80,6 +81,9 @@ class GSTWebRTCApp:
         self.pipeline = None
         self.webrtcbin = None
         self.data_channel = None
+        self.rtpgccbwe = None
+        self.RTP_TWCC_URI = "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"
+        self.congestion_control = congestion_control
         self.encoder = encoder
         self.gpu_id = gpu_id
 
@@ -90,10 +94,11 @@ class GSTWebRTCApp:
         # Keyframe distance in seconds
         self.keyframe_distance = keyframe_distance
         # Packet loss base percentage
-        self.packetloss_percent = packetloss_percent
+        self.video_packetloss_percent = video_packetloss_percent
+        self.audio_packetloss_percent = audio_packetloss_percent
         # Prevent bitrate from overshooting because of FEC
-        self.fec_video_bitrate = int(self.video_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
-        self.fec_audio_bitrate = int(self.audio_bitrate / (1.0 + (self.packetloss_percent / 100.0)))
+        self.fec_video_bitrate = int(self.video_bitrate / (1.0 + (self.video_packetloss_percent / 100.0)))
+        self.fec_audio_bitrate = int(self.audio_bitrate / (1.0 + (self.audio_packetloss_percent / 100.0)))
 
         # WebRTC ICE and SDP events
         self.on_ice = lambda mlineindex, candidate: logger.warn(
@@ -130,12 +135,14 @@ class GSTWebRTCApp:
             self.ximagesrc.set_state(Gst.State.PLAYING)
 
     # [START build_webrtcbin_pipeline]
-    def build_webrtcbin_pipeline(self):
+    def build_webrtcbin_pipeline(self, audio_only=False):
         """Adds the webrtcbin elements to the pipeline.
 
         The video and audio pipelines are linked to this in the
             build_video_pipeline() and build_audio_pipeline() methods.
         """
+        # Reference configuration for webrtcbin including congestion control:
+        #   https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/blob/main/net/webrtc/src/webrtcsink/imp.rs
 
         # Create webrtcbin element named app
         self.webrtcbin = Gst.ElementFactory.make("webrtcbin", "app")
@@ -151,6 +158,9 @@ class GSTWebRTCApp:
         self.webrtcbin.set_property("latency", 1)
 
         # Connect signal handlers
+        if self.congestion_control and not audio_only:
+            self.webrtcbin.connect(
+                'request-aux-sender', lambda webrtcbin, dtls_transport: self.__request_aux_sender(webrtcbin, dtls_transport))
         self.webrtcbin.connect(
             'on-negotiation-needed', lambda webrtcbin: self.__on_negotiation_needed(webrtcbin))
         self.webrtcbin.connect('on-ice-candidate', lambda webrtcbin, mlineindex,
@@ -527,8 +537,7 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-            # TODO: Chromium cannot decode more than 4 sliced threads, fix when it changes
-            x264enc.set_property("threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            x264enc.set_property("threads", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
             x264enc.set_property("aud", True)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
@@ -562,8 +571,7 @@ class GSTWebRTCApp:
             openh264enc.set_property("usage-type", "screen")
             openh264enc.set_property("complexity", "low")
             openh264enc.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
-            # TODO: Chromium cannot decode more than 4 slices, fix when it changes
-            openh264enc.set_property("multi-thread", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            openh264enc.set_property("multi-thread", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
             openh264enc.set_property("slice-mode", "n-slices")
             openh264enc.set_property("num-slices", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
             openh264enc.set_property("rate-control", "bitrate")
@@ -668,6 +676,13 @@ class GSTWebRTCApp:
             # Send SPS and PPS Insertion with every IDR frame
             rtph264pay.set_property("config-interval", -1)
 
+            # Add Transport-Wide Congestion Control (TWCC) extension
+            twcc_id_video = self.__pick_twcc_extension_id(rtph264pay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtph264pay.emit("add-extension", twcc_extension_video)
+
             # Set the capabilities for the rtph264pay element.
             rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
 
@@ -705,6 +720,11 @@ class GSTWebRTCApp:
             rtph265pay.set_property("mtu", 1200)
             rtph265pay.set_property("aggregate-mode", "zero-latency")
             rtph265pay.set_property("config-interval", -1)
+            twcc_id_video = self.__pick_twcc_extension_id(rtph265pay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtph265pay.emit("add-extension", twcc_extension_video)
             rtph265pay_caps = Gst.caps_from_string("application/x-rtp")
             rtph265pay_caps.set_value("media", "video")
             rtph265pay_caps.set_value("clock-rate", 90000)
@@ -724,6 +744,11 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp8pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
+            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -743,6 +768,11 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp9pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
+            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -763,6 +793,11 @@ class GSTWebRTCApp:
 
             rtpav1pay = Gst.ElementFactory.make("rtpav1pay")
             rtpav1pay.set_property("mtu", 1200)
+            twcc_id_video = self.__pick_twcc_extension_id(rtpav1pay)
+            if twcc_id_video is not None:
+                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                twcc_extension_video.set_id(twcc_id_video)
+                rtpav1pay.emit("add-extension", twcc_extension_video)
             rtpav1pay_caps = Gst.caps_from_string("application/x-rtp")
             rtpav1pay_caps.set_value("media", "video")
             rtpav1pay_caps.set_value("clock-rate", 90000)
@@ -824,8 +859,8 @@ class GSTWebRTCApp:
         # Enable NACKs on the transceiver with video streams, helps with retransmissions and freezing when packets are dropped.
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
         transceiver.set_property("do-nack", True)
-        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
-        transceiver.set_property("fec-percentage", self.packetloss_percent)
+        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.video_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
+        transceiver.set_property("fec-percentage", self.video_packetloss_percent)
     # [END build_video_pipeline]
 
     # [START build_audio_pipeline]
@@ -863,13 +898,12 @@ class GSTWebRTCApp:
         opusenc.set_property("audio-type", "restricted-lowdelay")
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
-        opusenc.set_property("dtx", True)
         # Browser-side SDP munging for minptime=3 in Chrome is required for effect
         opusenc.set_property("frame-size", "2.5")
-        opusenc.set_property("inband-fec", self.packetloss_percent > 0)
+        opusenc.set_property("inband-fec", self.audio_packetloss_percent > 0)
         opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)
-        opusenc.set_property("packet-loss-percentage", self.packetloss_percent)
+        opusenc.set_property("packet-loss-percentage", self.audio_packetloss_percent)
 
         # Set audio bitrate
         # This can be dynamically changed using set_audio_bitrate()
@@ -879,7 +913,13 @@ class GSTWebRTCApp:
         # RTP packets that are sent over the connection transport.
         rtpopuspay = Gst.ElementFactory.make("rtpopuspay")
         rtpopuspay.set_property("mtu", 1200)
-        rtpopuspay.set_property("dtx", True)
+
+        # Add Transport-Wide Congestion Control (TWCC) extension
+        twcc_id_audio = self.__pick_twcc_extension_id(rtpopuspay)
+        if twcc_id_audio is not None:
+            twcc_extension_audio = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+            twcc_extension_audio.set_id(twcc_id_audio)
+            rtpopuspay.emit("add-extension", twcc_extension_audio)
 
         # Insert a queue for the RTP packets.
         # rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
@@ -935,8 +975,8 @@ class GSTWebRTCApp:
 
         # Enable forward error correction (FEC) in the audio stream
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
-        transceiver.set_property("fec-percentage", self.packetloss_percent)
+        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
+        transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
     # [END build_audio_pipeline]
 
     def check_plugins(self):
@@ -1061,16 +1101,20 @@ class GSTWebRTCApp:
             else:
                 logger.warning("setting keyframe interval (GOP size) not supported with encoder: %s" % self.encoder)
 
-    def set_video_bitrate(self, bitrate):
+    def set_video_bitrate(self, bitrate, cc=False):
         """Set video encoder target bitrate in bps
 
         Arguments:
             bitrate {integer} -- bitrate in bits per second, for example, 2000 for 2kbits/s or 10000 for 1mbit/sec.
+            cc {boolean} -- whether the congestion control element triggered the bitrate change.
         """
 
         if self.pipeline:
             # Prevent bitrate from overshooting because of FEC
-            fec_bitrate = int(bitrate / (1.0 + (self.packetloss_percent / 100.0)))
+            fec_bitrate = int(bitrate / (1.0 + (self.video_packetloss_percent / 100.0)))
+            # Change maximum bitrate range of congestion control element
+            if self.congestion_control and not cc and self.rtpgccbwe is not None:
+                self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.audio_bitrate))
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
@@ -1096,7 +1140,10 @@ class GSTWebRTCApp:
             else:
                 logger.warning("set_video_bitrate not supported with encoder: %s" % self.encoder)
 
-            logger.info("video bitrate set to: %d" % bitrate)
+            if not cc:
+                logger.info("video bitrate set to: %d" % bitrate)
+            else:
+                logger.debug("video bitrate set with congestion control to: %d" % bitrate)
 
             self.video_bitrate = bitrate
             self.fec_video_bitrate = fec_bitrate
@@ -1104,20 +1151,27 @@ class GSTWebRTCApp:
             self.__send_data_channel_message(
                 "pipeline", {"status": "Video bitrate set to: %d" % bitrate})
 
-    def set_audio_bitrate(self, bitrate):
+    def set_audio_bitrate(self, bitrate, cc=False):
         """Set Opus encoder target bitrate in bps
 
         Arguments:
             bitrate {integer} -- bitrate in bits per second, for example, 96000 for 96 kbits/s.
+            cc {boolean} -- whether the congestion control element triggered the bitrate change.
         """
 
         if self.pipeline:
             # Prevent bitrate from overshooting because of FEC
-            fec_bitrate = int(bitrate / (1.0 + (self.packetloss_percent / 100.0)))
+            fec_bitrate = int(bitrate / (1.0 + (self.audio_packetloss_percent / 100.0)))
+            # Change maximum bitrate range of congestion control element
+            if self.congestion_control and not cc and self.rtpgccbwe is not None:
+                self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", fec_bitrate)
 
-            logger.info("audio bitrate set to: %d" % bitrate)
+            if not cc:
+                logger.info("audio bitrate set to: %d" % bitrate)
+            else:
+                logger.debug("audio bitrate set with congestion control to: %d" % bitrate)
             self.audio_bitrate = bitrate
             self.fec_audio_bitrate = fec_bitrate
             self.__send_data_channel_message(
@@ -1290,6 +1344,13 @@ class GSTWebRTCApp:
         elif 'rtx-time=125' not in sdp_text:
             logger.warning("injecting modified rtx-time to SDP")
             sdp_text = re.sub(r'rtx-time=\d+', r'rtx-time=125', sdp_text)
+        # Add non-standard Chromium x-google-per-layer-pli fmtp for enabling per-layer keyframes in response to PLIs
+        if 'x-google-per-layer-pli' not in sdp_text:
+            logger.warning("injecting x-google-per-layer-pli to SDP")
+            sdp_text = re.sub(r'(apt=\d+)', r'\1;x-google-per-layer-pli=1', sdp_text)
+        elif 'x-google-per-layer-pli=1' not in sdp_text:
+            logger.warning("injecting x-google-per-layer-pli to SDP")
+            sdp_text = re.sub(r'x-google-per-layer-pli=\d+', r'x-google-per-layer-pli=1', sdp_text)
         # Firefox needs profile-level-id=42e01f in the offer, but webrtcbin does not add this.
         # TODO: Remove when fixed in webrtcbin.
         #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1106
@@ -1301,6 +1362,47 @@ class GSTWebRTCApp:
                 logger.warning("injecting level-asymmetry-allowed to SDP")
                 sdp_text = sdp_text.replace('packetization-mode=1', 'level-asymmetry-allowed=1;packetization-mode=1')
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
+
+    def __request_aux_sender(self, webrtcbin, dtls_transport):
+        """Handles request-aux-header signal, initializing the rtpgccbwe element for video WebRTC
+
+        Arguments:
+            webrtcbin {GstWebRTCBin gobject} -- webrtcbin gobject
+            dtls_transport {GstWebRTCDTLSTransport gobject} -- DTLS Transport for which the aux sender will be used
+        """
+        self.rtpgccbwe = Gst.ElementFactory.make("rtpgccbwe")
+        if self.rtpgccbwe is None:
+            logger.warning("rtpgccbwe element is not available, not performing any congestion control.")
+            return None
+        logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
+        self.rtpgccbwe.set_property("min-bitrate", 1000)
+        self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000  + self.audio_bitrate))
+        self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.audio_bitrate))
+        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.audio_bitrate) / 1000), cc=True))
+        return self.rtpgccbwe
+
+    def __pick_twcc_extension_id(self, payloader):
+        """Finds extension ID for Transport-Wide Congestion Control (TWCC), required for rtcgccbwe
+
+        Arguments:
+            payloader {GstRTPBasePayload gobject} -- payloader gobject
+        """
+        payloader_properties = payloader.list_properties()
+        enabled_extensions = payloader.get_property("extensions") if "extensions" in [payloader_property.name for payloader_property in payloader_properties] else None
+        if not enabled_extensions:
+            logger.debug("'extensions' property in {} does not exist in payloader, application code must ensure to select non-conflicting IDs for any additionally configured extensions".format(payloader.get_name()))
+            return 1
+        twcc = next((ext for ext in enabled_extensions if ext.get_uri() == self.RTP_TWCC_URI), None)
+        # When TWCC is already mapped
+        if twcc:
+            return None
+        used_numbers = set(ext.get_id() for ext in enabled_extensions)
+        # Find first extension ID that does not collide
+        num = 1
+        while True:
+            if num not in used_numbers:
+                return num
+            num += 1
 
     def __on_negotiation_needed(self, webrtcbin):
         """Handles on-negotiation-needed signal, generates create-offer action
@@ -1358,7 +1460,7 @@ class GSTWebRTCApp:
         self.pipeline = Gst.Pipeline.new()
 
         # Construct the webrtcbin pipeline
-        self.build_webrtcbin_pipeline()
+        self.build_webrtcbin_pipeline(audio_only)
 
         if audio_only:
             self.build_audio_pipeline()

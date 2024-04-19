@@ -246,6 +246,8 @@ Below are GStreamer components which are implemented and therefore may be used w
 
 This table specifies the currently implemented video encoders and their corresponding codecs, which may be set using the environment variable `SELKIES_ENCODER` or the command-line option `--encoder`.
 
+**GStreamer ≥ 1.22 is the current strict requirement. No support will be provided for older versions.**
+
 | Plugin (set `SELKIES_ENCODER` to) | Codec | Acceleration | Operating Systems | Browsers | Main Dependencies | Notes |
 |---|---|---|---|---|---|---|
 | [`nvcudah264enc`](https://gstreamer.freedesktop.org/documentation/nvcodec/nvcudah264enc.html) | H.264 AVC | NVIDIA GPU | All | All Major | NVRTC, `libnvidia-encode` | [Requires NVENC - Encoding H.264 (AVCHD)](https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new) |
@@ -383,27 +385,27 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 ### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails or the remote desktop does not start.
 
-First of all, use HTTPS or HTTP port forwarding to localhost as much as possible. Browsers do not support WebRTC or relevant features including pointer and keyboard lock in HTTP outside localhost. Also check if the WebRTC video codec is supported in the web browser, as the server may panic if the codecs do not match.
+First of all, use HTTPS or HTTP port forwarding to localhost as much as possible. Browsers do not support WebRTC or relevant features including pointer and keyboard lock in HTTP outside localhost. Also check if the WebRTC video codec is supported in the web browser, as the server may panic if the codecs do not match. Moreover, ensure that there is a running PulseAudio or PipeWire-Pulse session as the interface does not establish without an audio server.
 
 Then, please read [Using a TURN server](#using-a-turn-server).
 
 Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the private VPN IP of the TURN server host, such as `192.168.0.2`.
 
+### The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
+
+This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use. In order to use the web interface when this is not possible (or when you are using SSH or remote access), check `sudo systemctl status sddm` or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running `selkies-gstreamer`.
+
 ### The HTML5 web interface is slow and laggy.
 
 **Usually, the issue arises from using a WiFi router with bufferbloat issues, especially if you observe stuttering. Try using the [Bufferbloat Test](https://www.waveform.com/tools/bufferbloat) to identify the issue first before moving on.** Using wired ethernet or a good 5GHz WiFi connection is important. Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any remote desktop application. Also note that a higher framerate will improve performance if you have the sufficient bandwidth. This is because one screen refresh from a 60 fps screen takes 16.67 ms at a time, while one screen refresh from a 15 fps screen inevitably takes 66.67 ms, and therefore inherently causes a visible lag.
 
-Disable all power saving or efficiency features available in the web browser. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to decode the screen.
+Disable all power saving or efficiency features available in the web browser. In Windows 10 or 11, try `Start > Settings > System > Power & battery > Power mode > Best performance`. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to decode the screen.
 
 However, it might be that the parameters for the WebRTC interface, video encoders, RTSP, or other [GStreamer](https://gstreamer.freedesktop.org) plugins are not optimized enough. If you find that it is the case, we always welcome contributions. If your changes show noticeably better results in the same conditions, please make a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls), or tell us about the parameters in any channel that we can reach so that we can also test.
 
 ### My touchpad does not move while pressing a key with the keyboard.
 
 This is a setting from the client operating system and will show the same behavior with other applications. In Windows, go to `Settings > Bluetooth & devices > Touchpad > Taps` to increase your touchpad sensitivity. In Linux or Mac, turn off the setting `Touchpad > Disable while typing`.
-
-### The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
-
-This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use. In order to use the web interface when this is not possible (or when you are using SSH or remote access), check `sudo systemctl status sddm` or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running `selkies-gstreamer`.
 
 ### I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 
