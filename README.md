@@ -393,7 +393,7 @@ Make sure to also check that you enabled automatic login with your display manag
 
 ### The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
 
-This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use. In order to use the web interface when this is not possible (or when you are using SSH or remote access), check `sudo systemctl status sddm` or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running `selkies-gstreamer`.
+This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use. In order to use the web interface when this is not possible (or when you are using SSH or remote access), check `sudo systemctl status sddm`, `sudo systemctl status lightdm`, or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running `selkies-gstreamer` as `root`.
 
 ### The HTML5 web interface is slow and laggy.
 
@@ -413,7 +413,7 @@ You can start a new instance of `selkies-gstreamer` by changing the `DISPLAY` en
 
 ### I want to test a shared secret TURN server by manually generating a TURN credential from a shared secret.
 
-This step is required when you want to test your TURN server configured with a shared secret instead of the legacy username/password authentication.
+The below steps are required when you want to test your TURN server configured with a shared secret instead of the legacy username/password authentication.
 
 1. Run the test container:
 
