@@ -104,6 +104,7 @@ var app = new Vue({
                 { text: '64 kb/s', value: 64000 },
                 { text: '96 kb/s', value: 96000 },
                 { text: '128 kb/s', value: 128000 },
+                { text: '192 kb/s', value: 192000 },
                 { text: '256 kb/s', value: 256000 },
                 { text: '320 kb/s', value: 320000 },
                 { text: '510 kb/s', value: 510000 },

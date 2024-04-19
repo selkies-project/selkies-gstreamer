@@ -82,8 +82,8 @@ class GSTWebRTCApp:
         self.webrtcbin = None
         self.data_channel = None
         self.rtpgccbwe = None
-        self.congestion_control = congestion_control
         self.RTP_TWCC_URI = "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"
+        self.congestion_control = congestion_control
         self.encoder = encoder
         self.gpu_id = gpu_id
 
