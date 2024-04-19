@@ -537,8 +537,7 @@ class GSTWebRTCApp:
 
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
-            # TODO: Chromium cannot decode more than 4 sliced threads, fix when it changes
-            x264enc.set_property("threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            x264enc.set_property("threads", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
             x264enc.set_property("aud", True)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
@@ -572,8 +571,7 @@ class GSTWebRTCApp:
             openh264enc.set_property("usage-type", "screen")
             openh264enc.set_property("complexity", "low")
             openh264enc.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
-            # TODO: Chromium cannot decode more than 4 slices, fix when it changes
-            openh264enc.set_property("multi-thread", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            openh264enc.set_property("multi-thread", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
             openh264enc.set_property("slice-mode", "n-slices")
             openh264enc.set_property("num-slices", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
             openh264enc.set_property("rate-control", "bitrate")
