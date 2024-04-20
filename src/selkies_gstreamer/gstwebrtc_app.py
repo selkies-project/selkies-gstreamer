@@ -1116,7 +1116,6 @@ class GSTWebRTCApp:
             if self.congestion_control and not cc and self.rtpgccbwe is not None:
                 self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.audio_bitrate, int(bitrate * 1000 * 0.1 + self.audio_bitrate)))
                 self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.audio_bitrate))
-                self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.audio_bitrate))
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
@@ -1168,7 +1167,6 @@ class GSTWebRTCApp:
             if self.congestion_control and not cc and self.rtpgccbwe is not None:
                 self.rtpgccbwe.set_property("min-bitrate", max(100000 + bitrate, int(self.video_bitrate * 1000 * 0.1 + bitrate)))
                 self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + bitrate))
-                self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", fec_bitrate)
 
