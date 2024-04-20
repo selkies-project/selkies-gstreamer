@@ -67,9 +67,13 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libdrm-dev \
         libasound2-dev \
         libjack-jackd2-dev \
+        libjpeg-turbo8-dev \
+        libnice-dev \
         libogg-dev \
+        libopenjp2-7-dev \
         libopus-dev \
         libpulse-dev \
+        libsrtp2-dev \
         libssl-dev \
         libvdpau-dev \
         libvorbis-dev \
