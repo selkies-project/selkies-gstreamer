@@ -226,7 +226,7 @@ class WebRTCDemoSignalling {
 
         if (event.data === "HELLO") {
             this._setStatus("Registered with server.");
-            this._setStatus("Waiting for video stream.");
+            this._setStatus("Waiting for stream.");
             return;
         }
 

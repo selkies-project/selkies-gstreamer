@@ -402,12 +402,12 @@ def main():
     parser.add_argument('--keyframe_distance',
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '3'),
                         help='Distance between video GOP frames/Keyframes in seconds, use "-1" for infinite distance')
-    parser.add_argument('--disable_congestion_control',
-                        default=os.environ.get('SELKIES_DISABLE_CONGESTION_CONTROL', 'false'),
-                        help='Disable Google Congestion Control (GCC), do not disable unless you understand the implications')
+    parser.add_argument('--congestion_control',
+                        default=os.environ.get('SELKIES_CONGESTION_CONTROL', 'false'),
+                        help='Enable Google Congestion Control (GCC), may introduce more stutter and latency from encoder updates')
     parser.add_argument('--video_packetloss_percent',
                         default=os.environ.get('SELKIES_VIDEO_PACKETLOSS_PERCENT', '0'),
-                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, enabling not recommended when Google Congestion Control is active')
+                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective compared to audio, enabling not recommended if Google Congestion Control is enabled')
     parser.add_argument('--audio_packetloss_percent',
                         default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '10'),
                         help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
@@ -588,7 +588,7 @@ def main():
     cursor_debug = args.debug_cursors.lower() == "true"
     cursor_size = int(args.cursor_size)
     keyframe_distance = float(args.keyframe_distance)
-    congestion_control = args.disable_congestion_control.lower() != "true"
+    congestion_control = args.congestion_control.lower() == "true"
     video_packetloss_percent = float(args.video_packetloss_percent)
     audio_packetloss_percent = float(args.audio_packetloss_percent)
 

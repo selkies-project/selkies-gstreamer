@@ -63,7 +63,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, congestion_control=True, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=3.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -1112,10 +1112,14 @@ class GSTWebRTCApp:
         if self.pipeline:
             # Prevent bitrate from overshooting because of FEC
             fec_bitrate = int(bitrate / (1.0 + (self.video_packetloss_percent / 100.0)))
-            # Change maximum bitrate range of congestion control element
-            if self.congestion_control and not cc and self.rtpgccbwe is not None:
+            # Change bitrate range of congestion control element
+            if (not cc) and self.congestion_control and self.rtpgccbwe is not None:
+                # Prevent encoder freeze because of low bitrate with min-bitrate
                 self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.audio_bitrate, int(bitrate * 1000 * 0.1 + self.audio_bitrate)))
                 self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.audio_bitrate))
+                # Method is called again through the notifier with cc=True
+                self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.audio_bitrate))
+                return
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
@@ -1152,21 +1156,22 @@ class GSTWebRTCApp:
             self.__send_data_channel_message(
                 "pipeline", {"status": "Video bitrate set to: %d" % bitrate})
 
-    def set_audio_bitrate(self, bitrate, cc=False):
+    def set_audio_bitrate(self, bitrate):
         """Set Opus encoder target bitrate in bps
 
         Arguments:
             bitrate {integer} -- bitrate in bits per second, for example, 96000 for 96 kbits/s.
-            cc {boolean} -- whether the congestion control element triggered the bitrate change.
         """
 
         if self.pipeline:
             # Prevent bitrate from overshooting because of FEC
             fec_bitrate = int(bitrate / (1.0 + (self.audio_packetloss_percent / 100.0)))
             # Change bitrate range of congestion control element
-            if self.congestion_control and not cc and self.rtpgccbwe is not None:
+            if self.congestion_control and self.rtpgccbwe is not None:
+                # Prevent encoder freeze because of low bitrate with min-bitrate
                 self.rtpgccbwe.set_property("min-bitrate", max(100000 + bitrate, int(self.video_bitrate * 1000 * 0.1 + bitrate)))
                 self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + bitrate))
+                self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", fec_bitrate)
 
@@ -1377,14 +1382,15 @@ class GSTWebRTCApp:
             logger.warning("rtpgccbwe element is not available, not performing any congestion control.")
             return None
         logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
+        # Prevent encoder freeze because of low bitrate with min-bitrate
         self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.audio_bitrate, int(self.video_bitrate * 1000 * 0.1 + self.audio_bitrate)))
-        self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000  + self.audio_bitrate))
+        self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + self.audio_bitrate))
         self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.audio_bitrate))
         self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.audio_bitrate) / 1000), cc=True))
         return self.rtpgccbwe
 
     def __pick_twcc_extension_id(self, payloader):
-        """Finds extension ID for Transport-Wide Congestion Control (TWCC), required for rtcgccbwe
+        """Finds extension ID for Transport-Wide Congestion Control (TWCC), required for rtpgccbwe
 
         Arguments:
             payloader {GstRTPBasePayload gobject} -- payloader gobject
