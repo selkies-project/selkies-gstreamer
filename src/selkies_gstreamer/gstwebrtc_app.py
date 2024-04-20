@@ -1114,7 +1114,9 @@ class GSTWebRTCApp:
             fec_bitrate = int(bitrate / (1.0 + (self.video_packetloss_percent / 100.0)))
             # Change maximum bitrate range of congestion control element
             if self.congestion_control and not cc and self.rtpgccbwe is not None:
+                self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.audio_bitrate, int(bitrate * 1000 * 0.1 + self.audio_bitrate)))
                 self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.audio_bitrate))
+                self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.audio_bitrate))
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
@@ -1162,10 +1164,11 @@ class GSTWebRTCApp:
         if self.pipeline:
             # Prevent bitrate from overshooting because of FEC
             fec_bitrate = int(bitrate / (1.0 + (self.audio_packetloss_percent / 100.0)))
-            # Change maximum bitrate range of congestion control element
+            # Change bitrate range of congestion control element
             if self.congestion_control and not cc and self.rtpgccbwe is not None:
-                self.rtpgccbwe.set_property("min-bitrate", 100000 + bitrate)
+                self.rtpgccbwe.set_property("min-bitrate", max(100000 + bitrate, int(self.video_bitrate * 1000 * 0.1 + bitrate)))
                 self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + bitrate))
+                self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", fec_bitrate)
 
@@ -1376,7 +1379,7 @@ class GSTWebRTCApp:
             logger.warning("rtpgccbwe element is not available, not performing any congestion control.")
             return None
         logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
-        self.rtpgccbwe.set_property("min-bitrate", 100000 + self.audio_bitrate)
+        self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.audio_bitrate, int(self.video_bitrate * 1000 * 0.1 + self.audio_bitrate)))
         self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000  + self.audio_bitrate))
         self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.audio_bitrate))
         self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.audio_bitrate) / 1000), cc=True))
