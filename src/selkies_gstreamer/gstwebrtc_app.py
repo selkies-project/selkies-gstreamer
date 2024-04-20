@@ -1164,6 +1164,7 @@ class GSTWebRTCApp:
             fec_bitrate = int(bitrate / (1.0 + (self.audio_packetloss_percent / 100.0)))
             # Change maximum bitrate range of congestion control element
             if self.congestion_control and not cc and self.rtpgccbwe is not None:
+                self.rtpgccbwe.set_property("min-bitrate", 100000 + bitrate)
                 self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", fec_bitrate)
@@ -1364,7 +1365,7 @@ class GSTWebRTCApp:
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
     def __request_aux_sender(self, webrtcbin, dtls_transport):
-        """Handles request-aux-header signal, initializing the rtpgccbwe element for video WebRTC
+        """Handles request-aux-header signal, initializing the rtpgccbwe element for WebRTC
 
         Arguments:
             webrtcbin {GstWebRTCBin gobject} -- webrtcbin gobject
@@ -1375,7 +1376,7 @@ class GSTWebRTCApp:
             logger.warning("rtpgccbwe element is not available, not performing any congestion control.")
             return None
         logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
-        self.rtpgccbwe.set_property("min-bitrate", 1000)
+        self.rtpgccbwe.set_property("min-bitrate", 100000 + self.audio_bitrate)
         self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000  + self.audio_bitrate))
         self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.audio_bitrate))
         self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.audio_bitrate) / 1000), cc=True))
