@@ -86,7 +86,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
-ARG PIP_BREAK_SYSTEM_PACKAGES 1
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
 RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-pip \
         python3-dev \
