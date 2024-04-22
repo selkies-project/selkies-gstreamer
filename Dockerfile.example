@@ -49,7 +49,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 USER 1000
-SHELL ["/usr/bin/fakeroot", "--"]
+SHELL ["/usr/bin/fakeroot", "--", "bash", "-c"]
 
 # Install Selkies-GStreamer system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
