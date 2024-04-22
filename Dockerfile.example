@@ -20,18 +20,45 @@ ARG DISTRIB_RELEASE
 LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 ARG DEBIAN_FRONTEND=noninteractive
+# Configure default username
+ARG TZ=UTC
+ARG PASSWD=mypasswd
+RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends -y \
+        apt-utils \
+        fakeroot \
+        locales \
+        pulseaudio \
+        ssl-cert \
+        sudo \
+        udev \
+        tzdata && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    locale-gen en_US.UTF-8 && \
+    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone && \
+    ln -snf /usr/bin/fakeroot /usr/bin/sudo && \
+    groupadd -g 1000 ubuntu || true && \
+    useradd -ms /bin/bash ubuntu -u 1000 -g 1000 || true && \
+    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,games,input,lp,plugdev,pulse-access,render,ssl-cert,sudo,tape,tty,video,voice ubuntu && \
+    echo "ubuntu ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    echo "ubuntu:${PASSWD}" | chpasswd && \
+    chown -R -f --no-preserve-root ubuntu:ubuntu / || true
+
+# Set locales
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+USER 1000
+SHELL ["/usr/bin/fakeroot", "--"]
 
 # Install Selkies-GStreamer system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
         # System dependencies
-        apt-utils \
         build-essential \
         curl \
         gdebi-core \
         gnupg \
         software-properties-common \
-        sudo \
-        tzdata \
         jq \
         # GStreamer dependencies
         python3-pip \
@@ -101,7 +128,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         mesa-vulkan-drivers \
         vulkan-tools \
         nvtop && \
-    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf && \
     # Configure OpenCL manually
@@ -149,7 +176,7 @@ RUN VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/VirtualGL/virt
     apt-get update && apt-get install -y --no-install-recommends ./virtualgl_${VIRTUALGL_VERSION}_arm64.deb && \
     rm -f "virtualgl_${VIRTUALGL_VERSION}_arm64.deb" && \
     chmod u+s /usr/lib/libvglfaker.so /usr/lib/libvglfaker-nodl.so /usr/lib/libdlfaker.so /usr/lib/libgefaker.so; fi && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
 
@@ -179,7 +206,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
     # Prevent dialogs at Xfce4 desktop environment start
     cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Add Tini init script - take care of runaway processes
 ENV TINI_VERSION v0.7.0
@@ -195,7 +222,7 @@ COPY --from=selkies-web /usr/share/nginx/html ./gst-web
 # Install Joystick Interposer
 COPY --from=selkies-js-interposer /opt/*.deb /opt/selkies-js-interposer.deb
 RUN apt-get update && apt-get install --no-install-recommends -y /opt/selkies-js-interposer.deb && rm -f /opt/selkies-js-interposer.deb && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Selkies-GStreamer Python application
 ARG PYPI_PACKAGE=selkies_gstreamer
@@ -276,20 +303,14 @@ python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\n\
 "\
     > /etc/motd
 
-# Add login user
-ARG TZ=UTC
-ARG PASSWD=mypasswd
-RUN groupadd -g 1000 user && \
-    useradd -ms /bin/bash user -u 1000 -g 1000 && \
-    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,input,lp,plugdev,pulse-access,render,ssl-cert,sudo,tape,tty,video,voice user && \
-    echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    chown user:user /home/user && \
-    echo "user:${PASSWD}" | chpasswd && \
-    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
+USER 1000
+SHELL /bin/bash
+ENV SHELL /bin/bash
+ENV USER=ubuntu
+ENV XDG_RUNTIME_DIR /tmp/runtime-user
+WORKDIR /home/ubuntu
 
-USER user
-ENV USER=user
-WORKDIR /home/user
+EXPOSE 8080
 
 ENTRYPOINT ["/tini", "--"]
 CMD ["/entrypoint.sh"]

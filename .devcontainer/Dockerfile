@@ -63,12 +63,12 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         libwebrtc-audio-processing1 \
         x264 \
         x265 && \
-    sudo rm -rf /var/lib/apt/lists/*
+    sudo apt-get clean && sudo apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN . /etc/lsb-release; if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then \
         apt-get update && \
         apt-get install --no-install-recommends -y xcvt && \
-        rm -rf /var/lib/apt/lists/*; \
+        apt-get clean && rm -rf /var/lib/apt/lists/*; \
     fi
 
 # Download and extract latest GStreamer component
@@ -83,7 +83,7 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         nginx \
         imagemagick \
         python3-venv && \
-    sudo rm -rf /var/lib/apt/lists/* && \
+    sudo apt-get clean && sudo apt-get clean && rm -rf /var/lib/apt/lists/* && \
     sudo python3 -m pip install --no-cache-dir --upgrade build
 
 # Install desktop environment
@@ -94,7 +94,7 @@ RUN /tmp/install-desktop-environment.sh ${DESKTOP}
 # Install Chrome browser
 RUN cd /tmp && curl -fsSL -o ./google-chrome-stable.deb "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" && \
     sudo apt-get update && sudo apt-get install --no-install-recommends -y xdg-utils ./google-chrome-stable.deb && \
-    sudo rm -rf /var/lib/apt/lists/* && \
+    sudo apt-get clean && sudo apt-get clean && rm -rf /var/lib/apt/lists/* && \
     sudo rm -f google-chrome-stable.deb && \
     xdg-settings set default-web-browser google-chrome.desktop
 
@@ -102,4 +102,4 @@ RUN cd /tmp && curl -fsSL -o ./google-chrome-stable.deb "https://dl.google.com/l
 RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         jstest-gtk \
         netcat && \
-    sudo rm -rf /var/lib/apt/lists/*
+    sudo apt-get clean && sudo apt-get clean && rm -rf /var/lib/apt/lists/*

@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         pkg-config \
         tar \
         xz-utils && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install build dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -83,7 +83,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libwebrtc-audio-processing-dev \
         libx264-dev \
         libx265-dev && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
@@ -92,7 +92,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-dev \
         python-gi-dev && \
     pip3 install --no-cache-dir cmake meson ninja gitlint tomli && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
