@@ -81,7 +81,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Install the Python components of `selkies-gstreamer` (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`):
 
 ```bash
-cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && export PIP_BREAK_SYSTEM_PACKAGES=1 && sudo pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl"
+cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && && sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl"
 ```
 
 4. Unpack the HTML5 components of `selkies-gstreamer`:
@@ -172,8 +172,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 docker create --platform="linux/amd64" --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
-export PIP_BREAK_SYSTEM_PACKAGES=1
-sudo pip3 install --no-cache-dir --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 ```
 

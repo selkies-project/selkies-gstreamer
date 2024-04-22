@@ -24,7 +24,7 @@
         {
             "label": "[install] re-install python package",
             "type": "shell",
-            "command": "export PIP_BREAK_SYSTEM_PACKAGES=1 && sudo python3 -m pip install --no-cache-dir --force-reinstall --upgrade ${workspaceFolder}/dist/selkies_gstreamer-0.0.1-py3-none-any.whl",
+            "command": "sudo PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install --no-cache-dir --force-reinstall --upgrade ${workspaceFolder}/dist/selkies_gstreamer-0.0.1-py3-none-any.whl",
             "problemMatcher": []
         },
         {
