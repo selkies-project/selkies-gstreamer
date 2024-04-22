@@ -297,7 +297,7 @@ def main():
                         help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables, this path must be writable.')
     parser.add_argument('--addr',
                         default=os.environ.get(
-                            'SELKIES_LISTEN_HOST', '0.0.0.0'),
+                            'SELKIES_LISTEN_ADDR', '0.0.0.0'),
                         help='Host to listen on for the signaling and web server, default: "0.0.0.0"')
     parser.add_argument('--port',
                         default=os.environ.get(
