@@ -76,7 +76,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libwayland-egl1 \
         libdrm2 \
         alsa-utils \
-        libasound2 \
         jackd2 \
         libjack-jackd2-0 \
         libjpeg-turbo8 \
@@ -201,7 +200,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y /opt/selkies-js
 # Install Selkies-GStreamer Python application
 ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=0.0.0.dev0
-ENV PIP_BREAK_SYSTEM_PACKAGES 1
+ARG PIP_BREAK_SYSTEM_PACKAGES=1
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install --no-cache-dir --force-reinstall /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 

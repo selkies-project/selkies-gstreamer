@@ -50,7 +50,6 @@ apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-re
     libwayland-egl1 \
     libdrm2 \
     alsa-utils \
-    libasound2 \
     jackd2 \
     libjack-jackd2-0 \
     libjpeg-turbo8 \

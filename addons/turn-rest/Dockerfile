@@ -4,7 +4,7 @@
 
 FROM python:3-alpine
 
-ENV PIP_BREAK_SYSTEM_PACKAGES 1
+ARG PIP_BREAK_SYSTEM_PACKAGES=1
 RUN pip3 install --no-cache-dir --force-reinstall flask
 
 COPY app.py /
