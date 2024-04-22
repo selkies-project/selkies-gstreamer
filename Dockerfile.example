@@ -304,7 +304,7 @@ python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\n\
     > /etc/motd
 
 USER 1000
-SHELL /bin/bash
+SHELL ["/bin/bash", "-c"]
 ENV SHELL /bin/bash
 ENV USER=ubuntu
 ENV XDG_RUNTIME_DIR /tmp/runtime-user
