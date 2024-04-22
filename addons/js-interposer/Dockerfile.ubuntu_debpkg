@@ -4,10 +4,10 @@
 #        --build-arg=DEBEMAIL=dan.isla@gmail.com \
 #        --build-arg=PKG_NAME=selkies-js-interposer \
 #        --build-arg=PKG_VERSION=0.0.1 \
-#        --build-arg=DISTRIB_RELEASE=22.04 \
+#        --build-arg=DISTRIB_RELEASE=24.04 \
 #        -t selkies-js-interposer-deb:latest -f Dockerfile.ubuntu_debpkg .
 
-ARG DISTRIB_RELEASE=22.04
+ARG DISTRIB_RELEASE=24.04
 FROM ubuntu:${DISTRIB_RELEASE} as build
 
 ARG DEBIAN_FRONTEND=noninteractive

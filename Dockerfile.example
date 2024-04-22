@@ -2,8 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-# Supported base images: Ubuntu 22.04, 20.04
-ARG DISTRIB_RELEASE=22.04
+# Supported base images: Ubuntu 24.04, 22.04, 20.04
+ARG DISTRIB_RELEASE=24.04
 ARG GSTREAMER_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer
 ARG GSTREAMER_BASE_IMAGE_RELEASE=main
 ARG PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:main
@@ -201,6 +201,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y /opt/selkies-js
 # Install Selkies-GStreamer Python application
 ARG PYPI_PACKAGE=selkies_gstreamer
 ARG PACKAGE_VERSION=0.0.0.dev0
+ARG PIP_BREAK_SYSTEM_PACKAGES 1
 COPY --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install --no-cache-dir --force-reinstall /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 

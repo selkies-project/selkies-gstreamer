@@ -22,13 +22,13 @@ services:
     # NOTE: export the DISTRIB_RELEASE env var to change the base image during build and run.
     ###
 
-    image: selkies-gstreamer-example:latest-ubuntu${DISTRIB_RELEASE:-22.04}
+    image: selkies-gstreamer-example:latest-ubuntu${DISTRIB_RELEASE:-24.04}
     entrypoint: ["/tini", "--", "/bin/bash"]
     build:
       context: .
       dockerfile: Dockerfile.example
       args:
-        DISTRIB_RELEASE: ${DISTRIB_RELEASE:-22.04}
+        DISTRIB_RELEASE: ${DISTRIB_RELEASE:-24.04}
 
         # Testing with gstreamer build in-repo:
         # 1. (cd addons/gstreamer && docker build --build-arg DISTRIB_RELEASE=${DISTRIB_RELEASE?} -t gstreamer:latest-ubuntu${DISTRIB_RELEASE?} .)
@@ -72,8 +72,8 @@ services:
     volumes:
       - type: bind
         source: ./src/selkies_gstreamer
-        # Change python3.8 to python3.10 in 22.04
-        target: /usr/local/lib/python3.8/dist-packages/selkies_gstreamer
+        # Change Python version to system version
+        target: /usr/local/lib/python3.12/dist-packages/selkies_gstreamer
         read_only: true
 
     # Configure for interactive session

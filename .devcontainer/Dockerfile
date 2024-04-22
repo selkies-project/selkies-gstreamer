@@ -77,6 +77,7 @@ RUN cd /opt && . /etc/lsb-release && SELKIES_VERSION=$(curl -fsSL "https://api.g
     curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu${DISTRIB_RELEASE}.tar.gz" | tar -xzf -
 
 # Install development dependencies
+ARG PIP_BREAK_SYSTEM_PACKAGES 1
 RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         xvfb \
         coturn \

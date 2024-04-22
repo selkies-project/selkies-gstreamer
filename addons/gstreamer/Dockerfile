@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-ARG DISTRIB_RELEASE=22.04
+ARG DISTRIB_RELEASE=24.04
 FROM ubuntu:${DISTRIB_RELEASE}
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -86,6 +86,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     rm -rf /var/lib/apt/lists/*
 
 # Install GST-Python dependencies, Meson, and Ninja
+ARG PIP_BREAK_SYSTEM_PACKAGES 1
 RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-pip \
         python3-dev \

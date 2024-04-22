@@ -26,7 +26,7 @@ Fourth, `selkies-gstreamer` is easy to use and expand to various usage cases, at
 
 ## How do I get started?
 
-Three components are required to run `selkies-gstreamer`: the [standalone build of GStreamer](addons/gstreamer) with the most recent version, the [Python package](src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface](addons/gst-web). Currently, 20.04 (Mint 20), 22.04 (Mint 21) are supported, but other operating systems should also work if using your own GStreamer build of the newest version (contributions for build workflows of more operating systems are welcome).
+Three components are required to run `selkies-gstreamer`: the [standalone build of GStreamer](addons/gstreamer) with the most recent version, the [Python package](src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface](addons/gst-web). Currently, Ubuntu 24.04 (Mint 22), 22.04 (Mint 21), 20.04 (Mint 20) are supported, but other operating systems should also work if using your own GStreamer build of the newest version (contributions for build workflows of more operating systems are welcome).
 
 All three of the components are built and packaged [every release](https://github.com/selkies-project/selkies-gstreamer/releases). In addition, every latest commit gets built and is made available in container forms [`ghcr.io/selkies-project/selkies-gstreamer/gstreamer`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgstreamer), [`ghcr.io/selkies-project/selkies-gstreamer/py-build`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fpy-build), and [`ghcr.io/selkies-project/selkies-gstreamer/gst-web`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-web).
 
@@ -40,7 +40,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example) is available.
 
-Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**change `DISTRIB_RELEASE` to `20.04` or `22.04`, then replace `main` to `latest` for the release build instead of the development build**):
+Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**change `DISTRIB_RELEASE` to `24.04`, `22.04`, or `20.04`, then replace `main` to `latest` for the release build instead of the development build**):
 
 ```bash
 docker run --pull=always --name selkies -it --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
@@ -62,7 +62,7 @@ While this instruction assumes that you are installing this project systemwide, 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils libasound2 jackd2 libjack-jackd2-0 libjpeg-turbo8 libnice10 libogg0 libopenjp2-7 libopus0 pulseaudio libpulse0 libsrtp2-1 libvorbis-dev libvpx-dev libwebp-dev libwebrtc-audio-processing1 x264 x265
 ```
 
-Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or a higher equivalent version of another operating system:
+Additionally, install `xcvt` if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
@@ -81,7 +81,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 3. Install the Python components of `selkies-gstreamer` (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`):
 
 ```bash
-cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && sudo pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl"
+cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && export PIP_BREAK_SYSTEM_PACKAGES=1 && sudo pip3 install --no-cache-dir --force-reinstall "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl" && rm -f "selkies_gstreamer-${SELKIES_VERSION}-py3-none-any.whl"
 ```
 
 4. Unpack the HTML5 components of `selkies-gstreamer`:
@@ -148,7 +148,7 @@ While this instruction assumes that you are installing this project systemwide, 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils libasound2 jackd2 libjack-jackd2-0 libjpeg-turbo8 libnice10 libogg0 libopenjp2-7 libopus0 pulseaudio libpulse0 libsrtp2-1 libvorbis-dev libvpx-dev libwebp-dev libwebrtc-audio-processing1 x264 x265
 ```
 
-Additionally, install `xcvt` if using Ubuntu 22.04 (Mint 21) or a higher equivalent version of another operating system:
+Additionally, install `xcvt` if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
@@ -172,6 +172,7 @@ This will install the GStreamer components to the default directory of `/opt/gst
 docker create --platform="linux/amd64" --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 docker rm selkies-py
+export PIP_BREAK_SYSTEM_PACKAGES=1
 sudo pip3 install --no-cache-dir --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 ```
