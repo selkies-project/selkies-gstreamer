@@ -20,7 +20,7 @@ ARG DISTRIB_RELEASE
 LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 ARG DEBIAN_FRONTEND=noninteractive
-# Configure rootless user environment for constrained environments
+# Configure rootless user environment for constrained environments with allowPrivilegeEscalation: false
 ARG TZ=UTC
 ARG PASSWD=mypasswd
 RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends -y \
@@ -45,7 +45,7 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
     echo "ubuntu ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     echo "ubuntu:${PASSWD}" | chpasswd && \
     chown -R -f --no-preserve-root ubuntu:ubuntu / || true && \
-    chown -f --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf || true && chmod 4755 /usr/bin/sudo-root || true
+    chown -R -f --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf /usr/libexec/sudo || true && chmod 4755 /usr/bin/sudo-root || true
 
 # Set locales
 ENV LANG en_US.UTF-8
