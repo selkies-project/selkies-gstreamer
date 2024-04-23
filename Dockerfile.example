@@ -36,7 +36,7 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
     locale-gen en_US.UTF-8 && \
     ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone && \
-    # Only use sudo-root for root-owned (/dev or /sys) directory operations, not apt-get installations
+    # Only use sudo-root for root-owned directory (/dev or /sys) or user/group permission operations, not for apt-get installation or file/directory operations
     mv -f /usr/bin/sudo /usr/bin/sudo-root && \
     ln -snf /usr/bin/fakeroot /usr/bin/sudo && \
     groupadd -g 1000 ubuntu || true && \
@@ -45,7 +45,7 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
     echo "ubuntu ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     echo "ubuntu:${PASSWD}" | chpasswd && \
     chown -R -f --no-preserve-root ubuntu:ubuntu / || true && \
-    chown -f --no-preserve-root root:root /etc/sudo.conf || true
+    chown -f --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf || true && chmod 4755 /usr/bin/sudo-root || true
 
 # Set locales
 ENV LANG en_US.UTF-8
