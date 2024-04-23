@@ -53,7 +53,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 USER 1000
-SHELL ["/usr/bin/fakeroot", "--", "/bin/bash", "-c"]
+SHELL ["/usr/bin/fakeroot", "--", "/bin/sh", "-c"]
 
 # Install Selkies-GStreamer system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -304,8 +304,9 @@ python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\n\
 \n\
 " > /etc/motd
 
+SHELL ["/bin/sh", "-c"]
+
 USER 1000
-SHELL ["/bin/bash", "-c"]
 ENV SHELL /bin/bash
 ENV USER=ubuntu
 ENV XDG_RUNTIME_DIR /tmp/runtime-user
