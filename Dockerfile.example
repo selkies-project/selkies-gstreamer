@@ -53,7 +53,7 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 USER 1000
-SHELL ["/usr/bin/fakeroot", "--", "bash", "-c"]
+SHELL ["/usr/bin/fakeroot", "--", "/bin/bash", "-c"]
 
 # Install Selkies-GStreamer system dependencies
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -236,7 +236,6 @@ RUN pip3 install --no-cache-dir --force-reinstall /opt/${PYPI_PACKAGE}-${PACKAGE
 
 # Setup global bashrc to configure X11 environment
 ENV DISPLAY ":0"
-RUN echo "export DISPLAY=${DISPLAY:-\:0}" >> /etc/bash.bashrc
 
 # Write startup script
 RUN TURN_RANDOM_PASSWORD="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)" && \
