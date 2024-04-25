@@ -21,7 +21,7 @@
 
 FROM golang:1.22-alpine as build
 WORKDIR /go/src/coturn-web
-COPY go.mod go.sum ./
+COPY go.mod ./
 RUN go mod download
 COPY *.go ./
 RUN go build
