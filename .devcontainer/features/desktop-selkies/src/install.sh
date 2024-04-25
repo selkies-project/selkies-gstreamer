@@ -66,13 +66,13 @@ apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-re
     libwebrtc-audio-processing1 \
     x264 \
     x265 && \
-apt-get clean && rm -rf /var/lib/apt/lists/*
+apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
 # Install system dependencies
 apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     xvfb \
     coturn && \
-apt-get clean && rm -rf /var/lib/apt/lists/*
+apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
 . /etc/lsb-release
 if [ "${DISTRIB_RELEASE}" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt; fi
