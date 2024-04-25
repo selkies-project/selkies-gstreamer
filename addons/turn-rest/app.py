@@ -8,27 +8,39 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET','POST'])
 def turn_rest():
-    shared_secret = os.environ.get('TURN_SHARED_SECRET')
-    turn_host = os.environ.get('TURN_HOST')
-    turn_port = os.environ.get('TURN_PORT')
-
-    turn_tls = request.values.get('tls').lower() == 'true' or os.environ.get('TURN_TLS').lower() == 'true'
-    protocol = request.values.get('protocol').lower() or os.environ.get('TURN_PROTOCOL').lower() or 'tcp'
-    if protocol.lower() != 'udp':
-        protocol = 'tcp'
     service_input = request.values.get('service') or 'turn'
+    if service_input:
+        service_input = service_input.lower()
+
+    shared_secret = os.environ.get('TURN_SHARED_SECRET') or 'openrelayprojectsecret'
+    turn_host = os.environ.get('TURN_HOST') or 'staticauth.openrelay.metered.ca'
+    if turn_host:
+        turn_host = turn_host.lower()
+    turn_port = os.environ.get('TURN_PORT') or '443'
+    if not turn_port.isdigit():
+        turn_port = '443'
     username_input = request.values.get('username') or request.headers.get('x-auth-user') or 'turn-rest'
+    if username_input:
+        username_input = username_input.lower()
+    protocol = request.values.get('protocol') or request.headers.get('x-turn-protocol') or os.environ.get('TURN_PROTOCOL') or 'udp'
+    if protocol.lower() != 'tcp':
+        protocol = 'udp'
+    turn_tls = request.values.get('tls') or os.environ.get('TURN_TLS') or False
+    if turn_tls and turn_tls.lower() == 'true':
+        turn_tls = True
+    else:
+        turn_tls = False
 
     # Sanitize user for credential compatibility
     user = username_input.replace(":", "-")
 
-    # credential expires in 24hrs
+    # Credential expires in 24 hours
     expiry_hour = 24
 
     exp = int(time.time()) + expiry_hour * 3600
     username = "{}:{}".format(exp, user)
 
-    # Generate HMAC credential.
+    # Generate HMAC credential
     hashed = hmac.new(bytes(shared_secret, "utf-8"), bytes(username, "utf-8"), hashlib.sha1).digest()
     password = base64.b64encode(hashed).decode()
 

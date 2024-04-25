@@ -7,16 +7,16 @@ FROM python:3-alpine
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
 RUN pip3 install --no-cache-dir --force-reinstall flask
 
-COPY app.py /
+COPY app.py /etc
 
-WORKDIR /
+WORKDIR /etc
 
 # Replace environment with customized TURN server
 ENV TURN_SHARED_SECRET openrelayprojectsecret
 ENV TURN_HOST staticauth.openrelay.metered.ca
 ENV TURN_PORT 443
-ENV TURN_TLS true
-ENV TURN_PROTOCOL tcp
+ENV TURN_PROTOCOL udp
+ENV TURN_TLS false
 
 EXPOSE 8008
 

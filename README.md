@@ -240,7 +240,7 @@ The cursor can be locked into the web interface using `Control + Shift + Left Cl
 
 ### Command-line options and environment variables
 
-Use `selkies-gstreamer --help` for all command-line options, after sourcing `gst-env`. Environment variables for each of the command-line options are available within [`__main__.py`](src/selkies_gstreamer/__main__.py). 
+Use `selkies-gstreamer --help` for all command-line options, after sourcing `gst-env`. Environment variables for command-line options are available as capitalizations of the options prepended by `SELKIES_` (such as `SELKIES_VIDEO_BITRATE` for `--video_bitrate`).
 
 ### GStreamer components
 

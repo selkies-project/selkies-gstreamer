@@ -91,14 +91,16 @@ class HMACRTCMonitor:
         self.running = False
 
 class RESTRTCMonitor:
-    def __init__(self, turn_rest_uri, turn_rest_username, turn_rest_authheader, period=60, enabled=True):
+    def __init__(self, turn_rest_uri, turn_rest_username, turn_rest_username_auth_header, turn_protocol='udp', turn_rest_protocol_header='x-turn-protocol', period=60, enabled=True):
         self.period = period
         self.enabled = enabled
         self.running = False
 
         self.turn_rest_uri = turn_rest_uri
         self.turn_rest_username = turn_rest_username.replace(":", "-")
-        self.turn_rest_authheader = turn_rest_authheader
+        self.turn_rest_username_auth_header = turn_rest_username_auth_header
+        self.turn_protocol = turn_protocol
+        self.turn_rest_protocol_header = turn_rest_protocol_header
 
         self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning(
             "unhandled on_rtc_config")
@@ -108,7 +110,7 @@ class RESTRTCMonitor:
         while self.running:
             if self.enabled and int(time.time()) % self.period == 0:
                 try:
-                    stun_servers, turn_servers, rtc_config = fetch_turn_rest(self.turn_rest_uri, self.turn_rest_username, self.turn_rest_authheader)
+                    stun_servers, turn_servers, rtc_config = fetch_turn_rest(self.turn_rest_uri, self.turn_rest_username, self.self.turn_rest_username_auth_header, self.turn_protocol, self.turn_rest_protocol_header)
                     self.on_rtc_config(stun_servers, turn_servers, rtc_config)
                 except Exception as e:
                     logger.warning("could not fetch TURN REST config in periodic monitor: {}".format(e))
@@ -215,7 +217,7 @@ def parse_rtc_config(data):
                 turn_uris.append(turn_uri)
     return stun_uris, turn_uris, data
 
-def fetch_turn_rest(uri, user, auth_header_name):
+def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp', header_protocol='x-turn-protocol'):
     """Fetches TURN uri from a REST API
 
     Arguments:
@@ -237,7 +239,8 @@ def fetch_turn_rest(uri, user, auth_header_name):
     if parsed_uri.scheme == "https":
         conn = http.client.HTTPSConnection(parsed_uri.netloc)
     auth_headers = {
-        auth_header_name: user
+        auth_header_username: user
+        header_protocol: protocol
     }
 
     conn.request("GET", parsed_uri.path, headers=auth_headers)
@@ -297,11 +300,11 @@ def main():
                         help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables, this path must be writable.')
     parser.add_argument('--addr',
                         default=os.environ.get(
-                            'SELKIES_LISTEN_ADDR', '0.0.0.0'),
+                            'SELKIES_ADDR', '0.0.0.0'),
                         help='Host to listen on for the signaling and web server, default: "0.0.0.0"')
     parser.add_argument('--port',
                         default=os.environ.get(
-                            'SELKIES_LISTEN_PORT', '8080'),
+                            'SELKIES_PORT', '8080'),
                         help='Port to listen on for the signaling and web server, default: "8080"')
     parser.add_argument('--web_root',
                         default=os.environ.get(
@@ -309,15 +312,15 @@ def main():
                         help='Path to directory containing web app source, default: "/opt/gst-web"')
     parser.add_argument('--enable_https',
                         default=os.environ.get(
-                            'SELKIES_ENABLE_HTTPS_WEB', 'false'),
+                            'SELKIES_ENABLE_HTTPS', 'false'),
                         help='Enable or disable HTTPS for the web app, specifing a valid server certificate is recommended.')
     parser.add_argument('--https_cert',
                         default=os.environ.get(
-                            'SELKIES_HTTPS_WEB_CERT', '/etc/ssl/certs/ssl-cert-snakeoil.pem'),
+                            'SELKIES_HTTPS_CERT', '/etc/ssl/certs/ssl-cert-snakeoil.pem'),
                         help='Path to the TLS server certificate file when HTTPS is enabled.')
     parser.add_argument('--https_key',
                         default=os.environ.get(
-                            'SELKIES_HTTPS_WEB_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
+                            'SELKIES_HTTPS_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
                         help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate.')
     parser.add_argument('--enable_basic_auth',
                         default=os.environ.get(
@@ -338,55 +341,59 @@ def main():
     parser.add_argument('--turn_rest_username',
                         default=os.environ.get(
                             'SELKIES_TURN_REST_USERNAME', "selkies-{}".format(socket.gethostname())),
-                        help='URI for TURN REST API service, default is the system hostname')
-    parser.add_argument('--turn_rest_authheader',
+                        help='URI for TURN REST API service, default set to system hostname')
+    parser.add_argument('--turn_rest_username_auth_header',
                         default=os.environ.get(
-                            'SELKIES_TURN_REST_AUTHHEADER', 'x-auth-user'),
-                        help='Header name to pass user to TURN REST API service')
+                            'SELKIES_TURN_REST_USERNAME_AUTH_HEADER', 'x-auth-user'),
+                        help='Header to pass user to TURN REST API service')
+    parser.add_argument('--turn_rest_protocol_header',
+                        default=os.environ.get(
+                            'SELKIES_TURN_REST_PROTOCOL_HEADER', 'x-turn-protocol'),
+                        help='Header to pass desired protocol to TURN REST API service')
     parser.add_argument('--rtc_config_json',
                         default=os.environ.get(
                             'SELKIES_RTC_CONFIG_JSON', '/tmp/rtc.json'),
-                        help='JSON file with RTC config to use instead of other TURN services, read periodically')
+                        help='JSON file with RTC config to use instead of other TURN services, checked periodically')
     parser.add_argument('--turn_host',
                         default=os.environ.get(
                             'SELKIES_TURN_HOST', 'staticauth.openrelay.metered.ca'),
-                        help='TURN host when generating RTC config from shared secret or using long-term credentials.')
+                        help='TURN host when generating RTC config from shared secret or using long-term credentials')
     parser.add_argument('--turn_port',
                         default=os.environ.get(
                             'SELKIES_TURN_PORT', '443'),
-                        help='TURN port when generating RTC config from shared secret or using long-term credentials.')
+                        help='TURN port when generating RTC config from shared secret or using long-term credentials')
     parser.add_argument('--turn_protocol',
                         default=os.environ.get(
                             'SELKIES_TURN_PROTOCOL', 'udp'),
-                        help='TURN protocol for the client to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network, "udp" is otherwise strongly recommended.')
+                        help='TURN protocol for the client to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network, "udp" is otherwise strongly recommended')
     parser.add_argument('--turn_tls',
                         default=os.environ.get(
                             'SELKIES_TURN_TLS', 'false'),
-                        help='Enable or disable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
+                        help='Enable or disable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required')
     parser.add_argument('--turn_shared_secret',
                         default=os.environ.get(
                             'SELKIES_TURN_SHARED_SECRET', 'openrelayprojectsecret'),
-                        help='Shared TURN secret used to generate HMAC credentials, also requires --turn_host and --turn_port.')
+                        help='Shared TURN secret used to generate HMAC credentials, also requires --turn_host and --turn_port')
     parser.add_argument('--turn_username',
                         default=os.environ.get(
                             'SELKIES_TURN_USERNAME', ''),
-                        help='Legacy non-HMAC TURN credential username, also requires --turn_host and --turn_port.')
+                        help='Legacy non-HMAC TURN credential username, also requires --turn_host and --turn_port')
     parser.add_argument('--turn_password',
                         default=os.environ.get(
                             'SELKIES_TURN_PASSWORD', ''),
-                        help='Legacy non-HMAC TURN credential password, also requires --turn_host and --turn_port.')
+                        help='Legacy non-HMAC TURN credential password, also requires --turn_host and --turn_port')
     parser.add_argument('--app_wait_ready',
                         default=os.environ.get('SELKIES_APP_WAIT_READY', 'false'),
-                        help='If true, skips wait for SELKIES_APP_READY_FILE to exist before starting stream.')
+                        help='If set to "true" waits for --app_ready_file to exist before starting stream')
     parser.add_argument('--app_ready_file',
                         default=os.environ.get('SELKIES_APP_READY_FILE', '/tmp/selkies-appready'),
                         help='File set by sidecar used to indicate that app is initialized and ready')
     parser.add_argument('--uinput_mouse_socket',
                         default=os.environ.get('SELKIES_UINPUT_MOUSE_SOCKET', ''),
-                        help='Path to the uinput mouse socket provided by the uinput-device-plugin, if not provided uinput is used directly.')
+                        help='Path to the uinput mouse socket provided by the uinput-device-plugin, if not provided uinput is used directly')
     parser.add_argument('--js_socket_path',
                         default=os.environ.get('SELKIES_JS_SOCKET_PATH', '/tmp'),
-                        help='Directory to write the selkies joystick interposer communication sockets to, default: /tmp results in socket files: /tmp/selkies_js{0-3}.sock')
+                        help='Directory to write the Selkies Joystick Interposer communication sockets to, default: /tmp, results in socket files: /tmp/selkies_js{0-3}.sock')
     parser.add_argument('--encoder',
                         default=os.environ.get('SELKIES_ENCODER', 'x264enc'),
                         help='GStreamer encoder plugin to use')
@@ -552,7 +559,7 @@ def main():
             # Use REST API credentials
             try:
                 stun_servers, turn_servers, rtc_config = fetch_turn_rest(
-                    args.turn_rest_uri, turn_rest_username, args.turn_rest_authheader)
+                    args.turn_rest_uri, turn_rest_username, args.turn_rest_username_auth_header, args.turn_protocol, args.turn_rest_protocol_header)
                 using_turn_rest = True
             except Exception as e:
                 logger.warning("error fetching REST API RTC config, falling back to other methods: {}".format(str(e)))
@@ -798,7 +805,7 @@ def main():
     options.turn_port = args.turn_port
     options.turn_protocol = turn_protocol
     options.turn_tls = using_turn_tls
-    options.turn_authheader_name = args.turn_rest_authheader
+    options.turn_auth_header_name = args.turn_rest_username_auth_header
     server = WebRTCSimpleServer(loop, options)
 
     # Callback method to update TURN servers of a running pipeline.
@@ -829,7 +836,9 @@ def main():
     turn_rest_mon = RESTRTCMonitor(
         args.turn_rest_uri,
         turn_rest_username,
-        args.turn_rest_authheader,
+        args.turn_rest_username_auth_header,
+        turn_protocol=turn_protocol,
+        turn_rest_protocol_header=args.turn_rest_protocol_header,
         enabled=using_turn_rest, period=60)
     turn_rest_mon.on_rtc_config = mon_rtc_config
 
