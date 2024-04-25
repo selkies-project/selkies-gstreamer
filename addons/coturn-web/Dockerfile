@@ -21,9 +21,8 @@
 
 FROM golang:1.22-alpine as build
 WORKDIR /go/src/coturn-web
-COPY go.mod ./
 COPY *.go ./
-RUN go get -u && go mod tidy
+RUN go get -u -d ./... && go mod tidy
 RUN go build
 
 FROM alpine
