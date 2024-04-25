@@ -22,7 +22,7 @@
 FROM golang:1.22-alpine as build
 WORKDIR /go/src/coturn-web
 COPY go.mod ./
-RUN go mod download
+RUN go mod tidy
 COPY *.go ./
 RUN go build
 
