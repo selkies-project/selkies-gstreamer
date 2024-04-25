@@ -22,8 +22,8 @@
 FROM golang:1.22-alpine as build
 WORKDIR /go/src/coturn-web
 COPY go.mod ./
-RUN go get -u && go mod tidy
 COPY *.go ./
+RUN go get -u && go mod tidy
 RUN go build
 
 FROM alpine
@@ -34,7 +34,7 @@ RUN apk add -u bash jq bind-tools curl
 # Copy build from previous layer
 COPY --from=build /go/src/coturn-web/coturn-web /usr/local/bin/coturn-web
 
-COPY entrypoint.sh /
-RUN chmod +x /entrypoint.sh
+COPY entrypoint.sh /etc/
+RUN chmod +x /etc/entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/etc/entrypoint.sh"]
