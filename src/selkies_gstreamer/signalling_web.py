@@ -215,7 +215,7 @@ class WebRTCSimpleServer(object):
             else:
                 web_logger.warning("HTTP GET {} 404 NOT FOUND - Missing RTC config".format(path))
                 return HTTPStatus.NOT_FOUND, response_headers, b'404 NOT FOUND'
-        
+
         path = path.split("?")[0]
         if path == '/':
             path = '/index.html'
@@ -506,7 +506,6 @@ class WebRTCSimpleServer(object):
                 logger.info('Certificate changed, stopping server...')
                 await self.stop()
                 return
-
 
 def main():
     default_web_root = os.path.join(os.getcwd(), "../../addons/gst-web/src")

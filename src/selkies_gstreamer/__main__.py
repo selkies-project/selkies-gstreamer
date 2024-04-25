@@ -299,7 +299,7 @@ def main():
     parser.add_argument('--json_config',
                         default=os.environ.get(
                             'SELKIES_JSON_CONFIG', '/tmp/selkies_config.json'),
-                        help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables, this path must be writable.')
+                        help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables, this path must be writable')
     parser.add_argument('--addr',
                         default=os.environ.get(
                             'SELKIES_ADDR', '0.0.0.0'),
@@ -315,31 +315,31 @@ def main():
     parser.add_argument('--enable_https',
                         default=os.environ.get(
                             'SELKIES_ENABLE_HTTPS', 'false'),
-                        help='Enable or disable HTTPS for the web app, specifing a valid server certificate is recommended.')
+                        help='Enable or disable HTTPS for the web app, specifing a valid server certificate is recommended')
     parser.add_argument('--https_cert',
                         default=os.environ.get(
                             'SELKIES_HTTPS_CERT', '/etc/ssl/certs/ssl-cert-snakeoil.pem'),
-                        help='Path to the TLS server certificate file when HTTPS is enabled.')
+                        help='Path to the TLS server certificate file when HTTPS is enabled')
     parser.add_argument('--https_key',
                         default=os.environ.get(
                             'SELKIES_HTTPS_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
-                        help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate.')
+                        help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate')
     parser.add_argument('--enable_basic_auth',
                         default=os.environ.get(
                             'SELKIES_ENABLE_BASIC_AUTH', 'true'),
-                        help='Enable basic authentication on server, must set --basic_auth_password and optionally --basic_auth_user to enforce basic authentication.')
+                        help='Enable basic authentication on server, must set --basic_auth_password and optionally --basic_auth_user to enforce basic authentication')
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
                             'SELKIES_BASIC_AUTH_USER', os.environ.get('USER', '')),
-                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set --basic_auth_password to enforce basic authentication.')
+                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set --basic_auth_password to enforce basic authentication')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
                             'SELKIES_BASIC_AUTH_PASSWORD', 'password'),
-                        help='Password used when basic authentication is set.')
+                        help='Password used when basic authentication is set')
     parser.add_argument('--turn_rest_uri',
                         default=os.environ.get(
                             'SELKIES_TURN_REST_URI', ''),
-                        help='URI for TURN REST API service, example: http://localhost:8081')
+                        help='URI for TURN REST API service, example: http://localhost:8008')
     parser.add_argument('--turn_rest_username',
                         default=os.environ.get(
                             'SELKIES_TURN_REST_USERNAME', "selkies-{}".format(socket.gethostname())),
@@ -410,7 +410,7 @@ def main():
                         default=os.environ.get('SELKIES_FRAMERATE', '30'),
                         help='Framerate of the streaming pipeline')
     parser.add_argument('--video_bitrate',
-                        default=os.environ.get('SELKIES_VIDEO_BITRATE', '2000'),
+                        default=os.environ.get('SELKIES_VIDEO_BITRATE', '4000'),
                         help='Default video bitrate')
     parser.add_argument('--keyframe_distance',
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '3'),
@@ -425,7 +425,7 @@ def main():
                         default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '10'),
                         help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
     parser.add_argument('--audio_bitrate',
-                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '48000'),
+                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '64000'),
                         help='Default audio bitrate')
     parser.add_argument('--audio_channels',
                         default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
