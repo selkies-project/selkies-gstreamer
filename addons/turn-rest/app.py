@@ -12,21 +12,21 @@ def turn_rest():
     if service_input:
         service_input = service_input.lower()
 
-    shared_secret = os.environ.get('TURN_SHARED_SECRET') or 'openrelayprojectsecret'
-    turn_host = os.environ.get('TURN_HOST') or 'staticauth.openrelay.metered.ca'
+    shared_secret = os.environ.get('TURN_SHARED_SECRET', 'openrelayprojectsecret')
+    turn_host = os.environ.get('TURN_HOST', 'staticauth.openrelay.metered.ca')
     if turn_host:
         turn_host = turn_host.lower()
-    turn_port = os.environ.get('TURN_PORT') or '443'
+    turn_port = os.environ.get('TURN_PORT', '443')
     if not turn_port.isdigit():
-        turn_port = '443'
-    username_input = request.values.get('username') or request.headers.get('x-auth-user') or 'turn-rest'
+        turn_port = '3478'
+    username_input = request.values.get('username') or request.headers.get('x-auth-user') or request.headers.get('x-turn-username') or 'turn-rest'
     if username_input:
         username_input = username_input.lower()
-    protocol = request.values.get('protocol') or request.headers.get('x-turn-protocol') or os.environ.get('TURN_PROTOCOL') or 'udp'
+    protocol = request.values.get('protocol') or request.headers.get('x-turn-protocol') or os.environ.get('TURN_PROTOCOL', 'udp')
     if protocol.lower() != 'tcp':
         protocol = 'udp'
-    turn_tls = request.values.get('tls') or os.environ.get('TURN_TLS') or False
-    if turn_tls and turn_tls.lower() == 'true':
+    turn_tls = request.values.get('tls') or request.headers.get('x-turn-tls') or os.environ.get('TURN_TLS', 'false')
+    if turn_tls.lower() == 'true':
         turn_tls = True
     else:
         turn_tls = False

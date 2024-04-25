@@ -71,27 +71,27 @@ class HMACRTCMonitor:
 
         self.running = False
 
-        self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning(
-            "unhandled on_rtc_config")
+        self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning("unhandled on_rtc_config")
 
     def start(self):
-        self.running = True
-        while self.running:
-            if self.enabled and int(time.time()) % self.period == 0:
-                try:
-                    hmac_data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls)
-                    stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
-                    self.on_rtc_config(stun_servers, turn_servers, rtc_config)
-                except Exception as e:
-                    logger.warning("could not fetch TURN HMAC config in periodic monitor: {}".format(e))
-            time.sleep(0.5)
-        logger.info("HMAC RTC monitor stopped")
+        if self.enabled:
+            self.running = True
+            while self.running:
+                if self.enabled and int(time.time()) % self.period == 0:
+                    try:
+                        hmac_data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls)
+                        stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
+                        self.on_rtc_config(stun_servers, turn_servers, rtc_config)
+                    except Exception as e:
+                        logger.warning("could not fetch TURN HMAC config in periodic monitor: {}".format(e))
+                time.sleep(0.5)
+            logger.info("HMAC RTC monitor stopped")
 
     def stop(self):
         self.running = False
 
 class RESTRTCMonitor:
-    def __init__(self, turn_rest_uri, turn_rest_username, turn_rest_username_auth_header, turn_protocol='udp', turn_rest_protocol_header='x-turn-protocol', period=60, enabled=True):
+    def __init__(self, turn_rest_uri, turn_rest_username, turn_rest_username_auth_header, turn_protocol='udp', turn_rest_protocol_header='x-turn-protocol', turn_tls=False, turn_rest_tls_header='x-turn-tls', period=60, enabled=True):
         self.period = period
         self.enabled = enabled
         self.running = False
@@ -101,21 +101,23 @@ class RESTRTCMonitor:
         self.turn_rest_username_auth_header = turn_rest_username_auth_header
         self.turn_protocol = turn_protocol
         self.turn_rest_protocol_header = turn_rest_protocol_header
+        self.turn_tls = turn_tls
+        self.turn_rest_tls_header = turn_rest_tls_header
 
-        self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning(
-            "unhandled on_rtc_config")
+        self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning("unhandled on_rtc_config")
 
     def start(self):
-        self.running = True
-        while self.running:
-            if self.enabled and int(time.time()) % self.period == 0:
-                try:
-                    stun_servers, turn_servers, rtc_config = fetch_turn_rest(self.turn_rest_uri, self.turn_rest_username, self.self.turn_rest_username_auth_header, self.turn_protocol, self.turn_rest_protocol_header)
-                    self.on_rtc_config(stun_servers, turn_servers, rtc_config)
-                except Exception as e:
-                    logger.warning("could not fetch TURN REST config in periodic monitor: {}".format(e))
-            time.sleep(0.5)
-        logger.info("TURN REST RTC monitor stopped")
+        if self.enabled:
+            self.running = True
+            while self.running:
+                if self.enabled and int(time.time()) % self.period == 0:
+                    try:
+                        stun_servers, turn_servers, rtc_config = fetch_turn_rest(self.turn_rest_uri, self.turn_rest_username, self.turn_rest_username_auth_header, self.turn_protocol, self.turn_rest_protocol_header, self.turn_tls, self.turn_rest_tls_header)
+                        self.on_rtc_config(stun_servers, turn_servers, rtc_config)
+                    except Exception as e:
+                        logger.warning("could not fetch TURN REST config in periodic monitor: {}".format(e))
+                time.sleep(0.5)
+            logger.info("TURN REST RTC monitor stopped")
 
     def stop(self):
         self.running = False
@@ -126,8 +128,7 @@ class RTCConfigFileMonitor:
         self.running = False
         self.rtc_file = rtc_file
 
-        self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning(
-            "unhandled on_rtc_config")
+        self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning("unhandled on_rtc_config")
         
         self.observer = Observer()
         self.file_event_handler = FileSystemEventHandler()
@@ -181,8 +182,8 @@ def parse_rtc_config(data):
     ice_servers = json.loads(data)['iceServers']
     stun_uris = []
     turn_uris = []
-    for server in ice_servers:
-        for url in server.get("urls", []):
+    for ice_server in ice_servers:
+        for url in ice_server.get("urls", []):
             if url.startswith("stun:"):
                 stun_host = url.split(":")[1]
                 stun_port = url.split(":")[2].split("?")[0]
@@ -194,8 +195,8 @@ def parse_rtc_config(data):
             elif url.startswith("turn:"):
                 turn_host = url.split(':')[1]
                 turn_port = url.split(':')[2].split('?')[0]
-                turn_user = server['username']
-                turn_password = server['credential']
+                turn_user = ice_server['username']
+                turn_password = ice_server['credential']
                 turn_uri = "turn://%s:%s@%s:%s" % (
                     urllib.parse.quote(turn_user, safe=""),
                     urllib.parse.quote(turn_password, safe=""),
@@ -206,8 +207,8 @@ def parse_rtc_config(data):
             elif url.startswith("turns:"):
                 turn_host = url.split(':')[1]
                 turn_port = url.split(':')[2].split('?')[0]
-                turn_user = server['username']
-                turn_password = server['credential']
+                turn_user = ice_server['username']
+                turn_password = ice_server['credential']
                 turn_uri = "turns://%s:%s@%s:%s" % (
                     urllib.parse.quote(turn_user, safe=""),
                     urllib.parse.quote(turn_password, safe=""),
@@ -217,7 +218,7 @@ def parse_rtc_config(data):
                 turn_uris.append(turn_uri)
     return stun_uris, turn_uris, data
 
-def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp', header_protocol='x-turn-protocol'):
+def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp', header_protocol='x-turn-protocol', turn_tls=False, header_tls='x-turn-tls'):
     """Fetches TURN uri from a REST API
 
     Arguments:
@@ -240,7 +241,8 @@ def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp
         conn = http.client.HTTPSConnection(parsed_uri.netloc)
     auth_headers = {
         auth_header_username: user,
-        header_protocol: protocol
+        header_protocol: protocol,
+        header_tls: 'true' if turn_tls else 'false'
     }
 
     conn.request("GET", parsed_uri.path, headers=auth_headers)
@@ -325,7 +327,7 @@ def main():
     parser.add_argument('--enable_basic_auth',
                         default=os.environ.get(
                             'SELKIES_ENABLE_BASIC_AUTH', 'true'),
-                        help='Enable basic authentication on server. Must set --basic_auth_password and optionally --basic_auth_user to enforce basic authentication.')
+                        help='Enable basic authentication on server, must set --basic_auth_password and optionally --basic_auth_user to enforce basic authentication.')
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
                             'SELKIES_BASIC_AUTH_USER', os.environ.get('USER', '')),
@@ -349,7 +351,11 @@ def main():
     parser.add_argument('--turn_rest_protocol_header',
                         default=os.environ.get(
                             'SELKIES_TURN_REST_PROTOCOL_HEADER', 'x-turn-protocol'),
-                        help='Header to pass desired protocol to TURN REST API service')
+                        help='Header to pass desired TURN protocol to TURN REST API service')
+    parser.add_argument('--turn_rest_tls_header',
+                        default=os.environ.get(
+                            'SELKIES_TURN_REST_TLS_HEADER', 'x-turn-tls'),
+                        help='Header to pass TURN (D)TLS usage to TURN REST API service')
     parser.add_argument('--rtc_config_json',
                         default=os.environ.get(
                             'SELKIES_RTC_CONFIG_JSON', '/tmp/rtc.json'),
@@ -491,7 +497,7 @@ def main():
     my_audio_id = 2
     audio_peer_id = 3
 
-    # Initialize metrics server.
+    # Initialize metrics server
     using_metrics_http = args.enable_metrics_http.lower() == 'true'
     using_webrtc_csv = args.enable_webrtc_statistics.lower() == 'true'
     metrics = Metrics(int(args.metrics_http_port), using_webrtc_csv)
@@ -506,14 +512,14 @@ def main():
         basic_auth_user=args.basic_auth_user,
         basic_auth_password=args.basic_auth_password)
 
-    # Initialize signalling client for audio connection.
+    # Initialize signalling client for audio connection
     audio_signalling = WebRTCSignalling('%s//127.0.0.1:%s/ws' % (ws_protocol, args.port), my_audio_id, audio_peer_id,
         enable_https=using_https,
         enable_basic_auth=using_basic_auth,
         basic_auth_user=args.basic_auth_user,
         basic_auth_password=args.basic_auth_password)
 
-    # Handle errors from the signalling server.
+    # Handle errors from the signalling server
     async def on_signalling_error(e):
        if isinstance(e, WebRTCSignallingErrorNoPeer):
            # Waiting for peer to connect, retry in 2 seconds.
@@ -536,7 +542,7 @@ def main():
     signalling.on_disconnect = lambda: app.stop_pipeline()
     audio_signalling.on_disconnect = lambda: audio_app.stop_pipeline()
 
-    # After connecting, attempt to setup call to peer.
+    # After connecting, attempt to setup call to peer
     signalling.on_connect = signalling.setup_call
     audio_signalling.on_connect = audio_signalling.setup_call
 
@@ -559,10 +565,11 @@ def main():
             # Use REST API credentials
             try:
                 stun_servers, turn_servers, rtc_config = fetch_turn_rest(
-                    args.turn_rest_uri, turn_rest_username, args.turn_rest_username_auth_header, args.turn_protocol, args.turn_rest_protocol_header)
+                    args.turn_rest_uri, turn_rest_username, args.turn_rest_username_auth_header, turn_protocol, args.turn_rest_protocol_header, using_turn_tls, args.turn_rest_tls_header)
+                logger.info("using TURN REST API RTC configuration")
                 using_turn_rest = True
             except Exception as e:
-                logger.warning("error fetching REST API RTC config, falling back to other methods: {}".format(str(e)))
+                logger.warning("error fetching TURN REST API RTC configuration, falling back to other methods: {}".format(str(e)))
                 using_turn_rest = False
         if (args.turn_username and args.turn_password) and not using_turn_rest:
             if not (args.turn_host and args.turn_port):
@@ -572,17 +579,18 @@ def main():
                 logger.info("using long-term non-HMAC TURN credentials")
                 config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
-        else:
+        elif not using_turn_rest:
             if not (args.turn_host and args.turn_port):
                 logger.warning("missing TURN host and TURN port, using DEFAULT_RTC_CONFIG")
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
             else:
                 # Get HMAC credentials from shared secret
+                logger.info("using short-term shared secret TURN credentials")
                 hmac_data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, turn_rest_username, turn_protocol, using_turn_tls)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
                 using_hmac_turn = True
 
-    logger.info("initial server RTC config fetched")
+    logger.info("initial server RTC configuration fetched")
 
     # Extract arguments
     enable_resize = args.enable_resize.lower() == "true"
@@ -609,15 +617,15 @@ def main():
     app.on_sdp = signalling.send_sdp
     audio_app.on_sdp = audio_signalling.send_sdp
 
-    # Send ICE candidates to the signalling server.
+    # Send ICE candidates to the signalling server
     app.on_ice = signalling.send_ice
     audio_app.on_ice = audio_signalling.send_ice
 
-    # Set the remote SDP when received from signalling server.
+    # Set the remote SDP when received from signalling server
     signalling.on_sdp = app.set_sdp
     audio_signalling.on_sdp = audio_app.set_sdp
 
-    # Set ICE candidates received from signalling server.
+    # Set ICE candidates received from signalling server
     signalling.on_ice = app.set_ice
     audio_signalling.on_ice = audio_app.set_ice
 
@@ -800,9 +808,9 @@ def main():
     options.cert_restart = False
     options.rtc_config_file = args.rtc_config_json
     options.rtc_config = rtc_config
-    options.turn_shared_secret = args.turn_shared_secret
-    options.turn_host = args.turn_host
-    options.turn_port = args.turn_port
+    options.turn_shared_secret = '' if (using_turn_rest or using_rtc_config_json or (not using_hmac_turn)) else args.turn_shared_secret
+    options.turn_host = '' if (using_turn_rest or using_rtc_config_json) else args.turn_host
+    options.turn_port = '' if (using_turn_rest or using_rtc_config_json) else args.turn_port
     options.turn_protocol = turn_protocol
     options.turn_tls = using_turn_tls
     options.turn_auth_header_name = args.turn_rest_username_auth_header
@@ -829,7 +837,7 @@ def main():
         turn_rest_username,
         turn_protocol=turn_protocol,
         turn_tls=using_turn_tls,
-        enabled=using_hmac_turn, period=60)
+        period=60, enabled=using_hmac_turn)
     hmac_turn_mon.on_rtc_config = mon_rtc_config
 
     # Initialize REST API RTC config monitor to periodically refresh the REST API RTC config.
@@ -839,7 +847,9 @@ def main():
         args.turn_rest_username_auth_header,
         turn_protocol=turn_protocol,
         turn_rest_protocol_header=args.turn_rest_protocol_header,
-        enabled=using_turn_rest, period=60)
+        turn_tls=using_turn_tls,
+        turn_rest_tls_header=args.turn_rest_tls_header,
+        period=60, enabled=using_turn_rest)
     turn_rest_mon.on_rtc_config = mon_rtc_config
 
     # Initialize file watcher for RTC config JSON file.

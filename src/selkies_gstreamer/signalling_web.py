@@ -194,11 +194,11 @@ class WebRTCSimpleServer(object):
         if path == self.health_path:
             return http.HTTPStatus.OK, response_headers, b"OK\n"
 
-        if path == '/turn/':
+        if path == '/turn/' or path == '/turn':
             if self.turn_shared_secret:
                 # Get username from auth header.
                 if not username:
-                    username = request_headers.get(self.turn_auth_header_name, "")
+                    username = request_headers.get(self.turn_auth_header_name, "username")
                     if not username:
                         web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
                         return HTTPStatus.UNAUTHORIZED, response_headers, b'401 Unauthorized - missing auth header'
@@ -516,8 +516,8 @@ def main():
     parser.add_argument('--addr', default='', help='Address to listen on (default: all interfaces, both ipv4 and ipv6)')
     parser.add_argument('--port', default=8443, type=int, help='Port to listen on')
     parser.add_argument('--web_root', default=default_web_root, type=str, help='Path to web root')
-    parser.add_argument('--rtc_config_file', default="/tmp/rtc.json", type=str, help='Path to json rtc config file')
-    parser.add_argument('--rtc_config', default="", type=str, help='JSON rtc config data')
+    parser.add_argument('--rtc_config_file', default="/tmp/rtc.json", type=str, help='Path to JSON RTC config file')
+    parser.add_argument('--rtc_config', default="", type=str, help='JSON RTC config data')
     parser.add_argument('--turn_shared_secret', default="", type=str, help='shared secret for generating TURN HMAC credentials')
     parser.add_argument('--turn_host', default="", type=str, help='TURN host when generating RTC config with shared secret')
     parser.add_argument('--turn_port', default="", type=str, help='TURN port when generating RTC config with shared secret')
