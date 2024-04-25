@@ -239,7 +239,7 @@ def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp
     if parsed_uri.scheme == "https":
         conn = http.client.HTTPSConnection(parsed_uri.netloc)
     auth_headers = {
-        auth_header_username: user
+        auth_header_username: user,
         header_protocol: protocol
     }
 
