@@ -20,7 +20,7 @@ ARG DISTRIB_RELEASE
 LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
 
 ARG DEBIAN_FRONTEND=noninteractive
-# Configure rootless user environment for constrained environments with allowPrivilegeEscalation: false
+# Configure rootless user environment for constrained conditions without escalated root privileges inside containers
 ARG TZ=UTC
 ARG PASSWD=mypasswd
 RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends -y \
@@ -261,7 +261,7 @@ chmod -f 700 /tmp/runtime-user\n\
 export DISPLAY=\"\${DISPLAY:-:0}\"\n\
 export LD_PRELOAD=\"selkies_joystick_interposer.so\${LD_PRELOAD:+:\${LD_PRELOAD}}\"\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
-mkdir -pm755 /dev/input || sudo-root mkdir -pm755 /dev/input || echo 'Failed to create joystick interposer directory'\n\
+mkdir -pm777 /dev/input || sudo-root mkdir -pm777 /dev/input || echo 'Failed to create joystick interposer directory'\n\
 touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || sudo-root touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || echo 'Failed to create joystick interposer devices'\n\
 Xvfb -screen :0 8192x4096x24 +extension \"COMPOSITE\" +extension \"DAMAGE\" +extension \"GLX\" +extension \"RANDR\" +extension \"RENDER\" +extension \"MIT-SHM\" +extension \"XFIXES\" +extension \"XTEST\" +iglx +render -nolisten \"tcp\" -noreset -shmem >/tmp/Xvfb.log 2>&1 &\n\
 until [ -S \"/tmp/.X11-unix/X\${DISPLAY/:/}\" ]; do sleep 1; done && echo 'X Server is ready'\n\
