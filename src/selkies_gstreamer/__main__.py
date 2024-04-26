@@ -562,7 +562,6 @@ def main():
         using_rtc_config_json = True
     else:
         if args.turn_rest_uri:
-            # Use REST API credentials
             try:
                 stun_servers, turn_servers, rtc_config = fetch_turn_rest(
                     args.turn_rest_uri, turn_rest_username, args.turn_rest_username_auth_header, turn_protocol, args.turn_rest_protocol_header, using_turn_tls, args.turn_rest_tls_header)
@@ -571,24 +570,19 @@ def main():
             except Exception as e:
                 logger.warning("error fetching TURN REST API RTC configuration, falling back to other methods: {}".format(str(e)))
                 using_turn_rest = False
-        if (args.turn_username and args.turn_password) and not using_turn_rest:
-            if not (args.turn_host and args.turn_port):
-                logger.warning("missing TURN host and TURN port, using DEFAULT_RTC_CONFIG")
-                stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
-            else:
-                logger.info("using long-term non-HMAC TURN credentials")
+        if not using_turn_rest:
+            if (args.turn_username and args.turn_password) and (args.turn_host and args.turn_port):
                 config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
-        elif not using_turn_rest:
-            if not (args.turn_host and args.turn_port):
-                logger.warning("missing TURN host and TURN port, using DEFAULT_RTC_CONFIG")
-                stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
-            else:
-                # Get HMAC credentials from shared secret
-                logger.info("using short-term shared secret TURN credentials")
+                logger.info("using TURN long-term username/password credentials")
+            elif args.turn_shared_secret and (args.turn_host and args.turn_port):
                 hmac_data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, turn_rest_username, turn_protocol, using_turn_tls)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
+                logger.info("using TURN short-term shared secret HMAC credentials")
                 using_hmac_turn = True
+            else:
+                stun_servers, turn_servers, rtc_config = parse_rtc_config(DEFAULT_RTC_CONFIG)
+                logger.warning("missing TURN server information, using DEFAULT_RTC_CONFIG")
 
     logger.info("initial server RTC configuration fetched")
 
@@ -808,9 +802,9 @@ def main():
     options.cert_restart = False
     options.rtc_config_file = args.rtc_config_json
     options.rtc_config = rtc_config
-    options.turn_shared_secret = '' if (using_turn_rest or using_rtc_config_json or (not using_hmac_turn)) else args.turn_shared_secret
-    options.turn_host = '' if (using_turn_rest or using_rtc_config_json) else args.turn_host
-    options.turn_port = '' if (using_turn_rest or using_rtc_config_json) else args.turn_port
+    options.turn_shared_secret = args.turn_shared_secret if using_hmac_turn else ''
+    options.turn_host = args.turn_host if using_hmac_turn else ''
+    options.turn_port = args.turn_port if using_hmac_turn else ''
     options.turn_protocol = turn_protocol
     options.turn_tls = using_turn_tls
     options.turn_auth_header_name = args.turn_rest_username_auth_header
