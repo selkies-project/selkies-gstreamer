@@ -83,7 +83,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libwebrtc-audio-processing-dev \
         libx264-dev \
         libx265-dev && \
-    if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get update && apt-get install --no-install-recommends -y libopenh264-dev libde265-dev svt-av1 libsvtav1enc-dev libsvtav1dec-dev aom-tools libaom-dev dav1d libdav1d-dev; fi
+    if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get update && apt-get install --no-install-recommends -y libopenh264-dev libde265-dev svt-av1 libsvtav1enc-dev libsvtav1dec-dev aom-tools libaom-dev dav1d libdav1d-dev; fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
 # Install GST-Python dependencies, Meson, and Ninja
