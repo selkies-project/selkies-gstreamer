@@ -1351,13 +1351,6 @@ class GSTWebRTCApp:
         elif 'rtx-time=125' not in sdp_text:
             logger.warning("injecting modified rtx-time to SDP")
             sdp_text = re.sub(r'rtx-time=\d+', r'rtx-time=125', sdp_text)
-        # Add non-standard Chromium x-google-per-layer-pli fmtp for enabling per-layer keyframes in response to PLIs
-        if 'x-google-per-layer-pli' not in sdp_text:
-            logger.warning("injecting x-google-per-layer-pli to SDP")
-            sdp_text = re.sub(r'(apt=\d+)', r'\1;x-google-per-layer-pli=1', sdp_text)
-        elif 'x-google-per-layer-pli=1' not in sdp_text:
-            logger.warning("injecting x-google-per-layer-pli to SDP")
-            sdp_text = re.sub(r'x-google-per-layer-pli=\d+', r'x-google-per-layer-pli=1', sdp_text)
         # Firefox needs profile-level-id=42e01f in the offer, but webrtcbin does not add this.
         # TODO: Remove when fixed in webrtcbin.
         #   https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1106
