@@ -17,7 +17,7 @@ trap cleanup SIGINT SIGKILL EXIT
 
 # Start Xvfb Xserver
 if [ "${XSERVER}" = "XVFB" ]; then
-    Xvfb -screen :0 8192x4096x24 +extension RANDR +extension GLX +extension MIT-SHM -nolisten tcp -noreset -shmem 2>&1 >/tmp/Xvfb.log &
+    Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
 fi
 
 # Wait for X11 to start
@@ -56,7 +56,7 @@ case ${DESKTOP:-XFCE} in
         xfce4-session &
         ;;
     *)
-        echo "WARN: Unsupported DESTKOP: '${DESKTOP}'"
+        echo "WARN: Unsupported DESKTOP: '${DESKTOP}'"
         ;;
 esac
 

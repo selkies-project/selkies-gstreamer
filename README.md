@@ -64,10 +64,10 @@ While this instruction assumes that you are installing this project systemwide, 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils jackd2 libjack-jackd2-0 libjpeg-turbo8 libnice10 libogg0 libopenjp2-7 libopus0 pulseaudio libpulse0 libsrtp2-1 libvorbis-dev libvpx-dev libwebp-dev libwebrtc-audio-processing1 x264 x265
 ```
 
-Additionally, install `xcvt` if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
+Install additional packages if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
+sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools dav1d
 ```
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
@@ -103,22 +103,22 @@ cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-p
 6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
-export DISPLAY="${DISPLAY:-\:0}"
+export DISPLAY="${DISPLAY:-:0}"
 # Configure the Joystick Interposer
 export LD_PRELOAD="selkies_joystick_interposer.so${LD_PRELOAD:+:${LD_PRELOAD}}"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
-sudo touch /dev/input/{js0,js1,js2,js3}
+sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # Commented sections are optional
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
-# Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem 2>&1 >/tmp/Xvfb.log &
+# Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
 # Ensure the X server is ready
-# until [ -S /tmp/.X11-unix/X0 ]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group), omit the below lines if a PulseAudio server is already running
-# export PULSE_SERVER=unix:/run/pulse/native
+# until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done && echo 'X Server is ready'
+# Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
+# export PULSE_SERVER=unix:/tmp/pulse/native
 # sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
-# sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
-# Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
+# /usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+# Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun +wm xfce4-session` here if needed
 # [ "${START_XFCE4:-true}" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &
 
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
@@ -128,7 +128,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Replace to your resolution if using without resize, skip if there is a physical display
 # selkies-gstreamer-resize 1920x1080
 
-# Choose your video encoder, change to x264enc/openh264enc for software encoding or other encoders for different hardware
+# Choose your video encoder, change to x264enc/vp8enc/vp9enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
 # Starts the remote desktop process
 selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvcudah264enc --enable_resize=false &
@@ -150,10 +150,10 @@ While this instruction assumes that you are installing this project systemwide, 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xclip x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils jackd2 libjack-jackd2-0 libjpeg-turbo8 libnice10 libogg0 libopenjp2-7 libopus0 pulseaudio libpulse0 libsrtp2-1 libvorbis-dev libvpx-dev libwebp-dev libwebrtc-audio-processing1 x264 x265
 ```
 
-Additionally, install `xcvt` if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
+Install additional packages if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt
+sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools dav1d
 ```
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
@@ -201,22 +201,22 @@ rm -f /tmp/selkies-js-interposer.deb
 6. Run `selkies-gstreamer` after changing the script below appropriately, install `xvfb` if you do not have a real display:
 
 ```bash
-export DISPLAY="${DISPLAY:-\:0}"
+export DISPLAY="${DISPLAY:-:0}"
 # Configure the Joystick Interposer
 export LD_PRELOAD="selkies_joystick_interposer.so${LD_PRELOAD:+:${LD_PRELOAD}}"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
-sudo touch /dev/input/{js0,js1,js2,js3}
+sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # Commented sections are optional
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
-# Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem 2>&1 >/tmp/Xvfb.log &
+# Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
 # Ensure the X server is ready
-# until [ -S /tmp/.X11-unix/X0 ]; do sleep 1; done && echo 'X Server is ready'
-# Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group), omit the below lines if a PulseAudio server is already running
-# export PULSE_SERVER=unix:/run/pulse/native
+# until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done && echo 'X Server is ready'
+# Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
+# export PULSE_SERVER=unix:/tmp/pulse/native
 # sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
-# sudo /usr/bin/pulseaudio --daemonize --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
-# Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun` here if needed
+# /usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+# Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun +wm xfce4-session` here if needed
 # [ "${START_XFCE4:-true}" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &
 
 # Initialize the GStreamer environment after setting GSTREAMER_PATH to the path of your GStreamer directory
@@ -226,7 +226,7 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Replace to your resolution if using without resize, skip if there is a physical display
 # selkies-gstreamer-resize 1920x1080
 
-# Choose your video encoder, change to x264enc/openh264enc for software encoding or other encoders for different hardware
+# Choose your video encoder, change to x264enc/vp8enc/vp9enc for software encoding or other encoders for different hardware
 # Do not set enable_resize to true if there is a physical display
 # Starts the remote desktop process
 selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvcudah264enc --enable_resize=false &

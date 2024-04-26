@@ -83,6 +83,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libwebrtc-audio-processing-dev \
         libx264-dev \
         libx265-dev && \
+    if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get update && apt-get install --no-install-recommends -y libopenh264-dev libde265-dev svt-av1 libsvtav1enc-dev libsvtav1dec-dev aom-tools libaom-dev dav1d libdav1d-dev; fi
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
 # Install GST-Python dependencies, Meson, and Ninja
@@ -97,7 +98,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
 ARG GSTREAMER_VERSION=1.24.2
-RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs | sh -s -- -y && \
+RUN curl --proto '=https' --tlsv1.2 -fsSL "https://sh.rustup.rs" | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
     cargo install cargo-c && \
     git clone --single-branch --depth 1 --branch "${GSTREAMER_VERSION}" "https://gitlab.freedesktop.org/gstreamer/gstreamer.git" && cd gstreamer && \

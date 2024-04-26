@@ -6,8 +6,10 @@ echo "The provided release version is: ${RELEASE:-missing env}"
 echo "The provided web port is: ${WEB_PORT:-missing env}"
 echo "The provided xserver is: ${XSERVER:-missing env}"
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Install base dependencies
-apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+apt-get update && apt-get install --no-install-recommends -y \
     python3-pip \
     python3-dev \
     python3-gi \
@@ -66,10 +68,11 @@ apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-re
     libwebrtc-audio-processing1 \
     x264 \
     x265 && \
+if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools dav1d; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
 apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 
 # Install system dependencies
-apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+apt-get update && apt-get install --no-install-recommends -y \
     xvfb \
     coturn && \
 apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
