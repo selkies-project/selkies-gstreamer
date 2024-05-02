@@ -129,6 +129,9 @@ class Input {
 
         // variable used to scale cursor speed
         this.cursorScaleFactor = null;
+
+        // keys pressed list to send key repeat events to server
+        this.keyRepeatQueue = new Queue();
     }
 
     /**
@@ -610,12 +613,32 @@ class Input {
         this.keyboard = new Guacamole.Keyboard(window);
         this.keyboard.onkeydown = (keysym) => {
             this.send("kd," + keysym);
+            if (!this.keyRepeatQueue.find(keysym)) {
+                this.keyRepeatQueue.enqueue(keysym);
+            }
         };
         this.keyboard.onkeyup = (keysym) => {
             this.send("ku," + keysym);
+           this.keyRepeatQueue.remove(keysym)
         };
 
         this._windowMath();
+        
+        this.keyRepeatRunning = true; 
+        this._handleKeyRepeatEvents();
+    }
+
+    // A handler function to send key-repeat events for keys that are pressed and kept hold
+    async _handleKeyRepeatEvents(){
+        while (this.keyRepeatRunning) {
+            var keysyms = this.keyRepeatQueue.toArray();
+
+            for(var keysym of keysyms){
+                this.send("kt," + keysym);
+            }
+            
+            await this.sleep(200);
+        }
     }
 
     detach() {
@@ -628,6 +651,10 @@ class Input {
             delete this.keyboard;
             this.send("kr");
         }
+
+        // Reset the key-repeat handler
+        this.keyRepeatQueue.clear();
+        this.keyRepeatRunning = false
     }
 
     /**
@@ -661,6 +688,14 @@ class Input {
             parseInt( (() => {var offsetRatioWidth = document.body.offsetWidth * window.devicePixelRatio; return offsetRatioWidth - offsetRatioWidth % 2})() ),
             parseInt( (() => {var offsetRatioHeight = document.body.offsetHeight * window.devicePixelRatio; return offsetRatioHeight - offsetRatioHeight % 2})() )
         ];
+    }
+
+    async sleep(milliseconds) {
+        await new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve();
+            }, milliseconds);
+        });
     }
 }
 

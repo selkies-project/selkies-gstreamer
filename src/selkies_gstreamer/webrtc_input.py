@@ -114,6 +114,9 @@ class WebRTCInput:
 
         self.ping_start = None
 
+        # Stores key-repeat keys with arrival time
+        self.key_repeat_keys = {}
+
         self.on_video_encoder_bit_rate = lambda bitrate: logger.warn(
             'unhandled on_video_encoder_bit_rate')
         self.on_audio_encoder_bit_rate = lambda bitrate: logger.warn(
@@ -313,7 +316,7 @@ class WebRTCInput:
                 else:
                     self.mouse.release(btn)
 
-    def send_x11_keypress(self, keysym, down=True):
+    def send_x11_keypress(self, keysym, down=True, key_repeat=False):
         """Sends keypress to X server
 
         The key sym is converted to a keycode using the X server library.
@@ -330,11 +333,36 @@ class WebRTCInput:
         # Although prevented in most cases, this fix may present issues in some keyboard layouts
         if keysym == 60 and self.keyboard._display.keysym_to_keycode(keysym) == 94:
             keysym = 44
+        
+        if key_repeat:
+            # Set or update the timestamp of the key
+            self.key_repeat_keys[keysym] = time.monotonic()
+            return
+        
         keycode = pynput.keyboard.KeyCode(keysym)
         if down:
             self.keyboard.press(keycode)
         else:
             self.keyboard.release(keycode)
+            
+            if self.key_repeat_keys.get(keysym):
+                del self.key_repeat_keys[keysym]
+
+    def handle_key_repeat(self):
+        """Handles key-repeat event keys by monitoring the pressed keys from the 
+           dictionary object and releases those based on the elapsed time
+        """
+        while True:
+            now = time.monotonic()
+
+            # Iterating over a copy of the data
+            for key, timeout in tuple(self.key_repeat_keys.items()):
+                elapsed_time = now - timeout
+                
+                # Release the key if elapsed time is over 1.5s 
+                if elapsed_time >= 1.5:
+                    self.send_x11_keypress(key, down=False)
+            time.sleep(0.2)
 
     def send_x11_mouse(self, x, y, button_mask, scroll_magnitude, relative=False):
         """Sends mouse events to the X server.
@@ -587,6 +615,9 @@ class WebRTCInput:
         elif toks[0] == "kr":
             # Keyboard reset
             self.reset_keyboard()
+        elif toks[0] == "kt":
+            # key-repeat events for a key
+            self.send_x11_keypress(int(toks[1]), down=False, key_repeat=True)
         elif toks[0] in ["m", "m2"]:
             # Mouse action
             # x,y,button_mask

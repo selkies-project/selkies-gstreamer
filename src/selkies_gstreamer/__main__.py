@@ -864,6 +864,7 @@ def main():
         loop.run_in_executor(None, lambda: turn_rest_mon.start())
         loop.run_in_executor(None, lambda: rtc_file_mon.start())
         loop.run_in_executor(None, lambda: system_mon.start())
+        loop.run_in_executor(None, lambda: webrtc_input.handle_key_repeat())
 
         while True:
             if using_webrtc_csv:
