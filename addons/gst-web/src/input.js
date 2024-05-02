@@ -634,7 +634,7 @@ class Input {
             var keysyms = this.keyRepeatQueue.toArray();
 
             for(var keysym of keysyms){
-                this.send("krpt," + keysym);
+                this.send("kt," + keysym);
             }
             
             await this.sleep(200);

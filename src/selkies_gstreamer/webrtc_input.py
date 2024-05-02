@@ -615,8 +615,8 @@ class WebRTCInput:
         elif toks[0] == "kr":
             # Keyboard reset
             self.reset_keyboard()
-        elif toks[0] == "krpt":
-            # key-repreat events for a key
+        elif toks[0] == "kt":
+            # key-repeat events for a key
             self.send_x11_keypress(int(toks[1]), down=False, key_repeat=True)
         elif toks[0] in ["m", "m2"]:
             # Mouse action
