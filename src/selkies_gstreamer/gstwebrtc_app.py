@@ -1154,8 +1154,9 @@ class GSTWebRTCApp:
             self.video_bitrate = bitrate
             self.fec_video_bitrate = fec_bitrate
 
-            self.__send_data_channel_message(
-                "pipeline", {"status": "Video bitrate set to: %d" % bitrate})
+            if not cc:
+                self.__send_data_channel_message(
+                    "pipeline", {"status": "Video bitrate set to: %d" % bitrate})
 
     def set_audio_bitrate(self, bitrate):
         """Set Opus encoder target bitrate in bps
@@ -1182,8 +1183,10 @@ class GSTWebRTCApp:
                 logger.debug("audio bitrate set with congestion control to: %d" % bitrate)
             self.audio_bitrate = bitrate
             self.fec_audio_bitrate = fec_bitrate
-            self.__send_data_channel_message(
-                "pipeline", {"status": "Audio bitrate set to: %d" % bitrate})
+
+            if not cc:
+                self.__send_data_channel_message(
+                    "pipeline", {"status": "Audio bitrate set to: %d" % bitrate})
 
     def set_pointer_visible(self, visible):
         """Set pointer visibiltiy on the ximagesrc element

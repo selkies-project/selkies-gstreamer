@@ -417,10 +417,10 @@ def main():
                         help='Distance between video GOP frames/Keyframes in seconds, use "-1" for infinite distance')
     parser.add_argument('--congestion_control',
                         default=os.environ.get('SELKIES_CONGESTION_CONTROL', 'false'),
-                        help='Enable Google Congestion Control (GCC), may introduce more stutter and latency from encoder updates')
+                        help='Enable Google Congestion Control (GCC), recommended setting if network conditions fluctuate but may lead to lower quality and microstutter in good networks due to adaptive bitrate')
     parser.add_argument('--video_packetloss_percent',
                         default=os.environ.get('SELKIES_VIDEO_PACKETLOSS_PERCENT', '0'),
-                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective compared to audio, enabling not recommended if Google Congestion Control is enabled')
+                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')
     parser.add_argument('--audio_packetloss_percent',
                         default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '10'),
                         help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
