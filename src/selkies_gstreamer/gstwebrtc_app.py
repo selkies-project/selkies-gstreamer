@@ -308,6 +308,8 @@ class GSTWebRTCApp:
             # when packets are lost, the decoder may never recover.
             # NVENC supports infinite GOP by setting this to -1.
             nvh264enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            # Minimize GOP-to-GOP rate fluctuations
+            nvh264enc.set_property("strict-gop", True)
 
             # Instructs encoder to handle Quality of Service (QOS) events from
             # the rest of the pipeline. Setting this to true increases
