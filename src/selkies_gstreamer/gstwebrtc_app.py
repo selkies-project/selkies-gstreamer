@@ -680,11 +680,12 @@ class GSTWebRTCApp:
             rtph264pay.set_property("config-interval", -1)
 
             # Add Transport-Wide Congestion Control (TWCC) extension
-            twcc_id_video = self.__pick_twcc_extension_id(rtph264pay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtph264pay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtph264pay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtph264pay.emit("add-extension", twcc_extension_video)
 
             # Set the capabilities for the rtph264pay element.
             rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
@@ -723,11 +724,12 @@ class GSTWebRTCApp:
             rtph265pay.set_property("mtu", 1200)
             rtph265pay.set_property("aggregate-mode", "zero-latency")
             rtph265pay.set_property("config-interval", -1)
-            twcc_id_video = self.__pick_twcc_extension_id(rtph265pay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtph265pay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtph265pay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtph265pay.emit("add-extension", twcc_extension_video)
             rtph265pay_caps = Gst.caps_from_string("application/x-rtp")
             rtph265pay_caps.set_value("media", "video")
             rtph265pay_caps.set_value("clock-rate", 90000)
@@ -747,11 +749,12 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp8pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
-            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtpvppay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -771,11 +774,12 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp9pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
-            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtpvppay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -796,11 +800,12 @@ class GSTWebRTCApp:
 
             rtpav1pay = Gst.ElementFactory.make("rtpav1pay")
             rtpav1pay.set_property("mtu", 1200)
-            twcc_id_video = self.__pick_twcc_extension_id(rtpav1pay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtpav1pay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtpav1pay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtpav1pay.emit("add-extension", twcc_extension_video)
             rtpav1pay_caps = Gst.caps_from_string("application/x-rtp")
             rtpav1pay_caps.set_value("media", "video")
             rtpav1pay_caps.set_value("clock-rate", 90000)
@@ -918,11 +923,12 @@ class GSTWebRTCApp:
         rtpopuspay.set_property("mtu", 1200)
 
         # Add Transport-Wide Congestion Control (TWCC) extension
-        twcc_id_audio = self.__pick_twcc_extension_id(rtpopuspay)
-        if twcc_id_audio is not None:
-            twcc_extension_audio = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-            twcc_extension_audio.set_id(twcc_id_audio)
-            rtpopuspay.emit("add-extension", twcc_extension_audio)
+        # if self.congestion_control:
+        #     twcc_id_audio = self.__pick_twcc_extension_id(rtpopuspay)
+        #     if twcc_id_audio is not None:
+        #         twcc_extension_audio = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+        #         twcc_extension_audio.set_id(twcc_id_audio)
+        #         rtpopuspay.emit("add-extension", twcc_extension_audio)
 
         # Insert a queue for the RTP packets.
         # rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
