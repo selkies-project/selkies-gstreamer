@@ -580,7 +580,7 @@ window.addEventListener('blur', () => {
     webrtc.sendDataChannelMessage("kr");
 
     // Clear the key-repeat events on window blur
-    webrtc.input.keyRepeatList.clear();
+    webrtc.input.keyRepeatQueue.clear();
 });
 
 webrtc.onclipboardcontent = (content) => {
