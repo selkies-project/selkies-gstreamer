@@ -383,11 +383,12 @@ class WebRTCDemo {
             }
         } else if (msg.type === 'clipboard') {
             if (msg.data !== null) {
-                var content = atob(msg.data.content);
+                var content = msg.data.content;
+                var text = base64ToString(content);
                 this._setDebug("received clipboard contents, length: " + content.length);
 
                 if (this.onclipboardcontent !== null) {
-                    this.onclipboardcontent(content);
+                    this.onclipboardcontent(text);
                 }
             }
         } else if (msg.type === 'cursor') {

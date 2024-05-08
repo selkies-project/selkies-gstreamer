@@ -689,7 +689,7 @@ class WebRTCInput:
         elif toks[0] == "cw":
             # Clipboard write
             if self.enable_clipboard in ["true", "in"]:
-                data = base64.b64decode(toks[1]).decode()
+                data = base64.b64decode(toks[1]).decode("utf-8")
                 self.write_clipboard(data)
                 logger.info("set clipboard content, length: %d" % len(data))
             else:
