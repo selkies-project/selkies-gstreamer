@@ -36,7 +36,6 @@ import struct
 import time
 from PIL import Image
 from gamepad import SelkiesGamepad
-from utils import LinkedList
 
 import logging
 logger = logging.getLogger("webrtc_input")
@@ -116,7 +115,7 @@ class WebRTCInput:
         self.ping_start = None
 
         # Stores key-repeat keys with arrival time
-        self.key_repeat_keys = LinkedList()
+        self.key_repeat_keys = {}
 
         self.on_video_encoder_bit_rate = lambda bitrate: logger.warn(
             'unhandled on_video_encoder_bit_rate')
@@ -337,11 +336,7 @@ class WebRTCInput:
         
         if key_repeat:
             # Set or update the timestamp of the key
-            if self.key_repeat_keys.find(keysym) is None:
-                self.key_repeat_keys.insert(keysym, time.monotonic())
-            else:
-                self.key_repeat_keys.remove(keysym)
-                self.key_repeat_keys.insert(keysym, time.monotonic())
+            self.key_repeat_keys[keysym] = time.monotonic()
             return
         
         keycode = pynput.keyboard.KeyCode(keysym)
@@ -349,9 +344,9 @@ class WebRTCInput:
             self.keyboard.press(keycode)
         else:
             self.keyboard.release(keycode)
-
-            if self.key_repeat_keys.find(keysym):
-                self.key_repeat_keys.remove(keysym)
+            
+            if self.key_repeat_keys.get(keysym):
+                del self.key_repeat_keys[keysym]
 
     def handle_key_repeat(self):
         """Handles key-repeat event keys by monitoring the pressed keys from the 
@@ -360,18 +355,14 @@ class WebRTCInput:
         while True:
             now = time.monotonic()
 
-            current = self.key_repeat_keys.head
-            while current:
-                key = current.data
-                timeout = current.timestamp
+            # Iterating over a copy of the data
+            for key, timeout in tuple(self.key_repeat_keys.items()):
                 elapsed_time = now - timeout
-
-                # Release the key if elapsed time is over 1.0s 
-                if elapsed_time >= 1.0:
+                
+                # Release the key if elapsed time is over 1.5s 
+                if elapsed_time >= 1.5:
                     self.send_x11_keypress(key, down=False)
-
-                current = current.next
-            time.sleep(0.1)
+            time.sleep(0.2)
 
     def send_x11_mouse(self, x, y, button_mask, scroll_magnitude, relative=False):
         """Sends mouse events to the X server.

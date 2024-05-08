@@ -131,7 +131,7 @@ class Input {
         this.cursorScaleFactor = null;
 
         // keys pressed list to send key repeat events to server
-        this.keyRepeatList = new LinkedList();
+        this.keyRepeatQueue = new Queue();
     }
 
     /**
@@ -613,13 +613,13 @@ class Input {
         this.keyboard = new Guacamole.Keyboard(window);
         this.keyboard.onkeydown = (keysym) => {
             this.send("kd," + keysym);
-            if (!this.keyRepeatList.find(keysym)) {
-                this.keyRepeatList.insert(keysym);
+            if (!this.keyRepeatQueue.find(keysym)) {
+                this.keyRepeatQueue.enqueue(keysym);
             }
         };
         this.keyboard.onkeyup = (keysym) => {
             this.send("ku," + keysym);
-           this.keyRepeatList.remove(keysym)
+           this.keyRepeatQueue.remove(keysym)
         };
 
         this._windowMath();
@@ -631,13 +631,12 @@ class Input {
     // A handler function to send key-repeat events for keys that are pressed and kept hold
     async _handleKeyRepeatEvents(){
         while (this.keyRepeatRunning) {
-            let current = this.keyRepeatList.head;
-            while (current) {
-                let keysym = current.data
-                this.send("kt," + keysym);
-                current = current.next;
-            }
+            var keysyms = this.keyRepeatQueue.toArray();
 
+            for(var keysym of keysyms){
+                this.send("kt," + keysym);
+            }
+            
             await this.sleep(200);
         }
     }
@@ -654,8 +653,8 @@ class Input {
         }
 
         // Reset the key-repeat handler
-        this.keyRepeatRunning = false;
-        this.keyRepeatList.clear();
+        this.keyRepeatQueue.clear();
+        this.keyRepeatRunning = false
     }
 
     /**
