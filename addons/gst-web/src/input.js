@@ -631,9 +631,9 @@ class Input {
     // A handler function to send key-repeat events for keys that are pressed and kept hold
     async _handleKeyRepeatEvents(){
         while (this.keyRepeatRunning) {
-            let current = this.keyRepeatList.head;
+            var current = this.keyRepeatList.head;
             while (current) {
-                let keysym = current.data
+                var keysym = current.data
                 this.send("kt," + keysym);
                 current = current.next;
             }
