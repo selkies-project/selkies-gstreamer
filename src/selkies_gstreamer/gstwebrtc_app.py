@@ -246,7 +246,7 @@ class GSTWebRTCApp:
         # ADD_ENCODER: add new encoder to this list
         # Reference configuration for fixing when something is broken in web browsers:
         #   https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/blob/main/net/webrtc/src/webrtcsink/imp.rs
-        if self.encoder in ["nvcudah264enc", "nvh264enc"]:
+        if self.encoder in ["nvh264enc"]:
             # Upload buffers from ximagesrc directly to CUDA memory where
             # the colorspace conversion will be performed.
             cudaupload = Gst.ElementFactory.make("cudaupload")
@@ -271,17 +271,15 @@ class GSTWebRTCApp:
             # This is the heart of the video pipeline that converts the raw
             # frame buffers to an H.264 encoded byte-stream on the GPU.
             if self.gpu_id > 0:
-                nvh264enc = Gst.ElementFactory.make("nvcudah264device{}enc".format(self.gpu_id), "nvenc")
-                self.encoder = "nvcudah264enc"
-                if nvh264enc is None:
+                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                    nvh264enc = Gst.ElementFactory.make("nvcudah264device{}enc".format(self.gpu_id), "nvenc")
+                else:
                     nvh264enc = Gst.ElementFactory.make("nvh264device{}enc".format(self.gpu_id), "nvenc")
-                    self.encoder = "nvh264enc"
             else:
-                nvh264enc = Gst.ElementFactory.make("nvcudah264enc", "nvenc")
-                self.encoder = "nvcudah264enc"
-                if nvh264enc is None:
+                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                    nvh264enc = Gst.ElementFactory.make("nvcudah264enc", "nvenc")
+                else:
                     nvh264enc = Gst.ElementFactory.make("nvh264enc", "nvenc")
-                    self.encoder = "nvh264enc"
 
             # The initial bitrate of the encoder in bits per second.
             # Setting this to 0 will use the bitrate from the NVENC preset.
@@ -297,7 +295,7 @@ class GSTWebRTCApp:
             # A Variable Bit Rate (VBR) setting tells the encoder to adjust the
             # compression level based on scene complexity, something not needed
             # when streaming in real-time.
-            if self.encoder != "nvh264enc":
+            if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh264enc.set_property("rate-control", "cbr")
             else:
                 nvh264enc.set_property("rc-mode", "cbr")
@@ -331,24 +329,24 @@ class GSTWebRTCApp:
             nvh264enc.set_property("nonref-p", True)
             # Disable lookahead
             nvh264enc.set_property("rc-lookahead", 0)
-            if self.encoder != "nvh264enc":
+            if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh264enc.set_property("b-frames", 0)
                 # Insert sequence headers (SPS/PPS) per IDR
                 nvh264enc.set_property("repeat-sequence-header", True)
                 # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zero-reorder-delay", True)
-                if Gst.version().major == 1 and Gst.version().minor <= 22:
-                    nvh264enc.set_property("preset", "low-latency-hq")
-                else:
+                if Gst.version().major == 1 and Gst.version().minor > 22:
                     nvh264enc.set_property("preset", "p4")
                     nvh264enc.set_property("tune", "ultra-low-latency")
+                else:
+                    nvh264enc.set_property("preset", "low-latency-hq")
             else:
                 nvh264enc.set_property("bframes", 0)
                 # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zerolatency", True)
                 nvh264enc.set_property("preset", "low-latency-hq")
 
-        elif self.encoder in ["nvcudah265enc", "nvh265enc"]:
+        elif self.encoder in ["nvh265enc"]:
             cudaupload = Gst.ElementFactory.make("cudaupload")
             if self.gpu_id >= 0:
                 cudaupload.set_property("cuda-device-id", self.gpu_id)
@@ -361,21 +359,19 @@ class GSTWebRTCApp:
             cudaconvert_capsfilter.set_property("caps", cudaconvert_caps)
 
             if self.gpu_id > 0:
-                nvh265enc = Gst.ElementFactory.make("nvcudah265device{}enc".format(self.gpu_id), "nvenc")
-                self.encoder = "nvcudah265enc"
-                if nvh265enc is None:
+                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                    nvh265enc = Gst.ElementFactory.make("nvcudah265device{}enc".format(self.gpu_id), "nvenc")
+                else:
                     nvh265enc = Gst.ElementFactory.make("nvh265device{}enc".format(self.gpu_id), "nvenc")
-                    self.encoder = "nvh265enc"
             else:
-                nvh265enc = Gst.ElementFactory.make("nvcudah265enc", "nvenc")
-                self.encoder = "nvcudah265enc"
-                if nvh265enc is None:
+                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                    nvh265enc = Gst.ElementFactory.make("nvcudah265enc", "nvenc")
+                else:
                     nvh265enc = Gst.ElementFactory.make("nvh265enc", "nvenc")
-                    self.encoder = "nvh265enc"
 
             nvh265enc.set_property("bitrate", self.fec_video_bitrate)
 
-            if self.encoder != "nvh265enc":
+            if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh265enc.set_property("rate-control", "cbr")
             else:
                 nvh265enc.set_property("rc-mode", "cbr")
@@ -386,21 +382,21 @@ class GSTWebRTCApp:
             nvh265enc.set_property("b-adapt", False)
             nvh265enc.set_property("nonref-p", True)
             nvh265enc.set_property("rc-lookahead", 0)
-            if self.encoder != "nvh265enc":
+            if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh265enc.set_property("b-frames", 0)
                 nvh265enc.set_property("repeat-sequence-header", True)
                 nvh265enc.set_property("zero-reorder-delay", True)
-                if Gst.version().major == 1 and Gst.version().minor <= 22:
-                    nvh265enc.set_property("preset", "low-latency-hq")
-                else:
+                if Gst.version().major == 1 and Gst.version().minor > 22:
                     nvh265enc.set_property("preset", "p4")
                     nvh265enc.set_property("tune", "ultra-low-latency")
+                else:
+                    nvh265enc.set_property("preset", "low-latency-hq")
             else:
                 nvh265enc.set_property("bframes", 0)
                 nvh265enc.set_property("zerolatency", True)
                 nvh265enc.set_property("preset", "low-latency-hq")
 
-        elif self.encoder in ["vah264enc", "vah264lpenc"]:
+        elif self.encoder in ["vah264enc"]:
             # colorspace conversion
             if self.gpu_id > 0:
                 vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
@@ -415,16 +411,12 @@ class GSTWebRTCApp:
             # encoder
             if self.gpu_id > 0:
                 vah264enc = Gst.ElementFactory.make("varenderD{}h264enc".format(128 + self.gpu_id), "vaenc")
-                self.encoder = "vah264enc"
                 if vah264enc is None:
                     vah264enc = Gst.ElementFactory.make("varenderD{}h264lpenc".format(128 + self.gpu_id), "vaenc")
-                    self.encoder = "vah264lpenc"
             else:
                 vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
-                self.encoder = "vah264enc"
                 if vah264enc is None:
                     vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
-                    self.encoder = "vah264lpenc"
             vah264enc.set_property("aud", True)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
@@ -433,7 +425,7 @@ class GSTWebRTCApp:
             vah264enc.set_property("qos", True)
             vah264enc.set_property("bitrate", self.fec_video_bitrate)
 
-        elif self.encoder in ["vah265enc", "vah265lpenc"]:
+        elif self.encoder in ["vah265enc"]:
             # colorspace conversion
             if self.gpu_id > 0:
                 vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
@@ -448,16 +440,12 @@ class GSTWebRTCApp:
             # encoder
             if self.gpu_id > 0:
                 vah265enc = Gst.ElementFactory.make("varenderD{}h265enc".format(128 + self.gpu_id), "vaenc")
-                self.encoder = "vah265enc"
                 if vah265enc is None:
                     vah265enc = Gst.ElementFactory.make("varenderD{}h265lpenc".format(128 + self.gpu_id), "vaenc")
-                    self.encoder = "vah265lpenc"
             else:
                 vah265enc = Gst.ElementFactory.make("vah265enc", "vaenc")
-                self.encoder = "vah265enc"
                 if vah265enc is None:
                     vah265enc = Gst.ElementFactory.make("vah265lpenc", "vaenc")
-                    self.encoder = "vah265lpenc"
             vah265enc.set_property("aud", True)
             vah265enc.set_property("b-frames", 0)
             vah265enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
@@ -466,7 +454,7 @@ class GSTWebRTCApp:
             vah265enc.set_property("qos", True)
             vah265enc.set_property("bitrate", self.fec_video_bitrate)
 
-        elif self.encoder in ["vavp9enc", "vavp9lpenc"]:
+        elif self.encoder in ["vavp9enc"]:
             # colorspace conversion
             if self.gpu_id > 0:
                 vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
@@ -481,23 +469,19 @@ class GSTWebRTCApp:
             # encoder
             if self.gpu_id > 0:
                 vavp9enc = Gst.ElementFactory.make("varenderD{}vp9enc".format(128 + self.gpu_id), "vaenc")
-                self.encoder = "vavp9enc"
                 if vavp9enc is None:
                     vavp9enc = Gst.ElementFactory.make("varenderD{}vp9lpenc".format(128 + self.gpu_id), "vaenc")
-                    self.encoder = "vavp9lpenc"
             else:
                 vavp9enc = Gst.ElementFactory.make("vavp9enc", "vaenc")
-                self.encoder = "vavp9enc"
                 if vavp9enc is None:
                     vavp9enc = Gst.ElementFactory.make("vavp9lpenc", "vaenc")
-                    self.encoder = "vavp9lpenc"
             vavp9enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vavp9enc.set_property("rate-control", "cbr")
             vavp9enc.set_property("target-usage", 6)
             vavp9enc.set_property("qos", True)
             vavp9enc.set_property("bitrate", self.fec_video_bitrate)
 
-        elif self.encoder in ["vaav1enc", "vaav1lpenc"]:
+        elif self.encoder in ["vaav1enc"]:
             # colorspace conversion
             if self.gpu_id > 0:
                 vapostproc = Gst.ElementFactory.make("varenderD{}postproc".format(128 + self.gpu_id), "vapostproc")
@@ -512,16 +496,12 @@ class GSTWebRTCApp:
             # encoder
             if self.gpu_id > 0:
                 vaav1enc = Gst.ElementFactory.make("varenderD{}av1enc".format(128 + self.gpu_id), "vaenc")
-                self.encoder = "vaav1enc"
                 if vaav1enc is None:
                     vaav1enc = Gst.ElementFactory.make("varenderD{}av1lpenc".format(128 + self.gpu_id), "vaenc")
-                    self.encoder = "vaav1lpenc"
             else:
                 vaav1enc = Gst.ElementFactory.make("vaav1enc", "vaenc")
-                self.encoder = "vaav1enc"
                 if vaav1enc is None:
                     vaav1enc = Gst.ElementFactory.make("vaav1lpenc", "vaenc")
-                    self.encoder = "vaav1lpenc"
             vaav1enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             vaav1enc.set_property("rate-control", "cbr")
             vaav1enc.set_property("target-usage", 6)
@@ -680,11 +660,12 @@ class GSTWebRTCApp:
             rtph264pay.set_property("config-interval", -1)
 
             # Add Transport-Wide Congestion Control (TWCC) extension
-            twcc_id_video = self.__pick_twcc_extension_id(rtph264pay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtph264pay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtph264pay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtph264pay.emit("add-extension", twcc_extension_video)
 
             # Set the capabilities for the rtph264pay element.
             rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
@@ -723,11 +704,12 @@ class GSTWebRTCApp:
             rtph265pay.set_property("mtu", 1200)
             rtph265pay.set_property("aggregate-mode", "zero-latency")
             rtph265pay.set_property("config-interval", -1)
-            twcc_id_video = self.__pick_twcc_extension_id(rtph265pay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtph265pay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtph265pay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtph265pay.emit("add-extension", twcc_extension_video)
             rtph265pay_caps = Gst.caps_from_string("application/x-rtp")
             rtph265pay_caps.set_value("media", "video")
             rtph265pay_caps.set_value("clock-rate", 90000)
@@ -747,11 +729,12 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp8pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
-            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtpvppay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -771,11 +754,12 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp9pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
-            twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtpvppay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtpvppay.emit("add-extension", twcc_extension_video)
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -796,11 +780,12 @@ class GSTWebRTCApp:
 
             rtpav1pay = Gst.ElementFactory.make("rtpav1pay")
             rtpav1pay.set_property("mtu", 1200)
-            twcc_id_video = self.__pick_twcc_extension_id(rtpav1pay)
-            if twcc_id_video is not None:
-                twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                twcc_extension_video.set_id(twcc_id_video)
-                rtpav1pay.emit("add-extension", twcc_extension_video)
+            if self.congestion_control:
+                twcc_id_video = self.__pick_twcc_extension_id(rtpav1pay)
+                if twcc_id_video is not None:
+                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+                    twcc_extension_video.set_id(twcc_id_video)
+                    rtpav1pay.emit("add-extension", twcc_extension_video)
             rtpav1pay_caps = Gst.caps_from_string("application/x-rtp")
             rtpav1pay_caps.set_value("media", "video")
             rtpav1pay_caps.set_value("clock-rate", 90000)
@@ -816,22 +801,22 @@ class GSTWebRTCApp:
         pipeline_elements = [self.ximagesrc, self.ximagesrc_capsfilter]
 
         # ADD_ENCODER: add new encoder to this list
-        if self.encoder in ["nvcudah264enc", "nvh264enc"]:
+        if self.encoder in ["nvh264enc"]:
             pipeline_elements += [cudaupload, cudaconvert, cudaconvert_capsfilter, nvh264enc, h264enc_capsfilter, rtph264pay, rtph264pay_capsfilter]
 
-        elif self.encoder in ["nvcudah265enc", "nvh265enc"]:
+        elif self.encoder in ["nvh265enc"]:
             pipeline_elements += [cudaupload, cudaconvert, cudaconvert_capsfilter, nvh265enc, h265enc_capsfilter, rtph265pay, rtph265pay_capsfilter]
 
-        elif self.encoder in ["vah264enc", "vah264lpenc"]:
+        elif self.encoder in ["vah264enc"]:
             pipeline_elements += [vapostproc, vapostproc_capsfilter, vah264enc, h264enc_capsfilter, rtph264pay, rtph264pay_capsfilter]
 
-        elif self.encoder in ["vah265enc", "vah265lpenc"]:
+        elif self.encoder in ["vah265enc"]:
             pipeline_elements += [vapostproc, vapostproc_capsfilter, vah265enc, h265enc_capsfilter, rtph265pay, rtph265pay_capsfilter]
 
-        elif self.encoder in ["vavp9enc", "vavp9lpenc"]:
+        elif self.encoder in ["vavp9enc"]:
             pipeline_elements += [vapostproc, vapostproc_capsfilter, vavp9enc, vpenc_capsfilter, rtpvppay, rtpvppay_capsfilter]
 
-        elif self.encoder in ["vaav1enc", "vaav1lpenc"]:
+        elif self.encoder in ["vaav1enc"]:
             pipeline_elements += [vapostproc, vapostproc_capsfilter, vaav1enc, av1enc_capsfilter, rtpav1pay, rtpav1pay_capsfilter]
 
         elif self.encoder in ["x264enc"]:
@@ -918,11 +903,12 @@ class GSTWebRTCApp:
         rtpopuspay.set_property("mtu", 1200)
 
         # Add Transport-Wide Congestion Control (TWCC) extension
-        twcc_id_audio = self.__pick_twcc_extension_id(rtpopuspay)
-        if twcc_id_audio is not None:
-            twcc_extension_audio = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-            twcc_extension_audio.set_id(twcc_id_audio)
-            rtpopuspay.emit("add-extension", twcc_extension_audio)
+        # if self.congestion_control:
+        #     twcc_id_audio = self.__pick_twcc_extension_id(rtpopuspay)
+        #     if twcc_id_audio is not None:
+        #         twcc_extension_audio = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
+        #         twcc_extension_audio.set_id(twcc_id_audio)
+        #         rtpopuspay.emit("add-extension", twcc_extension_audio)
 
         # Insert a queue for the RTP packets.
         # rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
@@ -992,7 +978,7 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp", "rtpmanager", "ximagesrc"]
 
         # ADD_ENCODER: add new encoder to this list
-        supported = ["nvcudah264enc", "nvh264enc", "nvcudah265enc", "nvh265enc", "vah264enc", "vah264lpenc", "vah265enc", "vah265lpenc", "vavp9enc", "vavp9lpenc", "vaav1enc", "vaav1lpenc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "rav1enc"]
+        supported = ["nvh264enc", "nvh265enc", "vah264enc", "vah265enc", "vavp9enc", "vaav1enc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "rav1enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 

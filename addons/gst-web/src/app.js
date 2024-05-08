@@ -569,7 +569,7 @@ window.addEventListener('focus', () => {
     // Send clipboard contents.
     navigator.clipboard.readText()
         .then(text => {
-            webrtc.sendDataChannelMessage("cw," + btoa(text))
+            webrtc.sendDataChannelMessage("cw," + stringToBase64(text))
         })
         .catch(err => {
             webrtc._setStatus('Failed to read clipboard contents: ' + err);
