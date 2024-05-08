@@ -98,7 +98,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
 ARG GSTREAMER_VERSION=1.24.3
-RUN if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:de265=enabled -Dgst-plugins-bad:svtav1=enabled -Dgst-plugins-bad:aom=enabled -Dgst-plugins-rs:dav1d=enabled ${GSTREAMER_EXTRA_ARGS}"; else export GSTREAMER_EXTRA_ARGS="${GSTREAMER_EXTRA_ARGS}"; fi && \
+RUN if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:libde265=enabled -Dgst-plugins-bad:svtav1=enabled -Dgst-plugins-bad:aom=enabled -Dgst-plugins-rs:dav1d=enabled ${GSTREAMER_EXTRA_ARGS}"; else export GSTREAMER_EXTRA_ARGS="${GSTREAMER_EXTRA_ARGS}"; fi && \
     curl --proto '=https' --tlsv1.2 -fsSL "https://sh.rustup.rs" | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
     cargo install cargo-c && \
