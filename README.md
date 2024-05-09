@@ -67,7 +67,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python
 Install additional packages if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools dav1d
+sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools
 ```
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
@@ -153,7 +153,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python
 Install additional packages if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools dav1d
+sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools
 ```
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver). If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
