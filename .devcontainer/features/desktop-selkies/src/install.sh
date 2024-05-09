@@ -55,13 +55,11 @@ apt-get update && apt-get install --no-install-recommends -y \
     jackd2 \
     libjack-jackd2-0 \
     libjpeg-turbo8 \
-    libnice10 \
     libogg0 \
     libopenjp2-7 \
     libopus0 \
     pulseaudio \
     libpulse0 \
-    libsrtp2-1 \
     libvorbis-dev \
     libvpx-dev \
     libwebp-dev \
