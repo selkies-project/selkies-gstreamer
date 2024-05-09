@@ -98,7 +98,8 @@ class GSTWebRTCApp:
         self.audio_packetloss_percent = audio_packetloss_percent
         # Prevent bitrate from overshooting because of FEC
         self.fec_video_bitrate = int(self.video_bitrate / (1.0 + (self.video_packetloss_percent / 100.0)))
-        self.fec_audio_bitrate = int(self.audio_bitrate / (1.0 + (self.audio_packetloss_percent / 100.0)))
+        # Keep audio bitrate to exact value and increase effective bitrate after FEC to prevent audio quality degradation
+        self.fec_audio_bitrate = int(self.audio_bitrate * (1.0 + (self.audio_packetloss_percent / 100.0)))
 
         # WebRTC ICE and SDP events
         self.on_ice = lambda mlineindex, candidate: logger.warn(
@@ -895,7 +896,7 @@ class GSTWebRTCApp:
 
         # Set audio bitrate
         # This can be dynamically changed using set_audio_bitrate()
-        opusenc.set_property("bitrate", self.fec_audio_bitrate)
+        opusenc.set_property("bitrate", self.audio_bitrate)
 
         # Create the rtpopuspay element to convert buffers into
         # RTP packets that are sent over the connection transport.
@@ -911,23 +912,23 @@ class GSTWebRTCApp:
         #         rtpopuspay.emit("add-extension", twcc_extension_audio)
 
         # Insert a queue for the RTP packets.
-        # rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
+        rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
 
         # Make the queue leaky in the downstream direction, drop packets if the queue is behind.
-        # rtpopuspay_queue.set_property("leaky", "downstream")
+        rtpopuspay_queue.set_property("leaky", "downstream")
 
         # Discard all data in the queue when an EOS event is received
-        # rtpopuspay_queue.set_property("flush-on-eos", True)
+        rtpopuspay_queue.set_property("flush-on-eos", True)
 
         # Set the queue max time to 16ms (16000000ns)
         # If the pipeline is behind by more than 1s, the packets
         # will be dropped.
         # This helps buffer out latency in the audio source.
-        # rtpopuspay_queue.set_property("max-size-time", 16000000)
+        rtpopuspay_queue.set_property("max-size-time", 16000000)
 
         # Set the other queue sizes to 0 to make it only time-based.
-        # rtpopuspay_queue.set_property("max-size-buffers", 0)
-        # rtpopuspay_queue.set_property("max-size-bytes", 0)
+        rtpopuspay_queue.set_property("max-size-buffers", 0)
+        rtpopuspay_queue.set_property("max-size-bytes", 0)
 
         # Set the capabilities for the rtpopuspay element.
         rtpopuspay_caps = Gst.caps_from_string("application/x-rtp")
@@ -950,7 +951,7 @@ class GSTWebRTCApp:
         rtpopuspay_capsfilter.set_property("caps", rtpopuspay_caps)
 
         # Add all elements to the pipeline.
-        pipeline_elements = [pulsesrc, pulsesrc_capsfilter, opusenc, rtpopuspay, rtpopuspay_capsfilter] # rtpopuspay_queue
+        pipeline_elements = [pulsesrc, pulsesrc_capsfilter, opusenc, rtpopuspay, rtpopuspay_queue, rtpopuspay_capsfilter]
 
         for pipeline_element in pipeline_elements:
             self.pipeline.add(pipeline_element)
@@ -1104,10 +1105,10 @@ class GSTWebRTCApp:
             # Change bitrate range of congestion control element
             if (not cc) and self.congestion_control and self.rtpgccbwe is not None:
                 # Prevent encoder freeze because of low bitrate with min-bitrate
-                self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.audio_bitrate, int(bitrate * 1000 * 0.1 + self.audio_bitrate)))
-                self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.audio_bitrate))
+                self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.fec_audio_bitrate, int(bitrate * 1000 * 0.1 + self.fec_audio_bitrate)))
+                self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.fec_audio_bitrate))
                 # Method is called again through the notifier with cc=True
-                self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.audio_bitrate))
+                self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.fec_audio_bitrate))
                 return
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
@@ -1154,27 +1155,23 @@ class GSTWebRTCApp:
         """
 
         if self.pipeline:
-            # Prevent bitrate from overshooting because of FEC
-            fec_bitrate = int(bitrate / (1.0 + (self.audio_packetloss_percent / 100.0)))
+            # Keep audio bitrate to exact value and increase effective bitrate after FEC to prevent audio quality degradation
+            fec_bitrate = int(bitrate * (1.0 + (self.audio_packetloss_percent / 100.0)))
             # Change bitrate range of congestion control element
             if self.congestion_control and self.rtpgccbwe is not None:
                 # Prevent encoder freeze because of low bitrate with min-bitrate
-                self.rtpgccbwe.set_property("min-bitrate", max(100000 + bitrate, int(self.video_bitrate * 1000 * 0.1 + bitrate)))
-                self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + bitrate))
-                self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + bitrate))
+                self.rtpgccbwe.set_property("min-bitrate", max(100000 + fec_bitrate, int(self.video_bitrate * 1000 * 0.1 + fec_bitrate)))
+                self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + fec_bitrate))
+                self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + fec_bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
-            element.set_property("bitrate", fec_bitrate)
+            element.set_property("bitrate", bitrate)
 
-            if not cc:
-                logger.info("audio bitrate set to: %d" % bitrate)
-            else:
-                logger.debug("audio bitrate set with congestion control to: %d" % bitrate)
+            logger.info("audio bitrate set to: %d" % bitrate)
             self.audio_bitrate = bitrate
             self.fec_audio_bitrate = fec_bitrate
 
-            if not cc:
-                self.__send_data_channel_message(
-                    "pipeline", {"status": "Audio bitrate set to: %d" % bitrate})
+            self.__send_data_channel_message(
+                "pipeline", {"status": "Audio bitrate set to: %d" % bitrate})
 
     def set_pointer_visible(self, visible):
         """Set pointer visibiltiy on the ximagesrc element
@@ -1368,10 +1365,10 @@ class GSTWebRTCApp:
             return None
         logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
         # Prevent encoder freeze because of low bitrate with min-bitrate
-        self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.audio_bitrate, int(self.video_bitrate * 1000 * 0.1 + self.audio_bitrate)))
-        self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + self.audio_bitrate))
-        self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.audio_bitrate))
-        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.audio_bitrate) / 1000), cc=True))
+        self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.fec_audio_bitrate, int(self.video_bitrate * 1000 * 0.1 + self.fec_audio_bitrate)))
+        self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + self.fec_audio_bitrate))
+        self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.fec_audio_bitrate))
+        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.fec_audio_bitrate) / 1000), cc=True))
         return self.rtpgccbwe
 
     def __pick_twcc_extension_id(self, payloader):

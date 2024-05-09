@@ -382,6 +382,7 @@ class WebRTCInput:
             self.send_x11_keypress(key, down=False)
             current = current.next
         self.key_repeat_keys.clear()
+        logger.info("all keystrokes released after session disconnection")
 
     def send_x11_mouse(self, x, y, button_mask, scroll_magnitude, relative=False):
         """Sends mouse events to the X server.
