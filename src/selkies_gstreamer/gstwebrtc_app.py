@@ -149,7 +149,7 @@ class GSTWebRTCApp:
 
         # The bundle policy affects how the SDP is generated.
         # This will ultimately determine how many tracks the browser receives.
-        # Setting this to max-compat will generate separate tracks for
+        # Setting this to max-compat will prioritize separate tracks for
         # audio and video.
         # See also: https://webrtcstandards.info/sdp-bundle/
         self.webrtcbin.set_property("bundle-policy", "max-compat")
@@ -1470,6 +1470,7 @@ class GSTWebRTCApp:
             # Create the data channel, this has to be done after the pipeline is PLAYING.
             options = Gst.Structure("application/data-channel")
             options.set_value("ordered", True)
+            options.set_value("priority", "high")
             options.set_value("max-retransmits", 0)
             self.data_channel = self.webrtcbin.emit(
                 'create-data-channel', "input", options)

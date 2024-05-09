@@ -373,6 +373,16 @@ class WebRTCInput:
                 current = current.next
             time.sleep(0.1)
 
+    def release_keys(self):
+        """Release all keys stored in list upon session disconnection
+        """
+        current = self.key_repeat_keys.head
+        while current:
+            key = current.data
+            self.send_x11_keypress(key, down=False)
+            current = current.next
+        self.key_repeat_keys.clear()
+
     def send_x11_mouse(self, x, y, button_mask, scroll_magnitude, relative=False):
         """Sends mouse events to the X server.
 

@@ -881,6 +881,7 @@ def main():
 
             app.stop_pipeline()
             audio_app.stop_pipeline()
+            webrtc_input.release_keys()
             webrtc_input.stop_js_server()
     except Exception as e:
         logger.error("Caught exception: %s" % e)
