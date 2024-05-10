@@ -554,7 +554,7 @@ class GSTWebRTCApp:
             openh264enc.set_property("scene-change-detection", False)
             openh264enc.set_property("usage-type", "screen")
             openh264enc.set_property("complexity", "low")
-            openh264enc.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            openh264enc.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             openh264enc.set_property("multi-thread", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
             openh264enc.set_property("slice-mode", "n-slices")
             openh264enc.set_property("num-slices", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
@@ -573,7 +573,7 @@ class GSTWebRTCApp:
             # encoder
             x265enc = Gst.ElementFactory.make("x265enc", "x265enc")
             x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:aud:repeat-headers:pmode:wpp")
-            x265enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            x265enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             x265enc.set_property("qos", True)
             x265enc.set_property("speed-preset", "ultrafast")
             x265enc.set_property("tune", "zerolatency")
@@ -642,7 +642,7 @@ class GSTWebRTCApp:
             av1enc.set_property("buf-sz", 150)
             av1enc.set_property("cpu-used", 10)
             av1enc.set_property("end-usage", "cbr")
-            av1enc.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            av1enc.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             av1enc.set_property("lag-in-frames", 0)
             av1enc.set_property("row-mt", True)
             av1enc.set_property("usage-profile", "realtime")
@@ -662,7 +662,7 @@ class GSTWebRTCApp:
 
             rav1enc = Gst.ElementFactory.make("rav1enc", "rav1enc")
             rav1enc.set_property("low-latency", True)
-            rav1enc.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            rav1enc.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             rav1enc.set_property("rdo-lookahead-frames", 0)
             rav1enc.set_property("reservoir-frame-delay", 12)
             rav1enc.set_property("speed-preset", 10)
@@ -1129,25 +1129,25 @@ class GSTWebRTCApp:
                 element.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             elif self.encoder in ["x264enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
-                element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+                element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             elif self.encoder in ["openh264enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "openh264enc")
-                element.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+                element.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             elif self.encoder in ["x265enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "x265enc")
-                element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+                element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             elif self.encoder.startswith("vp"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
                 element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             elif self.encoder in ["svtav1enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "svtav1enc")
-                element.set_property("intra-period-length", -1 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+                element.set_property("intra-period-length", -1 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             elif self.encoder in ["av1enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "av1enc")
-                element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+                element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             elif self.encoder in ["rav1enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
-                element.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+                element.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             else:
                 logger.warning("setting keyframe interval (GOP size) not supported with encoder: %s" % self.encoder)
 
