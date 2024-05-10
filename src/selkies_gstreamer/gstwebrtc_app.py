@@ -611,6 +611,30 @@ class GSTWebRTCApp:
             vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
 
+        elif self.encoder in ["av1enc"]:
+            videoconvert = Gst.ElementFactory.make("videoconvert")
+            videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert_caps = Gst.caps_from_string("video/x-raw")
+            videoconvert_caps.set_value("format", "I420")
+            videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
+            videoconvert_capsfilter.set_property("caps", videoconvert_caps)
+
+            av1enc = Gst.ElementFactory.make("av1enc", "av1enc")
+            av1enc.set_property("buf-initial-sz", 100)
+            av1enc.set_property("buf-optimal-sz", 120)
+            av1enc.set_property("buf-sz", 150)
+            av1enc.set_property("cpu-used", 10)
+            av1enc.set_property("end-usage", "cbr")
+            av1enc.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            av1enc.set_property("lag-in-frames", 0)
+            av1enc.set_property("row-mt", True)
+            av1enc.set_property("usage-profile", "realtime")
+            av1enc.set_property("tile-columns", 4)
+            av1enc.set_property("tile-rows", 4)
+            av1enc.set_property("threads", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
+            av1enc.set_property("qos", True)
+            av1enc.set_property("target-bitrate", self.fec_video_bitrate)
+
         elif self.encoder in ["rav1enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
@@ -623,9 +647,10 @@ class GSTWebRTCApp:
             rav1enc.set_property("low-latency", True)
             rav1enc.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             rav1enc.set_property("rdo-lookahead-frames", 0)
+            rav1enc.set_property("reservoir-frame-delay", 12)
             rav1enc.set_property("speed-preset", 10)
             rav1enc.set_property("tiles", 16)
-            rav1enc.set_property("threads", min(16, max(1, len(os.sched_getaffinity(0)) - 1)))
+            rav1enc.set_property("threads", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
             rav1enc.set_property("qos", True)
             rav1enc.set_property("bitrate", self.fec_video_bitrate)
 
@@ -832,6 +857,9 @@ class GSTWebRTCApp:
         elif self.encoder in ["vp8enc", "vp9enc"]:
             pipeline_elements += [videoconvert, videoconvert_capsfilter, vpenc, vpenc_capsfilter, rtpvppay, rtpvppay_capsfilter]
 
+        elif self.encoder in ["av1enc"]:
+            pipeline_elements += [videoconvert, videoconvert_capsfilter, av1enc, av1enc_capsfilter, rtpav1pay, rtpav1pay_capsfilter]
+
         elif self.encoder in ["rav1enc"]:
             pipeline_elements += [videoconvert, videoconvert_capsfilter, rav1enc, av1enc_capsfilter, rtpav1pay, rtpav1pay_capsfilter]
 
@@ -979,7 +1007,7 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp", "rtpmanager", "ximagesrc"]
 
         # ADD_ENCODER: add new encoder to this list
-        supported = ["nvh264enc", "nvh265enc", "vah264enc", "vah265enc", "vavp9enc", "vaav1enc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "rav1enc"]
+        supported = ["nvh264enc", "nvh265enc", "vah264enc", "vah265enc", "vavp9enc", "vaav1enc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "av1enc", "rav1enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
@@ -1001,6 +1029,9 @@ class GSTWebRTCApp:
 
         elif self.encoder in ["vp8enc", "vp9enc"]:
             required.append("vpx")
+
+        elif self.encoder in ["av1enc"]:
+            required.append("aom")
 
         elif self.encoder in ["rav1enc"]:
             required.append("rav1e")
@@ -1085,6 +1116,9 @@ class GSTWebRTCApp:
             elif self.encoder.startswith("vp"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
                 element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            elif self.encoder in ["av1enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "av1enc")
+                element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
             elif self.encoder in ["rav1enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
                 element.set_property("max-key-frame-interval", 715827882 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
@@ -1129,6 +1163,9 @@ class GSTWebRTCApp:
             elif self.encoder in ["vp8enc", "vp9enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
                 element.set_property("target-bitrate", fec_bitrate * 1000)
+            elif self.encoder in ["av1enc"]:
+                element = Gst.Bin.get_by_name(self.pipeline, "av1enc")
+                element.set_property("target-bitrate", fec_bitrate)
             elif self.encoder in ["rav1enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
                 element.set_property("bitrate", fec_bitrate)
