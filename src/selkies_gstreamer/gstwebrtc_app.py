@@ -525,7 +525,7 @@ class GSTWebRTCApp:
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("insert-vui", True)
-            x264enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            x264enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("sync-lookahead", 0)
             x264enc.set_property("vbv-buf-capacity", 120)
@@ -620,11 +620,11 @@ class GSTWebRTCApp:
             videoconvert_capsfilter.set_property("caps", videoconvert_caps)
 
             svtav1enc = Gst.ElementFactory.make("svtav1enc", "svtav1enc")
-            svtav1enc.set_property("intra-period-length", -1 if self.keyframe_distance == -1.0 else int(self.framerate * self.keyframe_distance))
+            svtav1enc.set_property("intra-period-length", -1 if self.keyframe_distance == -1.0 else max(120, int(self.framerate * self.keyframe_distance)))
             svtav1enc.set_property("maximum-buffer-size", 150)
-            svtav1enc.set_property("preset", 13)
+            svtav1enc.set_property("preset", 10)
             svtav1enc.set_property("logical-processors", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
-            svtav1enc.set_property("parameters-string", "fast-decode=1:buf-initial-sz=100:buf-optimal-sz=120:gop-constraint-rc=1:lookahead=0:pred-struct=1")
+            svtav1enc.set_property("parameters-string", "rc=2:fast-decode=1:buf-initial-sz=100:buf-optimal-sz=120:maxsection-pct=250:gop-constraint-rc=1:lookahead=0:pred-struct=1")
             svtav1enc.set_property("qos", True)
             svtav1enc.set_property("target-bitrate", self.fec_video_bitrate)
 
