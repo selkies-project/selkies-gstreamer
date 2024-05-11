@@ -329,10 +329,10 @@ class GSTWebRTCApp:
             nvh264enc.set_property("aud", True)
             # Do not automatically add b-frames
             nvh264enc.set_property("b-adapt", False)
-            # Automatic insertion of non-reference P-frames
-            nvh264enc.set_property("nonref-p", True)
             # Disable lookahead
             nvh264enc.set_property("rc-lookahead", 0)
+            # Set vbv buffer size to optimize for live streaming
+            nvh264enc.set_property("vbv-buffer-size", 0.120 * self.fec_video_bitrate)
             if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh264enc.set_property("b-frames", 0)
                 # Insert sequence headers (SPS/PPS) per IDR
@@ -384,8 +384,8 @@ class GSTWebRTCApp:
             nvh265enc.set_property("qos", True)
             nvh265enc.set_property("aud", True)
             nvh265enc.set_property("b-adapt", False)
-            nvh265enc.set_property("nonref-p", True)
             nvh265enc.set_property("rc-lookahead", 0)
+            nvh265enc.set_property("vbv-buffer-size", 0.120 * self.fec_video_bitrate)
             if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh265enc.set_property("b-frames", 0)
                 nvh265enc.set_property("repeat-sequence-header", True)
@@ -1179,6 +1179,8 @@ class GSTWebRTCApp:
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
                 element.set_property("bitrate", fec_bitrate)
+                if not cc:
+                    element.set_property("vbv-buffer-size", 0.120 * fec_bitrate)
             elif self.encoder.startswith("va"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
                 element.set_property("bitrate", fec_bitrate)

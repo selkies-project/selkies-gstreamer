@@ -414,7 +414,7 @@ def main():
                         help='Default video bitrate')
     parser.add_argument('--keyframe_distance',
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '3'),
-                        help='Distance between video GOP frames/Keyframes in seconds, use "-1" for infinite distance (possible option for periodic blurring with low bitrate at the cost of inability to restore a lost stream without interface refresh)')
+                        help='Distance between video GOP frames/Keyframes in seconds (minimum of 60 frames enforced for quality with lower framerates), use "-1" for infinite distance (possible option for periodic blurring with low bitrate at the cost of inability to restore a lost stream without interface refresh)')
     parser.add_argument('--congestion_control',
                         default=os.environ.get('SELKIES_CONGESTION_CONTROL', 'false'),
                         help='Enable Google Congestion Control (GCC), recommended setting if network conditions fluctuate but may lead to lower quality and microstutter in good networks due to adaptive bitrate')
