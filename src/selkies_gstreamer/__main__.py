@@ -864,7 +864,6 @@ def main():
         loop.run_in_executor(None, lambda: turn_rest_mon.start())
         loop.run_in_executor(None, lambda: rtc_file_mon.start())
         loop.run_in_executor(None, lambda: system_mon.start())
-        loop.run_in_executor(None, lambda: webrtc_input.handle_key_repeat())
 
         while True:
             if using_webrtc_csv:
@@ -881,7 +880,6 @@ def main():
 
             app.stop_pipeline()
             audio_app.stop_pipeline()
-            webrtc_input.release_keys()
             webrtc_input.stop_js_server()
     except Exception as e:
         logger.error("Caught exception: %s" % e)

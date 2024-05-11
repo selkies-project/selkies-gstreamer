@@ -627,7 +627,7 @@ class GSTWebRTCApp:
             svtav1enc.set_property("maximum-buffer-size", 150)
             svtav1enc.set_property("preset", 10)
             svtav1enc.set_property("logical-processors", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
-            svtav1enc.set_property("parameters-string", "rc=2:buf-initial-sz=100:buf-optimal-sz=120:maxsection-pct=250:lookahead=0:pred-struct=1")
+            svtav1enc.set_property("parameters-string", "rc=2:fast-decode=1:buf-initial-sz=100:buf-optimal-sz=120:maxsection-pct=250:lookahead=0:pred-struct=1")
             svtav1enc.set_property("qos", True)
             svtav1enc.set_property("target-bitrate", self.fec_video_bitrate)
 

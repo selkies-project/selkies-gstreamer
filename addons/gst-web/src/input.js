@@ -129,9 +129,6 @@ class Input {
 
         // variable used to scale cursor speed
         this.cursorScaleFactor = null;
-
-        // keys pressed list to send key repeat events to server
-        this.keyRepeatList = new LinkedList();
     }
 
     /**
@@ -613,33 +610,12 @@ class Input {
         this.keyboard = new Guacamole.Keyboard(window);
         this.keyboard.onkeydown = (keysym) => {
             this.send("kd," + keysym);
-            if (!this.keyRepeatList.find(keysym)) {
-                this.keyRepeatList.insert(keysym);
-            }
         };
         this.keyboard.onkeyup = (keysym) => {
             this.send("ku," + keysym);
-           this.keyRepeatList.remove(keysym)
         };
 
         this._windowMath();
-        
-        this.keyRepeatRunning = true; 
-        this._handleKeyRepeatEvents();
-    }
-
-    // A handler function to send key-repeat events for keys that are pressed and kept hold
-    async _handleKeyRepeatEvents(){
-        while (this.keyRepeatRunning) {
-            var current = this.keyRepeatList.head;
-            while (current) {
-                var keysym = current.data
-                this.send("kt," + keysym);
-                current = current.next;
-            }
-
-            await this.sleep(200);
-        }
     }
 
     detach() {
@@ -652,10 +628,6 @@ class Input {
             delete this.keyboard;
             this.send("kr");
         }
-
-        // Reset the key-repeat handler
-        this.keyRepeatRunning = false;
-        this.keyRepeatList.clear();
     }
 
     /**
@@ -689,14 +661,6 @@ class Input {
             parseInt( (() => {var offsetRatioWidth = document.body.offsetWidth * window.devicePixelRatio; return offsetRatioWidth - offsetRatioWidth % 2})() ),
             parseInt( (() => {var offsetRatioHeight = document.body.offsetHeight * window.devicePixelRatio; return offsetRatioHeight - offsetRatioHeight % 2})() )
         ];
-    }
-
-    async sleep(milliseconds) {
-        await new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve();
-            }, milliseconds);
-        });
     }
 }
 
