@@ -98,6 +98,7 @@ class GSTWebRTCApp:
         self.keyframe_frame_distance = -1 if self.keyframe_distance == -1.0 else max(self.min_keyframe_frame_distance, int(self.framerate * self.keyframe_distance))
         # Set VBV/HRD buffer multiplier to frame time, set 1.5x when optimal to prevent quality degradation in software encoders, relax 2x when keyframe/GOP is periodic
         self.vbv_multiplier_nv = 1 if self.keyframe_distance == -1.0 else 2
+        self.vbv_multiplier_va = 1 if self.keyframe_distance == -1.0 else 2
         self.vbv_multiplier_sw = 1.5 if self.keyframe_distance == -1.0 else 3
         # Packet loss base percentage
         self.video_packetloss_percent = video_packetloss_percent
@@ -436,10 +437,14 @@ class GSTWebRTCApp:
                     vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
             vah264enc.set_property("aud", False)
             vah264enc.set_property("b-frames", 0)
-            vah264enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            # Set VBV/HRD buffer size (kbits) to optimize for live streaming
+            vah264enc.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
+            vah264enc.set_property("dct8x8", False)
+            vah264enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            vah264enc.set_property("mbbrc", "enabled")
+            vah264enc.set_property("num-slices", 4)
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
-            vah264enc.set_property("qos", True)
             vah264enc.set_property("bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["vah265enc"]:
@@ -465,10 +470,13 @@ class GSTWebRTCApp:
                     vah265enc = Gst.ElementFactory.make("vah265lpenc", "vaenc")
             vah265enc.set_property("aud", False)
             vah265enc.set_property("b-frames", 0)
-            vah265enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            # Set VBV/HRD buffer size (kbits) to optimize for live streaming
+            vah265enc.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
+            vah265enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            vah265enc.set_property("mbbrc", "enabled")
+            vah265enc.set_property("num-slices", 4)
             vah265enc.set_property("rate-control", "cbr")
             vah265enc.set_property("target-usage", 6)
-            vah265enc.set_property("qos", True)
             vah265enc.set_property("bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["vavp9enc"]:
@@ -492,10 +500,14 @@ class GSTWebRTCApp:
                 vavp9enc = Gst.ElementFactory.make("vavp9enc", "vaenc")
                 if vavp9enc is None:
                     vavp9enc = Gst.ElementFactory.make("vavp9lpenc", "vaenc")
-            vavp9enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            # Set VBV/HRD buffer size (kbits) to optimize for live streaming
+            vavp9enc.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
+            vavp9enc.set_property("gf-group-size", 8)
+            vavp9enc.set_property("hierarchical-level", 1)
+            vavp9enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            vavp9enc.set_property("mbbrc", "enabled")
             vavp9enc.set_property("rate-control", "cbr")
             vavp9enc.set_property("target-usage", 6)
-            vavp9enc.set_property("qos", True)
             vavp9enc.set_property("bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["vaav1enc"]:
@@ -519,10 +531,16 @@ class GSTWebRTCApp:
                 vaav1enc = Gst.ElementFactory.make("vaav1enc", "vaenc")
                 if vaav1enc is None:
                     vaav1enc = Gst.ElementFactory.make("vaav1lpenc", "vaenc")
-            vaav1enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            # Set VBV/HRD buffer size (kbits) to optimize for live streaming
+            vaav1enc.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
+            vaav1enc.set_property("gf-group-size", 32)
+            vaav1enc.set_property("hierarchical-level", 1)
+            vaav1enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            vaav1enc.set_property("mbbrc", "enabled")
+            vaav1enc.set_property("ref-frames", 3)
+            vaav1enc.set_property("tile-groups", 16)
             vaav1enc.set_property("rate-control", "cbr")
             vaav1enc.set_property("target-usage", 6)
-            vaav1enc.set_property("qos", True)
             vaav1enc.set_property("bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["x264enc"]:
@@ -542,6 +560,7 @@ class GSTWebRTCApp:
             x264enc.set_property("bframes", 0)
             x264enc.set_property("insert-vui", True)
             x264enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            x264enc.set_property("mb-tree", True)
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("sync-lookahead", 0)
             # Set VBV/HRD buffer size (miliseconds) to optimize for live streaming
@@ -1152,7 +1171,8 @@ class GSTWebRTCApp:
             element.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
         elif self.encoder.startswith("va"):
             element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
-            element.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            element.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            element.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
         elif self.encoder in ["x264enc"]:
             element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
             element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
@@ -1210,6 +1230,8 @@ class GSTWebRTCApp:
             elif self.encoder.startswith("va"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
                 element.set_property("bitrate", fec_bitrate)
+                if not cc:
+                    element.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
             elif self.encoder in ["x264enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
                 element.set_property("bitrate", fec_bitrate)
