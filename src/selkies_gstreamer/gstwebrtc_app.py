@@ -338,7 +338,7 @@ class GSTWebRTCApp:
             nvh264enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate))
             if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh264enc.set_property("b-frames", 0)
-                # CABAC is more bandwidth-efficient compared to CAVLC at a tradeoff of slight increase in decoding time
+                # CABAC is more bandwidth-efficient compared to CAVLC at a tradeoff of slight increase (<= 1 ms) in decoding time
                 nvh264enc.set_property("cabac", True)
                 # Insert sequence headers (SPS/PPS) per IDR
                 nvh264enc.set_property("repeat-sequence-header", True)
