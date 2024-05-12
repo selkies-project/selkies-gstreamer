@@ -5,8 +5,8 @@
 import logging
 import os
 import re
+import subprocess
 from shutil import which
-from subprocess import Popen, PIPE, STDOUT
 
 logger = logging.getLogger("gstwebrtc_app_resize")
 logger.setLevel(logging.DEBUG)
@@ -89,7 +89,7 @@ def resize_display(res):
         # Create new mode from modeline
         logger.info("creating new xrandr mode: %s %s" % (mode, modeline))
         cmd = ['xrandr', '--newmode', mode, *re.split('\s+', modeline)]
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             logger.error("failed to create new xrandr mode: '%s %s': %s%s" % (mode, modeline, str(stdout), str(stderr)))
@@ -98,7 +98,7 @@ def resize_display(res):
         # Add the mode to the screen.
         logger.info("adding xrandr mode '%s' to screen '%s'" % (mode, screen_name))
         cmd = ['xrandr', '--addmode', screen_name, mode]
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             logger.error("failed to add mode '%s' using xrandr: %s%s" % (mode, str(stdout), str(stderr)))
@@ -107,7 +107,7 @@ def resize_display(res):
     # Apply the resolution change
     logger.info("applying xrandr screen '%s' mode: %s" % (screen_name, mode))
     cmd = ['xrandr', '--output', screen_name, '--mode', mode]
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if p.returncode != 0:
         logger.error("failed to apply xrandr mode '%s': %s%s" % (mode, str(stdout), str(stderr)))
@@ -148,7 +148,7 @@ def set_dpi(dpi):
     if which("xfconf-query"):
         # Set window scale
         cmd = ["xfconf-query", "-c", "xsettings", "-p", "/Xft/DPI", "-s", str(dpi), "--create", "-t", "int"]
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             logger.error("failed to set XFCE DPI to: '%d': %s%s" % (dpi, str(stdout), str(stderr)))
@@ -163,7 +163,7 @@ def set_cursor_size(size):
     if which("xfconf-query"):
         # Set cursor size
         cmd = ["xfconf-query", "-c", "xsettings", "-p", "/Gtk/CursorThemeSize", "-s", str(size), "--create", "-t", "int"]
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             logger.error("failed to set XFCE cursor size to: '%d': %s%s" % (dpi, str(stdout), str(stderr)))

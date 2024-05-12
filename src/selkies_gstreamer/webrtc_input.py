@@ -30,7 +30,6 @@ import msgpack
 import re
 import os
 import subprocess
-from subprocess import Popen, PIPE, STDOUT
 import socket
 import struct
 import time
@@ -404,7 +403,7 @@ class WebRTCInput:
 
     def write_clipboard(self, data):
         cmd = ['xclip', '-selection', 'clipboard', '-in']
-        p = Popen(cmd, stdin=PIPE)
+        p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         p.communicate(input=data.encode())
         p.wait()
 
