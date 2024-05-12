@@ -257,6 +257,7 @@ exec turnserver\n\
 mkdir -pm700 /tmp/runtime-user\n\
 chown -f ubuntu:ubuntu /tmp/runtime-user\n\
 chmod -f 700 /tmp/runtime-user\n\
+export XDG_RUNTIME_DIR=/tmp/runtime-user\n\
 export DISPLAY=\"\${DISPLAY:-:0}\"\n\
 export LD_PRELOAD=\"selkies_joystick_interposer.so\${LD_PRELOAD:+:\${LD_PRELOAD}}\"\n\
 export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
@@ -264,7 +265,7 @@ mkdir -pm777 /dev/input || sudo-root mkdir -pm777 /dev/input || echo 'Failed to 
 touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || sudo-root touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || echo 'Failed to create joystick interposer devices'\n\
 Xvfb -screen :0 8192x4096x24 +extension \"COMPOSITE\" +extension \"DAMAGE\" +extension \"GLX\" +extension \"RANDR\" +extension \"RENDER\" +extension \"MIT-SHM\" +extension \"XFIXES\" +extension \"XTEST\" +iglx +render -nolisten \"tcp\" -noreset -shmem >/tmp/Xvfb.log 2>&1 &\n\
 until [ -S \"/tmp/.X11-unix/X\${DISPLAY/:/}\" ]; do sleep 1; done && echo 'X Server is ready'\n\
-export PULSE_SERVER=unix:/tmp/runtime-user/pulse/native\n\
+export PULSE_SERVER=\"unix:\${XDG_RUNTIME_DIR}/pulse/native\"\n\
 /usr/bin/pulseaudio -k >/dev/null 2>&1 || true\n\
 /usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
 [ \"\${START_XFCE4:-true}\" = \"true\" ] && rm -rf ~/.config/xfce4 && vglrun -d \"\${VGL_DISPLAY:-egl}\" +wm xfce4-session &\n\

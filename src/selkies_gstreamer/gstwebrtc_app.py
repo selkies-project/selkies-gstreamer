@@ -52,7 +52,7 @@ export LD_LIBRARY_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+
 export GI_TYPELIB_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0${GI_TYPELIB_PATH:+:${GI_TYPELIB_PATH}}
 export PYTHONPATH=${GSTREAMER_PATH}/lib/python3/dist-packages${PYTHONPATH:+:${PYTHONPATH}}
 
-Replace x86_64-linux-gnu in other architectures manually or with "$(gcc -print-multiarch)".
+Replace x86_64-linux-gnu in other architectures manually or use "$(gcc -print-multiarch)" in place.
 """
     logger.error(msg)
     logger.error(e)
