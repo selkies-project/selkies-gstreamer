@@ -96,6 +96,9 @@ class GSTWebRTCApp:
         # Enforce minimum keyframe interval to 60 frames
         self.min_keyframe_frame_distance = 60
         self.keyframe_frame_distance = -1 if self.keyframe_distance == -1.0 else max(self.min_keyframe_frame_distance, int(self.framerate * self.keyframe_distance))
+        # Set VBV/HRD buffer multiplier to frame time, set 1.5x when optimal to prevent quality degradation in software encoders, relax 2x when keyframe/GOP is periodic
+        self.vbv_multiplier_nv = 1 if self.keyframe_distance == -1.0 else 2
+        self.vbv_multiplier_sw = 1.5 if self.keyframe_distance == -1.0 else 3
         # Packet loss base percentage
         self.video_packetloss_percent = video_packetloss_percent
         self.audio_packetloss_percent = audio_packetloss_percent
@@ -329,13 +332,13 @@ class GSTWebRTCApp:
             #
             # See this link for details on each preset:
             #   https://docs.nvidia.com/video-technologies/video-codec-sdk/12.2/nvenc-preset-migration-guide/index.html
-            nvh264enc.set_property("aud", True)
+            nvh264enc.set_property("aud", False)
             # Do not automatically add b-frames
             nvh264enc.set_property("b-adapt", False)
             # Disable lookahead
             nvh264enc.set_property("rc-lookahead", 0)
             # Set VBV/HRD buffer size (kbits) to optimize for live streaming
-            nvh264enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate))
+            nvh264enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate * self.vbv_multiplier_nv))
             if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh264enc.set_property("b-frames", 0)
                 # CABAC is more bandwidth-efficient compared to CAVLC at a tradeoff of slight increase (<= 1 ms) in decoding time
@@ -391,10 +394,10 @@ class GSTWebRTCApp:
 
             nvh265enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             nvh265enc.set_property("qos", True)
-            nvh265enc.set_property("aud", True)
+            nvh265enc.set_property("aud", False)
             nvh265enc.set_property("b-adapt", False)
             nvh265enc.set_property("rc-lookahead", 0)
-            nvh265enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate))
+            nvh265enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate * self.vbv_multiplier_nv))
             if Gst.version().major == 1 and Gst.version().minor >= 22:
                 nvh265enc.set_property("b-frames", 0)
                 nvh265enc.set_property("repeat-sequence-header", True)
@@ -431,7 +434,7 @@ class GSTWebRTCApp:
                 vah264enc = Gst.ElementFactory.make("vah264enc", "vaenc")
                 if vah264enc is None:
                     vah264enc = Gst.ElementFactory.make("vah264lpenc", "vaenc")
-            vah264enc.set_property("aud", True)
+            vah264enc.set_property("aud", False)
             vah264enc.set_property("b-frames", 0)
             vah264enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             vah264enc.set_property("rate-control", "cbr")
@@ -460,7 +463,7 @@ class GSTWebRTCApp:
                 vah265enc = Gst.ElementFactory.make("vah265enc", "vaenc")
                 if vah265enc is None:
                     vah265enc = Gst.ElementFactory.make("vah265lpenc", "vaenc")
-            vah265enc.set_property("aud", True)
+            vah265enc.set_property("aud", False)
             vah265enc.set_property("b-frames", 0)
             vah265enc.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             vah265enc.set_property("rate-control", "cbr")
@@ -534,15 +537,15 @@ class GSTWebRTCApp:
             # encoder
             x264enc = Gst.ElementFactory.make("x264enc", "x264enc")
             x264enc.set_property("threads", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
-            x264enc.set_property("aud", True)
+            x264enc.set_property("aud", False)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
             x264enc.set_property("insert-vui", True)
             x264enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("sync-lookahead", 0)
-            # Set VBV/HRD buffer size (miliseconds) to optimize for live streaming, set 1.5x to prevent degradation in software encoders
-            x264enc.set_property("vbv-buf-capacity", int((1000 + self.framerate - 1) / self.framerate * 1.5))
+            # Set VBV/HRD buffer size (miliseconds) to optimize for live streaming
+            x264enc.set_property("vbv-buf-capacity", int((1000 + self.framerate - 1) / self.framerate * self.vbv_multiplier_sw))
             x264enc.set_property("sliced-threads", True)
             x264enc.set_property("byte-stream", True)
             x264enc.set_property("pass", "cbr")
@@ -586,7 +589,7 @@ class GSTWebRTCApp:
 
             # encoder
             x265enc = Gst.ElementFactory.make("x265enc", "x265enc")
-            x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:aud:repeat-headers:pmode:wpp")
+            x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:repeat-headers:pmode:wpp")
             x265enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             x265enc.set_property("qos", True)
             x265enc.set_property("speed-preset", "ultrafast")
@@ -1139,14 +1142,14 @@ class GSTWebRTCApp:
         if self.encoder.startswith("nv"):
             element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
             element.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
-            element.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate))
+            element.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate * self.vbv_multiplier_nv))
         elif self.encoder.startswith("va"):
             element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
             element.set_property("key-int-max", 0 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
         elif self.encoder in ["x264enc"]:
             element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
             element.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
-            element.set_property("vbv-buf-capacity", int((1000 + self.framerate - 1) / self.framerate * 1.5))
+            element.set_property("vbv-buf-capacity", int((1000 + self.framerate - 1) / self.framerate * self.vbv_multiplier_sw))
         elif self.encoder in ["openh264enc"]:
             element = Gst.Bin.get_by_name(self.pipeline, "openh264enc")
             element.set_property("gop-size", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
@@ -1192,7 +1195,7 @@ class GSTWebRTCApp:
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
                 element.set_property("bitrate", fec_bitrate)
                 if not cc:
-                    element.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate))
+                    element.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) / self.framerate * self.vbv_multiplier_nv))
             elif self.encoder.startswith("va"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
                 element.set_property("bitrate", fec_bitrate)
