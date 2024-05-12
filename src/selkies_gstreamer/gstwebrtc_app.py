@@ -614,10 +614,12 @@ class GSTWebRTCApp:
 
             # VPX Parameters
             vpenc.set_property("threads", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
-            vpenc.set_property("buffer-initial-size", 100)
-            vpenc.set_property("buffer-optimal-size", 120)
-            vpenc.set_property("buffer-size", 150)
-            vpenc.set_property("max-intra-bitrate", 250)
+            # Set VBV/HRD buffer size (miliseconds) to optimize for live streaming
+            vbv_buffer_size = int((1000 + self.framerate - 1) / self.framerate * self.vbv_multiplier_sw)
+            vpenc.set_property("buffer-initial-size", vbv_buffer_size)
+            vpenc.set_property("buffer-optimal-size", vbv_buffer_size)
+            vpenc.set_property("buffer-size", vbv_buffer_size)
+            vpenc.set_property("auto-alt-ref", True)
             vpenc.set_property("cpu-used", -16)
             vpenc.set_property("deadline", 1)
             vpenc.set_property("end-usage", "cbr")
@@ -625,6 +627,11 @@ class GSTWebRTCApp:
             vpenc.set_property("keyframe-mode", "disabled")
             vpenc.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             vpenc.set_property("lag-in-frames", 0)
+            vpenc.set_property("max-intra-bitrate", 250)
+            vpenc.set_property("multipass-mode", "one-pass")
+            vpenc.set_property("overshoot", 25)
+            vpenc.set_property("static-threshold", 0)
+            vpenc.set_property("tuning", "psnr")
             vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
 
@@ -1159,6 +1166,10 @@ class GSTWebRTCApp:
         elif self.encoder.startswith("vp"):
             element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
             element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            vbv_buffer_size = int((1000 + self.framerate - 1) / self.framerate * self.vbv_multiplier_sw)
+            element.set_property("buffer-initial-size", vbv_buffer_size)
+            element.set_property("buffer-optimal-size", vbv_buffer_size)
+            element.set_property("buffer-size", vbv_buffer_size)
         elif self.encoder in ["svtav1enc"]:
             element = Gst.Bin.get_by_name(self.pipeline, "svtav1enc")
             element.set_property("intra-period-length", -1 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
