@@ -714,7 +714,7 @@ class GSTWebRTCApp:
             rav1enc.set_property("tiles", 16)
             rav1enc.set_property("threads", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
             rav1enc.set_property("qos", True)
-            rav1enc.set_property("bitrate", self.fec_video_bitrate)
+            rav1enc.set_property("bitrate", self.fec_video_bitrate * 1000)
 
         else:
             raise GSTWebRTCAppError("Unsupported encoder for pipeline: %s" % self.encoder)
@@ -1253,7 +1253,7 @@ class GSTWebRTCApp:
                 element.set_property("target-bitrate", fec_bitrate)
             elif self.encoder in ["rav1enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "rav1enc")
-                element.set_property("bitrate", fec_bitrate)
+                element.set_property("bitrate", fec_bitrate * 1000)
             else:
                 logger.warning("set_video_bitrate not supported with encoder: %s" % self.encoder)
 
