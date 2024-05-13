@@ -414,10 +414,10 @@ def main():
                         help='Default video bitrate')
     parser.add_argument('--keyframe_distance',
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '-1'),
-                        help='Distance between video keyframes/GOP-frames in seconds, defaults to "-1" for infinite keyframe distance (ideal for low latency and low bitrate but stream may get lost when unstable, in this case set to a positive value)')
+                        help='Distance between video keyframes/GOP-frames in seconds, defaults to "-1" for infinite keyframe distance (ideal for low latency and preventing periodic blurs)')
     parser.add_argument('--congestion_control',
                         default=os.environ.get('SELKIES_CONGESTION_CONTROL', 'false'),
-                        help='Enable Google Congestion Control (GCC), recommended setting if network conditions fluctuate but may lead to lower quality and microstutter in good networks due to adaptive bitrate')
+                        help='Enable Google Congestion Control (GCC), suggested if network conditions fluctuate but may lead to lower quality and microstutter due to adaptive bitrate in some encoders')
     parser.add_argument('--video_packetloss_percent',
                         default=os.environ.get('SELKIES_VIDEO_PACKETLOSS_PERCENT', '0'),
                         help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')

@@ -348,19 +348,19 @@ class GSTWebRTCApp:
                 nvh264enc.set_property("repeat-sequence-header", True)
                 # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zero-reorder-delay", True)
-                if Gst.version().major == 1 and Gst.version().minor > 22:
-                    nvh264enc.set_property("preset", "p4")
-                    nvh264enc.set_property("tune", "ultra-low-latency")
-                    # Two-pass mode allows to detect more motion vectors,
-                    # better distribute bitrate across the frame
-                    # and more strictly adhere to bitrate limits.
-                    nvh264enc.set_property("multi-pass", "two-pass-quarter")
-                else:
-                    nvh264enc.set_property("preset", "low-latency-hq")
             else:
                 nvh264enc.set_property("bframes", 0)
                 # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zerolatency", True)
+                nvh264enc.set_property("preset", "low-latency-hq")
+            if Gst.version().major == 1 and Gst.version().minor > 22:
+                nvh264enc.set_property("preset", "p4")
+                nvh264enc.set_property("tune", "ultra-low-latency")
+                # Two-pass mode allows to detect more motion vectors,
+                # better distribute bitrate across the frame
+                # and more strictly adhere to bitrate limits.
+                nvh264enc.set_property("multi-pass", "two-pass-quarter")
+            else:
                 nvh264enc.set_property("preset", "low-latency-hq")
 
         elif self.encoder in ["nvh265enc"]:
@@ -403,15 +403,15 @@ class GSTWebRTCApp:
                 nvh265enc.set_property("b-frames", 0)
                 nvh265enc.set_property("repeat-sequence-header", True)
                 nvh265enc.set_property("zero-reorder-delay", True)
-                if Gst.version().major == 1 and Gst.version().minor > 22:
-                    nvh265enc.set_property("preset", "p4")
-                    nvh265enc.set_property("tune", "ultra-low-latency")
-                    nvh265enc.set_property("multi-pass", "two-pass-quarter")
-                else:
-                    nvh265enc.set_property("preset", "low-latency-hq")
             else:
                 nvh265enc.set_property("bframes", 0)
                 nvh265enc.set_property("zerolatency", True)
+                nvh265enc.set_property("preset", "low-latency-hq")
+            if Gst.version().major == 1 and Gst.version().minor > 22:
+                nvh265enc.set_property("preset", "p4")
+                nvh265enc.set_property("tune", "ultra-low-latency")
+                nvh265enc.set_property("multi-pass", "two-pass-quarter")
+            else:
                 nvh265enc.set_property("preset", "low-latency-hq")
 
         elif self.encoder in ["vah264enc"]:
@@ -443,6 +443,7 @@ class GSTWebRTCApp:
             vah264enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             vah264enc.set_property("mbbrc", "enabled")
             vah264enc.set_property("num-slices", 4)
+            vah264enc.set_property("ref-frames", 1)
             vah264enc.set_property("rate-control", "cbr")
             vah264enc.set_property("target-usage", 6)
             vah264enc.set_property("bitrate", self.fec_video_bitrate)
@@ -475,6 +476,7 @@ class GSTWebRTCApp:
             vah265enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             vah265enc.set_property("mbbrc", "enabled")
             vah265enc.set_property("num-slices", 4)
+            vah265enc.set_property("ref-frames", 1)
             vah265enc.set_property("rate-control", "cbr")
             vah265enc.set_property("target-usage", 6)
             vah265enc.set_property("bitrate", self.fec_video_bitrate)
@@ -502,10 +504,10 @@ class GSTWebRTCApp:
                     vavp9enc = Gst.ElementFactory.make("vavp9lpenc", "vaenc")
             # Set VBV/HRD buffer size (kbits) to optimize for live streaming
             vavp9enc.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
-            vavp9enc.set_property("gf-group-size", 8)
             vavp9enc.set_property("hierarchical-level", 1)
             vavp9enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             vavp9enc.set_property("mbbrc", "enabled")
+            vavp9enc.set_property("ref-frames", 1)
             vavp9enc.set_property("rate-control", "cbr")
             vavp9enc.set_property("target-usage", 6)
             vavp9enc.set_property("bitrate", self.fec_video_bitrate)
@@ -533,11 +535,10 @@ class GSTWebRTCApp:
                     vaav1enc = Gst.ElementFactory.make("vaav1lpenc", "vaenc")
             # Set VBV/HRD buffer size (kbits) to optimize for live streaming
             vaav1enc.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
-            vaav1enc.set_property("gf-group-size", 32)
             vaav1enc.set_property("hierarchical-level", 1)
             vaav1enc.set_property("key-int-max", 1024 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             vaav1enc.set_property("mbbrc", "enabled")
-            vaav1enc.set_property("ref-frames", 3)
+            vaav1enc.set_property("ref-frames", 1)
             vaav1enc.set_property("tile-groups", 16)
             vaav1enc.set_property("rate-control", "cbr")
             vaav1enc.set_property("target-usage", 6)
