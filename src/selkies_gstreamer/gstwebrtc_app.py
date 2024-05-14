@@ -46,13 +46,13 @@ except Exception as e:
 
 If GStreamer is installed at a certain location, set the path to the environment variable GSTREAMER_PATH, then make sure your environment is set correctly using the below commands:
 
-export GSTREAMER_PATH=${GSTREAMER_PATH:-/opt/gstreamer}
-export PATH=${GSTREAMER_PATH}/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-export GI_TYPELIB_PATH=${GSTREAMER_PATH}/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0${GI_TYPELIB_PATH:+:${GI_TYPELIB_PATH}}
-export PYTHONPATH=${GSTREAMER_PATH}/lib/python3/dist-packages${PYTHONPATH:+:${PYTHONPATH}}
+export GSTREAMER_PATH="${GSTREAMER_PATH:-$(pwd)}"
+export PATH="${GSTREAMER_PATH}/bin${PATH:+:${PATH}}"
+export LD_LIBRARY_PATH="${GSTREAMER_PATH}/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export GI_TYPELIB_PATH="${GSTREAMER_PATH}/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0${GI_TYPELIB_PATH:+:${GI_TYPELIB_PATH}}"
+export PYTHONPATH="${GSTREAMER_PATH}/lib/python3/dist-packages${PYTHONPATH:+:${PYTHONPATH}}"
 
-Replace x86_64-linux-gnu in other architectures manually or use "$(gcc -print-multiarch)" in place.
+Replace "x86_64-linux-gnu" in other architectures manually or use "$(gcc -print-multiarch)" in place.
 """
     logger.error(msg)
     logger.error(e)

@@ -115,11 +115,12 @@ RUN NVRTC_VERSION="11.4.152" && \
 
 # Generate environment file
 RUN MULTI_ARCH="$(gcc -print-multiarch | sed -e 's/i.*86/i386/')" && \
-    echo "export GSTREAMER_PATH=\${GSTREAMER_PATH:-/opt/gstreamer}\n\
-export PATH=\${GSTREAMER_PATH}/bin\${PATH:+:\${PATH}}\n\
-export LD_LIBRARY_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}\n\
-export GI_TYPELIB_PATH=\${GSTREAMER_PATH}/lib/${MULTI_ARCH}/girepository-1.0:/usr/lib/${MULTI_ARCH}/girepository-1.0\${GI_TYPELIB_PATH:+:\${GI_TYPELIB_PATH}}\n\
-export PYTHONPATH=\${GSTREAMER_PATH}/lib/python3/dist-packages\${PYTHONPATH:+:\${PYTHONPATH}}\n\
+    echo "#!/bin/bash\n\
+export GSTREAMER_PATH=\"\${GSTREAMER_PATH:-\$(dirname \${BASH_SOURCE[0]:-\${(%):-%x}})}\"\n\
+export PATH=\"\${GSTREAMER_PATH}/bin\${PATH:+:\${PATH}}\"\n\
+export LD_LIBRARY_PATH=\"\${GSTREAMER_PATH}/lib/${MULTI_ARCH}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}\"\n\
+export GI_TYPELIB_PATH=\"\${GSTREAMER_PATH}/lib/${MULTI_ARCH}/girepository-1.0:/usr/lib/${MULTI_ARCH}/girepository-1.0\${GI_TYPELIB_PATH:+:\${GI_TYPELIB_PATH}}\"\n\
+export PYTHONPATH=\"\${GSTREAMER_PATH}/lib/python3/dist-packages\${PYTHONPATH:+:\${PYTHONPATH}}\"\n\
 " > /opt/gstreamer/gst-env
 
 # Bundle build result to tarball
