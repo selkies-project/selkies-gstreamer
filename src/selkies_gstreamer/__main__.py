@@ -713,6 +713,8 @@ def main():
     # Initial binding of enable resize handler.
     if enable_resize:
         webrtc_input.on_resize = on_resize_handler
+    else:
+        webrtc_input.on_resize = lambda res: logger.warning("remote resize is disabled, skipping resize to %s" % res)
 
     # Handle for DPI events.
     def on_scaling_ratio_handler(scale):
@@ -732,6 +734,8 @@ def main():
     # Bind DPI handler.
     if enable_resize:
         webrtc_input.on_scaling_ratio = on_scaling_ratio_handler
+    else:
+        webrtc_input.on_scaling_ratio = lambda scale: logger.warning("remote resize is disabled, skipping DPI scale change to %s" % str(scale))
 
     webrtc_input.on_ping_response = lambda latency: app.send_latency_time(latency)
 
