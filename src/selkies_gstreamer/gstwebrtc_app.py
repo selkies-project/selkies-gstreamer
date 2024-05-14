@@ -268,6 +268,11 @@ class GSTWebRTCApp:
             if self.gpu_id >= 0:
                 cudaconvert.set_property("cuda-device-id", self.gpu_id)
 
+            # Instructs cudaconvert to handle Quality of Service (QOS) events from
+            # the rest of the pipeline. Setting this to true increases
+            # encoder stability.
+            cudaconvert.set_property("qos", True)
+
             # Convert ximagesrc BGRx format to NV12 using cudaconvert.
             # This is a more compatible format for client-side software decoders.
             cudaconvert_caps = Gst.caps_from_string("video/x-raw(memory:CUDAMemory)")
@@ -317,11 +322,6 @@ class GSTWebRTCApp:
             # Minimize GOP-to-GOP rate fluctuations
             nvh264enc.set_property("strict-gop", True)
 
-            # Instructs encoder to handle Quality of Service (QOS) events from
-            # the rest of the pipeline. Setting this to true increases
-            # encoder stability.
-            nvh264enc.set_property("qos", True)
-
             # The NVENC encoder supports a limited nubmer of encoding presets.
             # These presets are different than the open x264 standard.
             # The presets control the picture coding technique, bitrate,
@@ -370,6 +370,7 @@ class GSTWebRTCApp:
             cudaconvert = Gst.ElementFactory.make("cudaconvert")
             if self.gpu_id >= 0:
                 cudaconvert.set_property("cuda-device-id", self.gpu_id)
+            cudaconvert.set_property("qos", True)
             cudaconvert_caps = Gst.caps_from_string("video/x-raw(memory:CUDAMemory)")
             cudaconvert_caps.set_value("format", "NV12")
             cudaconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -394,7 +395,6 @@ class GSTWebRTCApp:
                 nvh265enc.set_property("rc-mode", "cbr")
 
             nvh265enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
-            nvh265enc.set_property("qos", True)
             nvh265enc.set_property("aud", False)
             nvh265enc.set_property("b-adapt", False)
             nvh265enc.set_property("rc-lookahead", 0)
@@ -421,6 +421,7 @@ class GSTWebRTCApp:
             else:
                 vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
+            vapostproc.set_property("qos", True)
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
             vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -455,6 +456,7 @@ class GSTWebRTCApp:
             else:
                 vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
+            vapostproc.set_property("qos", True)
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
             vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -488,6 +490,7 @@ class GSTWebRTCApp:
             else:
                 vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
+            vapostproc.set_property("qos", True)
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
             vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -519,6 +522,7 @@ class GSTWebRTCApp:
             else:
                 vapostproc = Gst.ElementFactory.make("vapostproc")
             vapostproc.set_property("scale-method", "fast")
+            vapostproc.set_property("qos", True)
             vapostproc_caps = Gst.caps_from_string("video/x-raw(memory:VAMemory)")
             vapostproc_caps.set_value("format", "NV12")
             vapostproc_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -548,6 +552,7 @@ class GSTWebRTCApp:
             # Videoconvert for colorspace conversion
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert.set_property("qos", True)
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "NV12")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -571,13 +576,13 @@ class GSTWebRTCApp:
             x264enc.set_property("pass", "cbr")
             x264enc.set_property("speed-preset", "veryfast")
             x264enc.set_property("tune", "zerolatency")
-            x264enc.set_property("qos", True)
             x264enc.set_property("bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["openh264enc"]:
             # Videoconvert for colorspace conversion
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert.set_property("qos", True)
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -602,6 +607,7 @@ class GSTWebRTCApp:
             # Videoconvert for colorspace conversion
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert.set_property("qos", True)
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -611,7 +617,6 @@ class GSTWebRTCApp:
             x265enc = Gst.ElementFactory.make("x265enc", "x265enc")
             x265enc.set_property("option-string", "b-adapt=0:bframes=0:rc-lookahead=0:repeat-headers:pmode:wpp")
             x265enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
-            x265enc.set_property("qos", True)
             x265enc.set_property("speed-preset", "ultrafast")
             x265enc.set_property("tune", "zerolatency")
             x265enc.set_property("bitrate", self.fec_video_bitrate)
@@ -619,6 +624,7 @@ class GSTWebRTCApp:
         elif self.encoder in ["vp8enc", "vp9enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert.set_property("qos", True)
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -652,12 +658,12 @@ class GSTWebRTCApp:
             vpenc.set_property("undershoot", 10)
             vpenc.set_property("static-threshold", 0)
             vpenc.set_property("tuning", "psnr")
-            vpenc.set_property("qos", True)
             vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
 
         elif self.encoder in ["svtav1enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert.set_property("qos", True)
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -669,12 +675,12 @@ class GSTWebRTCApp:
             svtav1enc.set_property("preset", 10)
             svtav1enc.set_property("logical-processors", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
             svtav1enc.set_property("parameters-string", "rc=2:fast-decode=1:buf-initial-sz=100:buf-optimal-sz=120:maxsection-pct=250:lookahead=0:pred-struct=1")
-            svtav1enc.set_property("qos", True)
             svtav1enc.set_property("target-bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["av1enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert.set_property("qos", True)
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -694,12 +700,12 @@ class GSTWebRTCApp:
             av1enc.set_property("tile-columns", 2)
             av1enc.set_property("tile-rows", 2)
             av1enc.set_property("threads", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
-            av1enc.set_property("qos", True)
             av1enc.set_property("target-bitrate", self.fec_video_bitrate)
 
         elif self.encoder in ["rav1enc"]:
             videoconvert = Gst.ElementFactory.make("videoconvert")
             videoconvert.set_property("n-threads", min(4, max(1, len(os.sched_getaffinity(0)) - 1)))
+            videoconvert.set_property("qos", True)
             videoconvert_caps = Gst.caps_from_string("video/x-raw")
             videoconvert_caps.set_value("format", "I420")
             videoconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
@@ -713,7 +719,6 @@ class GSTWebRTCApp:
             rav1enc.set_property("speed-preset", 10)
             rav1enc.set_property("tiles", 16)
             rav1enc.set_property("threads", min(24, max(1, len(os.sched_getaffinity(0)) - 1)))
-            rav1enc.set_property("qos", True)
             rav1enc.set_property("bitrate", self.fec_video_bitrate * 1000)
 
         else:
