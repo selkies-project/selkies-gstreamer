@@ -81,7 +81,7 @@ class WebRTCInputError(Exception):
 
 
 class WebRTCInput:
-    def __init__(self, uinput_mouse_socket_path="", js_socket_path="", enable_clipboard="", enable_cursors=True, cursor_size=24, cursor_scale=1.0, cursor_debug=False):
+    def __init__(self, uinput_mouse_socket_path="", js_socket_path="", enable_clipboard="", enable_cursors=True, cursor_size=16, cursor_scale=1.0, cursor_debug=False):
         """Initializes WebRTC input instance
         """
         self.loop = None
