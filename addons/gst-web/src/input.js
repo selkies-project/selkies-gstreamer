@@ -170,8 +170,9 @@ class Input {
         if (event.type === 'mousemove' && !this.m) return;
 
         if (!document.pointerLockElement) {
-            if (this.mouseRelative)
+            if (this.mouseRelative) {
                 event.target.requestPointerLock();
+            }
         }
 
         // Hotkey to enable pointer lock, Ctrl-Shift-LeftButton
