@@ -948,6 +948,9 @@ class GSTWebRTCApp:
         transceiver.set_property("do-nack", True)
         transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.video_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
         transceiver.set_property("fec-percentage", self.video_packetloss_percent)
+        # Set WebRTC priority
+        sender = transceiver.get_property("sender")
+        sender.set_property("priority", GstWebRTC.WebRTCPriorityType.MEDIUM)
     # [END build_video_pipeline]
 
     # [START build_audio_pipeline]
@@ -985,12 +988,14 @@ class GSTWebRTCApp:
         opusenc.set_property("audio-type", "restricted-lowdelay")
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
+        opusenc.set_property("dtx", True)
         # Browser-side SDP munging for minptime=3 in Chrome is required for effect
         opusenc.set_property("frame-size", "2.5")
-        opusenc.set_property("inband-fec", self.audio_packetloss_percent > 0)
         opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)
-        opusenc.set_property("packet-loss-percentage", self.audio_packetloss_percent)
+        # Inband FEC in Opus is only available with SILK, not CELT
+        # opusenc.set_property("inband-fec", self.audio_packetloss_percent > 0)
+        # opusenc.set_property("packet-loss-percentage", self.audio_packetloss_percent)
 
         # Set audio bitrate
         # This can be dynamically changed using set_audio_bitrate()
@@ -1000,6 +1005,7 @@ class GSTWebRTCApp:
         # RTP packets that are sent over the connection transport.
         rtpopuspay = Gst.ElementFactory.make("rtpopuspay")
         rtpopuspay.set_property("mtu", 1200)
+        rtpopuspay.set_property("dtx", True)
 
         # Add Transport-Wide Congestion Control (TWCC) extension
         # if self.congestion_control:
@@ -1065,6 +1071,9 @@ class GSTWebRTCApp:
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
         transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
         transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
+        # Set WebRTC priority
+        sender = transceiver.get_property("sender")
+        sender.set_property("priority", GstWebRTC.WebRTCPriorityType.MEDIUM)
     # [END build_audio_pipeline]
 
     def check_plugins(self):
@@ -1473,10 +1482,24 @@ class GSTWebRTCApp:
         if "h264" in self.encoder or "x264" in self.encoder:
             if 'profile-level-id' not in sdp_text:
                 logger.warning("injecting profile-level-id to SDP")
-                sdp_text = sdp_text.replace('packetization-mode=1', 'profile-level-id=42e01f;packetization-mode=1')
+                sdp_text = sdp_text.replace('packetization-mode=', 'profile-level-id=42e01f;packetization-mode=')
+            elif 'profile-level-id=42e01f' not in sdp_text:
+                logger.warning("injecting modified profile-level-id to SDP")
+                sdp_text = sdp_text.replace(r'profile-level-id=\w+', r'profile-level-id=42e01f', sdp_text)
             if 'level-asymmetry-allowed' not in sdp_text:
                 logger.warning("injecting level-asymmetry-allowed to SDP")
-                sdp_text = sdp_text.replace('packetization-mode=1', 'level-asymmetry-allowed=1;packetization-mode=1')
+                sdp_text = sdp_text.replace('packetization-mode=', 'level-asymmetry-allowed=1;packetization-mode=')
+            elif 'level-asymmetry-allowed=1' not in sdp_text:
+                logger.warning("injecting modified level-asymmetry-allowed to SDP")
+                sdp_text = sdp_text.replace(r'level-asymmetry-allowed=\d+', r'level-asymmetry-allowed=1', sdp_text)
+        # Enable sps-pps-idr-in-keyframe=1 in H.264 and H.265
+        if "h264" in self.encoder or "x264" in self.encoder or "h265" in self.encoder or "x265" in self.encoder:
+            if 'sps-pps-idr-in-keyframe' not in sdp_text:
+                logger.warning("injecting sps-pps-idr-in-keyframe to SDP")
+                sdp_text = sdp_text.replace('packetization-mode=', 'sps-pps-idr-in-keyframe=1;packetization-mode=')
+            elif 'sps-pps-idr-in-keyframe=1' not in sdp_text:
+                logger.warning("injecting modified sps-pps-idr-in-keyframe to SDP")
+                sdp_text = sdp_text.replace(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
     def __request_aux_sender(self, webrtcbin, dtls_transport):

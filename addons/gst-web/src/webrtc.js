@@ -278,9 +278,18 @@ class WebRTCDemo {
             this._setDebug("received SDP offer, creating answer");
             this.peerConnection.createAnswer()
                 .then((local_sdp) => {
+                    // Set sps-pps-idr-in-keyframe=1
+                    if (!(/[^-]sps-pps-idr-in-keyframe=1[^\d]/gm.test(local_sdp.sdp)) && (/[^-]packetization-mode=/gm.test(local_sdp.sdp))) {
+                        console.log("Overriding sps-pps-idr-in-keyframe=1");
+                        if (/[^-]sps-pps-idr-in-keyframe=\d+/gm.test(local_sdp.sdp)) {
+                            local_sdp.sdp = local_sdp.sdp.replace(/sps-pps-idr-in-keyframe=\d+/gm, 'sps-pps-idr-in-keyframe=1');
+                        } else {
+                            local_sdp.sdp = local_sdp.sdp.replace('packetization-mode=', 'sps-pps-idr-in-keyframe=1;packetization-mode=')
+                        }
+                    }
                     // Override SDP to enable stereo on WebRTC Opus with Chromium, must be munged before the Local Description
                     if (local_sdp.sdp.indexOf('multiopus') === -1) {
-                        if (!(/[^-]stereo=1[^\d]/gm.test(local_sdp.sdp))) {
+                        if (!(/[^-]stereo=1[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
                             console.log("Overriding WebRTC SDP to allow stereo audio");
                             if (/[^-]stereo=\d+/gm.test(local_sdp.sdp)) {
                                 local_sdp.sdp = local_sdp.sdp.replace(/stereo=\d+/gm, 'stereo=1');
@@ -290,7 +299,7 @@ class WebRTCDemo {
                         }
                     }
                     // Override SDP to reduce Opus packet size to 2.5 ms
-                    if (!(/[^-]minptime=3[^\d]/gm.test(local_sdp.sdp))) {
+                    if (!(/[^-]minptime=3[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
                         console.log("Overriding WebRTC SDP to allow low-latency audio packet");
                         if (/[^-]minptime=\d+/gm.test(local_sdp.sdp)) {
                             local_sdp.sdp = local_sdp.sdp.replace(/minptime=\d+/gm, 'minptime=3');
@@ -503,7 +512,7 @@ class WebRTCDemo {
                 packetsReceived: 0, // from incoming-rtp
                 packetsLost: 0, // from incoming-rtp
                 codecName: "NA", // from incoming-rtp.codec
-                jitterBufferDelay: 0, // from track.jitterBufferDelay / track.jitterBuffferEmittedCount in seconds.
+                jitterBufferDelay: 0, // from track.jitterBufferDelay / track.jitterBufferEmittedCount in seconds.
             },
 
             // Audio stats
@@ -512,7 +521,7 @@ class WebRTCDemo {
                 packetsReceived: 0, // from incoming-rtp
                 packetsLost: 0, // from incoming-rtp
                 codecName: "NA", // from incoming-rtp.codec
-                jitterBufferDelay: 0, // from track.jitterBufferDelay / track.jitterBuffferEmittedCount in seconds.
+                jitterBufferDelay: 0, // from track.jitterBufferDelay / track.jitterBufferEmittedCount in seconds.
             }
         };
 
