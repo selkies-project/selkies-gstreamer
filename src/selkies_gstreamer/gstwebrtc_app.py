@@ -82,7 +82,6 @@ class GSTWebRTCApp:
         self.webrtcbin = None
         self.data_channel = None
         self.rtpgccbwe = None
-        self.rtp_extension_id_latest = 0
         self.congestion_control = congestion_control
         self.encoder = encoder
         self.gpu_id = gpu_id
@@ -933,9 +932,6 @@ class GSTWebRTCApp:
         transceiver.set_property("do-nack", True)
         transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.video_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
         transceiver.set_property("fec-percentage", self.video_packetloss_percent)
-        # Set WebRTC priority
-        sender = transceiver.get_property("sender")
-        sender.set_property("priority", GstWebRTC.WebRTCPriorityType.MEDIUM)
     # [END build_video_pipeline]
 
     # [START build_audio_pipeline]
@@ -953,6 +949,14 @@ class GSTWebRTCApp:
         # jitter buffer to catch up and will never recover.
         pulsesrc.set_property("provide-clock", True)
 
+        # Apply stream time to buffers, this helps with pipeline synchronization.
+        # Disabled by default because pulsesrc should not be re-timestamped with the current stream time when pushed out to the GStreamer pipeline and destroy the original synchronization.
+        pulsesrc.set_property("do-timestamp", False)
+
+        # Maximum and minimum amount of data to read in each iteration in microseconds
+        pulsesrc.set_property("buffer-time", 10000)
+        pulsesrc.set_property("latency-time", 2500)
+
         # Create capabilities for pulsesrc and set channels
         pulsesrc_caps = Gst.caps_from_string("audio/x-raw")
         pulsesrc_caps.set_value("channels", self.audio_channels)
@@ -960,10 +964,6 @@ class GSTWebRTCApp:
         # Create a capability filter for the pulsesrc_caps
         pulsesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
         pulsesrc_capsfilter.set_property("caps", pulsesrc_caps)
-
-        # Apply stream time to buffers, this helps with pipeline synchronization.
-        # Disabled by default because pulsesrc should not be re-timestamped with the current stream time when pushed out to the GStreamer pipeline and destroy the original synchronization.
-        pulsesrc.set_property("do-timestamp", False)
 
         # Encode the raw pulseaudio stream to opus format which is the
         # default packetized streaming format for the web.
@@ -1053,9 +1053,6 @@ class GSTWebRTCApp:
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
         transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
         transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
-        # Set WebRTC priority
-        sender = transceiver.get_property("sender")
-        sender.set_property("priority", GstWebRTC.WebRTCPriorityType.MEDIUM)
     # [END build_audio_pipeline]
 
     def check_plugins(self):
@@ -1510,25 +1507,27 @@ class GSTWebRTCApp:
             payloader {GstRTPBasePayload gobject} -- payloader gobject
             audio {boolean} -- Whether the RTP payloader is for audio
         """
+        rtp_id_iteration = 0
         return_result = True
         rtp_uri_list = ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"]
         if not audio:
             rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay", "http://www.webrtc.org/experiments/rtp-hdrext/video-timing", "http://www.webrtc.org/experiments/rtp-hdrext/color-space"]
         for rtp_uri in rtp_uri_list:
             try:
-                rtp_id = self.__pick_rtp_extension_id(payloader, rtp_uri)
+                rtp_id = self.__pick_rtp_extension_id(payloader, rtp_uri, previous_rtp_id=rtp_id_iteration)
                 if rtp_id is not None:
                     rtp_extension = GstRtp.RTPHeaderExtension.create_from_uri(rtp_uri)
                     if not rtp_extension:
                         raise GSTWebRTCAppError("GstRtp.RTPHeaderExtension for {} is None".format(rtp_uri))
                     rtp_extension.set_id(rtp_id)
                     payloader.emit("add-extension", rtp_extension)
+                    rtp_id_iteration = rtp_id
             except Exception as e:
                 logger.warning("RTP extension {} not added because of error {}".format(rtp_uri, e))
                 return_result = False
         return return_result
 
-    def __pick_rtp_extension_id(self, payloader, uri):
+    def __pick_rtp_extension_id(self, payloader, uri, previous_rtp_id=0):
         """Finds extension ID for RTP extensions with the payloader
 
         Arguments:
@@ -1539,8 +1538,7 @@ class GSTWebRTCApp:
         enabled_extensions = payloader.get_property("extensions") if "extensions" in [payloader_property.name for payloader_property in payloader_properties] else None
         if not enabled_extensions:
             logger.debug("'extensions' property in {} does not exist in payloader, application code must ensure to select non-conflicting IDs for any additionally configured extensions".format(payloader.get_name()))
-            self.rtp_extension_id_latest += 1
-            return self.rtp_extension_id_latest
+            return max(1, previous_rtp_id + 1)
         extension = next((ext for ext in enabled_extensions if ext.get_uri() == uri), None)
         # When extension is already mapped
         if extension:
@@ -1550,8 +1548,7 @@ class GSTWebRTCApp:
         num = 1
         while True:
             if num not in used_numbers:
-                self.rtp_extension_id_latest = num
-                return self.rtp_extension_id_latest
+                return num
             num += 1
 
     def __on_negotiation_needed(self, webrtcbin):
