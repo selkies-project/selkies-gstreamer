@@ -82,7 +82,7 @@ class GSTWebRTCApp:
         self.webrtcbin = None
         self.data_channel = None
         self.rtpgccbwe = None
-        self.RTP_TWCC_URI = "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"
+        self.rtp_extension_id_latest = 0
         self.congestion_control = congestion_control
         self.encoder = encoder
         self.gpu_id = gpu_id
@@ -752,13 +752,10 @@ class GSTWebRTCApp:
             # Send SPS and PPS Insertion with every IDR frame
             rtph264pay.set_property("config-interval", -1)
 
-            # Add Transport-Wide Congestion Control (TWCC) extension
-            if self.congestion_control:
-                twcc_id_video = self.__pick_twcc_extension_id(rtph264pay)
-                if twcc_id_video is not None:
-                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                    twcc_extension_video.set_id(twcc_id_video)
-                    rtph264pay.emit("add-extension", twcc_extension_video)
+            # Add WebRTC RTP extensions
+            extensions_return = self.rtp_add_extensions(rtph264pay)
+            if not extensions_return:
+                logger.warning("WebRTC RTP extension configuration failed with video, this may lead to suboptimal performance")
 
             # Set the capabilities for the rtph264pay element.
             rtph264pay_caps = Gst.caps_from_string("application/x-rtp")
@@ -797,12 +794,9 @@ class GSTWebRTCApp:
             rtph265pay.set_property("mtu", 1200)
             rtph265pay.set_property("aggregate-mode", "zero-latency")
             rtph265pay.set_property("config-interval", -1)
-            if self.congestion_control:
-                twcc_id_video = self.__pick_twcc_extension_id(rtph265pay)
-                if twcc_id_video is not None:
-                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                    twcc_extension_video.set_id(twcc_id_video)
-                    rtph265pay.emit("add-extension", twcc_extension_video)
+            extensions_return = self.rtp_add_extensions(rtph265pay)
+            if not extensions_return:
+                logger.warning("WebRTC RTP extension configuration failed with video, this may lead to suboptimal performance")
             rtph265pay_caps = Gst.caps_from_string("application/x-rtp")
             rtph265pay_caps.set_value("media", "video")
             rtph265pay_caps.set_value("clock-rate", 90000)
@@ -822,12 +816,9 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp8pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
-            if self.congestion_control:
-                twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
-                if twcc_id_video is not None:
-                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                    twcc_extension_video.set_id(twcc_id_video)
-                    rtpvppay.emit("add-extension", twcc_extension_video)
+            extensions_return = self.rtp_add_extensions(rtpvppay)
+            if not extensions_return:
+                logger.warning("WebRTC RTP extension configuration failed with video, this may lead to suboptimal performance")
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -847,12 +838,9 @@ class GSTWebRTCApp:
             rtpvppay = Gst.ElementFactory.make("rtpvp9pay", "rtpvppay")
             rtpvppay.set_property("mtu", 1200)
             rtpvppay.set_property("picture-id-mode", "15-bit")
-            if self.congestion_control:
-                twcc_id_video = self.__pick_twcc_extension_id(rtpvppay)
-                if twcc_id_video is not None:
-                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                    twcc_extension_video.set_id(twcc_id_video)
-                    rtpvppay.emit("add-extension", twcc_extension_video)
+            extensions_return = self.rtp_add_extensions(rtpvppay)
+            if not extensions_return:
+                logger.warning("WebRTC RTP extension configuration failed with video, this may lead to suboptimal performance")
             rtpvppay_caps = Gst.caps_from_string("application/x-rtp")
             rtpvppay_caps.set_value("media", "video")
             rtpvppay_caps.set_value("clock-rate", 90000)
@@ -873,12 +861,9 @@ class GSTWebRTCApp:
 
             rtpav1pay = Gst.ElementFactory.make("rtpav1pay")
             rtpav1pay.set_property("mtu", 1200)
-            if self.congestion_control:
-                twcc_id_video = self.__pick_twcc_extension_id(rtpav1pay)
-                if twcc_id_video is not None:
-                    twcc_extension_video = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-                    twcc_extension_video.set_id(twcc_id_video)
-                    rtpav1pay.emit("add-extension", twcc_extension_video)
+            extensions_return = self.rtp_add_extensions(rtpav1pay)
+            if not extensions_return:
+                logger.warning("WebRTC RTP extension configuration failed with video, this may lead to suboptimal performance")
             rtpav1pay_caps = Gst.caps_from_string("application/x-rtp")
             rtpav1pay_caps.set_value("media", "video")
             rtpav1pay_caps.set_value("clock-rate", 90000)
@@ -1007,13 +992,10 @@ class GSTWebRTCApp:
         rtpopuspay.set_property("mtu", 1200)
         rtpopuspay.set_property("dtx", True)
 
-        # Add Transport-Wide Congestion Control (TWCC) extension
-        # if self.congestion_control:
-        #     twcc_id_audio = self.__pick_twcc_extension_id(rtpopuspay)
-        #     if twcc_id_audio is not None:
-        #         twcc_extension_audio = GstRtp.RTPHeaderExtension.create_from_uri(self.RTP_TWCC_URI)
-        #         twcc_extension_audio.set_id(twcc_id_audio)
-        #         rtpopuspay.emit("add-extension", twcc_extension_audio)
+        # Add WebRTC RTP extensions
+        extensions_return = self.rtp_add_extensions(rtpopuspay, audio=True)
+        if not extensions_return:
+            logger.warning("WebRTC RTP extension configuration failed with audio, this may lead to suboptimal performance")
 
         # Insert a queue for the RTP packets.
         # rtpopuspay_queue = Gst.ElementFactory.make("queue", "rtpopuspay_queue")
@@ -1521,27 +1503,55 @@ class GSTWebRTCApp:
         self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.fec_audio_bitrate) / 1000), cc=True))
         return self.rtpgccbwe
 
-    def __pick_twcc_extension_id(self, payloader):
-        """Finds extension ID for Transport-Wide Congestion Control (TWCC), required for rtpgccbwe
+    def rtp_add_extensions(self, payloader, audio=False):
+        """Adds WebRTC RTP extensions to the payloader
 
         Arguments:
             payloader {GstRTPBasePayload gobject} -- payloader gobject
+            audio {boolean} -- Whether the RTP payloader is for audio
+        """
+        return_result = True
+        rtp_uri_list = ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"]
+        if not audio:
+            rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay", "http://www.webrtc.org/experiments/rtp-hdrext/video-timing", "http://www.webrtc.org/experiments/rtp-hdrext/color-space"]
+        for rtp_uri in rtp_uri_list:
+            try:
+                rtp_id = self.__pick_rtp_extension_id(payloader, rtp_uri)
+                if rtp_id is not None:
+                    rtp_extension = GstRtp.RTPHeaderExtension.create_from_uri(rtp_uri)
+                    if not rtp_extension:
+                        raise GSTWebRTCAppError("GstRtp.RTPHeaderExtension for {} is None".format(rtp_uri))
+                    rtp_extension.set_id(rtp_id)
+                    payloader.emit("add-extension", rtp_extension)
+            except Exception as e:
+                logger.warning("RTP extension {} not added because of error {}".format(rtp_uri, e))
+                return_result = False
+        return return_result
+
+    def __pick_rtp_extension_id(self, payloader, uri):
+        """Finds extension ID for RTP extensions with the payloader
+
+        Arguments:
+            payloader {GstRTPBasePayload gobject} -- payloader gobject
+            uri {str} -- URI for the RTP extension
         """
         payloader_properties = payloader.list_properties()
         enabled_extensions = payloader.get_property("extensions") if "extensions" in [payloader_property.name for payloader_property in payloader_properties] else None
         if not enabled_extensions:
             logger.debug("'extensions' property in {} does not exist in payloader, application code must ensure to select non-conflicting IDs for any additionally configured extensions".format(payloader.get_name()))
-            return 1
-        twcc = next((ext for ext in enabled_extensions if ext.get_uri() == self.RTP_TWCC_URI), None)
-        # When TWCC is already mapped
-        if twcc:
+            self.rtp_extension_id_latest += 1
+            return self.rtp_extension_id_latest
+        extension = next((ext for ext in enabled_extensions if ext.get_uri() == uri), None)
+        # When extension is already mapped
+        if extension:
             return None
         used_numbers = set(ext.get_id() for ext in enabled_extensions)
-        # Find first extension ID that does not collide
+        # Find first extension ID that does not overlap
         num = 1
         while True:
             if num not in used_numbers:
-                return num
+                self.rtp_extension_id_latest = num
+                return self.rtp_extension_id_latest
             num += 1
 
     def __on_negotiation_needed(self, webrtcbin):
