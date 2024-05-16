@@ -428,13 +428,11 @@ var audioConnected = "";
 // Bind vue status to connection state.
 function onBothStreamConnected() {
     // Minimize latency settings
-    var video_receivers = webrtc.peerConnection.getReceivers();
-    video_receivers.forEach(receiver => {
-        receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0;
+    webrtc.peerConnection.getReceivers().forEach(receiver => {
+        receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
     });
-    var audio_receivers = audio_webrtc.peerConnection.getReceivers();
-    audio_receivers.forEach(receiver => {
-        receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0;
+    audio_webrtc.peerConnection.getReceivers().forEach(receiver => {
+        receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
     });
     // Start watching stats.
     var videoBytesReceivedStart = 0;

@@ -1049,7 +1049,7 @@ class GSTWebRTCApp:
             if not Gst.Element.link(pipeline_elements[i], pipeline_elements[i + 1]):
                 raise GSTWebRTCAppError("Failed to link {} -> {}".format(pipeline_elements[i].get_name(), pipeline_elements[i + 1].get_name()))
 
-        # Enable forward error correction (FEC) in the audio stream
+        # Enable redundancy (RED) and forward error correction (FEC) in the audio stream
         transceiver = self.webrtcbin.emit("get-transceiver", 0)
         transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
         transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
@@ -1479,6 +1479,18 @@ class GSTWebRTCApp:
             elif 'sps-pps-idr-in-keyframe=1' not in sdp_text:
                 logger.warning("injecting modified sps-pps-idr-in-keyframe to SDP")
                 sdp_text = sdp_text.replace(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
+        # Enable ULP and RED redundancy with audio
+        if "opus/48000" in sdp_text.lower():
+            if "opus/48000/2" in sdp_text.lower():
+                if "red/48000" in sdp_text and "red/48000/2" not in sdp_text:
+                    logger.warning("injecting modified RED to audio SDP")
+                    sdp_text = re.sub(r'rtpmap:(\d+) red/(\d+)', r'rtpmap:\1 red/\2/2\r\na=fmtp:\1 111/111', sdp_text)
+                if "ulp/48000" in sdp_text and "ulp/48000/2" not in sdp_text:
+                    logger.warning("injecting modified ULP to audio SDP")
+                    sdp_text = re.sub(r'rtpmap:(\d+) ulpfec/(\d+)', r'rtpmap:\1 ulpfec/\2/2', sdp_text)
+            elif "red/48000" in sdp_text:
+                logger.warning("injecting modified RED to audio SDP")
+                sdp_text = re.sub(r'rtpmap:(\d+) red/(\d+)', r'rtpmap:\1 red/\2\r\na=fmtp:\1 111/111', sdp_text)
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
     def __request_aux_sender(self, webrtcbin, dtls_transport):
@@ -1511,7 +1523,7 @@ class GSTWebRTCApp:
         return_result = True
         rtp_uri_list = ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"]
         if not audio:
-            rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay", "http://www.webrtc.org/experiments/rtp-hdrext/video-timing", "http://www.webrtc.org/experiments/rtp-hdrext/color-space"]
+            rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay", "http://www.webrtc.org/experiments/rtp-hdrext/video-timing"]
         for rtp_uri in rtp_uri_list:
             try:
                 rtp_id = self.__pick_rtp_extension_id(payloader, rtp_uri, previous_rtp_id=rtp_id_iteration)
