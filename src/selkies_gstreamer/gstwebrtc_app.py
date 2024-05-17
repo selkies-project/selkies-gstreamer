@@ -63,7 +63,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=-1.0, audio_redundancy=2, congestion_control=False, video_packetloss_percent=0.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -101,11 +101,12 @@ class GSTWebRTCApp:
         self.vbv_multiplier_sw = 1.5 if self.keyframe_distance == -1.0 else 3
         # Packet loss base percentage
         self.video_packetloss_percent = video_packetloss_percent
-        self.audio_packetloss_percent = audio_packetloss_percent
+        # WebRTC supports Opus RED distance of 0 to 2
+        self.audio_redundancy = int(max(2, min(0, audio_redundancy)))
         # Prevent bitrate from overshooting because of FEC
         self.fec_video_bitrate = int(self.video_bitrate / (1.0 + (self.video_packetloss_percent / 100.0)))
-        # Keep audio bitrate to exact value and increase effective bitrate after FEC to prevent audio quality degradation
-        self.fec_audio_bitrate = int(self.audio_bitrate * (1.0 + (self.audio_packetloss_percent / 100.0)))
+        # RED distance increases audio bandwidth (n + 1) fold based on the distance
+        self.red_audio_bitrate = int(self.audio_bitrate * (self.audio_redundancy + 1))
 
         # WebRTC ICE and SDP events
         self.on_ice = lambda mlineindex, candidate: logger.warn(
@@ -167,7 +168,10 @@ class GSTWebRTCApp:
         # Connect signal handlers
         if self.congestion_control and not audio_only:
             self.webrtcbin.connect(
-                'request-aux-sender', lambda webrtcbin, dtls_transport: self.__request_aux_sender(webrtcbin, dtls_transport))
+                'request-aux-sender', lambda webrtcbin, dtls_transport: self.__request_aux_sender_gcc(webrtcbin, dtls_transport))
+        if audio_only and self.audio_redundancy > 0:
+            self.webrtcbin.get_by_name("rtpbin").connect(
+                'request-fec-encoder', lambda rtpbin, session: self.__request_fec_encoder_red(rtpbin, session))
         self.webrtcbin.connect(
             'on-negotiation-needed', lambda webrtcbin: self.__on_negotiation_needed(webrtcbin))
         self.webrtcbin.connect('on-ice-candidate', lambda webrtcbin, mlineindex,
@@ -1048,11 +1052,6 @@ class GSTWebRTCApp:
         for i in range(len(pipeline_elements) - 1):
             if not Gst.Element.link(pipeline_elements[i], pipeline_elements[i + 1]):
                 raise GSTWebRTCAppError("Failed to link {} -> {}".format(pipeline_elements[i].get_name(), pipeline_elements[i + 1].get_name()))
-
-        # Enable redundancy (RED) and forward error correction (FEC) in the audio stream
-        transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
-        transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
     # [END build_audio_pipeline]
 
     def check_plugins(self):
@@ -1210,10 +1209,10 @@ class GSTWebRTCApp:
             # Change bitrate range of congestion control element
             if (not cc) and self.congestion_control and self.rtpgccbwe is not None:
                 # Prevent encoder freeze because of low bitrate with min-bitrate
-                self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.fec_audio_bitrate, int(bitrate * 1000 * 0.1 + self.fec_audio_bitrate)))
-                self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.fec_audio_bitrate))
+                self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.red_audio_bitrate, int(bitrate * 1000 * 0.1 + self.red_audio_bitrate)))
+                self.rtpgccbwe.set_property("max-bitrate", int(bitrate * 1000 + self.red_audio_bitrate))
                 # Method is called again through the notifier with cc=True
-                self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.fec_audio_bitrate))
+                self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.red_audio_bitrate))
                 return
             # ADD_ENCODER: add new encoder to this list
             if self.encoder.startswith("nv"):
@@ -1271,19 +1270,19 @@ class GSTWebRTCApp:
 
         if self.pipeline:
             # Keep audio bitrate to exact value and increase effective bitrate after FEC to prevent audio quality degradation
-            fec_bitrate = int(bitrate * (1.0 + (self.audio_packetloss_percent / 100.0)))
+            red_bitrate = int(bitrate * (self.audio_redundancy + 1))
             # Change bitrate range of congestion control element
             if self.congestion_control and self.rtpgccbwe is not None:
                 # Prevent encoder freeze because of low bitrate with min-bitrate
-                self.rtpgccbwe.set_property("min-bitrate", max(100000 + fec_bitrate, int(self.video_bitrate * 1000 * 0.1 + fec_bitrate)))
-                self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + fec_bitrate))
-                self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + fec_bitrate))
+                self.rtpgccbwe.set_property("min-bitrate", max(100000 + red_bitrate, int(self.video_bitrate * 1000 * 0.1 + red_bitrate)))
+                self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + red_bitrate))
+                self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + red_bitrate))
             element = Gst.Bin.get_by_name(self.pipeline, "opusenc")
             element.set_property("bitrate", bitrate)
 
             logger.info("audio bitrate set to: %d" % bitrate)
             self.audio_bitrate = bitrate
-            self.fec_audio_bitrate = fec_bitrate
+            self.red_audio_bitrate = red_bitrate
 
             self.__send_data_channel_message(
                 "pipeline", {"status": "Audio bitrate set to: %d" % bitrate})
@@ -1481,19 +1480,17 @@ class GSTWebRTCApp:
                 sdp_text = sdp_text.replace(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
         # Enable ULP and RED redundancy with audio
         if "opus/48000" in sdp_text.lower():
+            logger.warning("injecting modified RED to audio SDP")
+            sdp_text = sdp_text.replace('OPUS', 'opus')
+            sdp_text = re.sub(r'm=audio([^\r\n]+) 111', r'm=audio\1 111 63', sdp_text)
             if "opus/48000/2" in sdp_text.lower():
-                if "red/48000" in sdp_text and "red/48000/2" not in sdp_text:
-                    logger.warning("injecting modified RED to audio SDP")
-                    sdp_text = re.sub(r'rtpmap:(\d+) red/(\d+)', r'rtpmap:\1 red/\2/2\r\na=fmtp:\1 111/111', sdp_text)
-                if "ulp/48000" in sdp_text and "ulp/48000/2" not in sdp_text:
-                    logger.warning("injecting modified ULP to audio SDP")
-                    sdp_text = re.sub(r'rtpmap:(\d+) ulpfec/(\d+)', r'rtpmap:\1 ulpfec/\2/2', sdp_text)
-            elif "red/48000" in sdp_text:
-                logger.warning("injecting modified RED to audio SDP")
-                sdp_text = re.sub(r'rtpmap:(\d+) red/(\d+)', r'rtpmap:\1 red/\2\r\na=fmtp:\1 111/111', sdp_text)
+                sdp_text = re.sub(r'(sprop-.+)\r\n', r'\1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\n', sdp_text)
+            else:
+                sdp_text = re.sub(r'(sprop-.+)\r\n', r'\1\r\na=rtpmap:63 red/48000\r\na=fmtp:63 111/111\r\n', sdp_text)
+        # Send final SDP offer
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
-    def __request_aux_sender(self, webrtcbin, dtls_transport):
+    def __request_aux_sender_gcc(self, webrtcbin, dtls_transport):
         """Handles request-aux-header signal, initializing the rtpgccbwe element for WebRTC
 
         Arguments:
@@ -1506,11 +1503,28 @@ class GSTWebRTCApp:
             return None
         logger.info("handling on-request-aux-header, activating rtpgccbwe congestion control.")
         # Prevent encoder freeze because of low bitrate with min-bitrate
-        self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.fec_audio_bitrate, int(self.video_bitrate * 1000 * 0.1 + self.fec_audio_bitrate)))
-        self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + self.fec_audio_bitrate))
-        self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.fec_audio_bitrate))
-        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.fec_audio_bitrate) / 1000), cc=True))
+        self.rtpgccbwe.set_property("min-bitrate", max(100000 + self.red_audio_bitrate, int(self.video_bitrate * 1000 * 0.1 + self.red_audio_bitrate)))
+        self.rtpgccbwe.set_property("max-bitrate", int(self.video_bitrate * 1000 + self.red_audio_bitrate))
+        self.rtpgccbwe.set_property("estimated-bitrate", int(self.video_bitrate * 1000 + self.red_audio_bitrate))
+        self.rtpgccbwe.connect("notify::estimated-bitrate", lambda bwe, pspec: self.set_video_bitrate(int((bwe.get_property(pspec.name) - self.red_audio_bitrate) / 1000), cc=True))
         return self.rtpgccbwe
+
+    def __request_fec_encoder_red(self, rtpbin, session):
+        """Handles request-fec-encoder signal, initializing the rtpredenc element for audio WebRTC
+
+        Arguments:
+            rtpbin {GstRTPBin gobject} -- rtpbin gobject
+            session -- session index
+        """
+        rtpredenc = Gst.ElementFactory.make("rtpredenc")
+        if rtpredenc is None:
+            logger.warning("rtpredenc element is not available, not performing any audio redundancy.")
+            return None
+        logger.info("handling request-fec-encoder, activating rtpredenc RED audio redundancy.")
+        rtpredenc.set_property("distance", self.audio_redundancy)
+        # Chrome prefers payload type of 63 for RED
+        rtpredenc.set_property("pt", 63)
+        return rtpredenc
 
     def rtp_add_extensions(self, payloader, audio=False):
         """Adds WebRTC RTP extensions to the payloader

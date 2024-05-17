@@ -677,23 +677,6 @@ class WebRTCDemo {
         this.peerConnection.onicecandidate = this._onPeerICE.bind(this);
         this.peerConnection.ondatachannel = this._onPeerdDataChannel.bind(this);
 
-        // Enable RED in audio with setCodecPreferences
-        if (this.peer_id == 3) {
-            this.peerConnection.getTransceivers().forEach(transceiver => {
-                codecs = RTCRtpReceiver.getCapabilities('audio').codecs;
-                let redIndex = codecs.findIndex(codec => codec.mimeType.toLowerCase() === "audio/red");
-                let ulpIndex = codecs.findIndex(codec => codec.mimeType.toLowerCase() === "audio/ulpfec");
-                let opusIndex = codecs.findIndex(codec => codec.mimeType.toLowerCase() === "audio/opus");
-                if (redIndex !== -1 && opusIndex !== -1 && opusIndex < redIndex) {
-                    [codecs[redIndex], codecs[opusIndex]] = [codecs[opusIndex], codecs[redIndex]];
-                }
-                if (ulpIndex !== -1 && opusIndex !== -1 && opusIndex < ulpIndex) {
-                    [codecs[ulpIndex], codecs[opusIndex]] = [codecs[opusIndex], codecs[ulpIndex]];
-                }
-                transceiver.setCodecPreferences(codecs);
-            });
-        }
-
         this.peerConnection.onconnectionstatechange = () => {
             // Local event handling.
             this._handleConnectionStateChange(this.peerConnection.connectionState);
