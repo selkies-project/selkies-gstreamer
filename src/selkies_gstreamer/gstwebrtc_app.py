@@ -1219,12 +1219,12 @@ class GSTWebRTCApp:
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
                 element.set_property("bitrate", fec_bitrate)
                 if not cc:
-                    element.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
+                    element.set_property("vbv-buffer-size", int((fec_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
             elif self.encoder.startswith("va"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
                 element.set_property("bitrate", fec_bitrate)
                 if not cc:
-                    element.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
+                    element.set_property("cpb-size", int((fec_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
             elif self.encoder in ["x264enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
                 element.set_property("bitrate", fec_bitrate)
