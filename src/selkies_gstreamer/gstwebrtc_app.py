@@ -1510,16 +1510,21 @@ class GSTWebRTCApp:
         """
         rtp_id_iteration = 0
         return_result = True
-        rtp_uri_list = ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"]
+        custom_ext = {"http://www.webrtc.org/experiments/rtp-hdrext/playout-delay": self.PlayoutDelayExtension()}
+
+        rtp_uri_list = ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "urn:ietf:params:rtp-hdrext:sdes:mid"]
         if audio:
-            rtp_uri_list += ["urn:ietf:params:rtp-hdrext:ssrc-audio-level", "urn:ietf:params:rtp-hdrext:sdes:mid"]
+            rtp_uri_list += ["urn:ietf:params:rtp-hdrext:ssrc-audio-level"]
         else:
-            rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay", "http://www.webrtc.org/experiments/rtp-hdrext/video-timing"]
+            rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay"]
         for rtp_uri in rtp_uri_list:
             try:
                 rtp_id = self.__pick_rtp_extension_id(payloader, rtp_uri, previous_rtp_id=rtp_id_iteration)
                 if rtp_id is not None:
-                    rtp_extension = GstRtp.RTPHeaderExtension.create_from_uri(rtp_uri)
+                    if rtp_uri in custom_ext.keys():
+                        rtp_extension = custom_ext[rtp_uri]
+                    else:
+                        rtp_extension = GstRtp.RTPHeaderExtension.create_from_uri(rtp_uri)
                     if not rtp_extension:
                         raise GSTWebRTCAppError("GstRtp.RTPHeaderExtension for {} is None".format(rtp_uri))
                     rtp_extension.set_id(rtp_id)
@@ -1669,3 +1674,37 @@ class GSTWebRTCApp:
             self.webrtcbin = None
             logger.info("webrtcbin set to state NULL")
         logger.info("pipeline stopped")
+
+    class PlayoutDelayExtension(GstRtp.RTPHeaderExtension):
+        def __init__(self):
+            super().__init__()
+            self.min_delay = 0
+            self.max_delay = 0
+            self.set_uri("http://www.webrtc.org/experiments/rtp-hdrext/playout-delay")
+
+        def do_get_supported_flags(self):
+            return GstRtp.RTPHeaderExtensionFlags.ONE_BYTE | GstRtp.RTPHeaderExtensionFlags.TWO_BYTE
+
+        def do_get_max_size(self, input_meta):
+            return 3  # 3 bytes for ID, len, min delay and max delay
+
+        def do_set_attributes(self, direction, attributes):
+            # Parse attributes if any
+            return True
+
+        def do_set_caps_from_attributes(self, caps):
+            # Set caps from attributes if necessary
+            return True
+
+        def do_write(self, input_meta, write_flags, output, data, size):
+            # Write ID, len, min delay and max delay to the RTP header
+            data[0] = byte(self.min_delay >> 4)
+            data[1] = byte(self.min_delay << 4) | byte(self.min_delay >> 8)
+            data[2] = byte(self.max_delay >> 8)
+            return 3
+
+        def do_read(self, read_flags, data, size, buffer):
+            # Read ID, len, min delay and max delay from the RTP header
+            self.min_delay = int(data[0:2]) >> 4
+            self.max_delay = int(data[1:3]) & 0x0FFF
+            return True
