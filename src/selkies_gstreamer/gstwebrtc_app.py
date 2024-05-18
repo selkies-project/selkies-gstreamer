@@ -1676,6 +1676,15 @@ class GSTWebRTCApp:
         logger.info("pipeline stopped")
 
     class PlayoutDelayExtension(GstRtp.RTPHeaderExtension):
+        # PlayoutDelayExtension is a extension payload format in
+        # http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
+        # 0                   1                   2                   3
+        # 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+        # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        # |  ID   | len=2 |       MIN delay       |       MAX delay       |
+        # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        #
+        # For zero-latency, need to only put in 0 for both MIN delay and MAX delay here
         def __init__(self):
             super().__init__()
             self.min_delay = 0
