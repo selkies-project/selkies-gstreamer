@@ -1690,30 +1690,26 @@ class GSTWebRTCApp:
             self.min_delay = 0
             self.max_delay = 0
             self.set_uri("http://www.webrtc.org/experiments/rtp-hdrext/playout-delay")
+            self.set_direction(GstRtp.RTPHeaderExtensionDirection.SENDONLY)
 
         def do_get_supported_flags(self):
             return GstRtp.RTPHeaderExtensionFlags.ONE_BYTE | GstRtp.RTPHeaderExtensionFlags.TWO_BYTE
 
         def do_get_max_size(self, input_meta):
-            return 3  # 3 bytes for ID, len, min delay and max delay
-
-        def do_set_attributes(self, direction, attributes):
-            # Parse attributes if any
-            return True
-
-        def do_set_caps_from_attributes(self, caps):
-            # Set caps from attributes if necessary
-            return True
+            return 3  # 3 bytes for MIN delay and MAX delay
 
         def do_write(self, input_meta, write_flags, output, data, size):
-            # Write ID, len, min delay and max delay to the RTP header
-            data[0] = byte(self.min_delay >> 4)
-            data[1] = byte(self.min_delay << 4) | byte(self.min_delay >> 8)
-            data[2] = byte(self.max_delay >> 8)
+            # Write min delay and max delay to the RTP header
+            # min_delay_high = (self.min_delay >> 4) & 0xFF
+            # min_delay_low_max_delay_high = ((self.min_delay & 0x0F) << 4) | ((self.max_delay >> 8) & 0x0F)
+            # max_delay_low = self.max_delay & 0xFF
+            # delay_concat = bytearray([min_delay_high, min_delay_low_max_delay_high, max_delay_low])
+
+            # As default value is 0 for both MIN delay and MAX delay, no need to do anything
             return 3
 
         def do_read(self, read_flags, data, size, buffer):
-            # Read ID, len, min delay and max delay from the RTP header
-            self.min_delay = int(data[0:2]) >> 4
-            self.max_delay = int(data[1:3]) & 0x0FFF
+            # Read min delay and max delay from the RTP header
+            self.min_delay = (data[0] << 4) | (data[1] >> 4)
+            self.max_delay = ((data[1] & 0x0F) << 8) | data[2]
             return True
