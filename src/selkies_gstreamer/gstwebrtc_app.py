@@ -1684,7 +1684,7 @@ class GSTWebRTCApp:
         # |  ID   | len=2 |       MIN delay       |       MAX delay       |
         # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         #
-        # For zero-latency, need to only put in 0 for both MIN delay and MAX delay here
+        # For zero WebRTC jitterbuffer latency, send 0 for both MIN and MAX delay
         def __init__(self):
             super().__init__()
             self.min_delay = 0
@@ -1699,7 +1699,7 @@ class GSTWebRTCApp:
             return 3  # 3 bytes for MIN delay and MAX delay
 
         def do_write(self, input_meta, write_flags, output, data, size):
-            # Write min delay and max delay to the RTP header
+            # Write MIN delay and MIN delay to the RTP header
             # min_delay_high = (self.min_delay >> 4) & 0xFF
             # min_delay_low_max_delay_high = ((self.min_delay & 0x0F) << 4) | ((self.max_delay >> 8) & 0x0F)
             # max_delay_low = self.max_delay & 0xFF
@@ -1709,7 +1709,7 @@ class GSTWebRTCApp:
             return 3
 
         def do_read(self, read_flags, data, size, buffer):
-            # Read min delay and max delay from the RTP header
+            # Read MIN delay and MAX delay from the RTP header
             self.min_delay = (data[0] << 4) | (data[1] >> 4)
             self.max_delay = ((data[1] & 0x0F) << 8) | data[2]
             return True
