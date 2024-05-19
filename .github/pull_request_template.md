@@ -1,17 +1,27 @@
 **Reference the issue numbers and reviewers**
+<!--
 Use `#` and `@` to tag issues and reviewers.
+-->
 
 **Explain relevant issues and how this pull request solves them**
+<!--
 A clear and concise description of the pull request. Ex. This pull request addresses issue # by [...]
+-->
 
 **Describe the changes in code and its dependencies and justify that they work as intended after testing**
+<!--
 A clear and concise description of what you have changed. Please confirm that the pull request does not break this project by testing it in depth.
+-->
 
 **Describe alternatives you've considered**
+<!--
 A clear and concise description of any alternative solutions or features you've considered other than this pull request, if applicable.
+-->
 
 **Additional context**
-Add any other context or screenshots about the pull request here. Please describe whether you are willing to provide funding, as this will greatly accelerate your request.
+<!--
+Add any other context or screenshots about the pull request here.
+-->
 
  - [ ] I confirm that this pull request is relevant to the scope of this project. If you know that upstream projects are the cause of this problem, please file the pull request there.
  - [ ] I confirm that this pull request has been tested thoroughly and to the best of my knowledge that additional unintended problems do not arise.
