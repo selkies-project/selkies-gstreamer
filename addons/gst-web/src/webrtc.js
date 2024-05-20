@@ -498,8 +498,8 @@ class WebRTCDemo {
             general: {
                 bytesReceived: 0, // from the transport
                 bytesSent: 0, // from the transport
-                connectionType: "NA", // from the transport.candiate-pair.remote-candidate
-                currentRoundTripTime: -1, // from the transport.candiate-pair
+                connectionType: "NA", // from the transport.candidate-pair.remote-candidate
+                currentRoundTripTime: null, // from the transport.candidate-pair
                 availableReceiveBandwidth: 0, // from transport.candidate-pair
             },
 

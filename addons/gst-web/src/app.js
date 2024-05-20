@@ -448,8 +448,8 @@ function onBothStreamConnected() {
 
                 // Connection latency in ms.
                 app.connectionLatency = 0;
-                app.connectionVideoLatency = (stats.general.currentRoundTripTime >= 0) ? (stats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
-                app.connectionAudioLatency = (audioStats.general.currentRoundTripTime >= 0) ? (audioStats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
+                app.connectionVideoLatency = (stats.general.currentRoundTripTime !== null) ? (stats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
+                app.connectionAudioLatency = (audioStats.general.currentRoundTripTime !== null) ? (audioStats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
                 app.connectionLatency += Math.max(app.connectionVideoLatency, app.connectionAudioLatency);
 
                 // Sum of video+audio packets.
