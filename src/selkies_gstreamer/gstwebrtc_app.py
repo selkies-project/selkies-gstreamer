@@ -1479,7 +1479,7 @@ class GSTWebRTCApp:
             elif 'sps-pps-idr-in-keyframe=1' not in sdp_text:
                 logger.warning("injecting modified sps-pps-idr-in-keyframe to SDP")
                 sdp_text = sdp_text.replace(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
-        if "opus" in sdp_text.lower():
+        if "opus/" in sdp_text.lower():
             # Add ptime explicitly to SDP offer
             sdp_text = re.sub(r'([^-]sprop-[^\r\n]+)', r'\1\r\na=ptime:3', sdp_text)
         # Set final SDP offer
