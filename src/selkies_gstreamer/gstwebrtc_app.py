@@ -974,7 +974,7 @@ class GSTWebRTCApp:
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
         opusenc.set_property("dtx", True)
-        # Browser-side SDP munging for minptime=3 in Chrome is required for effect
+        # Browser-side SDP munging ("minptime=3") is required if frame-size < 10
         opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)

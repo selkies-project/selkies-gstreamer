@@ -298,7 +298,7 @@ class WebRTCDemo {
                             }
                         }
                     }
-                    // Override SDP to reduce Opus packet size to 2.5 ms
+                    // Override SDP to reduce Opus packet size to 2.5 (3) ms
                     if (!(/[^-]minptime=3[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
                         console.log("Overriding WebRTC SDP to allow low-latency audio packet");
                         if (/[^-]minptime=\d+/gm.test(local_sdp.sdp)) {
