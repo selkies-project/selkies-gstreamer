@@ -512,7 +512,7 @@ class WebRTCDemo {
                 framesPerSecond: 0, // from incoming-rtp
                 packetsReceived: 0, // from incoming-rtp
                 packetsLost: 0, // from incoming-rtp
-                codecName: "NA", // from incoming-rtp.codec
+                codecName: "NA", // from incoming-rtp => codec
                 jitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
                 previousJitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
                 jitterBufferEmittedCount: 0, // from incoming-rtp.jitterBufferEmittedCount
@@ -524,7 +524,7 @@ class WebRTCDemo {
                 bytesReceived: 0, // from incoming-rtp
                 packetsReceived: 0, // from incoming-rtp
                 packetsLost: 0, // from incoming-rtp
-                codecName: "NA", // from incoming-rtp.codec
+                codecName: "NA", // from incoming-rtp => codec
                 jitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
                 previousJitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
                 jitterBufferEmittedCount: 0, // from incoming-rtp.jitterBufferEmittedCount
@@ -634,7 +634,7 @@ class WebRTCDemo {
                     connectionDetails.data.messagesSent =  dataChannel.messagesSent;
                 }
 
-                // Extract transport stats (RTCTransportStats.selectedCandidatePairId or candidatePair.selected).
+                // Extract transport stats (RTCTransportStats.selectedCandidatePairId or RTCIceCandidatePairStats.selected).
                 if (Object.keys(reports.transports).length > 0) {
                     var transport = reports.transports[Object.keys(reports.transports)[0]];
                     connectionDetails.general.bytesReceived = transport.bytesReceived;
