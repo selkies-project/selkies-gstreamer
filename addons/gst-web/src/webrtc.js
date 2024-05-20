@@ -543,7 +543,7 @@ class WebRTCDemo {
         return new Promise(function (resolve, reject) {
             // Statistics API:
             // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_Statistics_API
-            pc.getStats().then( (stats) => {
+            pc.getStats().then((stats) => {
                 var reports = {
                     transports: {},
                     candidatePairs: {},
@@ -634,7 +634,7 @@ class WebRTCDemo {
                     connectionDetails.data.messagesSent =  dataChannel.messagesSent;
                 }
 
-                // Extract transport stats (RTCTransportStats.selectedCandidatePairId or RTCIceCandidatePairStats.selected).
+                // Extract transport stats (RTCTransportStats.selectedCandidatePairId or RTCIceCandidatePairStats.selected)
                 if (Object.keys(reports.transports).length > 0) {
                     var transport = reports.transports[Object.keys(reports.transports)[0]];
                     connectionDetails.general.bytesReceived = transport.bytesReceived;
