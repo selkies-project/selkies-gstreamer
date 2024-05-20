@@ -162,7 +162,7 @@ class GSTWebRTCApp:
         self.webrtcbin.set_property("bundle-policy", "max-compat")
 
         # Set default jitterbuffer latency to the minimum possible
-        self.webrtcbin.set_property("latency", 1)
+        self.webrtcbin.set_property("latency", 0)
 
         # Connect signal handlers
         if self.congestion_control and not audio_only:
@@ -1603,10 +1603,8 @@ class GSTWebRTCApp:
                     logger.info("stopping bus message loop")
                     return False
         elif t == Gst.MessageType.LATENCY:
-            if self.pipeline:
-                return_output = self.pipeline.recalculate_latency()
-                if not return_output:
-                    logger.warning("failed to recalculate pipeline latency")
+            if self.webrtcbin:
+                self.webrtcbin.set_property("latency", 0)
         return True
 
     def start_pipeline(self, audio_only=False):
@@ -1693,7 +1691,6 @@ class GSTWebRTCApp:
             self.min_delay = 0
             self.max_delay = 0
             self.set_uri("http://www.webrtc.org/experiments/rtp-hdrext/playout-delay")
-            self.set_direction(GstRtp.RTPHeaderExtensionDirection.SENDONLY)
 
         def do_get_supported_flags(self):
             return GstRtp.RTPHeaderExtensionFlags.ONE_BYTE | GstRtp.RTPHeaderExtensionFlags.TWO_BYTE
