@@ -496,11 +496,11 @@ class WebRTCDemo {
         var connectionDetails = {
             // General connection stats
             general: {
-                bytesReceived: 0, // from the transport
-                bytesSent: 0, // from the transport
-                connectionType: "NA", // from the transport.candidate-pair.remote-candidate
-                currentRoundTripTime: null, // from the transport.candidate-pair
-                availableReceiveBandwidth: 0, // from transport.candidate-pair
+                bytesReceived: 0, // from transport or candidate-pair
+                bytesSent: 0, // from transport or candidate-pair
+                connectionType: "NA", // from candidate-pair => remote-candidate
+                currentRoundTripTime: null, // from candidate-pair
+                availableReceiveBandwidth: 0, // from candidate-pair
             },
 
             // Video stats
