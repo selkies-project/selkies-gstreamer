@@ -183,7 +183,7 @@ class WebRTCDemo {
                 this._setDebug("data channel: " + data);
                 this._send_channel.send(data);
             }
-        })
+        });
     }
 
     /**
@@ -271,7 +271,7 @@ class WebRTCDemo {
     _onSDP(sdp) {
         if (sdp.type != "offer") {
             this._setError("received SDP was not type offer.");
-            return
+            return;
         }
         console.log("Received remote SDP", sdp);
         this.peerConnection.setRemoteDescription(sdp).then(() => {
@@ -284,7 +284,7 @@ class WebRTCDemo {
                         if (/[^-]sps-pps-idr-in-keyframe=\d+/gm.test(local_sdp.sdp)) {
                             local_sdp.sdp = local_sdp.sdp.replace(/sps-pps-idr-in-keyframe=\d+/gm, 'sps-pps-idr-in-keyframe=1');
                         } else {
-                            local_sdp.sdp = local_sdp.sdp.replace('packetization-mode=', 'sps-pps-idr-in-keyframe=1;packetization-mode=')
+                            local_sdp.sdp = local_sdp.sdp.replace('packetization-mode=', 'sps-pps-idr-in-keyframe=1;packetization-mode=');
                         }
                     }
                     // Override SDP to enable stereo on WebRTC Opus with Chromium, must be munged before the Local Description
@@ -304,7 +304,7 @@ class WebRTCDemo {
                         if (/[^-]minptime=\d+/gm.test(local_sdp.sdp)) {
                             local_sdp.sdp = local_sdp.sdp.replace(/minptime=\d+/gm, 'minptime=3');
                         } else {
-                            local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'minptime=3;useinbandfec=')
+                            local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'minptime=3;useinbandfec=');
                         }
                     }
                     console.log("Created local SDP", local_sdp);
@@ -315,7 +315,7 @@ class WebRTCDemo {
                 }).catch(() => {
                     this._setError("Error creating local SDP");
                 });
-        })
+        });
     }
 
     /**
@@ -356,11 +356,11 @@ class WebRTCDemo {
         this._send_channel.onopen = () => {
             if (this.ondatachannelopen !== null)
                 this.ondatachannelopen();
-        }
+        };
         this._send_channel.onclose = () => {
             if (this.ondatachannelclose !== null)
                 this.ondatachannelclose();
-        }
+        };
     }
 
     /**
@@ -547,6 +547,7 @@ class WebRTCDemo {
                 var reports = {
                     transports: {},
                     candidatePairs: {},
+                    selectedCandidatePairId: null,
                     remoteCandidates: {},
                     codecs: {},
                     videoRTP: null,
@@ -554,7 +555,7 @@ class WebRTCDemo {
                     audioRTP: null,
                     audioTrack: null,
                     dataChannel: null,
-                }
+                };
 
                 var allReports = [];
 
@@ -564,6 +565,9 @@ class WebRTCDemo {
                         reports.transports[report.id] = report;
                     } else if (report.type === "candidate-pair") {
                         reports.candidatePairs[report.id] = report;
+                        if (report.selected === true) {
+                            reports.selectedCandidatePairId = report.id;
+                        }
                     } else if (report.type === "inbound-rtp") {
                         // Audio or video stat
                         // https://w3c.github.io/webrtc-stats/#streamstats-dict*
@@ -593,7 +597,8 @@ class WebRTCDemo {
                 var videoRTP = reports.videoRTP;
                 if (videoRTP !== null) {
                     connectionDetails.video.bytesReceived = videoRTP.bytesReceived;
-                    connectionDetails.video.decoder = videoRTP.decoderImplementation;
+                    // Recent WebRTC specs only expose decoderImplementation with media context capturing state
+                    connectionDetails.video.decoder = videoRTP.decoderImplementation || "unknown";
                     connectionDetails.video.frameHeight = videoRTP.frameHeight;
                     connectionDetails.video.frameWidth = videoRTP.frameWidth;
                     connectionDetails.video.framesPerSecond = videoRTP.framesPerSecond;
@@ -603,7 +608,7 @@ class WebRTCDemo {
                     // Extract video codec from found codecs.
                     var codec = reports.codecs[videoRTP.codecId];
                     if (codec !== undefined) {
-                        connectionDetails.video.codecName = codec.mimeType.split("/")[1];
+                        connectionDetails.video.codecName = codec.mimeType.split("/")[1].toUpperCase();
                     }
                 }
 
@@ -617,7 +622,7 @@ class WebRTCDemo {
                     // Extract audio codec from found codecs.
                     var codec = reports.codecs[audioRTP.codecId];
                     if (codec !== undefined) {
-                        connectionDetails.audio.codecName = codec.mimeType.split("/")[1];
+                        connectionDetails.audio.codecName = codec.mimeType.split("/")[1].toUpperCase();
                     }
                 }
 
@@ -629,20 +634,28 @@ class WebRTCDemo {
                     connectionDetails.data.messagesSent =  dataChannel.messagesSent;
                 }
 
-                // Extract transport stats.
+                // Extract transport stats (RTCTransportStats.selectedCandidatePairId or candidatePair.selected).
                 if (Object.keys(reports.transports).length > 0) {
                     var transport = reports.transports[Object.keys(reports.transports)[0]];
                     connectionDetails.general.bytesReceived = transport.bytesReceived;
                     connectionDetails.general.bytesSent = transport.bytesSent;
+                    reports.selectedCandidatePairId = transport.selectedCandidatePairId;
+                } else if (reports.selectedCandidatePairId !== null) {
+                    connectionDetails.general.bytesReceived = reports.candidatePairs[reports.selectedCandidatePairId].bytesReceived;
+                    connectionDetails.general.bytesSent = reports.candidatePairs[reports.selectedCandidatePairId].bytesSent;
+                }
 
-                    // Get the connection-pair
-                    var candidatePair = reports.candidatePairs[transport.selectedCandidatePairId];
+                // Get the connection-pair
+                if (reports.selectedCandidatePairId !== null) {
+                    var candidatePair = reports.candidatePairs[reports.selectedCandidatePairId];
                     if (candidatePair !== undefined) {
-                        connectionDetails.general.availableReceiveBandwidth = candidatePair.availableIncomingBitrate;
+                        if (candidatePair.availableIncomingBitrate !== undefined) {
+                            connectionDetails.general.availableReceiveBandwidth = candidatePair.availableIncomingBitrate;
+                        }
                         if (candidatePair.currentRoundTripTime !== undefined) {
                             connectionDetails.general.currentRoundTripTime = candidatePair.currentRoundTripTime;
                         }
-                        var remoteCandidate = reports.remoteCandidates[candidatePair.remoteCandidateId]
+                        var remoteCandidate = reports.remoteCandidates[candidatePair.remoteCandidateId];
                         if (remoteCandidate !== undefined) {
                             connectionDetails.general.connectionType = remoteCandidate.candidateType;
                         }

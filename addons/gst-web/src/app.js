@@ -480,8 +480,8 @@ function onBothStreamConnected() {
                 audioBytesReceivedStart = audioStats.audio.bytesReceived;
 
                 // Latency stats.
-                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - stats.video.previousJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - stats.video.previousJitterBufferEmittedCount))));
-                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - audioStats.audio.previousJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - audioStats.audio.previousJitterBufferEmittedCount))));
+                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - stats.video.previousJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - stats.video.previousJitterBufferEmittedCount) || 0)));
+                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - audioStats.audio.previousJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - audioStats.audio.previousJitterBufferEmittedCount) || 0)));
 
                 // Format latency
                 app.connectionLatency = parseInt(Math.round(app.connectionLatency));
