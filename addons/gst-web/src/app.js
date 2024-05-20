@@ -447,8 +447,8 @@ function onBothStreamConnected() {
                 var now = new Date().getTime() / 1000;
 
                 // Connection latency in ms.
-                app.connectionVideoLatency = (stats.general.currentRoundTripTime !== null) ? (stats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
-                app.connectionAudioLatency = (audioStats.general.currentRoundTripTime !== null) ? (audioStats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
+                app.connectionVideoLatency = (stats.general.currentRoundTripTime !== null) ? (stats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
+                app.connectionAudioLatency = (audioStats.general.currentRoundTripTime !== null) ? (audioStats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
                 app.connectionLatency = Math.max(app.connectionVideoLatency, app.connectionAudioLatency);
 
                 // Sum of video+audio packets.
@@ -479,8 +479,8 @@ function onBothStreamConnected() {
                 audioBytesReceivedStart = audioStats.audio.bytesReceived;
 
                 // Latency stats.
-                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + stats.video.jitterBufferDelay * 1000));
-                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + audioStats.audio.jitterBufferDelay * 1000));
+                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - stats.video.previousJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - stats.video.previousJitterBufferEmittedCount))));
+                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - audioStats.audio.previousJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - audioStats.audio.previousJitterBufferEmittedCount))));
 
                 // Format latency
                 app.connectionLatency = parseInt(Math.round(app.connectionLatency));
