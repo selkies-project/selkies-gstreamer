@@ -1515,10 +1515,10 @@ class GSTWebRTCApp:
         return_result = True
         custom_ext = {"http://www.webrtc.org/experiments/rtp-hdrext/playout-delay": self.PlayoutDelayExtension()}
 
-        rtp_uri_list = ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "urn:ietf:params:rtp-hdrext:sdes:mid"]
-        if audio:
-            rtp_uri_list += ["urn:ietf:params:rtp-hdrext:ssrc-audio-level"]
-        else:
+        rtp_uri_list = []
+        if self.congestion_control:
+            rtp_uri_list += ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"]
+        if not audio:
             rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay"]
         for rtp_uri in rtp_uri_list:
             try:
