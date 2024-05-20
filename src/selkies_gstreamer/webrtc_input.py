@@ -715,8 +715,8 @@ class WebRTCInput:
         elif toks[0] == "_l":
             # Reported latency from client.
             try:
-                latencty_ms = int(toks[1])
-                self.on_client_latency(latencty_ms)
+                latency_ms = int(toks[1])
+                self.on_client_latency(latency_ms)
             except:
                 logger.error(
                     "failed to parse latency report from client" + str(toks))

@@ -421,15 +421,15 @@ def main():
     parser.add_argument('--video_packetloss_percent',
                         default=os.environ.get('SELKIES_VIDEO_PACKETLOSS_PERCENT', '0'),
                         help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')
-    parser.add_argument('--audio_packetloss_percent',
-                        default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '10'),
-                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
     parser.add_argument('--audio_bitrate',
                         default=os.environ.get('SELKIES_AUDIO_BITRATE', '64000'),
                         help='Default audio bitrate')
     parser.add_argument('--audio_channels',
                         default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
                         help='Number of audio channels, defaults to stereo (2 channels)')
+    parser.add_argument('--audio_packetloss_percent',
+                        default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '25'),
+                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
     parser.add_argument('--enable_clipboard',
                         default=os.environ.get('SELKIES_ENABLE_CLIPBOARD', 'true'),
                         help='Enable or disable the clipboard features, supported values: true, false, in, out')

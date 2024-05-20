@@ -162,12 +162,12 @@ class GSTWebRTCApp:
         self.webrtcbin.set_property("bundle-policy", "max-compat")
 
         # Set default jitterbuffer latency to the minimum possible
-        self.webrtcbin.set_property("latency", 1)
+        self.webrtcbin.set_property("latency", 0)
 
         # Connect signal handlers
         if self.congestion_control and not audio_only:
             self.webrtcbin.connect(
-                'request-aux-sender', lambda webrtcbin, dtls_transport: self.__request_aux_sender(webrtcbin, dtls_transport))
+                'request-aux-sender', lambda webrtcbin, dtls_transport: self.__request_aux_sender_gcc(webrtcbin, dtls_transport))
         self.webrtcbin.connect(
             'on-negotiation-needed', lambda webrtcbin: self.__on_negotiation_needed(webrtcbin))
         self.webrtcbin.connect('on-ice-candidate', lambda webrtcbin, mlineindex,
@@ -974,13 +974,13 @@ class GSTWebRTCApp:
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
         opusenc.set_property("dtx", True)
-        # Browser-side SDP munging for minptime=3 in Chrome is required for effect
+        # Browser-side SDP munging ("minptime=3") is required if frame-size < 10
         opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)
-        # Inband FEC in Opus is only available with SILK, not CELT
-        # opusenc.set_property("inband-fec", self.audio_packetloss_percent > 0)
-        # opusenc.set_property("packet-loss-percentage", self.audio_packetloss_percent)
+        # In-band FEC in Opus
+        opusenc.set_property("inband-fec", self.audio_packetloss_percent > 0)
+        opusenc.set_property("packet-loss-percentage", self.audio_packetloss_percent)
 
         # Set audio bitrate
         # This can be dynamically changed using set_audio_bitrate()
@@ -1049,10 +1049,10 @@ class GSTWebRTCApp:
             if not Gst.Element.link(pipeline_elements[i], pipeline_elements[i + 1]):
                 raise GSTWebRTCAppError("Failed to link {} -> {}".format(pipeline_elements[i].get_name(), pipeline_elements[i + 1].get_name()))
 
-        # Enable redundancy (RED) and forward error correction (FEC) in the audio stream
-        transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
-        transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
+        # Enable redundancy (RED) in the audio stream, does not work currently
+        # transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        # transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
+        # transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
     # [END build_audio_pipeline]
 
     def check_plugins(self):
@@ -1220,12 +1220,12 @@ class GSTWebRTCApp:
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
                 element.set_property("bitrate", fec_bitrate)
                 if not cc:
-                    element.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
+                    element.set_property("vbv-buffer-size", int((fec_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
             elif self.encoder.startswith("va"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vaenc")
                 element.set_property("bitrate", fec_bitrate)
                 if not cc:
-                    element.set_property("cpb-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
+                    element.set_property("cpb-size", int((fec_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_va))
             elif self.encoder in ["x264enc"]:
                 element = Gst.Bin.get_by_name(self.pipeline, "x264enc")
                 element.set_property("bitrate", fec_bitrate)
@@ -1479,21 +1479,13 @@ class GSTWebRTCApp:
             elif 'sps-pps-idr-in-keyframe=1' not in sdp_text:
                 logger.warning("injecting modified sps-pps-idr-in-keyframe to SDP")
                 sdp_text = sdp_text.replace(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
-        # Enable ULP and RED redundancy with audio
-        if "opus/48000" in sdp_text.lower():
-            if "opus/48000/2" in sdp_text.lower():
-                if "red/48000" in sdp_text and "red/48000/2" not in sdp_text:
-                    logger.warning("injecting modified RED to audio SDP")
-                    sdp_text = re.sub(r'rtpmap:(\d+) red/(\d+)', r'rtpmap:\1 red/\2/2\r\na=fmtp:\1 111/111', sdp_text)
-                if "ulp/48000" in sdp_text and "ulp/48000/2" not in sdp_text:
-                    logger.warning("injecting modified ULP to audio SDP")
-                    sdp_text = re.sub(r'rtpmap:(\d+) ulpfec/(\d+)', r'rtpmap:\1 ulpfec/\2/2', sdp_text)
-            elif "red/48000" in sdp_text:
-                logger.warning("injecting modified RED to audio SDP")
-                sdp_text = re.sub(r'rtpmap:(\d+) red/(\d+)', r'rtpmap:\1 red/\2\r\na=fmtp:\1 111/111', sdp_text)
+        if "opus/" in sdp_text.lower():
+            # Add ptime explicitly to SDP offer
+            sdp_text = re.sub(r'([^-]sprop-[^\r\n]+)', r'\1\r\na=ptime:3', sdp_text)
+        # Set final SDP offer
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 
-    def __request_aux_sender(self, webrtcbin, dtls_transport):
+    def __request_aux_sender_gcc(self, webrtcbin, dtls_transport):
         """Handles request-aux-header signal, initializing the rtpgccbwe element for WebRTC
 
         Arguments:
@@ -1521,14 +1513,21 @@ class GSTWebRTCApp:
         """
         rtp_id_iteration = 0
         return_result = True
-        rtp_uri_list = ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01", "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"]
+        custom_ext = {"http://www.webrtc.org/experiments/rtp-hdrext/playout-delay": self.PlayoutDelayExtension()}
+
+        rtp_uri_list = []
+        if self.congestion_control:
+            rtp_uri_list += ["http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"]
         if not audio:
-            rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay", "http://www.webrtc.org/experiments/rtp-hdrext/video-timing"]
+            rtp_uri_list += ["http://www.webrtc.org/experiments/rtp-hdrext/playout-delay"]
         for rtp_uri in rtp_uri_list:
             try:
                 rtp_id = self.__pick_rtp_extension_id(payloader, rtp_uri, previous_rtp_id=rtp_id_iteration)
                 if rtp_id is not None:
-                    rtp_extension = GstRtp.RTPHeaderExtension.create_from_uri(rtp_uri)
+                    if rtp_uri in custom_ext.keys():
+                        rtp_extension = custom_ext[rtp_uri]
+                    else:
+                        rtp_extension = GstRtp.RTPHeaderExtension.create_from_uri(rtp_uri)
                     if not rtp_extension:
                         raise GSTWebRTCAppError("GstRtp.RTPHeaderExtension for {} is None".format(rtp_uri))
                     rtp_extension.set_id(rtp_id)
@@ -1604,10 +1603,8 @@ class GSTWebRTCApp:
                     logger.info("stopping bus message loop")
                     return False
         elif t == Gst.MessageType.LATENCY:
-            if self.pipeline:
-                return_output = self.pipeline.recalculate_latency()
-                if not return_output:
-                    logger.warning("failed to recalculate pipeline latency")
+            if self.webrtcbin:
+                self.webrtcbin.set_property("latency", 0)
         return True
 
     def start_pipeline(self, audio_only=False):
@@ -1678,3 +1675,41 @@ class GSTWebRTCApp:
             self.webrtcbin = None
             logger.info("webrtcbin set to state NULL")
         logger.info("pipeline stopped")
+
+    class PlayoutDelayExtension(GstRtp.RTPHeaderExtension):
+        # PlayoutDelayExtension is a extension payload format in
+        # http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
+        # 0                   1                   2                   3
+        # 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+        # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        # |  ID   | len=2 |       MIN delay       |       MAX delay       |
+        # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        #
+        # For zero WebRTC jitterbuffer latency, send 0 for both MIN and MAX delay
+        def __init__(self):
+            super().__init__()
+            self.min_delay = 0
+            self.max_delay = 0
+            self.set_uri("http://www.webrtc.org/experiments/rtp-hdrext/playout-delay")
+
+        def do_get_supported_flags(self):
+            return GstRtp.RTPHeaderExtensionFlags.ONE_BYTE | GstRtp.RTPHeaderExtensionFlags.TWO_BYTE
+
+        def do_get_max_size(self, input_meta):
+            return 3  # 3 bytes for MIN delay and MAX delay
+
+        def do_write(self, input_meta, write_flags, output, data, size):
+            # Write MIN delay and MIN delay to the RTP header
+            # min_delay_high = (self.min_delay >> 4) & 0xFF
+            # min_delay_low_max_delay_high = ((self.min_delay & 0x0F) << 4) | ((self.max_delay >> 8) & 0x0F)
+            # max_delay_low = self.max_delay & 0xFF
+            # delay_concat = bytearray([min_delay_high, min_delay_low_max_delay_high, max_delay_low])
+
+            # As default value is 0 for both MIN delay and MAX delay, no need to do anything
+            return 3
+
+        def do_read(self, read_flags, data, size, buffer):
+            # Read MIN delay and MAX delay from the RTP header
+            self.min_delay = (data[0] << 4) | (data[1] >> 4)
+            self.max_delay = ((data[1] & 0x0F) << 8) | data[2]
+            return True

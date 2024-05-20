@@ -277,7 +277,7 @@ class WebRTCDemoSignalling {
     /**
      * Initiates the connection to the signalling server.
      * After this is called, a series of handshakes occurs between the signalling
-     * server and the server (peer) to negotiate ICE candiates and media capabilities.
+     * server and the server (peer) to negotiate ICE candidates and media capabilities.
      */
     connect() {
         this.state = 'connecting';

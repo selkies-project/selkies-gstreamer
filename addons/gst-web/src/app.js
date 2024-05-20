@@ -434,7 +434,7 @@ function onBothStreamConnected() {
     audio_webrtc.peerConnection.getReceivers().forEach(receiver => {
         receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
     });
-    // Start watching stats.
+    // Start watching stats
     var videoBytesReceivedStart = 0;
     var audioBytesReceivedStart = 0;
     var statsStart = new Date().getTime() / 1000;
@@ -446,11 +446,13 @@ function onBothStreamConnected() {
                 if (videoConnected !== "connected" || audioConnected !== "connected") return;
                 var now = new Date().getTime() / 1000;
 
-                // Sum of video+audio+server latency in ms.
+                // Connection latency in milliseconds
                 app.connectionLatency = 0;
-                app.connectionLatency += app.serverLatency;
+                app.connectionVideoLatency = (stats.general.currentRoundTripTime !== null) ? (stats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
+                app.connectionAudioLatency = (audioStats.general.currentRoundTripTime !== null) ? (audioStats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
+                app.connectionLatency += Math.max(app.connectionVideoLatency, app.connectionAudioLatency);
 
-                // Sum of video+audio packets.
+                // Sum of video+audio packets
                 app.connectionPacketsReceived = 0;
                 app.connectionPacketsLost = 0;
 
@@ -460,9 +462,7 @@ function onBothStreamConnected() {
                 app.connectionBytesSent = ((stats.general.bytesSent + audioStats.general.bytesSent) * 1e-6).toFixed(2) + " MBytes";
                 app.connectionAvailableBandwidth = ((parseInt(stats.general.availableReceiveBandwidth) + parseInt(audioStats.general.availableReceiveBandwidth)) / 1e+6).toFixed(2) + " mbps";
 
-                // Video stats.
-                app.connectionVideoLatency = parseInt(stats.video.jitterBufferDelay * 1000);
-                app.connectionLatency += stats.video.jitterBufferDelay * 1000;
+                // Video stats
                 app.connectionPacketsReceived += stats.video.packetsReceived;
                 app.connectionPacketsLost += stats.video.packetsLost;
                 app.connectionCodec = stats.video.codecName;
@@ -472,24 +472,26 @@ function onBothStreamConnected() {
                 app.connectionVideoBitrate = (((stats.video.bytesReceived - videoBytesReceivedStart) / (now - statsStart)) * 8 / 1e+6).toFixed(2);
                 videoBytesReceivedStart = stats.video.bytesReceived;
 
-                // Audio stats.
-                app.connectionLatency += audioStats.audio.jitterBufferDelay * 1000;
+                // Audio stats
                 app.connectionPacketsReceived += audioStats.audio.packetsReceived;
                 app.connectionPacketsLost += audioStats.audio.packetsLost;
-                app.connectionAudioLatency = parseInt(audioStats.audio.jitterBufferDelay * 1000);
                 app.connectionAudioCodecName = audioStats.audio.codecName;
                 app.connectionAudioBitrate = (((audioStats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
                 audioBytesReceivedStart = audioStats.audio.bytesReceived;
 
+                // Latency stats
+                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - stats.video.previousJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - stats.video.previousJitterBufferEmittedCount) || 0)));
+                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - audioStats.audio.previousJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - audioStats.audio.previousJitterBufferEmittedCount) || 0)));
+
                 // Format latency
-                app.connectionLatency = parseInt(app.connectionLatency);
+                app.connectionLatency = parseInt(Math.round(app.connectionLatency));
 
                 statsStart = now;
 
                 webrtc.sendDataChannelMessage("_stats_video," + JSON.stringify(stats.allReports));
                 webrtc.sendDataChannelMessage("_stats_audio," + JSON.stringify(audioStats.allReports));
 
-                // Stats refresh loop.
+                // Stats refresh loop
                 setTimeout(statsLoop, 1000);
             });
         });
