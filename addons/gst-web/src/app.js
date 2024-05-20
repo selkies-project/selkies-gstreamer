@@ -446,9 +446,11 @@ function onBothStreamConnected() {
                 if (videoConnected !== "connected" || audioConnected !== "connected") return;
                 var now = new Date().getTime() / 1000;
 
-                // Sum of video+audio+server latency in ms.
+                // Connection latency in ms.
                 app.connectionLatency = 0;
-                app.connectionLatency += app.serverLatency;
+                app.connectionVideoLatency = (stats.general.currentRoundTripTime >= 0) ? (stats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
+                app.connectionAudioLatency = (audioStats.general.currentRoundTripTime >= 0) ? (audioStats.general.currentRoundTripTime * 1000) : (app.serverLatency * 2);
+                app.connectionLatency += Math.max(app.connectionVideoLatency, app.connectionAudioLatency);
 
                 // Sum of video+audio packets.
                 app.connectionPacketsReceived = 0;
@@ -461,8 +463,6 @@ function onBothStreamConnected() {
                 app.connectionAvailableBandwidth = ((parseInt(stats.general.availableReceiveBandwidth) + parseInt(audioStats.general.availableReceiveBandwidth)) / 1e+6).toFixed(2) + " mbps";
 
                 // Video stats.
-                app.connectionVideoLatency = parseInt(stats.video.jitterBufferDelay * 1000);
-                app.connectionLatency += stats.video.jitterBufferDelay * 1000;
                 app.connectionPacketsReceived += stats.video.packetsReceived;
                 app.connectionPacketsLost += stats.video.packetsLost;
                 app.connectionCodec = stats.video.codecName;
@@ -473,13 +473,15 @@ function onBothStreamConnected() {
                 videoBytesReceivedStart = stats.video.bytesReceived;
 
                 // Audio stats.
-                app.connectionLatency += audioStats.audio.jitterBufferDelay * 1000;
                 app.connectionPacketsReceived += audioStats.audio.packetsReceived;
                 app.connectionPacketsLost += audioStats.audio.packetsLost;
-                app.connectionAudioLatency = parseInt(audioStats.audio.jitterBufferDelay * 1000);
                 app.connectionAudioCodecName = audioStats.audio.codecName;
                 app.connectionAudioBitrate = (((audioStats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
                 audioBytesReceivedStart = audioStats.audio.bytesReceived;
+
+                // Latency stats.
+                app.connectionVideoLatency = parseInt(app.connectionVideoLatency + stats.video.jitterBufferDelay * 1000);
+                app.connectionAudioLatency = parseInt(app.connectionAudioLatency + audioStats.audio.jitterBufferDelay * 1000);
 
                 // Format latency
                 app.connectionLatency = parseInt(app.connectionLatency);

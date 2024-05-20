@@ -499,6 +499,7 @@ class WebRTCDemo {
                 bytesReceived: 0, // from the transport
                 bytesSent: 0, // from the transport
                 connectionType: "NA", // from the transport.candiate-pair.remote-candidate
+                currentRoundTripTime: -1, // from the transport.candiate-pair
                 availableReceiveBandwidth: 0, // from transport.candidate-pair
             },
 
@@ -517,18 +518,26 @@ class WebRTCDemo {
 
             // Audio stats
             audio: {
-                bytesReceived: 0, // from incomine-rtp
+                bytesReceived: 0, // from incoming-rtp
                 packetsReceived: 0, // from incoming-rtp
                 packetsLost: 0, // from incoming-rtp
                 codecName: "NA", // from incoming-rtp.codec
                 jitterBufferDelay: 0, // from track.jitterBufferDelay / track.jitterBufferEmittedCount in seconds.
+            },
+
+            // DataChannel stats
+            data: {
+                bytesReceived: 0, // from data-channel
+                bytesSent: 0, // from data-channel
+                messagesReceived: 0, // from data-channel
+                messagesSent: 0, // from data-channel
             }
         };
 
         return new Promise(function (resolve, reject) {
             // Statistics API:
             // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_Statistics_API
-            pc.getStats(null).then( (stats) => {
+            pc.getStats().then( (stats) => {
                 var reports = {
                     transports: {},
                     candidatePairs: {},
@@ -538,6 +547,7 @@ class WebRTCDemo {
                     videoTrack: null,
                     audioRTP: null,
                     audioTrack: null,
+                    dataChannel: null,
                 }
 
                 var allReports = [];
@@ -564,6 +574,8 @@ class WebRTCDemo {
                         } else if (report.kind === "audio") {
                             reports.audioTrack = report;
                         }
+                    } else if (report.type === "data-channel") {
+                        reports.dataChannel = report;
                     } else if (report.type === "remote-candidate") {
                         reports.remoteCandidates[report.id] = report;
                     } else if (report.type === "codec") {
@@ -603,6 +615,14 @@ class WebRTCDemo {
                     }
                 }
 
+                var dataChannel = reports.dataChannel;
+                if (dataChannel !== null) {
+                    connectionDetails.data.bytesReceived = dataChannel.bytesReceived;
+                    connectionDetails.data.bytesSent = dataChannel.bytesSent;
+                    connectionDetails.data.messagesReceived = dataChannel.messagesReceived;
+                    connectionDetails.data.messagesSent =  dataChannel.messagesSent;
+                }
+
                 // Extract transport stats.
                 if (Object.keys(reports.transports).length > 0) {
                     var transport = reports.transports[Object.keys(reports.transports)[0]];
@@ -613,6 +633,9 @@ class WebRTCDemo {
                     var candidatePair = reports.candidatePairs[transport.selectedCandidatePairId];
                     if (candidatePair !== undefined) {
                         connectionDetails.general.availableReceiveBandwidth = candidatePair.availableIncomingBitrate;
+                        if (candidatePair.currentRoundTripTime !== undefined) {
+                            connectionDetails.general.currentRoundTripTime = candidatePair.currentRoundTripTime;
+                        }
                         var remoteCandidate = reports.remoteCandidates[candidatePair.remoteCandidateId]
                         if (remoteCandidate !== undefined) {
                             connectionDetails.general.connectionType = remoteCandidate.candidateType;
@@ -625,13 +648,13 @@ class WebRTCDemo {
                 connectionDetails.general.packetsLost = connectionDetails.video.packetsLost + connectionDetails.audio.packetsLost;
 
                 // Compute jitter buffer delay for video
-                if (reports.videoTrack !== null) {
-                    connectionDetails.video.jitterBufferDelay = reports.videoTrack.jitterBufferDelay / reports.videoTrack.jitterBufferEmittedCount;
+                if (reports.videoRTP !== null) {
+                    connectionDetails.video.jitterBufferDelay = reports.videoRTP.jitterBufferDelay / reports.videoRTP.jitterBufferEmittedCount;
                 }
 
                 // Compute jitter buffer delay for audio
-                if (reports.audioTrack !== null) {
-                    connectionDetails.audio.jitterBufferDelay = reports.audioTrack.jitterBufferDelay / reports.audioTrack.jitterBufferEmittedCount;
+                if (reports.audioRTP !== null) {
+                    connectionDetails.audio.jitterBufferDelay = reports.audioRTP.jitterBufferDelay / reports.audioRTP.jitterBufferEmittedCount;
                 }
 
                 // DEBUG
