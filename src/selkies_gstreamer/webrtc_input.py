@@ -399,13 +399,19 @@ class WebRTCInput:
             self.xdisplay.sync()
 
     def read_clipboard(self):
-        return subprocess.getoutput("xclip -out")
+        try:
+            result = subprocess.run(['xsel', '--clipboard', '--output'], check=True, text=True, capture_output=True)
+            return result.stdout
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Error while capturing clipboard: {e}")
 
     def write_clipboard(self, data):
-        cmd = ['xclip', '-selection', 'clipboard', '-in']
-        p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-        p.communicate(input=data.encode())
-        p.wait()
+        try:
+            subprocess.run(['xsel', '--clipboard', '--input'], input=data.encode(), check=True)
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"Error while writing to clipboard: {e}")
+            return False
 
     def start_clipboard(self):
         if self.enable_clipboard in ["true", "out"]:

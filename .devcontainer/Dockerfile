@@ -37,7 +37,7 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         libxfixes3 \
         libxtst6 \
         libxext6 \
-        xclip \
+        xsel \
         x11-utils \
         xdotool \
         x11-xserver-utils \

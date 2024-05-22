@@ -42,7 +42,7 @@ apt-get update && apt-get install --no-install-recommends -y \
     libxfixes3 \
     libxtst6 \
     libxext6 \
-    xclip \
+    xsel \
     x11-utils \
     xdotool \
     x11-xserver-utils \
