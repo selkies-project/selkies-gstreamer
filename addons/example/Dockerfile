@@ -121,6 +121,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libvpx-dev \
         libwebp-dev \
         libwebrtc-audio-processing1 \
+        supervisor \
         x264 \
         x265 \
         # Graphics driver dependencies
@@ -212,10 +213,6 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
     # Prevent dialogs at Xfce4 desktop environment start
     cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 
-# Add Tini init script - takes care of runaway processes
-RUN TINI_VERSION="$(curl -fsSL "https://api.github.com/repos/krallin/tini/releases/latest" | jq -r '.tag_name')" && \
-    curl -o /usr/bin/tini -fsSL "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" && chmod +x /usr/bin/tini
-
 # Install GStreamer distribution
 COPY --chown=1000:1000 --from=selkies-gstreamer /opt/gstreamer ./gstreamer
 
@@ -237,56 +234,6 @@ RUN pip3 install --no-cache-dir --force-reinstall /opt/${PYPI_PACKAGE}-${PACKAGE
 # Setup global bashrc to configure X11 environment
 ENV DISPLAY ":0"
 
-# Write startup script
-RUN echo "#!/bin/bash -ex\n\
-exec turnserver\n\
-    --verbose\n\
-    --listening-ip=0.0.0.0\n\
-    --listening-port=\${SELKIES_TURN_PORT:-3478}\n\
-    --realm=\${TURN_REALM:-example.com}\n\
-    --min-port=\${TURN_MIN_PORT:-49152}\n\
-    --max-port=\${TURN_MAX_PORT:-65535}\n\
-    --lt-cred-mech\n\
-    --user selkies:\${TURN_RANDOM_PASSWORD}\n\
-    --no-cli\n\
-    --allow-loopback-peers\n\
-    --db /tmp/coturn-turndb\n\
-    \${EXTRA_ARGS} \$@\n\
-" > /etc/start-turnserver.sh && chmod +x /etc/start-turnserver.sh && \
-    echo "#!/bin/bash -ex\n\
-mkdir -pm700 /tmp/runtime-user\n\
-chown -f ubuntu:ubuntu /tmp/runtime-user\n\
-chmod -f 700 /tmp/runtime-user\n\
-export XDG_RUNTIME_DIR=/tmp/runtime-user\n\
-export DISPLAY=\"\${DISPLAY:-:0}\"\n\
-export LD_PRELOAD=\"selkies_joystick_interposer.so\${LD_PRELOAD:+:\${LD_PRELOAD}}\"\n\
-export SDL_JOYSTICK_DEVICE=/dev/input/js0\n\
-mkdir -pm777 /dev/input || sudo-root mkdir -pm777 /dev/input || echo 'Failed to create joystick interposer directory'\n\
-touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || sudo-root touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || echo 'Failed to create joystick interposer devices'\n\
-Xvfb -screen :0 8192x4096x24 +extension \"COMPOSITE\" +extension \"DAMAGE\" +extension \"GLX\" +extension \"RANDR\" +extension \"RENDER\" +extension \"MIT-SHM\" +extension \"XFIXES\" +extension \"XTEST\" +iglx +render -nolisten \"tcp\" -noreset -shmem >/tmp/Xvfb.log 2>&1 &\n\
-until [ -S \"/tmp/.X11-unix/X\${DISPLAY/:/}\" ]; do sleep 1; done && echo 'X Server is ready'\n\
-export PULSE_SERVER=\"unix:\${XDG_RUNTIME_DIR}/pulse/native\"\n\
-/usr/bin/pulseaudio -k >/dev/null 2>&1 || true\n\
-/usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'\n\
-[ \"\${START_XFCE4:-true}\" = \"true\" ] && rm -rf ~/.config/xfce4 && vglrun -d \"\${VGL_DISPLAY:-egl}\" +wm xfce4-session &\n\
-export SELKIES_ENCODER=\${SELKIES_ENCODER:-x264enc}\n\
-export SELKIES_ENABLE_RESIZE=\${SELKIES_ENABLE_RESIZE:-true}\n\
-if ( [ -z \"\${SELKIES_TURN_USERNAME}\" ] || [ -z \"\${SELKIES_TURN_PASSWORD}\" ] ) && [ -z \"\${SELKIES_TURN_SHARED_SECRET}\" ] || [ -z \"\${SELKIES_TURN_HOST}\" ] || [ -z \"\${SELKIES_TURN_PORT}\" ]; then\n\
-  TURN_RANDOM_PASSWORD=\"\$(tr -dc A-Za-z0-9 </dev/urandom | head -c 24)\"\n\
-  /etc/start-turnserver.sh &\n\
-  export SELKIES_TURN_HOST=\$(curl -fsSL checkip.amazonaws.com)\n\
-  export SELKIES_TURN_PORT=\${SELKIES_TURN_PORT:-3478}\n\
-  export SELKIES_TURN_USERNAME=selkies\n\
-  export SELKIES_TURN_PASSWORD=\${TURN_RANDOM_PASSWORD}\n\
-fi\n\
-export SELKIES_TURN_PROTOCOL=\${SELKIES_TURN_PROTOCOL:-tcp}\n\
-export GST_DEBUG=\"*:2\"\n\
-export GSTREAMER_PATH=/opt/gstreamer\n\
-. /opt/gstreamer/gst-env\n\
-selkies-gstreamer-resize 1920x1080\n\
-selkies-gstreamer\n\
-" > /etc/entrypoint.sh && chmod +x /etc/entrypoint.sh
-
 # Configure bashrc to show /etc/motd and /etc/issue
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/issue && cat /etc/motd' >> /etc/bash.bashrc && \
     echo "===================================================================\n\
@@ -307,6 +254,14 @@ python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\n\
 \n\
 " > /etc/motd
 
+# Copy scripts and configurations used to start the container
+COPY --chown=1000:1000 entrypoint.sh /etc/entrypoint.sh
+RUN chmod 755 /etc/entrypoint.sh
+COPY --chown=1000:1000 selkies-gstreamer-entrypoint.sh /etc/selkies-gstreamer-entrypoint.sh
+RUN chmod 755 /etc/selkies-gstreamer-entrypoint.sh
+COPY --chown=1000:1000 supervisord.conf /etc/supervisord.conf
+RUN chmod 755 /etc/supervisord.conf
+
 SHELL ["/bin/sh", "-c"]
 
 USER 1000
@@ -317,5 +272,4 @@ WORKDIR /home/ubuntu
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/etc/entrypoint.sh"]
+ENTRYPOINT [ "/usr/bin/supervisord" ]
