@@ -131,7 +131,6 @@ jobs:
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
-          dockerfile: Dockerfile
           context: addons/example
 
         - name: gst-py-example
@@ -144,7 +143,6 @@ jobs:
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
-          dockerfile: Dockerfile
           context: addons/example
 
         - name: gst-py-example
@@ -157,7 +155,6 @@ jobs:
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
-          dockerfile: Dockerfile
           context: addons/example
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
