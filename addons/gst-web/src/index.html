@@ -16,6 +16,10 @@
       font-family: Roboto, Arial, sans;
     }
 
+    body {
+      background-color: #000000;
+    }
+
     .scrolly textarea {
       min-height: 300px;
       white-space: pre;
@@ -123,7 +127,10 @@
       word-wrap: normal;
       direction: ltr;
     }
-    body { background-color: #000000; }
+
+    [v-cloak] {
+        display: none;
+    }
   </style>
   <title>Selkies - webrtc</title>
 </head>
@@ -386,9 +393,6 @@
       </div>
     </v-app>
   </div>
-  <style>
-    [v-cloak] { display: none; }
-  </style>
 </body>
 
 <script type="text/javascript">
