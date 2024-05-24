@@ -16,6 +16,10 @@
       font-family: Roboto, Arial, sans;
     }
 
+    body {
+      background-color: #000000;
+    }
+
     .scrolly textarea {
       min-height: 300px;
       white-space: pre;
@@ -123,12 +127,16 @@
       word-wrap: normal;
       direction: ltr;
     }
+
+    [v-cloak] {
+        display: none;
+    }
   </style>
   <title>Selkies - webrtc</title>
 </head>
 
 <body>
-  <div id="app">
+  <div id="app" v-cloak>
     <v-app>
       <v-navigation-drawer v-model="showDrawer" app fixed right temporary width="600">
         <v-container fluid grid-list-lg>
