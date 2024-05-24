@@ -563,6 +563,7 @@ class GSTWebRTCApp:
             x264enc.set_property("aud", False)
             x264enc.set_property("b-adapt", False)
             x264enc.set_property("bframes", 0)
+            x264enc.set_property("dct8x8", False)
             x264enc.set_property("insert-vui", True)
             x264enc.set_property("key-int-max", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             x264enc.set_property("mb-tree", True)
