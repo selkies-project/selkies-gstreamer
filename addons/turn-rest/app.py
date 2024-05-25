@@ -51,7 +51,8 @@ def turn_rest():
     rtc_config["iceServers"] = []
     rtc_config["iceServers"].append({
         "urls": [
-            "stun:{}:{}".format(turn_host, turn_port)
+            "stun:{}:{}".format(turn_host, turn_port),
+            "stun:stun.l.google.com:19302"
         ]
     })
     rtc_config["iceServers"].append({

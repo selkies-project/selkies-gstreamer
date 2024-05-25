@@ -69,7 +69,8 @@ def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp
     rtc_config["iceServers"] = []
     rtc_config["iceServers"].append({
         "urls": [
-            "stun:{}:{}".format(turn_host, turn_port)
+            "stun:{}:{}".format(turn_host, turn_port),
+            "stun:stun.l.google.com:19302"
         ]
     })
     rtc_config["iceServers"].append({
