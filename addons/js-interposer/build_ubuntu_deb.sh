@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e -x
 
 PKG_DIR="/opt/${PKG_NAME?missing env}_${PKG_VERSION?missing env}"
 mkdir -p "${PKG_DIR}/DEBIAN"
