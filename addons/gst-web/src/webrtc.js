@@ -514,9 +514,7 @@ class WebRTCDemo {
                 packetsLost: 0, // from incoming-rtp
                 codecName: "NA", // from incoming-rtp => codec
                 jitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
-                previousJitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
                 jitterBufferEmittedCount: 0, // from incoming-rtp.jitterBufferEmittedCount
-                previousJitterBufferEmittedCount: 0, // from incoming-rtp.jitterBufferEmittedCount
             },
 
             // Audio stats
@@ -526,9 +524,7 @@ class WebRTCDemo {
                 packetsLost: 0, // from incoming-rtp
                 codecName: "NA", // from incoming-rtp => codec
                 jitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
-                previousJitterBufferDelay: 0, // from incoming-rtp.jitterBufferDelay
                 jitterBufferEmittedCount: 0, // from incoming-rtp.jitterBufferEmittedCount
-                previousJitterBufferEmittedCount: 0, // from incoming-rtp.jitterBufferEmittedCount
             },
 
             // DataChannel stats
@@ -668,16 +664,12 @@ class WebRTCDemo {
 
                 // Compute jitter buffer delay for video
                 if (reports.videoRTP !== null) {
-                    connectionDetails.video.previousJitterBufferDelay = connectionDetails.video.jitterBufferDelay;
-                    connectionDetails.video.previousJitterBufferEmittedCount = connectionDetails.video.jitterBufferEmittedCount;
                     connectionDetails.video.jitterBufferDelay = reports.videoRTP.jitterBufferDelay;
                     connectionDetails.video.jitterBufferEmittedCount = reports.videoRTP.jitterBufferEmittedCount;
                 }
 
                 // Compute jitter buffer delay for audio
                 if (reports.audioRTP !== null) {
-                    connectionDetails.audio.previousJitterBufferDelay = connectionDetails.audio.jitterBufferDelay;
-                    connectionDetails.audio.previousJitterBufferEmittedCount = connectionDetails.audio.jitterBufferEmittedCount;
                     connectionDetails.audio.jitterBufferDelay = reports.audioRTP.jitterBufferDelay;
                     connectionDetails.audio.jitterBufferEmittedCount = reports.audioRTP.jitterBufferEmittedCount;
                 }

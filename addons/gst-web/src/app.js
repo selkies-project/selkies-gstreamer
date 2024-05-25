@@ -427,16 +427,23 @@ var videoConnected = "";
 var audioConnected = "";
 // Bind vue status to connection state.
 function onBothStreamConnected() {
-    // Minimize latency settings
-    webrtc.peerConnection.getReceivers().forEach(receiver => {
-        receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
-    });
-    audio_webrtc.peerConnection.getReceivers().forEach(receiver => {
-        receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
-    });
+    // Repeatedly minimize latency target
+    var jitterBufferLoop = setInterval(() => {
+        // Minimize latency settings
+        webrtc.peerConnection.getReceivers().forEach(receiver => {
+            receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
+        });
+        audio_webrtc.peerConnection.getReceivers().forEach(receiver => {
+            receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
+        });
+    }, 100);
     // Start watching stats
     var videoBytesReceivedStart = 0;
     var audioBytesReceivedStart = 0;
+    var previousVideoJitterBufferDelay = 0;
+    var previousVideoJitterBufferEmittedCount = 0;
+    var previousAudioJitterBufferDelay = 0;
+    var previousAudioJitterBufferEmittedCount = 0;
     var statsStart = new Date().getTime() / 1000;
     var statsLoop = () => {
         if (videoConnected !== "connected" || audioConnected !== "connected") return;
@@ -480,8 +487,12 @@ function onBothStreamConnected() {
                 audioBytesReceivedStart = audioStats.audio.bytesReceived;
 
                 // Latency stats
-                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - stats.video.previousJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - stats.video.previousJitterBufferEmittedCount) || 0)));
-                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - audioStats.audio.previousJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - audioStats.audio.previousJitterBufferEmittedCount) || 0)));
+                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - previousVideoJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - previousVideoJitterBufferEmittedCount) || 0)));
+                previousVideoJitterBufferDelay = stats.video.jitterBufferDelay;
+                previousVideoJitterBufferEmittedCount = stats.video.jitterBufferEmittedCount;
+                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - previousAudioJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - previousAudioJitterBufferEmittedCount) || 0)));
+                previousAudioJitterBufferDelay = audioStats.audio.jitterBufferDelay;
+                previousAudioJitterBufferEmittedCount = audioStats.audio.jitterBufferEmittedCount;
 
                 // Format latency
                 app.connectionLatency = parseInt(Math.round(app.connectionLatency));
