@@ -287,8 +287,8 @@ class WebRTCDemo {
                             local_sdp.sdp = local_sdp.sdp.replace('packetization-mode=', 'sps-pps-idr-in-keyframe=1;packetization-mode=');
                         }
                     }
-                    // Override SDP to enable stereo on WebRTC Opus with Chromium, must be munged before the Local Description
                     if (local_sdp.sdp.indexOf('multiopus') === -1) {
+                        // Override SDP to enable stereo on WebRTC Opus with Chromium, must be munged before the Local Description
                         if (!(/[^-]stereo=1[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
                             console.log("Overriding WebRTC SDP to allow stereo audio");
                             if (/[^-]stereo=\d+/gm.test(local_sdp.sdp)) {
@@ -297,14 +297,14 @@ class WebRTCDemo {
                                 local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'stereo=1;useinbandfec=');
                             }
                         }
-                    }
-                    // Override SDP to reduce Opus packet size to 2.5 (3) ms
-                    if (!(/[^-]minptime=3[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
-                        console.log("Overriding WebRTC SDP to allow low-latency audio packet");
-                        if (/[^-]minptime=\d+/gm.test(local_sdp.sdp)) {
-                            local_sdp.sdp = local_sdp.sdp.replace(/minptime=\d+/gm, 'minptime=3');
-                        } else {
-                            local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'minptime=3;useinbandfec=');
+                        // OPUS_FRAME: Override SDP to reduce packet size to 2.5 (3) ms
+                        if (!(/[^-]minptime=3[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
+                            console.log("Overriding WebRTC SDP to allow low-latency audio packet");
+                            if (/[^-]minptime=\d+/gm.test(local_sdp.sdp)) {
+                                local_sdp.sdp = local_sdp.sdp.replace(/minptime=\d+/gm, 'minptime=3');
+                            } else {
+                                local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'minptime=3;useinbandfec=');
+                            }
                         }
                     }
                     console.log("Created local SDP", local_sdp);

@@ -250,7 +250,7 @@ class GSTWebRTCApp:
         self.ximagesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
         self.ximagesrc_capsfilter.set_property("caps", self.ximagesrc_caps)
 
-        # ADD_ENCODER: add new encoder to this list
+        # ADD_ENCODER: Add new encoder to this list and modify all locations with "ADD_ENCODER:"
         # Reference configuration for fixing when something is broken in web browsers:
         #   https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs/-/blob/main/net/webrtc/src/webrtcsink/imp.rs
         if self.encoder in ["nvh264enc"]:
@@ -878,7 +878,7 @@ class GSTWebRTCApp:
         # Add all elements to the pipeline.
         pipeline_elements = [self.ximagesrc, self.ximagesrc_capsfilter]
 
-        # ADD_ENCODER: add new encoder to this list
+        # ADD_ENCODER: add new encoder elements to this list
         if self.encoder in ["nvh264enc"]:
             pipeline_elements += [cudaupload, cudaconvert, cudaconvert_capsfilter, nvh264enc, h264enc_capsfilter, rtph264pay, rtph264pay_capsfilter]
 
@@ -975,6 +975,7 @@ class GSTWebRTCApp:
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
         opusenc.set_property("dtx", True)
+        # OPUS_FRAME: Modify all locations with "OPUS_FRAME:"
         # Browser-side SDP munging ("minptime=3") is required if frame-size < 10
         opusenc.set_property("frame-size", "2.5")
         opusenc.set_property("perfect-timestamp", True)
@@ -1070,7 +1071,7 @@ class GSTWebRTCApp:
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
-        # ADD_ENCODER: add new encoder to this list
+        # ADD_ENCODER: add new encoder to this list with required GStreamer plugin
         if self.encoder.startswith("nv"):
             required.append("nvcodec")
 
@@ -1158,7 +1159,7 @@ class GSTWebRTCApp:
         self.ximagesrc_capsfilter.set_property("caps", self.ximagesrc_caps)
         logger.info("framerate set to: %d" % framerate)
 
-        # ADD_ENCODER: GOP/IDR Keyframe distance to keep the stream from freezing (in keyframe_dist seconds)
+        # ADD_ENCODER: GOP/IDR Keyframe distance to keep the stream from freezing (in keyframe_dist seconds) and set vbv-buffer-size
         self.keyframe_frame_distance = -1 if self.keyframe_distance == -1.0 else max(self.min_keyframe_frame_distance, int(self.framerate * self.keyframe_distance))
         if self.encoder.startswith("nv"):
             element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
@@ -1216,7 +1217,7 @@ class GSTWebRTCApp:
                 # Method is called again through the notifier with cc=True
                 self.rtpgccbwe.set_property("estimated-bitrate", int(bitrate * 1000 + self.fec_audio_bitrate))
                 return
-            # ADD_ENCODER: add new encoder to this list
+            # ADD_ENCODER: add new encoder to this list and set vbv-buffer-size if unit is bytes instead of milliseconds
             if self.encoder.startswith("nv"):
                 element = Gst.Bin.get_by_name(self.pipeline, "nvenc")
                 element.set_property("bitrate", fec_bitrate)
@@ -1481,7 +1482,7 @@ class GSTWebRTCApp:
                 logger.warning("injecting modified sps-pps-idr-in-keyframe to SDP")
                 sdp_text = sdp_text.replace(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
         if "opus/" in sdp_text.lower():
-            # Add ptime explicitly to SDP offer
+            # OPUS_FRAME: Add ptime explicitly to SDP offer
             sdp_text = re.sub(r'([^-]sprop-[^\r\n]+)', r'\1\r\na=ptime:3', sdp_text)
         # Set final SDP offer
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
