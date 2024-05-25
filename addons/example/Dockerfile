@@ -234,26 +234,6 @@ RUN pip3 install --no-cache-dir --force-reinstall /opt/${PYPI_PACKAGE}-${PACKAGE
 # Setup global bashrc to configure X11 environment
 ENV DISPLAY ":0"
 
-# Configure bashrc to show /etc/motd and /etc/issue
-RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/issue && cat /etc/motd' >> /etc/bash.bashrc && \
-    echo "===================================================================\n\
-= Selkies-GStreamer Docker container                         =\n\
-===================================================================\n\
-\n\
-To test the package:\n\
-\n\
-/etc/entrypoint.sh\n\
-\n\
-Or start each process separately:\n\
-\n\
-$(tail -n +2 /etc/entrypoint.sh)\n\
-\n\
-To test the standalone signaling server:\n\
-\n\
-python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\n\
-\n\
-" > /etc/motd
-
 # Copy scripts and configurations used to start the container
 COPY --chown=1000:1000 entrypoint.sh /etc/entrypoint.sh
 RUN chmod 755 /etc/entrypoint.sh
@@ -261,6 +241,39 @@ COPY --chown=1000:1000 selkies-gstreamer-entrypoint.sh /etc/selkies-gstreamer-en
 RUN chmod 755 /etc/selkies-gstreamer-entrypoint.sh
 COPY --chown=1000:1000 supervisord.conf /etc/supervisord.conf
 RUN chmod 755 /etc/supervisord.conf
+
+# Configure coTURN script
+RUN echo "#!/bin/bash\n\
+set -e\n\
+exec turnserver\n\
+    --verbose\n\
+    --listening-ip=0.0.0.0\n\
+    --listening-port=\${SELKIES_TURN_PORT:-3478}\n\
+    --realm=\${TURN_REALM:-example.com}\n\
+    --min-port=\${TURN_MIN_PORT:-49152}\n\
+    --max-port=\${TURN_MAX_PORT:-65535}\n\
+    --lt-cred-mech\n\
+    --user selkies:\${TURN_RANDOM_PASSWORD}\n\
+    --no-cli\n\
+    --allow-loopback-peers\n\
+    --db /tmp/coturn-turndb\n\
+    \${EXTRA_ARGS} \$@\
+" > /etc/start-turnserver.sh && chmod 755 /etc/start-turnserver.sh
+
+# Configure bashrc to show /etc/motd and /etc/issue
+RUN echo "[ ! -z \"\$TERM\" -a -r /etc/motd ] && echo \"\$(grep PRETTY_NAME= /etc/os-release | cut -d= -f2 | tr -d '\\\"')\" && cat /etc/motd" >> /etc/bash.bashrc && \
+    echo "==============================================\n\
+= Selkies-GStreamer Example Docker Container =\n\
+==============================================\n\
+\n\
+To test the package:\n\
+\n\
+'/etc/entrypoint.sh' and '/etc/selkies-gstreamer-entrypoint.sh'\n\
+\n\
+To test the standalone signaling server:\n\
+\n\
+python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\
+" > /etc/motd
 
 SHELL ["/bin/sh", "-c"]
 

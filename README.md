@@ -42,7 +42,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](./Dockerfile.example) is available.
 
-Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (**change `DISTRIB_RELEASE` to `24.04`, `22.04`, or `20.04`, then replace `main` to `latest` for the release build instead of the development build**):
+Run the Docker container built from the [`Dockerfile.example`](./Dockerfile.example), then connect to port **8080** of your Docker host to access the web interface (Username: **`ubuntu`**, Password: **`password`**, **change `DISTRIB_RELEASE` to `24.04`, `22.04`, or `20.04`, and replace `main` to `latest` for the release build instead of the development build if needed**):
 
 ```bash
 docker run --pull=always --name selkies -it -d --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
@@ -303,11 +303,11 @@ This table specifies the currently supported transport protocol components.
 
 ## Using a TURN server
 
-**(IMPORTANT) This is mandatory if the HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails and therefore the remote desktop does not start.**
+**(IMPORTANT) This is mandatory if the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails and therefore the remote desktop does not start.**
 
 **A TURN server is required if trying to use this project inside a Docker or Kubernetes container without host networking, or in other cases where the HTML5 web interface loads but the connection to the server fails. This is required for all WebRTC applications, especially since `selkies-gstreamer` is self-hosted, unlike other proprietary services which provide a TURN server for you.**
 
-For an easy fix to when the HTML5 web interface and the signalling connection works, but the WebRTC connection fails in a container, add the option `--network=host` to your Docker command, or add `hostNetwork: true` under your Kubernetes YAML configuration file's pod `spec:` entry, which should be indented in the same depth as `containers:` (note that your cluster may have not allowed this, resulting in an error). This exposes your container to the host network, which disables network isolation. If this does not fix the connection issue (normally when the server is behind another firewall) or you cannot use this fix for security or technical reasons, read the below text.
+For an easy fix to when the HTML5 web interface and the signaling connection works, but the WebRTC connection fails in a container, add the option `--network=host` to your Docker command, or add `hostNetwork: true` under your Kubernetes YAML configuration file's pod `spec:` entry, which should be indented in the same depth as `containers:` (note that your cluster may have not allowed this, resulting in an error). This exposes your container to the host network, which disables network isolation. If this does not fix the connection issue (normally when the server is behind another firewall) or you cannot use this fix for security or technical reasons, read the below text.
 
 In most cases when either of your server or client does not have a restrictive firewall, the default Google STUN server configuration will work without additional configuration. However, when connecting from networks that cannot be traversed with STUN, a TURN server is required.
 
@@ -389,7 +389,7 @@ Any [GStreamer](https://gstreamer.freedesktop.org) plugin [documentation page](h
 
 ## Troubleshooting
 
-### The HTML5 web interface loads and the signalling connection works, but the WebRTC connection fails or the remote desktop does not start.
+### The HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start.
 
 First of all, use HTTPS or HTTP port forwarding to localhost as much as possible. Browsers do not support WebRTC or relevant features including pointer and keyboard lock in HTTP outside localhost. Also check if the WebRTC video codec is supported in the web browser, as the server may panic if the codecs do not match. Moreover, ensure that there is a running PulseAudio or PipeWire-Pulse session as the interface does not establish without an audio server.
 
@@ -439,7 +439,7 @@ export SELKIES_TURN_PORT="Your TURN Port"
 export SELKIES_TURN_SECRET="Your Shared Secret"
 export SELKIES_TURN_USER="user"
 
-python3 -c 'import os;from selkies_gstreamer.signalling_web import generate_rtc_config; print(generate_rtc_config(os.environ["SELKIES_TURN_HOST"], os.environ["SELKIES_TURN_PORT"], os.environ["SELKIES_TURN_SECRET"], os.environ["SELKIES_TURN_USER"]))'
+python3 -c 'import os;from selkies_gstreamer.signaling_web import generate_rtc_config; print(generate_rtc_config(os.environ["SELKIES_TURN_HOST"], os.environ["SELKIES_TURN_PORT"], os.environ["SELKIES_TURN_SECRET"], os.environ["SELKIES_TURN_USER"]))'
 ```
 
 > You can then test your TURN server configuration from the [Trickle ICE](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/) webpage.

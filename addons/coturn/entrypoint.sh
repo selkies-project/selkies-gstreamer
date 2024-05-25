@@ -21,7 +21,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-set -e -x
+set -e
 
 export EXTERNAL_IP="${EXTERNAL_IP:-$(detect_external_ip)}"
 
