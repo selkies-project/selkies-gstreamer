@@ -730,7 +730,7 @@ class GSTWebRTCApp:
 
             # Sets the H.264 encoding profile to one compatible with WebRTC.
             # Main profile includes CABAC and is compatible with Chrome.
-            # For low-latency, High profile capabilities are not utilized.
+            # In low-latency encoding, High profile features are not utilized.
             # Browsers only support specific H.264 profiles and they are
             # coded in the RTP payload type set by the rtph264pay_caps below.
             h264enc_caps.set_value("profile", "high")
@@ -768,8 +768,8 @@ class GSTWebRTCApp:
             # Set the video encoding name to match our encoded format.
             rtph264pay_caps.set_value("encoding-name", "H264")
 
-            # Set the payload type to one that matches the encoding profile.
-            # Fake to the baseline profile for Firefox in the SDP
+            # Set the payload type that matches the encoding profile.
+            # Fake to the baseline profile in the SDP for Firefox
             # Main or High profile can still be decoded
             # Other payloads can be derived using WebRTC specification:
             #   https://tools.ietf.org/html/rfc6184#section-8.2.1

@@ -427,16 +427,17 @@ var videoConnected = "";
 var audioConnected = "";
 // Bind vue status to connection state.
 function onBothStreamConnected() {
-    // Repeatedly minimize latency target
-    var jitterBufferLoop = setInterval(() => {
-        // Minimize latency settings
-        webrtc.peerConnection.getReceivers().forEach(receiver => {
+    // Repeatedly emit minimum latency target
+    webrtc.peerConnection.getReceivers().forEach(receiver => {
+        setInterval(() => {
             receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
-        });
-        audio_webrtc.peerConnection.getReceivers().forEach(receiver => {
+        }, 1);
+    });
+    audio_webrtc.peerConnection.getReceivers().forEach(receiver => {
+        setInterval(() => {
             receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
-        });
-    }, 100);
+        }, 1);
+    });
     // Start watching stats
     var videoBytesReceivedStart = 0;
     var audioBytesReceivedStart = 0;
