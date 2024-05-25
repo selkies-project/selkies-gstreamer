@@ -729,10 +729,11 @@ class GSTWebRTCApp:
             h264enc_caps = Gst.caps_from_string("video/x-h264")
 
             # Sets the H.264 encoding profile to one compatible with WebRTC.
-            # The high profile is used for streaming HD video.
+            # Main profile includes CABAC and is compatible with Chrome.
+            # High profile is incompatible with Chrome.
             # Browsers only support specific H.264 profiles and they are
             # coded in the RTP payload type set by the rtph264pay_caps below.
-            h264enc_caps.set_value("profile", "high")
+            h264enc_caps.set_value("profile", "main")
 
             # Stream-oriented H.264 codec
             h264enc_caps.set_value("stream-format", "byte-stream")
@@ -768,8 +769,8 @@ class GSTWebRTCApp:
             rtph264pay_caps.set_value("encoding-name", "H264")
 
             # Set the payload type to one that matches the encoding profile.
-            # Fake to the constrained-baseline profile for Firefox
-            # High profile will still be decoded
+            # Fake to the baseline profile for Firefox in the SDP
+            # Main or High profile can still be decoded
             # Other payloads can be derived using WebRTC specification:
             #   https://tools.ietf.org/html/rfc6184#section-8.2.1
             rtph264pay_caps.set_value("payload", 97)
