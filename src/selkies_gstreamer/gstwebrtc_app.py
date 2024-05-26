@@ -733,7 +733,7 @@ class GSTWebRTCApp:
             # In low-latency encoding, High profile features are not utilized.
             # Browsers only support specific H.264 profiles and they are
             # coded in the RTP payload type set by the rtph264pay_caps below.
-            h264enc_caps.set_value("profile", "high")
+            h264enc_caps.set_value("profile", "main")
 
             # Stream-oriented H.264 codec
             h264enc_caps.set_value("stream-format", "byte-stream")
