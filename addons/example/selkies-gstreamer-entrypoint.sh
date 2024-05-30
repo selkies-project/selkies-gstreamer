@@ -8,8 +8,9 @@ set -e
 
 # Set default display
 export DISPLAY="${DISPLAY:-:0}"
-# PulseAudio server socket path
+# PipeWire-Pulse server socket path
 export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
+export PIPEWIRE_LATENCY="32/48000"
 
 # Source environment for GStreamer
 . /opt/gstreamer/gst-env
@@ -35,7 +36,7 @@ if [ "${ENABLE_BASIC_AUTH,,}" != "false" ] && [ -z "${BASIC_AUTH_PASSWORD}" ]; t
 
 # Wait for X server to start
 echo "Waiting for X socket"
-until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done
+until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 0.5; done
 echo "X socket is ready"
 
 # Clear the cache registry

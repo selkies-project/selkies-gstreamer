@@ -29,7 +29,6 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
         fakeroot \
         fuse \
         locales \
-        pulseaudio \
         ssl-cert \
         sudo \
         udev \
@@ -42,7 +41,7 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
     ln -snf /usr/bin/fakeroot /usr/bin/sudo && \
     groupadd -g 1000 ubuntu || true && \
     useradd -ms /bin/bash ubuntu -u 1000 -g 1000 || true && \
-    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,games,input,lp,plugdev,pulse-access,render,ssl-cert,sudo,tape,tty,video,voice ubuntu && \
+    usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,games,input,lp,plugdev,render,ssl-cert,sudo,tape,tty,video,voice ubuntu && \
     echo "ubuntu ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     echo "ubuntu:${PASSWD}" | chpasswd && \
     chown -R -f --no-preserve-root ubuntu:ubuntu / || true && \
@@ -58,7 +57,26 @@ USER 1000
 SHELL ["/usr/bin/fakeroot", "--", "/bin/sh", "-c"]
 
 # Install Selkies-GStreamer system dependencies
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFC43B7352BCC0EC8AF2EEB8B25088A0359807596" | gpg --dearmor -o /etc/apt/trusted.gpg.d/pipewire-debian-ubuntu-pipewire-upstream.gpg && \
+    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/pipewire-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-pipewire-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
+    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/wireplumber-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-wireplumber-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
+    apt-get update && apt-get install --no-install-recommends -y \
+        # PipeWire and WirePlumber
+        pipewire \
+        pipewire-alsa \
+        pipewire-audio-client-libraries \
+        pipewire-jack \
+        pipewire-locales \
+        pipewire-v4l2 \
+        pipewire-libcamera \
+        gstreamer1.0-pipewire \
+        libpipewire-0.3-modules \
+        libpipewire-module-x11-bell \
+        libspa-0.2-jack \
+        libspa-0.2-modules \
+        wireplumber \
+        wireplumber-locales \
+        gir1.2-wp-0.4 \
         # System dependencies
         build-essential \
         curl \
@@ -115,7 +133,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libogg0 \
         libopenjp2-7 \
         libopus0 \
-        pulseaudio \
         libpulse0 \
         libvorbis-dev \
         libvpx-dev \
@@ -194,6 +211,8 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
     mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/mozillateam-ubuntu-ppa-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
     apt-get update && apt-get install --no-install-recommends -y \
         git \
+        tmux \
+        nano \
         vim \
         wget \
         zip \
@@ -207,6 +226,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         dbus-x11 \
         x11-apps \
         firefox \
+        pavucontrol \
         jstest-gtk \
         coturn && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \

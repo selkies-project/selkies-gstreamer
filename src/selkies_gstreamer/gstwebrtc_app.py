@@ -957,8 +957,8 @@ class GSTWebRTCApp:
         pulsesrc.set_property("do-timestamp", False)
 
         # Maximum and minimum amount of data to read in each iteration in microseconds
-        pulsesrc.set_property("buffer-time", 10000)
-        pulsesrc.set_property("latency-time", 2500)
+        pulsesrc.set_property("buffer-time", 20000)
+        pulsesrc.set_property("latency-time", 500)
 
         # Create capabilities for pulsesrc and set channels
         pulsesrc_caps = Gst.caps_from_string("audio/x-raw")
