@@ -166,7 +166,7 @@ def set_cursor_size(size):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
-            logger.error("failed to set XFCE cursor size to: '%d': %s%s" % (dpi, str(stdout), str(stderr)))
+            logger.error("failed to set XFCE cursor size to: '%d': %s%s" % (size, str(stdout), str(stderr)))
             return False
     else:
         logger.warning("failed to find supported window manager to set DPI.")
