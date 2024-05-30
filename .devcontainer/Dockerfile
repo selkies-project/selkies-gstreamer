@@ -58,7 +58,6 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         libvorbis-dev \
         libvpx-dev \
         libwebp-dev \
-        libwebrtc-audio-processing1 \
         x264 \
         x265 && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \

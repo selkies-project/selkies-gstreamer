@@ -78,7 +78,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libva-dev \
         libvpx-dev \
         libwebp-dev \
-        libwebrtc-audio-processing-dev \
         libx264-dev \
         libx265-dev && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get update && apt-get install --no-install-recommends -y libopenh264-dev libde265-dev svt-av1 libsvtav1enc-dev libsvtav1dec-dev aom-tools libaom-dev; fi && \
@@ -95,7 +94,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
-ARG GSTREAMER_VERSION=1.24.3
+ARG GSTREAMER_VERSION=1.24.4
 RUN if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:libde265=enabled -Dgst-plugins-bad:aom=enabled ${GSTREAMER_EXTRA_ARGS}"; else export GSTREAMER_EXTRA_ARGS="${GSTREAMER_EXTRA_ARGS}"; fi && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "22.04" ]; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:svtav1=enabled ${GSTREAMER_EXTRA_ARGS}"; fi && \
     curl --proto '=https' --tlsv1.2 -fsSL "https://sh.rustup.rs" | sh -s -- -y && \

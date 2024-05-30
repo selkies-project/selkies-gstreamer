@@ -28,7 +28,6 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
         dbus-user-session \
         fakeroot \
         fuse \
-        gnupg \
         locales \
         ssl-cert \
         sudo \
@@ -58,32 +57,14 @@ USER 1000
 SHELL ["/usr/bin/fakeroot", "--", "/bin/sh", "-c"]
 
 # Install Selkies-GStreamer system dependencies
-RUN mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFC43B7352BCC0EC8AF2EEB8B25088A0359807596" | gpg --dearmor -o /etc/apt/trusted.gpg.d/pipewire-debian-ubuntu-pipewire-upstream.gpg && \
-    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/pipewire-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-pipewire-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
-    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/wireplumber-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-wireplumber-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
-    apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
         # System dependencies
         build-essential \
         curl \
         gdebi-core \
+        gnupg \
         software-properties-common \
         jq \
-        # PipeWire and WirePlumber
-        pipewire \
-        pipewire-alsa \
-        pipewire-audio-client-libraries \
-        pipewire-jack \
-        pipewire-locales \
-        pipewire-v4l2 \
-        pipewire-libcamera \
-        gstreamer1.0-pipewire \
-        libpipewire-0.3-modules \
-        libpipewire-module-x11-bell \
-        libspa-0.2-jack \
-        libspa-0.2-modules \
-        wireplumber \
-        wireplumber-locales \
-        gir1.2-wp-0.4 \
         # GStreamer dependencies
         python3-pip \
         python3-dev \
@@ -137,7 +118,6 @@ RUN mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.
         libvorbis-dev \
         libvpx-dev \
         libwebp-dev \
-        libwebrtc-audio-processing1 \
         supervisor \
         x264 \
         x265 \
@@ -209,7 +189,27 @@ Pin: version 1:1snap*\n\
 Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
     mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0AB215679C571D1C8325275B9BDB3D89CE49EC21" | gpg --dearmor -o /etc/apt/trusted.gpg.d/mozillateam-ubuntu-ppa.gpg && \
     mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/mozillateam-ubuntu-ppa-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
+    mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFC43B7352BCC0EC8AF2EEB8B25088A0359807596" | gpg --dearmor -o /etc/apt/trusted.gpg.d/pipewire-debian-ubuntu-pipewire-upstream.gpg && \
+    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/pipewire-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-pipewire-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
+    mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/wireplumber-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-wireplumber-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
     apt-get update && apt-get install --no-install-recommends -y \
+        # PipeWire and WirePlumber
+        pipewire \
+        pipewire-alsa \
+        pipewire-audio-client-libraries \
+        pipewire-jack \
+        pipewire-locales \
+        pipewire-v4l2 \
+        pipewire-libcamera \
+        gstreamer1.0-pipewire \
+        libpipewire-0.3-modules \
+        libpipewire-module-x11-bell \
+        libspa-0.2-jack \
+        libspa-0.2-modules \
+        wireplumber \
+        wireplumber-locales \
+        gir1.2-wp-0.4 \
+        # Example packages
         git \
         tmux \
         nano \

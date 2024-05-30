@@ -61,7 +61,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xsel x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils jackd2 libjack-jackd2-0 libjpeg-turbo8 libogg0 libopenjp2-7 libopus0 pulseaudio libpulse0 libvorbis-dev libvpx-dev libwebp-dev libwebrtc-audio-processing1 x264 x265
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xsel x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils jackd2 libjack-jackd2-0 libjpeg-turbo8 libogg0 libopenjp2-7 libopus0 libpulse0 libvorbis-dev libvpx-dev libwebp-dev x264 x265
 ```
 
 Install additional packages if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
@@ -109,15 +109,32 @@ export LD_PRELOAD="selkies_joystick_interposer.so${LD_PRELOAD:+:${LD_PRELOAD}}"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
-# Commented sections are optional
+
+# Commented sections are optional based on setup
+
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
 # Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
+
 # Ensure the X server is ready
 # until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done && echo 'X Server is ready'
+
+# Choose one between PulseAudio and PipeWire
+
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
 # export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
-# sudo /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
+# /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
 # /usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+
+# Initialize PipeWire
+# export PIPEWIRE_LATENCY="32/48000"
+# export DISABLE_RTKIT="y"
+# export PIPEWIRE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+# export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+# export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
+# pipewire &
+# wireplumber &
+# pipewire-pulse &
+
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun +wm xfce4-session` here if needed
 # [ "${START_XFCE4:-true}" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &
 
@@ -147,7 +164,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xsel x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils jackd2 libjack-jackd2-0 libjpeg-turbo8 libogg0 libopenjp2-7 libopus0 pulseaudio libpulse0 libvorbis-dev libvpx-dev libwebp-dev libwebrtc-audio-processing1 x264 x265
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel udev wmctrl libaa1 bzip2 libgcrypt20 libegl1 libgl1 libgles1 libglvnd0 libglx0 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xsel x11-utils xdotool x11-xserver-utils xserver-xorg-core wayland-protocols libwayland-dev libwayland-egl1 libdrm2 alsa-utils jackd2 libjack-jackd2-0 libjpeg-turbo8 libogg0 libopenjp2-7 libopus0 libpulse0 libvorbis-dev libvpx-dev libwebp-dev x264 x265
 ```
 
 Install additional packages if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
@@ -207,15 +224,32 @@ export LD_PRELOAD="selkies_joystick_interposer.so${LD_PRELOAD:+:${LD_PRELOAD}}"
 export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm755 /dev/input
 sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
-# Commented sections are optional
+
+# Commented sections are optional based on setup
+
 # Start a virtual X11 server, skip this line if an X server already exists or you are already using a display
 # Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
+
 # Ensure the X server is ready
 # until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done && echo 'X Server is ready'
+
+# Choose one between PulseAudio and PipeWire
+
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
 # export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
-# sudo /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
+# /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
 # /usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+
+# Initialize PipeWire
+# export PIPEWIRE_LATENCY="32/48000"
+# export DISABLE_RTKIT="y"
+# export PIPEWIRE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+# export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+# export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
+# pipewire &
+# wireplumber &
+# pipewire-pulse &
+
 # Replace this line with your desktop environment session or skip this line if already running, use VirtualGL `vglrun +wm xfce4-session` here if needed
 # [ "${START_XFCE4:-true}" = "true" ] && rm -rf ~/.config/xfce4 && xfce4-session &
 
