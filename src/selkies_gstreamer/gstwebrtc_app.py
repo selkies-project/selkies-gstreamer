@@ -98,6 +98,7 @@ class GSTWebRTCApp:
         # Set VBV/HRD buffer multiplier to frame time, set 1.5x when optimal to prevent quality degradation in software encoders, relax 2x when keyframe/GOP is periodic
         self.vbv_multiplier_nv = 1 if self.keyframe_distance == -1.0 else 2
         self.vbv_multiplier_va = 1 if self.keyframe_distance == -1.0 else 2
+        self.vbv_multiplier_vp = 1.5 if self.keyframe_distance == -1.0 else 3
         self.vbv_multiplier_sw = 1.5 if self.keyframe_distance == -1.0 else 3
         # Packet loss base percentage
         self.video_packetloss_percent = video_packetloss_percent
@@ -639,9 +640,9 @@ class GSTWebRTCApp:
                 vpenc.set_property("row-mt", True)
 
             # VPX Parameters
-            vpenc.set_property("threads", min(8, max(1, len(os.sched_getaffinity(0)) - 1)))
+            vpenc.set_property("threads", min(16, max(1, len(os.sched_getaffinity(0)) - 1)))
             # Set VBV/HRD buffer size (miliseconds) to optimize for live streaming
-            vbv_buffer_size = int((1000 + self.framerate - 1) // self.framerate * self.vbv_multiplier_sw)
+            vbv_buffer_size = int((1000 + self.framerate - 1) // self.framerate * self.vbv_multiplier_vp)
             vpenc.set_property("buffer-initial-size", vbv_buffer_size)
             vpenc.set_property("buffer-optimal-size", vbv_buffer_size)
             vpenc.set_property("buffer-size", vbv_buffer_size)
@@ -655,7 +656,7 @@ class GSTWebRTCApp:
             vpenc.set_property("max-intra-bitrate", 250)
             vpenc.set_property("multipass-mode", "first-pass")
             vpenc.set_property("overshoot", 10)
-            vpenc.set_property("undershoot", 10)
+            vpenc.set_property("undershoot", 25)
             vpenc.set_property("static-threshold", 0)
             vpenc.set_property("tuning", "psnr")
             vpenc.set_property("target-bitrate", self.fec_video_bitrate * 1000)
@@ -1179,7 +1180,7 @@ class GSTWebRTCApp:
             elif self.encoder.startswith("vp"):
                 element = Gst.Bin.get_by_name(self.pipeline, "vpenc")
                 element.set_property("keyframe-max-dist", 2147483647 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
-                vbv_buffer_size = int((1000 + self.framerate - 1) // self.framerate * self.vbv_multiplier_sw)
+                vbv_buffer_size = int((1000 + self.framerate - 1) // self.framerate * self.vbv_multiplier_vp)
                 element.set_property("buffer-initial-size", vbv_buffer_size)
                 element.set_property("buffer-optimal-size", vbv_buffer_size)
                 element.set_property("buffer-size", vbv_buffer_size)
