@@ -28,6 +28,7 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
         dbus-user-session \
         fakeroot \
         fuse \
+        gnupg \
         locales \
         ssl-cert \
         sudo \
@@ -61,6 +62,12 @@ RUN mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.
     mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/pipewire-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-pipewire-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
     mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/wireplumber-upstream/ubuntu $(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-wireplumber-upstream-$(grep UBUNTU_CODENAME= /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
     apt-get update && apt-get install --no-install-recommends -y \
+        # System dependencies
+        build-essential \
+        curl \
+        gdebi-core \
+        software-properties-common \
+        jq \
         # PipeWire and WirePlumber
         pipewire \
         pipewire-alsa \
@@ -77,13 +84,6 @@ RUN mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.
         wireplumber \
         wireplumber-locales \
         gir1.2-wp-0.4 \
-        # System dependencies
-        build-essential \
-        curl \
-        gdebi-core \
-        gnupg \
-        software-properties-common \
-        jq \
         # GStreamer dependencies
         python3-pip \
         python3-dev \
@@ -217,8 +217,10 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         wget \
         zip \
         unzip \
-        ssl-cert \
-        xvfb \
+        xserver-xorg \
+        xserver-xorg-input-all \
+        xserver-xorg-video-all \
+        xserver-xorg-video-dummy \
         xfce4 \
         xfce4-terminal \
         mesa-utils \
@@ -261,6 +263,8 @@ COPY --chown=1000:1000 selkies-gstreamer-entrypoint.sh /etc/selkies-gstreamer-en
 RUN chmod 755 /etc/selkies-gstreamer-entrypoint.sh
 COPY --chown=1000:1000 supervisord.conf /etc/supervisord.conf
 RUN chmod 755 /etc/supervisord.conf
+COPY --chown=1000:1000 xorg.conf /etc/X11/xorg.conf
+RUN chmod 755 /etc/X11/xorg.conf
 
 # Configure coTURN script
 RUN echo "#!/bin/bash\n\

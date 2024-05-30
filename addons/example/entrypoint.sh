@@ -24,7 +24,7 @@ export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
 export PIPEWIRE_LATENCY="32/48000"
 
 # Start X server with required extensions
-Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
+/usr/bin/Xorg -config /etc/X11/xorg.conf -noreset -novtswitch -sharevts -dpi "${DPI}" +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" "${DISPLAY}" >/tmp/Xorg.log 2>&1 &
 
 # Wait for X server to start
 until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done
