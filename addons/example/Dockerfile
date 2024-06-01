@@ -217,10 +217,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         wget \
         zip \
         unzip \
-        xserver-xorg \
-        xserver-xorg-input-all \
-        xserver-xorg-video-all \
-        xserver-xorg-video-dummy \
+        xvfb \
         xfce4 \
         xfce4-terminal \
         mesa-utils \
@@ -263,8 +260,6 @@ COPY --chown=1000:1000 selkies-gstreamer-entrypoint.sh /etc/selkies-gstreamer-en
 RUN chmod 755 /etc/selkies-gstreamer-entrypoint.sh
 COPY --chown=1000:1000 supervisord.conf /etc/supervisord.conf
 RUN chmod 755 /etc/supervisord.conf
-COPY --chown=1000:1000 xorg.conf /etc/X11/xorg.conf
-RUN chmod 755 /etc/X11/xorg.conf
 
 # Configure coTURN script
 RUN echo "#!/bin/bash\n\
