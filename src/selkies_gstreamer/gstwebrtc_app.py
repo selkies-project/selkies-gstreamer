@@ -415,7 +415,7 @@ class GSTWebRTCApp:
             else:
                 nvh265enc.set_property("preset", "low-latency-hq")
 
-        if self.encoder in ["nvav1enc"]:
+        elif self.encoder in ["nvav1enc"]:
             cudaupload = Gst.ElementFactory.make("cudaupload")
             if self.gpu_id >= 0:
                 cudaupload.set_property("cuda-device-id", self.gpu_id)
