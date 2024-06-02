@@ -920,7 +920,7 @@ class GSTWebRTCApp:
             rtpav1pay_caps.set_value("media", "video")
             rtpav1pay_caps.set_value("clock-rate", 90000)
             rtpav1pay_caps.set_value("encoding-name", "AV1")
-            rtpav1pay_caps.set_value("payload", 99)
+            rtpav1pay_caps.set_value("payload", 96)
             rtpav1pay_caps.set_value("rtcp-fb-nack-pli", True)
             rtpav1pay_caps.set_value("rtcp-fb-ccm-fir", True)
             rtpav1pay_caps.set_value("rtcp-fb-x-gstreamer-fir-as-repair", True)
