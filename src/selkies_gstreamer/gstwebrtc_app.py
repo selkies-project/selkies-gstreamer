@@ -63,7 +63,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=64000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=96000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -268,8 +268,8 @@ class GSTWebRTCApp:
             if self.gpu_id >= 0:
                 cudaconvert.set_property("cuda-device-id", self.gpu_id)
 
-            # Instructs cudaconvert to handle Quality of Service (QOS) events from
-            # the rest of the pipeline. Setting this to true increases
+            # Instructs cudaconvert to handle Quality of Service (QOS) events
+            # from the rest of the pipeline. Setting this to true increases
             # encoder stability.
             cudaconvert.set_property("qos", True)
 
@@ -284,12 +284,12 @@ class GSTWebRTCApp:
             # This is the heart of the video pipeline that converts the raw
             # frame buffers to an H.264 encoded byte-stream on the GPU.
             if self.gpu_id > 0:
-                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                     nvh264enc = Gst.ElementFactory.make("nvcudah264device{}enc".format(self.gpu_id), "nvenc")
                 else:
                     nvh264enc = Gst.ElementFactory.make("nvh264device{}enc".format(self.gpu_id), "nvenc")
             else:
-                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                     nvh264enc = Gst.ElementFactory.make("nvcudah264enc", "nvenc")
                 else:
                     nvh264enc = Gst.ElementFactory.make("nvh264enc", "nvenc")
@@ -308,7 +308,7 @@ class GSTWebRTCApp:
             # A Variable Bit Rate (VBR) setting tells the encoder to adjust the
             # compression level based on scene complexity, something not needed
             # when streaming in real-time.
-            if Gst.version().major == 1 and Gst.version().minor >= 22:
+            if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                 nvh264enc.set_property("rate-control", "cbr")
             else:
                 nvh264enc.set_property("rc-mode", "cbr")
@@ -340,19 +340,19 @@ class GSTWebRTCApp:
             nvh264enc.set_property("rc-lookahead", 0)
             # Set VBV/HRD buffer size (kbits) to optimize for live streaming
             nvh264enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
-            if Gst.version().major == 1 and Gst.version().minor >= 22:
+            if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                 nvh264enc.set_property("b-frames", 0)
-                # CABAC is more bandwidth-efficient compared to CAVLC at a tradeoff of slight increase (<= 1 ms) in decoding time
-                nvh264enc.set_property("cabac", True)
-                # Insert sequence headers (SPS/PPS) per IDR
-                nvh264enc.set_property("repeat-sequence-header", True)
                 # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zero-reorder-delay", True)
             else:
                 nvh264enc.set_property("bframes", 0)
                 # Zero-latency operation mode (no reordering delay)
                 nvh264enc.set_property("zerolatency", True)
-                nvh264enc.set_property("preset", "low-latency-hq")
+            if Gst.version().major == 1 and Gst.version().minor > 20:
+                # CABAC is more bandwidth-efficient compared to CAVLC at a tradeoff of slight increase (<= 1 ms) in decoding time
+                nvh264enc.set_property("cabac", True)
+                # Insert sequence headers (SPS/PPS) per IDR
+                nvh264enc.set_property("repeat-sequence-header", True)
             if Gst.version().major == 1 and Gst.version().minor > 22:
                 nvh264enc.set_property("preset", "p4")
                 nvh264enc.set_property("tune", "ultra-low-latency")
@@ -377,42 +377,92 @@ class GSTWebRTCApp:
             cudaconvert_capsfilter.set_property("caps", cudaconvert_caps)
 
             if self.gpu_id > 0:
-                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                     nvh265enc = Gst.ElementFactory.make("nvcudah265device{}enc".format(self.gpu_id), "nvenc")
                 else:
                     nvh265enc = Gst.ElementFactory.make("nvh265device{}enc".format(self.gpu_id), "nvenc")
             else:
-                if Gst.version().major == 1 and 22 <= Gst.version().minor <= 24:
+                if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                     nvh265enc = Gst.ElementFactory.make("nvcudah265enc", "nvenc")
                 else:
                     nvh265enc = Gst.ElementFactory.make("nvh265enc", "nvenc")
 
             nvh265enc.set_property("bitrate", self.fec_video_bitrate)
 
-            if Gst.version().major == 1 and Gst.version().minor >= 22:
+            if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                 nvh265enc.set_property("rate-control", "cbr")
             else:
                 nvh265enc.set_property("rc-mode", "cbr")
 
             nvh265enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            nvh265enc.set_property("strict-gop", True)
             nvh265enc.set_property("aud", False)
             nvh265enc.set_property("b-adapt", False)
             nvh265enc.set_property("rc-lookahead", 0)
             nvh265enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
-            if Gst.version().major == 1 and Gst.version().minor >= 22:
+            if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
                 nvh265enc.set_property("b-frames", 0)
-                nvh265enc.set_property("repeat-sequence-header", True)
                 nvh265enc.set_property("zero-reorder-delay", True)
             else:
                 nvh265enc.set_property("bframes", 0)
                 nvh265enc.set_property("zerolatency", True)
-                nvh265enc.set_property("preset", "low-latency-hq")
+            if Gst.version().major == 1 and Gst.version().minor > 20:
+                nvh265enc.set_property("repeat-sequence-header", True)
             if Gst.version().major == 1 and Gst.version().minor > 22:
                 nvh265enc.set_property("preset", "p4")
                 nvh265enc.set_property("tune", "ultra-low-latency")
                 nvh265enc.set_property("multi-pass", "two-pass-quarter")
             else:
                 nvh265enc.set_property("preset", "low-latency-hq")
+
+        if self.encoder in ["nvav1enc"]:
+            cudaupload = Gst.ElementFactory.make("cudaupload")
+            if self.gpu_id >= 0:
+                cudaupload.set_property("cuda-device-id", self.gpu_id)
+            cudaconvert = Gst.ElementFactory.make("cudaconvert")
+            if self.gpu_id >= 0:
+                cudaconvert.set_property("cuda-device-id", self.gpu_id)
+            cudaconvert.set_property("qos", True)
+            cudaconvert_caps = Gst.caps_from_string("video/x-raw(memory:CUDAMemory)")
+            cudaconvert_caps.set_value("format", "NV12")
+            cudaconvert_capsfilter = Gst.ElementFactory.make("capsfilter")
+            cudaconvert_capsfilter.set_property("caps", cudaconvert_caps)
+
+            if self.gpu_id > 0:
+                if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
+                    nvav1enc = Gst.ElementFactory.make("nvcudaav1device{}enc".format(self.gpu_id), "nvenc")
+                else:
+                    nvav1enc = Gst.ElementFactory.make("nvav1device{}enc".format(self.gpu_id), "nvenc")
+            else:
+                if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
+                    nvav1enc = Gst.ElementFactory.make("nvcudaav1enc", "nvenc")
+                else:
+                    nvav1enc = Gst.ElementFactory.make("nvav1enc", "nvenc")
+
+            nvav1enc.set_property("bitrate", self.fec_video_bitrate)
+
+            if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
+                nvav1enc.set_property("rate-control", "cbr")
+            else:
+                nvav1enc.set_property("rc-mode", "cbr")
+
+            nvav1enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
+            nvav1enc.set_property("strict-gop", True)
+            nvav1enc.set_property("b-adapt", False)
+            nvav1enc.set_property("rc-lookahead", 0)
+            nvav1enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
+            if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
+                nvav1enc.set_property("b-frames", 0)
+                nvav1enc.set_property("zero-reorder-delay", True)
+            else:
+                nvav1enc.set_property("bframes", 0)
+                nvav1enc.set_property("zerolatency", True)
+            if Gst.version().major == 1 and Gst.version().minor > 22:
+                nvav1enc.set_property("preset", "p4")
+                nvav1enc.set_property("tune", "ultra-low-latency")
+                nvav1enc.set_property("multi-pass", "two-pass-quarter")
+            else:
+                nvav1enc.set_property("preset", "low-latency-hq")
 
         elif self.encoder in ["vah264enc"]:
             # colorspace conversion
@@ -887,6 +937,9 @@ class GSTWebRTCApp:
         elif self.encoder in ["nvh265enc"]:
             pipeline_elements += [cudaupload, cudaconvert, cudaconvert_capsfilter, nvh265enc, h265enc_capsfilter, rtph265pay, rtph265pay_capsfilter]
 
+        elif self.encoder in ["nvav1enc"]:
+            pipeline_elements += [cudaupload, cudaconvert, cudaconvert_capsfilter, nvav1enc, av1enc_capsfilter, rtpav1pay, rtpav1pay_capsfilter]
+
         elif self.encoder in ["vah264enc"]:
             pipeline_elements += [vapostproc, vapostproc_capsfilter, vah264enc, h264enc_capsfilter, rtph264pay, rtph264pay_capsfilter]
 
@@ -1069,7 +1122,7 @@ class GSTWebRTCApp:
         required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp", "rtpmanager", "ximagesrc"]
 
         # ADD_ENCODER: add new encoder to this list
-        supported = ["nvh264enc", "nvh265enc", "vah264enc", "vah265enc", "vavp9enc", "vaav1enc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "svtav1enc", "av1enc", "rav1enc"]
+        supported = ["nvh264enc", "nvh265enc", "nvav1enc", "vah264enc", "vah265enc", "vavp9enc", "vaav1enc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "svtav1enc", "av1enc", "rav1enc"]
         if self.encoder not in supported:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 

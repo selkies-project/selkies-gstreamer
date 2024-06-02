@@ -43,7 +43,8 @@ sudo touch /dev/input/{js0,js1,js2,js3}
 
 # If installed, add the joystick interposer to LD_PRELOAD
 if [ -e /usr/lib/x86_64-linux-gnu/selkies_joystick_interposer.so ]; then
-    export LD_PRELOAD="selkies_joystick_interposer.so${LD_PRELOAD:+:${LD_PRELOAD}}"
+    export SELKIES_INTERPOSER='/usr/$LIB/selkies_joystick_interposer.so'
+    export LD_PRELOAD="${SELKIES_INTERPOSER}${LD_PRELOAD:+:${LD_PRELOAD}}"
     export SDL_JOYSTICK_DEVICE=/dev/input/js0
 fi
 

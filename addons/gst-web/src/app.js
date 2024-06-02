@@ -96,7 +96,7 @@ var app = new Vue({
                 { text: '200 fps', value: 200 },
                 { text: '240 fps', value: 240 },
             ],
-            audioBitRate: 64000,
+            audioBitRate: 96000,
             audioBitRateOptions: [
                 { text: '24 kb/s', value: 24000 },
                 { text: '32 kb/s', value: 32000 },

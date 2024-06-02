@@ -422,7 +422,7 @@ def main():
                         default=os.environ.get('SELKIES_VIDEO_PACKETLOSS_PERCENT', '0'),
                         help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')
     parser.add_argument('--audio_bitrate',
-                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '64000'),
+                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '96000'),
                         help='Default audio bitrate')
     parser.add_argument('--audio_channels',
                         default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
