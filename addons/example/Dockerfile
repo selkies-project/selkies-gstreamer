@@ -71,16 +71,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-gi \
         python3-setuptools \
         python3-wheel \
-        udev \
-        wmctrl \
         libaa1 \
         bzip2 \
         libgcrypt20 \
-        libegl1 \
-        libgl1 \
-        libgles1 \
-        libglvnd0 \
-        libglx0 \
         libcairo-gobject2 \
         libpangocairo-1.0-0 \
         libgdk-pixbuf2.0-0 \
@@ -91,6 +84,34 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libglib2.0-0 \
         libjson-glib-1.0-0 \
         libgudev-1.0-0 \
+        alsa-utils \
+        jackd2 \
+        libjack-jackd2-0 \
+        libpulse0 \
+        libogg0 \
+        libopus0 \
+        libvorbis-dev \
+        libjpeg-turbo8 \
+        libopenjp2-7 \
+        libvpx-dev \
+        libwebp-dev \
+        x264 \
+        x265 \
+        libdrm2 \
+        libegl1 \
+        libgl1 \
+        libgles1 \
+        libglvnd0 \
+        libglx0 \
+        wayland-protocols \
+        libwayland-dev \
+        libwayland-egl1 \
+        wmctrl \
+        xsel \
+        xdotool \
+        x11-utils \
+        x11-xserver-utils \
+        xserver-xorg-core \
         libx11-xcb1 \
         libxcb-dri3-0 \
         libxkbcommon0 \
@@ -98,29 +119,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libxfixes3 \
         libxtst6 \
         libxext6 \
-        xsel \
-        x11-utils \
-        xdotool \
-        x11-xserver-utils \
-        xserver-xorg-core \
-        wayland-protocols \
-        libwayland-dev \
-        libwayland-egl1 \
-        libdrm2 \
-        alsa-utils \
-        jackd2 \
-        libjack-jackd2-0 \
-        libjpeg-turbo8 \
-        libogg0 \
-        libopenjp2-7 \
-        libopus0 \
-        libpulse0 \
-        libvorbis-dev \
-        libvpx-dev \
-        libwebp-dev \
-        supervisor \
-        x264 \
-        x265 \
         # Graphics driver dependencies
         va-driver-all \
         i965-va-driver-shaders \
@@ -217,6 +215,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         wget \
         zip \
         unzip \
+        supervisor \
         xvfb \
         xfce4 \
         xfce4-terminal \

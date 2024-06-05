@@ -15,16 +15,9 @@ apt-get update && apt-get install --no-install-recommends -y \
     python3-gi \
     python3-setuptools \
     python3-wheel \
-    udev \
-    wmctrl \
     libaa1 \
     bzip2 \
     libgcrypt20 \
-    libegl1 \
-    libgl1 \
-    libgles1 \
-    libglvnd0 \
-    libglx0 \
     libcairo-gobject2 \
     libpangocairo-1.0-0 \
     libgdk-pixbuf2.0-0 \
@@ -35,36 +28,41 @@ apt-get update && apt-get install --no-install-recommends -y \
     libglib2.0-0 \
     libjson-glib-1.0-0 \
     libgudev-1.0-0 \
+    alsa-utils \
+    jackd2 \
+    libjack-jackd2-0 \
+    libpulse0 \
+    libogg0 \
+    libopus0 \
+    libvorbis-dev \
+    libjpeg-turbo8 \
+    libopenjp2-7 \
+    libvpx-dev \
+    libwebp-dev \
+    x264 \
+    x265 \
+    libdrm2 \
+    libegl1 \
+    libgl1 \
+    libgles1 \
+    libglvnd0 \
+    libglx0 \
+    wayland-protocols \
+    libwayland-dev \
+    libwayland-egl1 \
+    wmctrl \
+    xsel \
+    xdotool \
+    x11-utils \
+    x11-xserver-utils \
+    xserver-xorg-core \
     libx11-xcb1 \
     libxcb-dri3-0 \
     libxkbcommon0 \
     libxdamage1 \
     libxfixes3 \
     libxtst6 \
-    libxext6 \
-    xsel \
-    x11-utils \
-    xdotool \
-    x11-xserver-utils \
-    xserver-xorg-core \
-    wayland-protocols \
-    libwayland-dev \
-    libwayland-egl1 \
-    libdrm2 \
-    alsa-utils \
-    jackd2 \
-    libjack-jackd2-0 \
-    libjpeg-turbo8 \
-    libogg0 \
-    libopenjp2-7 \
-    libopus0 \
-    pulseaudio \
-    libpulse0 \
-    libvorbis-dev \
-    libvpx-dev \
-    libwebp-dev \
-    x264 \
-    x265 && \
+    libxext6 && \
 if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
 apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 

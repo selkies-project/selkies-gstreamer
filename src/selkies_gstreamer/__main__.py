@@ -420,7 +420,7 @@ def main():
                         help='Enable Google Congestion Control (GCC), suggested if network conditions fluctuate and when bandwidth is >= 2 mbps but may lead to lower quality and microstutter due to adaptive bitrate in some encoders')
     parser.add_argument('--video_packetloss_percent',
                         default=os.environ.get('SELKIES_VIDEO_PACKETLOSS_PERCENT', '0'),
-                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')
+                        help='Expected packet loss percentage (%%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')
     parser.add_argument('--audio_bitrate',
                         default=os.environ.get('SELKIES_AUDIO_BITRATE', '96000'),
                         help='Default audio bitrate')
@@ -429,7 +429,7 @@ def main():
                         help='Number of audio channels, defaults to stereo (2 channels)')
     parser.add_argument('--audio_packetloss_percent',
                         default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '25'),
-                        help='Expected packet loss percentage (%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
+                        help='Expected packet loss percentage (%%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
     parser.add_argument('--enable_clipboard',
                         default=os.environ.get('SELKIES_ENABLE_CLIPBOARD', 'true'),
                         help='Enable or disable the clipboard features, supported values: true, false, in, out')
@@ -468,17 +468,17 @@ def main():
             json_args = json.load(open(args.json_config))
             for k, v in json_args.items():
                 if k == "framerate":
-                    args.framerate = int(v)
+                    args.framerate = str(int(v))
                 if k == "video_bitrate":
-                    args.video_bitrate = int(v)
+                    args.video_bitrate = str(int(v))
                 if k == "audio_bitrate":
-                    args.audio_bitrate = int(v)
+                    args.audio_bitrate = str(int(v))
                 if k == "enable_resize":
                     args.enable_resize = str((str(v).lower() == 'true')).lower()
                 if k == "encoder":
                     args.encoder = v.lower()
         except Exception as e:
-            logger.error("failed to load json config from %s: %s" % (args.json_config, str(e)))
+            logger.error("failed to load json config from {}: {}".format(args.json_config, str(e)))
 
     logging.warn(args)
 
