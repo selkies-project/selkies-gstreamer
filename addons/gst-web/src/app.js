@@ -207,8 +207,9 @@ var app = new Vue({
             return (getCookieValue("broker_" + app.appName) || "webrtc").split("#")[0];
         },
         enterFullscreen() {
-            // Request fullscreen mode.
-            webrtc.element.parentElement.requestFullscreen();
+            if (webrtc && 'input' in webrtc && 'enterFullscreen' in webrtc.input) {
+                webrtc.input.enterFullscreen();
+            }
         },
         playStream() {
             webrtc.playStream();
@@ -560,10 +561,6 @@ webrtc.ondatachannelclose = () => {
 
 webrtc.input.onmenuhotkey = () => {
     app.showDrawer = !app.showDrawer;
-}
-
-webrtc.input.onfullscreenhotkey = () => {
-    app.enterFullscreen();
 }
 
 webrtc.input.onresizeend = () => {

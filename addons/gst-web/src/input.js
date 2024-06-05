@@ -87,7 +87,7 @@ class Input {
         /**
          * @type {function}
          */
-        this.onfullscreenhotkey = null;
+        this.onfullscreenhotkey = this.enterFullscreen;
 
         /**
          * @type {function}
@@ -171,13 +171,29 @@ class Input {
 
         if (!document.pointerLockElement) {
             if (this.mouseRelative) {
-                event.target.requestPointerLock();
+                event.target.requestPointerLock().then(
+                    () => {
+                        console.log("pointer lock success");
+                    }
+                ).catch(
+                    (e) => {
+                        console.log("pointer lock failed: ", e);
+                    }
+                );
             }
         }
 
         // Hotkey to enable pointer lock, Ctrl-Shift-LeftButton
         if (down && event.button === 0 && event.ctrlKey && event.shiftKey) {
-            event.target.requestPointerLock();
+            event.target.requestPointerLock().then(
+                () => {
+                    console.log("pointer lock success");
+                }
+            ).catch(
+                (e) => {
+                    console.log("pointer lock failed: ", e);
+                }
+            );
             return;
         }
 
@@ -397,10 +413,12 @@ class Input {
      * Sends WebRTC app command to toggle display of the remote mouse pointer.
      */
     _pointerLock() {
-        if (document.pointerLockElement) {
+        if (document.pointerLockElement !== null) {
             this.send("p,1");
+            console.log("remote pointer visibility to: True");
         } else {
             this.send("p,0");
+            console.log("remote pointer visibility to: False");
         }
     }
 
@@ -411,6 +429,7 @@ class Input {
         document.exitPointerLock();
         // hide the pointer.
         this.send("p,0");
+        console.log("remote pointer visibility to: False");
     }
 
     /**
@@ -534,12 +553,23 @@ class Input {
      */
     _onFullscreenChange() {
         if (document.fullscreenElement !== null) {
-            // Enter fullscreen
-            this.element.requestPointerLock();
+            if (document.pointerLockElement === null) {
+                this.element.requestPointerLock().then(
+                    () => {
+                        console.log("pointer lock success");
+                    }
+                ).catch(
+                    (e) => {
+                        console.log("pointer lock failed: ", e);
+                    }
+                );
+            }
             this.requestKeyboardLock();
         }
         // Reset local keyboard. When holding to exit full-screen the escape key can get stuck.
-        this.keyboard.reset();
+        if (this.keyboard !== null) {
+            this.keyboard.reset();
+        }
 
         // Reset stuck keys on server side.
         this.send("kr");
@@ -595,6 +625,7 @@ class Input {
 
             console.log("Enabling mouse pointer display for touch devices.");
             this.send("p,1");
+            console.log("remote pointer visibility to: True");
         } else {
             this.listeners.push(addListener(this.element, 'mousemove', this._mouseButtonMovement, this));
             this.listeners.push(addListener(this.element, 'mousedown', this._mouseButtonMovement, this));
@@ -631,30 +662,57 @@ class Input {
         }
     }
 
+    enterFullscreen() {
+        if (document.pointerLockElement === null) {
+            this.element.requestPointerLock().then(
+                () => {
+                    console.log("pointer lock success");
+                }
+            ).catch(
+                (e) => {
+                    console.log("pointer lock failed: ", e);
+                }
+            );
+        }
+        if (document.fullscreenElement === null) {
+            this.element.parentElement.requestFullscreen().then(
+                () => {
+                    console.log("fullscreen success");
+                }
+            ).catch(
+                (e) => {
+                    console.log("fullscreen failed: ", e);
+                }
+            );
+        }
+    }
+
     /**
      * Request keyboard lock, must be in fullscreen mode to work.
      */
     requestKeyboardLock() {
-        // event codes: https://www.w3.org/TR/uievents-code/#key-alphanumeric-writing-system
-        const keys = [
-            "AltLeft",
-            "AltRight",
-            "Tab",
-            "Escape",
-            "ContextMenu",
-            "MetaLeft",
-            "MetaRight"
-        ];
-        console.log("requesting keyboard lock");
-        navigator.keyboard.lock(keys).then(
-            () => {
-                console.log("keyboard lock success");
-            }
-        ).catch(
-            (e) => {
-                console.log("keyboard lock failed: ", e);
-            }
-        )
+        if ('keyboard' in navigator && 'lock' in navigator.keyboard) {
+            // event codes: https://www.w3.org/TR/uievents-code/#key-alphanumeric-writing-system
+            const keys = [
+                "AltLeft",
+                "AltRight",
+                "Tab",
+                "Escape",
+                "ContextMenu",
+                "MetaLeft",
+                "MetaRight"
+            ];
+            console.log("requesting keyboard lock");
+            navigator.keyboard.lock(keys).then(
+                () => {
+                    console.log("keyboard lock success");
+                }
+            ).catch(
+                (e) => {
+                    console.log("keyboard lock failed: ", e);
+                }
+            )
+        }
     }
 
     getWindowResolution() {
