@@ -430,37 +430,41 @@ webrtc.ongpustats = (data) => {
 
 var videoConnected = "";
 var audioConnected = "";
+var statwatchenabled = false;
 // Bind vue status to connection state.
-function onBothStreamConnected() {
-    // Repeatedly emit minimum latency target
-    webrtc.peerConnection.getReceivers().forEach(receiver => {
-        setInterval(() => {
-            receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
-        }, 1);
-    });
-    audio_webrtc.peerConnection.getReceivers().forEach(receiver => {
-        setInterval(() => {
-            receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
-        }, 1);
-    });
+function enableStatWatch() {
     // Start watching stats
     var videoBytesReceivedStart = 0;
     var audioBytesReceivedStart = 0;
-    var previousVideoJitterBufferDelay = 0;
+    var previousVideoJitterBufferDelay = 0.0;
     var previousVideoJitterBufferEmittedCount = 0;
-    var previousAudioJitterBufferDelay = 0;
+    var previousAudioJitterBufferDelay = 0.0;
     var previousAudioJitterBufferEmittedCount = 0;
     var statsStart = new Date().getTime() / 1000;
-    setInterval(() => {
-        if (videoConnected !== "connected" || audioConnected !== "connected") return;
+    var statsLoop = setInterval(() => {
+        if (videoConnected !== "connected" || audioConnected !== "connected") {
+            clearInterval(statsLoop);
+            statwatchenabled = false;
+            return;
+        }
         webrtc.getConnectionStats().then((stats) => {
-            if (videoConnected !== "connected" || audioConnected !== "connected") return;
+            if (videoConnected !== "connected" || audioConnected !== "connected") {
+                clearInterval(statsLoop);
+                statwatchenabled = false;
+                return;
+            }
             audio_webrtc.getConnectionStats().then((audioStats) => {
-                if (videoConnected !== "connected" || audioConnected !== "connected") return;
+                if (videoConnected !== "connected" || audioConnected !== "connected") {
+                    clearInterval(statsLoop);
+                    statwatchenabled = false;
+                    return;
+                }
+                statwatchenabled = true;
+
                 var now = new Date().getTime() / 1000;
 
                 // Connection latency in milliseconds
-                app.connectionLatency = 0;
+                app.connectionLatency = 0.0;
                 app.connectionVideoLatency = (stats.general.currentRoundTripTime !== null) ? (stats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
                 app.connectionAudioLatency = (audioStats.general.currentRoundTripTime !== null) ? (audioStats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
                 app.connectionLatency += Math.max(app.connectionVideoLatency, app.connectionAudioLatency);
@@ -516,7 +520,20 @@ webrtc.onconnectionstatechange = (state) => {
     videoConnected = state;
     if (videoConnected === "connected" && audioConnected === "connected") {
         app.status = state;
-        onBothStreamConnected();
+        if (!statwatchenabled) {
+            enableStatWatch();
+        }
+        // Repeatedly emit minimum latency target
+        webrtc.peerConnection.getReceivers().forEach((receiver) => {
+            let intervalLoop = setInterval(() => {
+                if (receiver.track.readyState !== "live" || receiver.transport.state !== "connected") {
+                    clearInterval(intervalLoop);
+                    return;
+                } else {
+                    receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0;
+                }
+            }, 1);
+        });
     } else {
         app.status = state === "connected" ? audioConnected : videoConnected;
     }
@@ -525,7 +542,20 @@ audio_webrtc.onconnectionstatechange = (state) => {
     audioConnected = state;
     if (videoConnected === "connected" && audioConnected === "connected") {
         app.status = state;
-        onBothStreamConnected();
+        if (!statwatchenabled) {
+            enableStatWatch();
+        }
+        // Repeatedly emit minimum latency target
+        audio_webrtc.peerConnection.getReceivers().forEach((receiver) => {
+            let intervalLoop = setInterval(() => {
+                if (receiver.track.readyState !== "live" || receiver.transport.state !== "connected") {
+                    clearInterval(intervalLoop);
+                    return;
+                } else {
+                    receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0;
+                }
+            }, 1);
+        });
     } else {
         app.status = state === "connected" ? videoConnected : audioConnected;
     }
