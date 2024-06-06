@@ -451,7 +451,7 @@ function onBothStreamConnected() {
     var previousAudioJitterBufferDelay = 0;
     var previousAudioJitterBufferEmittedCount = 0;
     var statsStart = new Date().getTime() / 1000;
-    var statsLoop = () => {
+    setInterval(() => {
         if (videoConnected !== "connected" || audioConnected !== "connected") return;
         webrtc.getConnectionStats().then((stats) => {
             if (videoConnected !== "connected" || audioConnected !== "connected") return;
@@ -507,13 +507,10 @@ function onBothStreamConnected() {
 
                 webrtc.sendDataChannelMessage("_stats_video," + JSON.stringify(stats.allReports));
                 webrtc.sendDataChannelMessage("_stats_audio," + JSON.stringify(audioStats.allReports));
-
-                // Stats refresh loop
-                setTimeout(statsLoop, 1000);
             });
         });
-    };
-    statsLoop();
+    // Stats refresh interval (1000 ms)
+    }, 1000);
 }
 webrtc.onconnectionstatechange = (state) => {
     videoConnected = state;
