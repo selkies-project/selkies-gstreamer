@@ -606,7 +606,6 @@ class Input {
      */
     attach() {
         this.listeners.push(addListener(this.element, 'resize', this._windowMath, this));
-        this.listeners.push(addListener(this.element, 'wheel', this._mouseWheelWrapper, this));
         this.listeners.push(addListener(document, 'pointerlockchange', this._pointerLock, this));
         this.listeners.push(addListener(this.element.parentElement, 'fullscreenchange', this._onFullscreenChange, this));
         this.listeners.push(addListener(window, 'resize', this._windowMath, this));
@@ -616,25 +615,34 @@ class Input {
         this.listeners.push(addListener(window, 'gamepadconnected', this._gamepadConnected, this));
         this.listeners.push(addListener(window, 'gamepaddisconnected', this._gamepadDisconnect, this));
 
-        if ('ontouchstart' in window) {
-            this.listeners.push(addListener(window, 'touchstart', this._touch, this));
-            this.listeners.push(addListener(this.element, 'touchend', this._touch, this));
-            this.listeners.push(addListener(this.element, 'touchmove', this._touch, this));
-
-            console.log("Enabling mouse pointer display for touch devices.");
-            this.send("p,1");
-            console.log("remote pointer visibility to: True");
-        } else {
-            this.listeners.push(addListener(this.element, 'mousemove', this._mouseButtonMovement, this));
-            this.listeners.push(addListener(this.element, 'mousedown', this._mouseButtonMovement, this));
-            this.listeners.push(addListener(this.element, 'mouseup', this._mouseButtonMovement, this));
-        }
-
         // Adjust for scroll offset
         this.listeners.push(addListener(window, 'scroll', () => {
             this.m.scrollX = window.scrollX;
             this.m.scrollY = window.scrollY;
         }, this));
+
+        this.attach_context();
+    }
+
+    attach_context() {
+        this.listeners_context.push(addListener(this.element, 'wheel', this._mouseWheelWrapper, this));
+        this.listeners_context.push(addListener(this.element, 'contextmenu', this._contextMenu, this));
+        this.listeners_context.push(addListener(window, 'keydown', this._key, this));
+        this.listeners_context.push(addListener(window, 'keyup', this._key, this));
+
+        if ('ontouchstart' in window) {
+            this.listeners_context.push(addListener(window, 'touchstart', this._touch, this));
+            this.listeners_context.push(addListener(this.element, 'touchend', this._touch, this));
+            this.listeners_context.push(addListener(this.element, 'touchmove', this._touch, this));
+
+            console.log("Enabling mouse pointer display for touch devices.");
+            this.send("p,1");
+            console.log("remote pointer visibility to: True");
+        } else {
+            this.listeners_context.push(addListener(this.element, 'mousemove', this._mouseButtonMovement, this));
+            this.listeners_context.push(addListener(this.element, 'mousedown', this._mouseButtonMovement, this));
+            this.listeners_context.push(addListener(this.element, 'mouseup', this._mouseButtonMovement, this));
+        }
 
         // Using guacamole keyboard because it has the keysym translations.
         this.keyboard = new Guacamole.Keyboard(window);
@@ -644,14 +652,6 @@ class Input {
         this.keyboard.onkeyup = (keysym) => {
             this.send("ku," + keysym);
         };
-
-        this.attach_context();
-    }
-
-    attach_context() {
-        this.listeners_context.push(addListener(this.element, 'contextmenu', this._contextMenu, this));
-        this.listeners_context.push(addListener(window, 'keydown', this._key, this));
-        this.listeners_context.push(addListener(window, 'keyup', this._key, this));
 
         if (document.fullscreenElement !== null && document.pointerLockElement === null) {
             this.element.requestPointerLock().then(
@@ -671,6 +671,12 @@ class Input {
     detach() {
         removeListeners(this.listeners);
 
+        this.detach_context();
+    }
+
+    detach_context() {
+        removeListeners(this.listeners_context);
+
         if (this.keyboard) {
             this.keyboard.onkeydown = null;
             this.keyboard.onkeyup = null;
@@ -678,12 +684,6 @@ class Input {
             delete this.keyboard;
             this.send("kr");
         }
-
-        this.detach_context();
-    }
-
-    detach_context() {
-        removeListeners(this.listeners_context);
 
         this._exitPointerLock();
     }

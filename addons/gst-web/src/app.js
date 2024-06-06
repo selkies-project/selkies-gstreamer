@@ -208,6 +208,10 @@ var app = new Vue({
         },
         enterFullscreen() {
             if (webrtc && 'input' in webrtc && 'enterFullscreen' in webrtc.input) {
+                // Fold menu in order to call webrtc.input.attach_context()
+                if (app.showDrawer) {
+                    app.showDrawer = !app.showDrawer;
+                }
                 webrtc.input.enterFullscreen();
             }
         },
