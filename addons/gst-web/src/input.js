@@ -104,6 +104,7 @@ class Input {
          * @type {Array}
          */
         this.listeners = [];
+        this.listeners_context = [];
 
         /**
          * @type {function}
@@ -606,11 +607,8 @@ class Input {
     attach() {
         this.listeners.push(addListener(this.element, 'resize', this._windowMath, this));
         this.listeners.push(addListener(this.element, 'wheel', this._mouseWheelWrapper, this));
-        this.listeners.push(addListener(this.element, 'contextmenu', this._contextMenu, this));
-        this.listeners.push(addListener(this.element.parentElement, 'fullscreenchange', this._onFullscreenChange, this));
         this.listeners.push(addListener(document, 'pointerlockchange', this._pointerLock, this));
-        this.listeners.push(addListener(window, 'keydown', this._key, this));
-        this.listeners.push(addListener(window, 'keyup', this._key, this));
+        this.listeners.push(addListener(this.element.parentElement, 'fullscreenchange', this._onFullscreenChange, this));
         this.listeners.push(addListener(window, 'resize', this._windowMath, this));
         this.listeners.push(addListener(window, 'resize', this._resizeStart, this));
 
@@ -647,12 +645,32 @@ class Input {
             this.send("ku," + keysym);
         };
 
+        this.attach_context();
+    }
+
+    attach_context() {
+        this.listeners_context.push(addListener(this.element, 'contextmenu', this._contextMenu, this));
+        this.listeners_context.push(addListener(window, 'keydown', this._key, this));
+        this.listeners_context.push(addListener(window, 'keyup', this._key, this));
+
+        if (document.fullscreenElement !== null && document.pointerLockElement === null) {
+            this.element.requestPointerLock().then(
+                () => {
+                    console.log("pointer lock success");
+                }
+            ).catch(
+                (e) => {
+                    console.log("pointer lock failed: ", e);
+                }
+            );
+        }
+
         this._windowMath();
     }
 
     detach() {
         removeListeners(this.listeners);
-        this._exitPointerLock();
+
         if (this.keyboard) {
             this.keyboard.onkeydown = null;
             this.keyboard.onkeyup = null;
@@ -660,6 +678,14 @@ class Input {
             delete this.keyboard;
             this.send("kr");
         }
+
+        this.detach_context();
+    }
+
+    detach_context() {
+        removeListeners(this.listeners_context);
+
+        this._exitPointerLock();
     }
 
     enterFullscreen() {

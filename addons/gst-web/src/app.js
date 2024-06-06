@@ -319,9 +319,9 @@ var app = new Vue({
         showDrawer(newValue) {
             // Detach inputs when menu is shown.
             if (newValue === true) {
-                webrtc.input.detach();
+                webrtc.input.detach_context();
             } else {
-                webrtc.input.attach();
+                webrtc.input.attach_context();
             }
         },
     },
@@ -601,9 +601,9 @@ window.addEventListener('blur', () => {
 webrtc.onclipboardcontent = (content) => {
     if (app.clipboardStatus === 'enabled') {
         navigator.clipboard.writeText(content)
-            .catch(err => {
-                app._setDebug('Could not copy text to clipboard: ' + err);
-            });
+            .catch((err) => {
+                app.debugEntries.push('[app] Could not copy text to clipboard: ' + err);
+        });
     }
 }
 

@@ -280,7 +280,7 @@ class WebRTCDemo {
                 .then((local_sdp) => {
                     // Set sps-pps-idr-in-keyframe=1
                     if (!(/[^-]sps-pps-idr-in-keyframe=1[^\d]/gm.test(local_sdp.sdp)) && (/[^-]packetization-mode=/gm.test(local_sdp.sdp))) {
-                        console.log("Overriding sps-pps-idr-in-keyframe=1");
+                        console.log("Overriding WebRTC SDP to include sps-pps-idr-in-keyframe=1");
                         if (/[^-]sps-pps-idr-in-keyframe=\d+/gm.test(local_sdp.sdp)) {
                             local_sdp.sdp = local_sdp.sdp.replace(/sps-pps-idr-in-keyframe=\d+/gm, 'sps-pps-idr-in-keyframe=1');
                         } else {
