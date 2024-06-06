@@ -601,8 +601,8 @@ window.addEventListener('blur', () => {
 webrtc.onclipboardcontent = (content) => {
     if (app.clipboardStatus === 'enabled') {
         navigator.clipboard.writeText(content)
-            .catch((err) => {
-                app.debugEntries.push('[app] Could not copy text to clipboard: ' + err);
+            .catch(err => {
+                webrtc._setStatus('Could not copy text to clipboard: ' + err);
         });
     }
 }
