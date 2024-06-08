@@ -545,7 +545,7 @@ webrtc.onconnectionstatechange = (state) => {
                 } else {
                     receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
                 }
-            }, 50);
+            }, 1);
         });
     }
     if (videoConnected === "connected" && audioConnected === "connected") {
@@ -569,7 +569,7 @@ audio_webrtc.onconnectionstatechange = (state) => {
                 } else {
                     receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
                 }
-            }, 50);
+            }, 1);
         });
     }
     if (audioConnected === "connected" && videoConnected === "connected") {
