@@ -148,9 +148,9 @@
                     <template v-slot:activator="{ on }">
                       <v-progress-circular class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
                         :width="4"
-                        :value="videoBitRate === 0 ? 0 : (connectionVideoBitrate / (videoBitRate / 1000))*100"
+                        :value="videoBitRate === 0 ? 0 : (connectionStat.connectionVideoBitrate / (videoBitRate / 1000))*100"
                         color="teal">
-                        {{ connectionVideoBitrate }}
+                        {{ connectionStat.connectionVideoBitrate }}
                       </v-progress-circular>
                     </template>
                     <span>Current video bitrate in mbps vs selected bitrate {{ (videoBitRate / 1000).toFixed(0) }}
@@ -160,8 +160,8 @@
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
                       <v-progress-circular class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
-                        :width="4" :value="(connectionFrameRate / 60)*100" color="blue-grey">
-                        {{ connectionFrameRate }}
+                        :width="4" :value="(connectionStat.connectionFrameRate / 60)*100" color="blue-grey">
+                        {{ connectionStat.connectionFrameRate }}
                       </v-progress-circular>
                     </template>
                     <span>Current FPS vs 60 FPS</span>
@@ -170,8 +170,8 @@
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
                       <v-progress-circular class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
-                        :width="4" :value="(connectionLatency / 1000)*100" color="red">
-                        {{ connectionLatency }}
+                        :width="4" :value="(connectionStat.connectionLatency / 1000)*100" color="red">
+                        {{ connectionStat.connectionLatency }}
                       </v-progress-circular>
                     </template>
                     <span>Current maximum connection latency in milliseconds</span>
@@ -182,12 +182,12 @@
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
                       <v-progress-circular v-if="encoderName.startsWith('hardware')" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
-                        :width="4" :value="gpuLoad" color="blue">
-                        {{ gpuLoad }}
+                        :width="4" :value="gpuStat.gpuLoad" color="blue">
+                        {{ gpuStat.gpuLoad }}
                       </v-progress-circular>
                       <v-progress-circular v-else class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
-                        :width="4" :value="serverCPUUsage" color="blue">
-                        {{ serverCPUUsage }}
+                        :width="4" :value="cpuStat.serverCPUUsage" color="blue">
+                        {{ cpuStat.serverCPUUsage }}
                       </v-progress-circular>
                     </template>
                     <span v-if="encoderName.startsWith('hardware')">Current GPU load</span>
@@ -197,18 +197,18 @@
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
                       <v-progress-circular v-if="encoderName.startsWith('hardware')" class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
-                        :width="4" :value="gpuMemoryTotal === 0 ? 0 : (gpuMemoryUsed / gpuMemoryTotal) * 100"
+                        :width="4" :value="gpuStat.gpuMemoryTotal === 0 ? 0 : (gpuStat.gpuMemoryUsed / gpuStat.gpuMemoryTotal) * 100"
                         color="blue-grey">
-                        {{ (gpuMemoryUsed / 1024).toFixed(2) }}
+                        {{ (gpuStat.gpuMemoryUsed / 1024).toFixed(2) }}
                       </v-progress-circular>
                       <v-progress-circular v-else class="mx-2" v-on="on" :rotate="360" :size="50" style="font-size: 10"
-                        :width="4" :value="serverMemoryTotal === 0 ? 0 : (serverMemoryUsed / serverMemoryTotal) * 100"
+                        :width="4" :value="cpuStat.serverMemoryTotal === 0 ? 0 : (cpuStat.serverMemoryUsed / cpuStat.serverMemoryTotal) * 100"
                         color="blue-grey">
-                        {{ (serverMemoryUsed / 1024 / 1024 / 1024).toFixed(2) }}
+                        {{ (cpuStat.serverMemoryUsed / 1024 / 1024 / 1024).toFixed(2) }}
                       </v-progress-circular>
                     </template>
-                    <span v-if="encoderName.startsWith('hardware')">Current GPU memory GB used of the {{ (gpuMemoryTotal / 1024).toFixed(0) }}GB available</span>
-                    <span v-else>Server Memory GB used of the {{ (serverMemoryTotal / 1024 / 1024 / 1024).toFixed(0) }}GB available</span>
+                    <span v-if="encoderName.startsWith('hardware')">Current GPU memory GB used of the {{ (gpuStat.gpuMemoryTotal / 1024).toFixed(0) }}GB available</span>
+                    <span v-else>Server Memory GB used of the {{ (cpuStat.serverMemoryTotal / 1024 / 1024 / 1024).toFixed(0) }}GB available</span>
                   </v-tooltip>
 
                   <v-divider class="mr-1" vertical></v-divider>
@@ -249,11 +249,11 @@
                     <span>Return to launcher</span>
                   </v-tooltip>
 
-                  <v-tooltip bottom v-if="gamepadState === 'connected'">
+                  <v-tooltip bottom v-if="gamepad.gamepadState === 'connected'">
                     <template v-slot:activator="{ on }">
                       <v-icon color="black" v-on="on">videogame_asset</v-icon>
                     </template>
-                    <span>Gamepad connected: {{ gamepadName }}</span>
+                    <span>Gamepad connected: {{ gamepad.gamepadName }}</span>
                   </v-tooltip>
 
                   <v-tooltip bottom v-else>
@@ -289,28 +289,28 @@
               <p>
               <ul>
                 <li>Peer connection state: <b>{{ status }}</b></li>
-                <li>Peer connection type: <b>{{ connectionStatType }}</b></li>
-                <li>Packets received: <b>{{ connectionPacketsReceived }}</b></li>
-                <li>Packets lost: <b>{{ connectionPacketsLost }}</b></li>
-                <li>Bytes received: <b>{{ connectionBytesReceived }}</b></li>
-                <li>Bytes sent: <b>{{ connectionBytesSent }}</b></li>
+                <li>Peer connection type: <b>{{ connectionStat.connectionStatType }}</b></li>
+                <li>Packets received: <b>{{ connectionStat.connectionPacketsReceived }}</b></li>
+                <li>Packets lost: <b>{{ connectionStat.connectionPacketsLost }}</b></li>
+                <li>Bytes received: <b>{{ connectionStat.connectionBytesReceived }}</b></li>
+                <li>Bytes sent: <b>{{ connectionStat.connectionBytesSent }}</b></li>
               </ul>
               Video Stats
               <ul>
-                <li>Latency: <b>{{ connectionVideoLatency }} ms</b></li>
-                <li>Video: <b>{{ connectionCodec }} {{ connectionResolution }}</b></li>
+                <li>Latency: <b>{{ connectionStat.connectionVideoLatency }} ms</b></li>
+                <li>Video: <b>{{ connectionStat.connectionCodec }} {{ connectionStat.connectionResolution }}</b></li>
                 <li>Video encoder: <b>{{ encoderName }}</b></li>
                 <li>Window size: <b>{{ windowResolution[0] }}x{{ windowResolution[1] }}</b></li>
-                <!--<li>Video decoder: <b>{{ connectionVideoDecoder }}</b></li>-->
-                <li>Framerate: <b>{{ connectionFrameRate }} fps</b></li>
-                <li>Bitrate: <b>{{ connectionVideoBitrate }} mbps</b></li>
-                <li>Available receive bandwidth: <b>{{ connectionAvailableBandwidth }}</b></li>
+                <!--<li>Video decoder: <b>{{ connectionStat.connectionVideoDecoder }}</b></li>-->
+                <li>Framerate: <b>{{ connectionStat.connectionFrameRate }} fps</b></li>
+                <li>Bitrate: <b>{{ connectionStat.connectionVideoBitrate }} mbps</b></li>
+                <li>Available receive bandwidth: <b>{{ connectionStat.connectionAvailableBandwidth }}</b></li>
               </ul>
               Audio Stats
               <ul>
-                <li>Latency: <b>{{ connectionAudioLatency }} ms</b></li>
-                <li>Codec: <b>{{ connectionAudioCodecName }}</b></li>
-                <li>Bitrate: <b>{{ connectionAudioBitrate }} kbps</b></li>
+                <li>Latency: <b>{{ connectionStat.connectionAudioLatency }} ms</b></li>
+                <li>Codec: <b>{{ connectionStat.connectionAudioCodecName }}</b></li>
+                <li>Bitrate: <b>{{ connectionStat.connectionAudioBitrate }} kbps</b></li>
               </ul>
               </p>
               <hr />

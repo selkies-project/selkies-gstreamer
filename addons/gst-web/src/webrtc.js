@@ -555,7 +555,7 @@ class WebRTCDemo {
 
                 var allReports = [];
 
-                stats.forEach( (report) => {
+                stats.forEach((report) => {
                     allReports.push(report);
                     if (report.type === "transport") {
                         reports.transports[report.id] = report;

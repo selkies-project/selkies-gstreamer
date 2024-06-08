@@ -116,32 +116,40 @@ var app = new Vue({
             status: 'connecting',
             loadingText: '',
             clipboardStatus: 'disabled',
-            gamepadState: 'disconnected',
-            gamepadName: 'none',
             windowResolution: "",
-            connectionStatType: "unknown",
-            connectionLatency: 0,
-            connectionVideoLatency: 0,
-            connectionAudioLatency: 0,
-            connectionAudioCodecName: "NA",
-            connectionAudioBitrate: 0,
-            connectionPacketsReceived: 0,
-            connectionPacketsLost: 0,
-            connectionBytesReceived: 0,
-            connectionBytesSent: 0,
-            connectionCodec: "unknown",
-            connectionVideoDecoder: "unknown",
-            connectionResolution: "",
-            connectionFrameRate: 0,
-            connectionVideoBitrate: 0,
-            connectionAvailableBandwidth: 0,
             encoderName: "",
-            serverCPUUsage: 0,
-            gpuLoad: 0,
-            gpuMemoryTotal: 0,
-            gpuMemoryUsed: 0,
-            serverMemoryTotal: 0,
-            serverMemoryUsed: 0,
+            gamepad: {
+                gamepadState: 'disconnected',
+                gamepadName: 'none',
+            },
+            connectionStat: {
+                connectionStatType: "unknown",
+                connectionLatency: 0,
+                connectionVideoLatency: 0,
+                connectionAudioLatency: 0,
+                connectionAudioCodecName: "NA",
+                connectionAudioBitrate: 0,
+                connectionPacketsReceived: 0,
+                connectionPacketsLost: 0,
+                connectionBytesReceived: 0,
+                connectionBytesSent: 0,
+                connectionCodec: "unknown",
+                connectionVideoDecoder: "unknown",
+                connectionResolution: "",
+                connectionFrameRate: 0,
+                connectionVideoBitrate: 0,
+                connectionAvailableBandwidth: 0
+            },
+            gpuStat: {
+                gpuLoad: 0,
+                gpuMemoryTotal: 0,
+                gpuMemoryUsed: 0
+            },
+            cpuStat: {
+                serverCPUUsage: 0,
+                serverMemoryTotal: 0,
+                serverMemoryUsed: 0
+            },
             serverLatency: 0,
             resizeRemote: true,
             scaleLocal: false,
@@ -422,15 +430,17 @@ if (app.debug) {
     audio_webrtc.ondebug = (message) => { app.debugEntries.push(applyTimestamp("[audio webrtc] " + message)) };
 }
 
-webrtc.ongpustats = (data) => {
-    app.gpuLoad = Math.round(data.load * 100);
-    app.gpuMemoryTotal = data.memory_total;
-    app.gpuMemoryUsed = data.memory_used;
+webrtc.ongpustats = async (data) => {
+    // Update DOM only when menu is visible
+    if (app.showDrawer) {
+        app.gpuStat = {gpuLoad: Math.round(data.load * 100), gpuMemoryTotal: data.memory_total, gpuMemoryUsed: data.memory_used}
+    }
 }
 
 var videoConnected = "";
 var audioConnected = "";
-var statwatchenabled = false;
+var statWatchEnabled = false;
+var connectionStat = {};
 // Bind vue status to connection state.
 function enableStatWatch() {
     // Start watching stats
@@ -441,73 +451,80 @@ function enableStatWatch() {
     var previousAudioJitterBufferDelay = 0.0;
     var previousAudioJitterBufferEmittedCount = 0;
     var statsStart = new Date().getTime() / 1000;
-    var statsLoop = setInterval(() => {
+    var statsLoop = setInterval(async () => {
         if (videoConnected !== "connected" || audioConnected !== "connected") {
             clearInterval(statsLoop);
-            statwatchenabled = false;
+            statWatchEnabled = false;
             return;
         }
         webrtc.getConnectionStats().then((stats) => {
             if (videoConnected !== "connected" || audioConnected !== "connected") {
                 clearInterval(statsLoop);
-                statwatchenabled = false;
+                statWatchEnabled = false;
                 return;
             }
             audio_webrtc.getConnectionStats().then((audioStats) => {
                 if (videoConnected !== "connected" || audioConnected !== "connected") {
                     clearInterval(statsLoop);
-                    statwatchenabled = false;
+                    statWatchEnabled = false;
                     return;
                 }
-                statwatchenabled = true;
+                statWatchEnabled = true;
 
                 var now = new Date().getTime() / 1000;
 
+                connectionStat = {};
+
                 // Connection latency in milliseconds
-                app.connectionLatency = 0.0;
-                app.connectionVideoLatency = (stats.general.currentRoundTripTime !== null) ? (stats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
-                app.connectionAudioLatency = (audioStats.general.currentRoundTripTime !== null) ? (audioStats.general.currentRoundTripTime * 1000.0) : (app.serverLatency * 2.0);
-                app.connectionLatency += Math.max(app.connectionVideoLatency, app.connectionAudioLatency);
+                connectionStat.connectionLatency = 0.0;
+                connectionStat.connectionVideoLatency = (stats.general.currentRoundTripTime !== null) ? (stats.general.currentRoundTripTime * 1000.0) : (app.serverLatency);
+                connectionStat.connectionAudioLatency = (audioStats.general.currentRoundTripTime !== null) ? (audioStats.general.currentRoundTripTime * 1000.0) : (app.serverLatency);
+                connectionStat.connectionLatency += Math.max(connectionStat.connectionVideoLatency, connectionStat.connectionAudioLatency);
 
                 // Sum of video+audio packets
-                app.connectionPacketsReceived = 0;
-                app.connectionPacketsLost = 0;
+                connectionStat.connectionPacketsReceived = 0;
+                connectionStat.connectionPacketsLost = 0;
 
                 // Connection stats
-                app.connectionStatType = stats.general.connectionType == audioStats.general.connectionType ? stats.general.connectionType : (stats.general.connectionType + " / " + audioStats.general.connectionType);
-                app.connectionBytesReceived = ((stats.general.bytesReceived + audioStats.general.bytesReceived) * 1e-6).toFixed(2) + " MBytes";
-                app.connectionBytesSent = ((stats.general.bytesSent + audioStats.general.bytesSent) * 1e-6).toFixed(2) + " MBytes";
-                app.connectionAvailableBandwidth = ((parseInt(stats.general.availableReceiveBandwidth) + parseInt(audioStats.general.availableReceiveBandwidth)) / 1e+6).toFixed(2) + " mbps";
+                connectionStat.connectionStatType = stats.general.connectionType == audioStats.general.connectionType ? stats.general.connectionType : (stats.general.connectionType + " / " + audioStats.general.connectionType);
+                connectionStat.connectionBytesReceived = ((stats.general.bytesReceived + audioStats.general.bytesReceived) * 1e-6).toFixed(2) + " MBytes";
+                connectionStat.connectionBytesSent = ((stats.general.bytesSent + audioStats.general.bytesSent) * 1e-6).toFixed(2) + " MBytes";
+                connectionStat.connectionAvailableBandwidth = ((parseInt(stats.general.availableReceiveBandwidth) + parseInt(audioStats.general.availableReceiveBandwidth)) / 1e+6).toFixed(2) + " mbps";
 
                 // Video stats
-                app.connectionPacketsReceived += stats.video.packetsReceived;
-                app.connectionPacketsLost += stats.video.packetsLost;
-                app.connectionCodec = stats.video.codecName;
-                app.connectionVideoDecoder = stats.video.decoder;
-                app.connectionResolution = stats.video.frameWidth + "x" + stats.video.frameHeight;
-                app.connectionFrameRate = stats.video.framesPerSecond;
-                app.connectionVideoBitrate = (((stats.video.bytesReceived - videoBytesReceivedStart) / (now - statsStart)) * 8 / 1e+6).toFixed(2);
+                connectionStat.connectionPacketsReceived += stats.video.packetsReceived;
+                connectionStat.connectionPacketsLost += stats.video.packetsLost;
+                connectionStat.connectionCodec = stats.video.codecName;
+                connectionStat.connectionVideoDecoder = stats.video.decoder;
+                connectionStat.connectionResolution = stats.video.frameWidth + "x" + stats.video.frameHeight;
+                connectionStat.connectionFrameRate = stats.video.framesPerSecond;
+                connectionStat.connectionVideoBitrate = (((stats.video.bytesReceived - videoBytesReceivedStart) / (now - statsStart)) * 8 / 1e+6).toFixed(2);
                 videoBytesReceivedStart = stats.video.bytesReceived;
 
                 // Audio stats
-                app.connectionPacketsReceived += audioStats.audio.packetsReceived;
-                app.connectionPacketsLost += audioStats.audio.packetsLost;
-                app.connectionAudioCodecName = audioStats.audio.codecName;
-                app.connectionAudioBitrate = (((audioStats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
+                connectionStat.connectionPacketsReceived += audioStats.audio.packetsReceived;
+                connectionStat.connectionPacketsLost += audioStats.audio.packetsLost;
+                connectionStat.connectionAudioCodecName = audioStats.audio.codecName;
+                connectionStat.connectionAudioBitrate = (((audioStats.audio.bytesReceived - audioBytesReceivedStart) / (now - statsStart)) * 8 / 1e+3).toFixed(2);
                 audioBytesReceivedStart = audioStats.audio.bytesReceived;
 
                 // Latency stats
-                app.connectionVideoLatency = parseInt(Math.round(app.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - previousVideoJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - previousVideoJitterBufferEmittedCount) || 0)));
+                connectionStat.connectionVideoLatency = parseInt(Math.round(connectionStat.connectionVideoLatency + (1000.0 * (stats.video.jitterBufferDelay - previousVideoJitterBufferDelay) / (stats.video.jitterBufferEmittedCount - previousVideoJitterBufferEmittedCount) || 0)));
                 previousVideoJitterBufferDelay = stats.video.jitterBufferDelay;
                 previousVideoJitterBufferEmittedCount = stats.video.jitterBufferEmittedCount;
-                app.connectionAudioLatency = parseInt(Math.round(app.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - previousAudioJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - previousAudioJitterBufferEmittedCount) || 0)));
+                connectionStat.connectionAudioLatency = parseInt(Math.round(connectionStat.connectionAudioLatency + (1000.0 * (audioStats.audio.jitterBufferDelay - previousAudioJitterBufferDelay) / (audioStats.audio.jitterBufferEmittedCount - previousAudioJitterBufferEmittedCount) || 0)));
                 previousAudioJitterBufferDelay = audioStats.audio.jitterBufferDelay;
                 previousAudioJitterBufferEmittedCount = audioStats.audio.jitterBufferEmittedCount;
 
                 // Format latency
-                app.connectionLatency = parseInt(Math.round(app.connectionLatency));
+                connectionStat.connectionLatency = parseInt(Math.round(connectionStat.connectionLatency));
 
                 statsStart = now;
+
+                // Update DOM only when menu is visible
+                if (app.showDrawer) {
+                    app.connectionStat = connectionStat;
+                }
 
                 webrtc.sendDataChannelMessage("_stats_video," + JSON.stringify(stats.allReports));
                 webrtc.sendDataChannelMessage("_stats_audio," + JSON.stringify(audioStats.allReports));
@@ -528,12 +545,12 @@ webrtc.onconnectionstatechange = (state) => {
                 } else {
                     receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
                 }
-            }, 1);
+            }, 50);
         });
     }
     if (videoConnected === "connected" && audioConnected === "connected") {
         app.status = state;
-        if (!statwatchenabled) {
+        if (!statWatchEnabled) {
             enableStatWatch();
         }
     } else {
@@ -552,12 +569,12 @@ audio_webrtc.onconnectionstatechange = (state) => {
                 } else {
                     receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
                 }
-            }, 1);
+            }, 50);
         });
     }
     if (audioConnected === "connected" && videoConnected === "connected") {
         app.status = state;
-        if (!statwatchenabled) {
+        if (!statWatchEnabled) {
             enableStatWatch();
         }
     } else {
@@ -569,24 +586,22 @@ webrtc.ondatachannelopen = () => {
     // Bind gamepad connected handler.
     webrtc.input.ongamepadconnected = (gamepad_id) => {
         webrtc._setStatus('Gamepad connected: ' + gamepad_id);
-        app.gamepadState = "connected";
-        app.gamepadName = gamepad_id;
+        app.gamepad = {gamepadState: "connected", gamepadName: gamepad_id};
     }
 
     // Bind gamepad disconnect handler.
     webrtc.input.ongamepaddisconnected = () => {
         webrtc._setStatus('Gamepad disconnected: ' + gamepad_id);
-        app.gamepadState = "disconnected";
-        app.gamepadName = "none";
+        app.gamepad = {gamepadState: "disconnected", gamepadName: "none"};
     }
 
     // Bind input handlers.
     webrtc.input.attach();
 
     // Send client-side metrics over data channel every 5 seconds
-    setInterval(() => {
-        if (app.connectionFrameRate === parseInt(app.connectionFrameRate, 10)) webrtc.sendDataChannelMessage('_f,' + app.connectionFrameRate);
-        if (app.connectionLatency === parseInt(app.connectionLatency, 10)) webrtc.sendDataChannelMessage('_l,' + app.connectionLatency);
+    setInterval(async () => {
+        if (connectionStat.connectionFrameRate === parseInt(connectionStat.connectionFrameRate, 10)) webrtc.sendDataChannelMessage('_f,' + connectionStat.connectionFrameRate);
+        if (connectionStat.connectionLatency === parseInt(connectionStat.connectionLatency, 10)) webrtc.sendDataChannelMessage('_l,' + connectionStat.connectionLatency);
     }, 5000)
 }
 
@@ -752,13 +767,18 @@ webrtc.onsystemaction = (action) => {
 }
 
 webrtc.onlatencymeasurement = (latency_ms) => {
-    app.serverLatency = latency_ms;
+    app.serverLatency = latency_ms * 2.0;
 }
 
-webrtc.onsystemstats = (stats) => {
-    if (stats.cpu_percent !== undefined) app.serverCPUUsage = stats.cpu_percent.toFixed(0);
-    if (stats.mem_total !== undefined) app.serverMemoryTotal = stats.mem_total;
-    if (stats.mem_used !== undefined) app.serverMemoryUsed = stats.mem_used;
+webrtc.onsystemstats = async (stats) => {
+    // Update DOM only when menu is visible
+    if (app.showDrawer && (stats.cpu_percent !== undefined || stats.mem_total !== undefined || stats.mem_used !== undefined)) {
+        var cpuStat = {serverCPUUsage: app.cpuStat.serverCPUUsage, serverMemoryTotal: app.cpuStat.serverMemoryTotal, serverMemoryUsed: app.cpuStat.serverMemoryUsed};
+        if (stats.cpu_percent !== undefined) cpuStat.serverCPUUsage = stats.cpu_percent.toFixed(0);
+        if (stats.mem_total !== undefined) cpuStat.serverMemoryTotal = stats.mem_total;
+        if (stats.mem_used !== undefined) cpuStat.serverMemoryUsed = stats.mem_used;
+        app.cpuStat = cpuStat;
+    }
 }
 
 // Safari without Permission API enabled fails
