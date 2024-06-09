@@ -1,0 +1,251 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+{% set name = "selkies-gstreamer" %}
+{% set gstreamer_version = "1.24.4" %}
+{% set python = "3.12" %}
+{% set ffmpeg = ">=6.1" %}
+{% set posix = 'm2-' if win else '' %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ SELKIES_VERSION }}"
+
+source:
+  - url: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/{{ gstreamer_version }}/gstreamer-{{ gstreamer_version }}.tar.gz
+    folder: gstreamer
+
+about:
+  home: https://github.com/selkies-project/selkies-gstreamer
+  summary: Open-Source Low-Latency Accelerated Linux WebRTC HTML5 Remote Desktop Streaming Platform for Self-Hosting, Containers, Kubernetes, and HPC
+  license: MPL-2.0
+  license_url: https://github.com/selkies-project/selkies-gstreamer/blob/main/LICENSE
+  doc_url: https://github.com/selkies-project/selkies-gstreamer/blob/main/README.md
+  dev_url: https://github.com/selkies-project/selkies-gstreamer
+
+build:
+  skip: true  # [not linux]
+  script_env:
+    - PYPI_PACKAGE
+    - PACKAGE_VERSION
+    - SELKIES_BUILD
+    - SELKIES_SOURCE
+
+outputs:
+  - name: "{{ name|lower }}"
+    type: conda_v2
+    build:
+      run_exports:
+        - {{ pin_subpackage('selkies-gstreamer') }}
+        - {{ pin_compatible('gstreamer', max_pin='x.x') }}
+        - {{ pin_compatible('gst-plugins-base', max_pin='x.x') }}
+        - {{ pin_compatible('gst-plugins-good', max_pin='x.x') }}
+        - {{ pin_compatible('gst-plugins-ugly', max_pin='x.x') }}
+        - {{ pin_compatible('gst-plugins-bad', max_pin='x.x') }}
+        - {{ pin_compatible('gst-libav', max_pin='x.x') }}
+        - {{ pin_compatible('gst-python', max_pin='x.x') }}
+        - {{ pin_compatible('gstreamer-orc', max_pin='x.x') }}
+
+requirements:
+  build:
+    - {{ stdlib('c') }}
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('rust') }}
+    - python {{ python }}  # [build_platform != target_platform]
+    - cross-python_{{ target_platform }} {{ python }}  # [build_platform != target_platform]
+    - cargo-c
+    - pkg-config
+    - autoconf
+    - automake
+    - bash-completion
+    - binutils
+    - {{ posix }}bison
+    - file
+    - {{ posix }}flex
+    - ca-certificates
+    - curl
+    - gettext-tools
+    - git
+    - git-lfs
+    - gmp
+    - gobject-introspection
+    - gsl
+    - bzip2
+    - cmake
+    - libcap
+    - libiconv
+    - libtool
+    - libgcrypt
+    - libvulkan-loader
+    - libvulkan-headers
+    - nasm
+    - valgrind
+    - yasm
+    - meson
+    - ninja
+    - tomli
+    - perl
+    - openssl
+    - zlib
+    - glew
+    - glfw
+    - {{ cdt('mesa-libgl-devel') }}  # [linux]
+    - {{ cdt('mesa-libegl-devel') }}  # [linux]
+    - {{ cdt('mesa-libgbm') }}  # [linux]
+    - {{ cdt('libdrm-devel') }}  # [linux]
+    - {{ cdt('mesa-dri-drivers') }}  # [linux]
+    - {{ cdt('libglvnd-devel') }}  # [linux]
+    - {{ cdt('libglvnd-glx') }}  # [linux]
+    - {{ cdt('libglvnd-egl') }}  # [linux]
+    - {{ cdt('libglvnd-gles') }}  # [linux]
+    - {{ cdt('libglvnd-opengl') }}  # [linux]
+    - {{ cdt('libxshmfence-devel') }}  # [linux]
+    - {{ cdt('mesa-khr-devel') }}  # [linux]
+    - {{ cdt('libselinux-devel') }}  # [linux]
+  host:
+    - python {{ python }}
+    - pip
+    - ffmpeg {{ ffmpeg }}
+    - dav1d <1.3,>=1.0
+    - abseil-cpp
+    - libass
+    - libcurl
+    - libdrm
+    - libusb
+    - elfutils
+    - libunwind
+    - nettle
+    - openssl
+    - fontconfig
+    - libiconv
+    - libxml2
+    - glib
+    - glib-networking
+    - gnutls
+    - gdk-pixbuf
+    - librsvg
+    - imath
+    - cairo
+    - pango
+    - pygobject
+    - popt
+    - setuptools
+    - srt
+    - zlib
+    - libffi
+    - libsoup
+    - openexr
+    - openjpeg
+    - libjpeg-turbo
+    - libcap
+    - libxslt
+    - bzip2
+    - libde265
+    - libwebp
+    - libvpx
+    - openh264
+    - x264
+    - x265
+    - aom
+    - rav1e
+    - svt-av1
+    - srt
+    - lcms2
+    - libflac
+    - libogg
+    - libopus
+    - libsndfile
+    - libtheora
+    - libvorbis
+    - mpg123
+    - lame
+    - libpng
+    - libva                              # [linux]
+    - libudev                            # [linux]
+    - jack                               # [linux]
+    - pthread-stubs                      # [linux]
+    - pulseaudio-client                  # [linux]
+    - alsa-lib                           # [linux]
+    - mesalib                            # [linux]
+    - libxcb                             # [linux]
+    - libxkbcommon                       # [linux]
+    - libxkbfile                         # [linux]
+    - xorg-libxcursor                    # [linux]
+    - xorg-libxdamage                    # [linux]
+    - xorg-libxft                        # [linux]
+    - xorg-libxxf86vm                    # [linux]
+    - xorg-libxau                        # [linux]
+    - xorg-libxdmcp                      # [linux]
+    - xorg-libxcomposite                 # [linux]
+    - xorg-libxfixes                     # [linux]
+    - xorg-font-util                     # [linux64]
+    - xorg-libxres                       # [linux64]
+    - xorg-libice                        # [linux]
+    - xorg-libxext                       # [linux]
+    - xorg-libxmu                        # [linux]
+    - xorg-libxrandr                     # [linux]
+    - xorg-libxrender                    # [linux]
+    - xorg-libsm                         # [linux]
+    - xorg-libxtst                       # [linux]
+    - xorg-libxt                         # [linux]
+    - xorg-libxi                         # [linux]
+    - xorg-libxpm                        # [linux]
+    - xorg-libxinerama                   # [linux]
+    - xorg-libx11                        # [linux]
+    - expat                              # [linux]
+    - wayland-protocols                  # [linux]
+    - wayland                            # [linux]
+  run:
+    - python {{ python }}
+    - pygobject
+    - {{ pin_compatible('glib') }}
+    - pulseaudio-client                  # [linux]
+    - libva-utils                        # [linux]
+    - vulkan-tools                       # [linux64]
+    - libxcb                             # [linux]
+    - libxkbcommon                       # [linux]
+    - libxkbfile                         # [linux]
+    - xorg-libxcursor                    # [linux]
+    - xorg-libxcvt                       # [linux]
+    - xorg-libxdamage                    # [linux]
+    - xorg-libxft                        # [linux]
+    - xorg-libxxf86vm                    # [linux]
+    - xorg-libxau                        # [linux]
+    - xorg-libxdmcp                      # [linux]
+    - xorg-libxcomposite                 # [linux]
+    - xorg-libxfixes                     # [linux]
+    - xorg-font-util                     # [linux64]
+    - xorg-libxres                       # [linux64]
+    - xorg-libice                        # [linux]
+    - xorg-libxext                       # [linux]
+    - xorg-libxmu                        # [linux]
+    - xorg-libxrandr                     # [linux]
+    - xorg-libxrender                    # [linux]
+    - xorg-libsm                         # [linux]
+    - xorg-libxtst                       # [linux]
+    - xorg-libxt                         # [linux]
+    - xorg-libxi                         # [linux]
+    - xorg-libxpm                        # [linux]
+    - xorg-libxinerama                   # [linux]
+    - xorg-libx11                        # [linux]
+    - expat                              # [linux]
+    - wayland-protocols                  # [linux]
+    - wayland                            # [linux]
+    - fontconfig
+    - websockets
+    - basicauth
+    - gputil
+    - prometheus_client
+    - msgpack-python
+    - pynput
+    - psutil
+    - watchdog
+    - pillow
+    - python-xlib
+    - wmctrl-cli                        # [linux]
+    - xdotool                           # [linux]
+    - xsel                              # [linux]
+    - cuda-nvrtc 11.3.*
+    - libnvjpeg 11.4.*

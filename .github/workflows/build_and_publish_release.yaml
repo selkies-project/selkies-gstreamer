@@ -210,7 +210,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}
     env:
-      TEMP_DIR: /tmp
+      TMPDIR: /tmp
     strategy:
       matrix:
         include:
@@ -321,11 +321,11 @@ jobs:
     - name: ${{ matrix.description }} release artifact extraction
       run: |
         docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}"
-        TARGET_PATH="${{ env.TEMP_DIR }}/${{ matrix.target }}"
+        TARGET_PATH="${{ env.TMPDIR }}/${{ matrix.target }}"
         docker container cp "copy:${{ matrix.source }}" "${TARGET_PATH}"
         if [ -d "${TARGET_PATH}" ]; then
           SOURCE_DIRNAME=$(echo "${{ matrix.source }}" | sed 's:.*/::')
-          cd "${{ env.TEMP_DIR }}" && mv -f "${TARGET_PATH}" "${SOURCE_DIRNAME}"
+          cd "${{ env.TMPDIR }}" && mv -f "${TARGET_PATH}" "${SOURCE_DIRNAME}"
           tar -czvf "temp.tar.gz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.gz" "${TARGET_PATH}"
         fi
         docker container rm --force --volumes copy
@@ -336,4 +336,4 @@ jobs:
         draft: true
         overwrite: true
         tag: ${{ github.ref }}
-        file: ${{ env.TEMP_DIR }}/${{ matrix.target }}
+        file: ${{ env.TMPDIR }}/${{ matrix.target }}

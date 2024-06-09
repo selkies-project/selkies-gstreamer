@@ -187,7 +187,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}
     env:
-      TEMP_DIR: /tmp
+      TMPDIR: /tmp
     strategy:
       matrix:
         include:
@@ -310,7 +310,7 @@ jobs:
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ matrix.platforms || 'linux/amd64' }} build artifact extraction
       run: |
         docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}"
-        docker container cp "copy:${{ matrix.source }}" "${{ env.TEMP_DIR }}/${{ matrix.target }}"
+        docker container cp "copy:${{ matrix.source }}" "${{ env.TMPDIR }}/${{ matrix.target }}"
         docker container rm --force --volumes copy
         echo "release_arch=$(echo ${{ matrix.platforms || 'linux/amd64' }} | sed -e 's/\//\-/')" >> "$GITHUB_ENV"
 
@@ -320,4 +320,4 @@ jobs:
         if-no-files-found: error
         overwrite: true
         name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ env.release_arch }}
-        path: ${{ env.TEMP_DIR }}/${{ matrix.target }}
+        path: ${{ env.TMPDIR }}/${{ matrix.target }}

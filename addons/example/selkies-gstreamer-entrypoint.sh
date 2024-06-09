@@ -9,7 +9,7 @@ set -e
 # Set default display
 export DISPLAY="${DISPLAY:-:0}"
 # PipeWire-Pulse server socket path
-export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
+export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
 export PIPEWIRE_LATENCY="32/48000"
 
 # Source environment for GStreamer
@@ -30,9 +30,6 @@ if ( [ -z "${SELKIES_TURN_USERNAME}" ] || [ -z "${SELKIES_TURN_PASSWORD}" ] ) &&
   /etc/start-turnserver.sh &
 fi
 export SELKIES_TURN_PROTOCOL="${SELKIES_TURN_PROTOCOL:-tcp}"
-
-# Set password for basic authentication
-if [ "${ENABLE_BASIC_AUTH,,}" != "false" ] && [ -z "${BASIC_AUTH_PASSWORD}" ]; then export BASIC_AUTH_PASSWORD="${PASSWD}"; fi
 
 # Wait for X server to start
 echo "Waiting for X socket"

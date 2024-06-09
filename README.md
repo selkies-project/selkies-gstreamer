@@ -122,16 +122,17 @@ sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # Choose one between PulseAudio and PipeWire
 
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
-# export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
+# export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+# export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
 # /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
-# /usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+# /usr/bin/pulseaudio --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit &
 
 # Initialize PipeWire
 # export PIPEWIRE_LATENCY="32/48000"
 # export DISABLE_RTKIT="y"
 # export PIPEWIRE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 # export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
+# export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
 # pipewire &
 # wireplumber &
 # pipewire-pulse &
@@ -238,16 +239,17 @@ sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # Choose one between PulseAudio and PipeWire
 
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
-# export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
+# export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+# export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
 # /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
-# /usr/bin/pulseaudio --daemonize --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1'
+# /usr/bin/pulseaudio --verbose --log-target=file:/tmp/pulseaudio.log --disallow-exit &
 
 # Initialize PipeWire
 # export PIPEWIRE_LATENCY="32/48000"
 # export DISABLE_RTKIT="y"
 # export PIPEWIRE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 # export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PULSE_SERVER="unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native"
+# export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
 # pipewire &
 # wireplumber &
 # pipewire-pulse &

@@ -21,7 +21,7 @@ mkdir -pm777 /dev/input || sudo-root mkdir -pm777 /dev/input || echo 'Failed to 
 touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || sudo-root touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || echo 'Failed to create joystick interposer devices'
 
 # PipeWire-Pulse server socket location
-export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
+export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
 export PIPEWIRE_LATENCY="32/48000"
 
 # Start X server with required extensions
