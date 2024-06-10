@@ -247,6 +247,10 @@ class GSTWebRTCApp:
         # mind that the pipeline may not always perfom at the full 60 FPS.
         self.ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
 
+        # Color profile: sRGB and 4:2:0 are default in WebRTC specs
+        # https://datatracker.ietf.org/doc/html/rfc7742#section-3
+        self.ximagesrc_caps.set_value("colorimetry", "sRGB")
+
         # Create a capability filter for the ximagesrc_caps
         self.ximagesrc_capsfilter = Gst.ElementFactory.make("capsfilter")
         self.ximagesrc_capsfilter.set_property("caps", self.ximagesrc_caps)
