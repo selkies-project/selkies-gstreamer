@@ -1524,13 +1524,13 @@ class GSTWebRTCApp:
                 sdp_text = sdp_text.replace('packetization-mode=', 'profile-level-id=42e01f;packetization-mode=')
             elif 'profile-level-id=42e01f' not in sdp_text:
                 logger.warning("injecting modified profile-level-id to SDP")
-                sdp_text = sdp_text.replace(r'profile-level-id=\w+', r'profile-level-id=42e01f', sdp_text)
+                sdp_text = re.sub(r'profile-level-id=\w+', r'profile-level-id=42e01f', sdp_text)
             if 'level-asymmetry-allowed' not in sdp_text:
                 logger.warning("injecting level-asymmetry-allowed to SDP")
                 sdp_text = sdp_text.replace('packetization-mode=', 'level-asymmetry-allowed=1;packetization-mode=')
             elif 'level-asymmetry-allowed=1' not in sdp_text:
                 logger.warning("injecting modified level-asymmetry-allowed to SDP")
-                sdp_text = sdp_text.replace(r'level-asymmetry-allowed=\d+', r'level-asymmetry-allowed=1', sdp_text)
+                sdp_text = re.sub(r'level-asymmetry-allowed=\d+', r'level-asymmetry-allowed=1', sdp_text)
         # Enable sps-pps-idr-in-keyframe=1 in H.264 and H.265
         if "h264" in self.encoder or "x264" in self.encoder or "h265" in self.encoder or "x265" in self.encoder:
             if 'sps-pps-idr-in-keyframe' not in sdp_text:
@@ -1538,7 +1538,7 @@ class GSTWebRTCApp:
                 sdp_text = sdp_text.replace('packetization-mode=', 'sps-pps-idr-in-keyframe=1;packetization-mode=')
             elif 'sps-pps-idr-in-keyframe=1' not in sdp_text:
                 logger.warning("injecting modified sps-pps-idr-in-keyframe to SDP")
-                sdp_text = sdp_text.replace(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
+                sdp_text = re.sub(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
         if "opus/" in sdp_text.lower():
             # OPUS_FRAME: Add ptime explicitly to SDP offer
             sdp_text = re.sub(r'([^-]sprop-[^\r\n]+)', r'\1\r\na=ptime:3', sdp_text)
