@@ -397,14 +397,19 @@ class GSTWebRTCApp:
             nvh265enc.set_property("gop-size", -1 if self.keyframe_distance == -1.0 else self.keyframe_frame_distance)
             nvh265enc.set_property("strict-gop", True)
             nvh265enc.set_property("aud", False)
-            nvh265enc.set_property("b-adapt", False)
+            # B-frames in H.265 are only provided with newer GPUs
+            nvenc_properties = [nvenc_property.name for nvenc_property in nvh265enc.list_properties()]
+            if "b-adapt" in nvenc_properties:
+                nvh265enc.set_property("b-adapt", False)
             nvh265enc.set_property("rc-lookahead", 0)
             nvh265enc.set_property("vbv-buffer-size", int((self.fec_video_bitrate + self.framerate - 1) // self.framerate * self.vbv_multiplier_nv))
             if Gst.version().major == 1 and 20 < Gst.version().minor <= 24:
-                nvh265enc.set_property("b-frames", 0)
+                if "b-frames" in nvenc_properties:
+                    nvh265enc.set_property("b-frames", 0)
                 nvh265enc.set_property("zero-reorder-delay", True)
             else:
-                nvh265enc.set_property("bframes", 0)
+                if "bframes" in nvenc_properties:
+                    nvh265enc.set_property("bframes", 0)
                 nvh265enc.set_property("zerolatency", True)
             if Gst.version().major == 1 and Gst.version().minor > 20:
                 nvh265enc.set_property("repeat-sequence-header", True)
