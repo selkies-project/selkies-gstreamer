@@ -41,5 +41,5 @@ rm -rf "${HOME}/.cache/gstreamer-1.0"
 # Set Selkies environment variables
 export SELKIES_WEB_ROOT="${SELKIES_WEB_ROOT:-${CONDA_PREFIX}/share/selkies-web}"
 
-python3 ${CONDA_PREFIX}/bin/selkies-gstreamer \
+python ${CONDA_PREFIX}/bin/selkies-gstreamer \
     $@
