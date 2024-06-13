@@ -22,18 +22,58 @@ jobs:
         if [[ "${RELEASE_VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
           echo "semver=${RELEASE_VERSION/v/}" >> "$GITHUB_OUTPUT"
         else
-          # If ref name does not match semver, default to 0.0.0.
-          # This happens when running from a branch such as main.
+          # If ref name does not match semver, default to 0.0.0
+          # This happens when running from a branch such as main
           echo "semver=0.0.0" >> "$GITHUB_OUTPUT"
+          # Exit with an error because releases from branches should not be made
+          exit 1
         fi
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
-  component_images:
+  core_images:
     needs: get_semver
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
+        - name: gst-web
+          context: addons/gst-web
+
+        - name: py-build
+          build_args: |
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+          context: .
+
+    name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build & publish ${{ matrix.name }} image
+      uses: ./.github/actions/build_and_publish_image
+      with:
+        build_args: ${{ matrix.build_args }}
+        context: ${{ matrix.context }}
+        dockerfile: ${{ matrix.dockerfile }}
+        platforms: ${{ matrix.platforms }}
+        push: ${{ github.event_name != 'pull_request' }}
+        subproject: ${{ matrix.name }}
+        tags: |
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
+
+  # Note: When modifying this job, copy modifications to all other workflow image jobs
+  component_images:
+    needs: core_images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - name: conda
+          build_args: |
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
+          context: addons/conda
+
         - name: coturn
           context: addons/coturn
           platforms: linux/amd64,linux/arm64
@@ -41,9 +81,6 @@ jobs:
         - name: coturn-web
           context: addons/coturn-web
           platforms: linux/amd64,linux/arm64
-
-        - name: gst-web
-          context: addons/gst-web
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
@@ -100,11 +137,6 @@ jobs:
         - name: infra-gcp-installer
           context: infra/gce/installer-image
           diff: infra/gce
-
-        - name: py-build
-          build_args: |
-            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
-          context: .
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
@@ -214,6 +246,14 @@ jobs:
     strategy:
       matrix:
         include:
+        - name: conda
+          source: /opt/selkies-gstreamer-conda.tar.gz
+          target: selkies-gstreamer-portable-${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_amd64.tar.gz
+
+        - name: gst-web
+          source: /opt/gst-web.tar.gz
+          target: selkies-gstreamer-web_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}.tar.gz
+
         - name: gstreamer
           version_suffix: -ubuntu20.04
           source: /opt/selkies-gstreamer-latest.tar.gz
@@ -298,10 +338,6 @@ jobs:
         - name: py-build
           source: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
           target: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
-
-        - name: gst-web
-          source: /opt/gst-web.tar.gz
-          target: selkies-gstreamer-web_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}.tar.gz
 
     name: ${{ matrix.description }} release artifact extraction & upload
     steps:

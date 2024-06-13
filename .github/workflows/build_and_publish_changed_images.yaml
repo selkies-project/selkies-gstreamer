@@ -13,11 +13,56 @@ on:
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
-  component_images:
+  core_images:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
+        - name: gst-web
+          context: addons/gst-web
+
+        - name: py-build
+          build_args: |
+            PACKAGE_VERSION=0.0.0.dev0
+          context: .
+
+    name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2 # This is for changed-files.
+
+    - name: Check for changes to ${{ matrix.name }} image source
+      id: check
+      uses: tj-actions/changed-files@v41
+      with:
+        files: ${{ matrix.diff || matrix.context }}
+
+    - name: Build & publish ${{ matrix.name }} image
+      if: ${{ steps.check.outputs.any_modified }}
+      uses: ./.github/actions/build_and_publish_image
+      with:
+        build_args: ${{ matrix.build_args }}
+        context: ${{ matrix.context }}
+        dockerfile: ${{ matrix.dockerfile }}
+        platforms: ${{ matrix.platforms }}
+        push: ${{ github.event_name != 'pull_request' }}
+        subproject: ${{ matrix.name }}
+        tags: ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}
+
+  # Note: When modifying this job, copy modifications to all other workflow image jobs
+  component_images:
+    needs: core_images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - name: conda
+          build_args: |
+            PACKAGE_VERSION=0.0.0.dev0
+            PKG_VERSION=0.0.0
+          context: addons/conda
+
         - name: coturn
           context: addons/coturn
           platforms: linux/amd64,linux/arm64
@@ -25,9 +70,6 @@ jobs:
         - name: coturn-web
           context: addons/coturn-web
           platforms: linux/amd64,linux/arm64
-
-        - name: gst-web
-          context: addons/gst-web
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
@@ -84,11 +126,6 @@ jobs:
         - name: infra-gcp-installer
           context: infra/gce/installer-image
           diff: infra/gce
-
-        - name: py-build
-          build_args: |
-            PACKAGE_VERSION=0.0.0.dev0
-          context: .
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
@@ -191,6 +228,10 @@ jobs:
     strategy:
       matrix:
         include:
+        - name: conda
+          source: /opt/selkies-gstreamer-conda.tar.gz
+          target: selkies-gstreamer-portable.tar.gz
+
         - name: gst-web
           source: /opt/gst-web.tar.gz
           target: gst-web.tar.gz
