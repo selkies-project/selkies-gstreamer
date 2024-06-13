@@ -5,12 +5,15 @@
 FROM python:3-alpine
 
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
-RUN pip3 install --no-cache-dir --force-reinstall flask
+RUN pip3 install --no-cache-dir --force-reinstall flask gunicorn
 
 COPY app.py /etc
 
 WORKDIR /etc
 
+# Gunicorn environment variables, number of workers
+ENV WEB_CONCURRENCY 1
+ENV SCRIPT_NAME turn-rest
 # Replace environment with customized TURN server
 ENV TURN_SHARED_SECRET openrelayprojectsecret
 ENV TURN_HOST staticauth.openrelay.metered.ca
@@ -20,4 +23,4 @@ ENV TURN_TLS false
 
 EXPOSE 8008
 
-CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=8008"]
+CMD ["python", "-m", "gunicorn", "--name=turn-rest", "--worker-class=gthread", "--threads=8", "--bind=0.0.0.0:8008", "app:app"]
