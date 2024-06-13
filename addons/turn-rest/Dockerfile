@@ -12,8 +12,7 @@ COPY app.py /etc
 WORKDIR /etc
 
 # Gunicorn environment variables, number of workers
-ENV WEB_CONCURRENCY 1
-ENV SCRIPT_NAME turn-rest
+ENV WEB_CONCURRENCY 3
 # Replace environment with customized TURN server
 ENV TURN_SHARED_SECRET openrelayprojectsecret
 ENV TURN_HOST staticauth.openrelay.metered.ca
@@ -23,4 +22,4 @@ ENV TURN_TLS false
 
 EXPOSE 8008
 
-CMD ["python", "-m", "gunicorn", "--name=turn-rest", "--worker-class=gthread", "--threads=8", "--bind=0.0.0.0:8008", "app:app"]
+CMD ["sh", "-c", "python -m gunicorn --worker-class=gthread --workers=1 --threads=${WEB_CONCURRENCY} --bind=0.0.0.0:8008 app:app"]
