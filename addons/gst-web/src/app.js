@@ -543,7 +543,7 @@ webrtc.onconnectionstatechange = (state) => {
                     clearInterval(intervalLoop);
                     return;
                 } else {
-                    receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
+                    receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0;
                 }
             }, 1);
         });
@@ -567,7 +567,7 @@ audio_webrtc.onconnectionstatechange = (state) => {
                     clearInterval(intervalLoop);
                     return;
                 } else {
-                    receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0.0;
+                    receiver.jitterBufferTarget = receiver.jitterBufferDelayHint = receiver.playoutDelayHint = 0;
                 }
             }, 1);
         });
