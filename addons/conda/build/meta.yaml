@@ -201,9 +201,9 @@ requirements:
     - python {{ python }}
     - pygobject
     - {{ pin_compatible('glib') }}
+    - pulseaudio                         # [linux]
     - pulseaudio-client                  # [linux]
     - libva-utils                        # [linux]
-    - vulkan-tools                       # [linux64]
     - libxcb                             # [linux]
     - libxkbcommon                       # [linux]
     - libxkbfile                         # [linux]
@@ -233,7 +233,6 @@ requirements:
     - expat                              # [linux]
     - wayland-protocols                  # [linux]
     - wayland                            # [linux]
-    - fontconfig
     - websockets
     - basicauth
     - gputil

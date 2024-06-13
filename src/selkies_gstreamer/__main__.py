@@ -801,7 +801,7 @@ def main():
     options.https_cert = args.https_cert
     options.https_key = args.https_key
     options.health = "/health"
-    options.web_root = args.web_root
+    options.web_root = os.path.abspath(args.web_root)
     options.keepalive_timeout = 30
     options.cert_restart = False
     options.rtc_config_file = args.rtc_config_json
