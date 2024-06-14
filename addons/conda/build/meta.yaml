@@ -233,6 +233,7 @@ requirements:
     - expat                              # [linux]
     - wayland-protocols                  # [linux]
     - wayland                            # [linux]
+    - bash                               # [linux]
     - websockets
     - basicauth
     - gputil
