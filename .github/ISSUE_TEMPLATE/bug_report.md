@@ -47,9 +47,10 @@ Add any other context about the problem here.
  - [ ] I confirm that the issue is easily reproducible and explained thoroughly.
  - [ ] I confirm that relevant log files have been included as explained below. Any relevant additional log files have also been included.
  - [ ] I confirm that no portion of this issue contains credentials or other private information, and it is my own responsibility to protect my privacy.
+ - [ ] I confirm that the authors of this issue does not willfully breach or infringe legal regulations, in any and all global law, regarding trademarks, trade names, logos, patents, or any and all other forms of external intellectual property, as well as adhering to software license terms of open-source and proprietary software projects.
 
 <!--
- - ALL BUGS: upload the output log from `selkies-gstreamer` regardless of whether the bug is caused by the web browser or the host. Read the error. If you are using `docker-*-desktop` container, upload all log files in `/tmp`.
+ - ALL BUGS: upload the output log from Selkies-GStreamer regardless of whether the bug is caused by the web browser or the host. Read the error. If you are using `docker-*-desktop` container, upload all log files in `/tmp`.
  - If the issue relates to `ximagesrc` and therefore screen capture, upload the Xorg.*.log (such as `/var/log/Xorg.0.log` or `~/.local/share/xorg/Xorg.0.log`).
  - If the issue relates to `webrtcbin` or the web browser, upload contents (or the JSON dump) of `chrome://webrtc-internals` and check in the browser console (F12) to see if there are any errors or warnings. In the browser console, check that the codec is supported in the web browser with `console.log(RTCRtpReceiver.getCapabilities('video').codecs)` or `console.log(RTCRtpReceiver.getCapabilities('audio').codecs)` after putting in `allow pasting`.
  - Check your TURN server configuration and see if it is valid and connectable. In case the ISP throttles a certain protocol, try turning on TURN over TCP and/or TURN over TLS.

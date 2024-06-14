@@ -29,3 +29,4 @@ Add any other context or screenshots about the pull request here.
  - [ ] I confirm that I have read other open and closed pull requests and that duplicates do not exist.
  - [ ] I confirm that I have justified the need for this pull request and that the changes reflect the fix for the specified problem.
  - [ ] I confirm that no portion of this pull request contains credentials or other private information, and it is my own responsibility to protect my privacy.
+ - [ ] I confirm that the authors of this pull request does not willfully breach or infringe legal regulations, in any and all global law, regarding trademarks, trade names, logos, patents, or any and all other forms of external intellectual property, as well as adhering to software license terms of open-source and proprietary software projects.

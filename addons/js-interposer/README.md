@@ -2,7 +2,7 @@
 
 `LD_PRELOAD` library for interposing application calls to open a Linux joystick device and pass data via a unix domain socket.
 
-This allows the `selkies-gstreamer` WebRTC interface to pass gamepad events over `RTCDataChannel`, and translate them to joystick events without requiring access to /dev/input/js0 or depending on kernel modules such as uinput to emulate devices.
+This allows the Selkies-GStreamer WebRTC interface to pass gamepad events over `RTCDataChannel`, and translate them to joystick events without requiring access to /dev/input/js0 or depending on kernel modules such as uinput to emulate devices.
 
 ## Compiling
 
