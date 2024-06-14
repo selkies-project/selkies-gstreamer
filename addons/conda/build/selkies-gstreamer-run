@@ -29,7 +29,7 @@ until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done
 echo 'X Server is ready'
 
 # Use selkies-gstreamer-resize to resize the screen, xrandr required in host (package x11-xserver-utils in Debian or xorg-x11-server-utils/xrandr in RHEL)
-if [ "${ENABLE_XVFB,,}" = "true" ]; then selkies-gstreamer-resize 1920x1080; fi
+if [ "${ENABLE_XVFB,,}" = "true" ]; then ${CONDA_PREFIX}/bin/python ${CONDA_PREFIX}/bin/selkies-gstreamer-resize 1920x1080; fi
 
 # Start PulseAudio server in PULSE_SERVER if requested (bundled with Conda, running applications must restart or run afterwards to send audio)
 export PIPEWIRE_LATENCY="32/48000"
