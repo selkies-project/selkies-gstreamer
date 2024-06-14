@@ -1,4 +1,4 @@
-![Selkies WebRTC](logo/horizontal-480.png)
+![Selkies WebRTC](/logo/horizontal-480.png)
 
 ![Build](https://github.com/selkies-project/selkies-gstreamer/actions/workflows/build_and_publish_all_images.yaml/badge.svg)
 
