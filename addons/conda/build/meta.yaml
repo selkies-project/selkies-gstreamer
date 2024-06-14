@@ -37,7 +37,7 @@ outputs:
     type: conda_v2
     build:
       run_exports:
-        - {{ pin_subpackage('selkies-gstreamer') }}
+        - {{ pin_subpackage('selkies-gstreamer', max_pin='x.x') }}
         - {{ pin_compatible('gstreamer', max_pin='x.x') }}
         - {{ pin_compatible('gst-plugins-base', max_pin='x.x') }}
         - {{ pin_compatible('gst-plugins-good', max_pin='x.x') }}
@@ -78,8 +78,6 @@ requirements:
     - libiconv
     - libtool
     - libgcrypt
-    - libvulkan-loader
-    - libvulkan-headers
     - nasm
     - valgrind
     - yasm
@@ -89,8 +87,9 @@ requirements:
     - perl
     - openssl
     - zlib
-    - glew
-    - glfw
+    # Replace with host dependency libglvnd when merged
+    # https://github.com/conda-forge/staged-recipes/pull/25919
+    # https://github.com/conda-forge/cdt-builds/issues/66#issuecomment-1833417828
     - {{ cdt('mesa-libgl-devel') }}  # [linux]
     - {{ cdt('mesa-libegl-devel') }}  # [linux]
     - {{ cdt('mesa-libgbm') }}  # [linux]
@@ -111,6 +110,7 @@ requirements:
     - dav1d <1.3,>=1.0
     - abseil-cpp
     - libass
+    - curl
     - libcurl
     - libdrm
     - libusb
@@ -118,7 +118,8 @@ requirements:
     - libunwind
     - nettle
     - openssl
-    - fontconfig
+    - glew
+    - glfw
     - libiconv
     - libxml2
     - glib
@@ -136,6 +137,8 @@ requirements:
     - zlib
     - libffi
     - libsoup
+    - libvulkan-loader
+    - libvulkan-headers
     - openexr
     - openjpeg
     - libjpeg-turbo

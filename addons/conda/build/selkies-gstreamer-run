@@ -18,7 +18,7 @@ export PATH="${GSTREAMER_PATH}/bin${PATH:+:${PATH}}"
 export LD_LIBRARY_PATH="${GSTREAMER_PATH}/lib:/usr/lib/x86_64-linux-gnu:/usr/lib:/usr/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 export GI_TYPELIB_PATH="${GSTREAMER_PATH}/lib/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/girepository-1.0:/usr/lib64/girepository-1.0${GI_TYPELIB_PATH:+:${GI_TYPELIB_PATH}}"
 
-# Start Xvfb server in DISPLAY if requested (needs to be installed in host)
+# Start Xvfb server in DISPLAY if requested, required in host (package xvfb in Debian or xorg-x11-server-Xvfb in RHEL)
 if [ ! -S "/tmp/.X11-unix/X${DISPLAY/:/}" ] && [ -x "$(command -v Xvfb)" ] || [ "${ENABLE_XVFB,,}" = "true" ]; then
     export ENABLE_XVFB="true"
     Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >${LOGDIR}/Xvfb_selkies.log 2>&1 &
@@ -27,6 +27,9 @@ fi
 # Wait for X server to start
 until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done
 echo 'X Server is ready'
+
+# Use selkies-gstreamer-resize to resize the screen, xrandr required in host (package x11-xserver-utils in Debian or xorg-x11-server-utils/xrandr in RHEL)
+if [ "${ENABLE_XVFB,,}" = "true" ]; then selkies-gstreamer-resize 1920x1080; fi
 
 # Start PulseAudio server in PULSE_SERVER if requested (bundled with Conda, running applications must restart or run afterwards to send audio)
 export PIPEWIRE_LATENCY="32/48000"
@@ -38,9 +41,6 @@ if [ "${ENABLE_PULSEAUDIO,,}" = "true" ] || [ -z "${PULSE_SERVER}" ]; then
     export PULSE_DLPATH="${CONDA_PREFIX}/lib/pulseaudio/modules"
     ${CONDA_PREFIX}/bin/pulseaudio --verbose --log-target=file:${LOGDIR}/pulseaudio_selkies.log --disallow-exit -F "${CONDA_PREFIX}/etc/pulse/default.pa" &
 fi
-
-# Use selkies-gstreamer-resize to resize the screen, xrandr required (package x11-xserver-utils for Debian or xorg-x11-server-utils in RHEL)
-if [ "${ENABLE_XVFB,,}" = "true" ]; then selkies-gstreamer-resize 1920x1080; fi
 
 # Clear the cache registry
 rm -rf "${HOME}/.cache/gstreamer-1.0"
