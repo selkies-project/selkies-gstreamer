@@ -887,7 +887,7 @@ def main():
             webrtc_input.stop_js_server()
     except KeyboardInterrupt:
         logger.info("Caught keyboard interrupt, stopping")
-        sys.exit(0)
+        sys.exit(1)
     except Exception as e:
         logger.error("Caught exception: %s" % e)
         traceback.print_exc()

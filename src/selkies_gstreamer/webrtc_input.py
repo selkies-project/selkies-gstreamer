@@ -400,16 +400,16 @@ class WebRTCInput:
 
     def read_clipboard(self):
         try:
-            result = subprocess.run(['xsel', '--clipboard', '--output'], check=True, text=True, capture_output=True)
+            result = subprocess.run(('xsel', '--clipboard', '--output'), check=True, text=True, capture_output=True, timeout=3)
             return result.stdout
-        except subprocess.CalledProcessError as e:
+        except subprocess.SubprocessError as e:
             logger.warning(f"Error while capturing clipboard: {e}")
 
     def write_clipboard(self, data):
         try:
-            subprocess.run(['xsel', '--clipboard', '--input'], input=data.encode(), check=True)
+            subprocess.run(('xsel', '--clipboard', '--input'), input=data.encode(), check=True, timeout=3)
             return True
-        except subprocess.CalledProcessError as e:
+        except subprocess.SubprocessError as e:
             logger.warning(f"Error while writing to clipboard: {e}")
             return False
 
@@ -727,7 +727,7 @@ class WebRTCInput:
                 logger.error(
                     "failed to parse latency report from client" + str(toks))
         elif toks[0] == "_stats_video" or toks[0] == "_stats_audio":
-            # WebRTC Statistics API data from client 
+            # WebRTC Statistics API data from client
             try:
                 self.on_client_webrtc_stats(toks[0], ",".join(toks[1:]))
             except:
