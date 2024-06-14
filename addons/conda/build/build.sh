@@ -36,3 +36,5 @@ ${PYTHON} -m pip install -vv --no-deps --no-build-isolation "${SELKIES_SOURCE}/$
 cp -rf "${SELKIES_SOURCE}/gst-web" "${PREFIX}/share/selkies-web"
 cp -rf "${SELKIES_BUILD}/selkies-gstreamer-run" "${PREFIX}/bin/selkies-gstreamer-run"
 chmod -f +x "${PREFIX}/bin/selkies-gstreamer-run"
+cp -rf "${SELKIES_BUILD}/selkies-gstreamer-resize-run" "${PREFIX}/bin/selkies-gstreamer-resize-run"
+chmod -f +x "${PREFIX}/bin/selkies-gstreamer-resize-run"
