@@ -18,4 +18,4 @@
 
 [**Components including Encoders and Interfaces**](component.md)
 
-[**Development**](development.md)
+[**Development and Contributions**](development.md)

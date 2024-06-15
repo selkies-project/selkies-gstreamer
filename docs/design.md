@@ -1,18 +1,20 @@
-**If you just want to get this project running and do not like reading long text, head to [Getting Started](start.md).**
+**If you simply want to get this project running and do not like reading long text, head to [Getting Started](start.md).**
 
 ## What is Selkies-GStreamer?
 
-Have you ever wondered why Windows has Parsec, and Linux does not? Have you ever wanted to obtain full frame on interactive 3D OpenGL/Vulkan/Direct3D-Wine applications or Linux video games without relying on proprietary installers or seated server licenses, from the convenience of your web browser that you enjoyed from noVNC and Apache Guacamole? Do you have a web server, reverse proxy, or load balancer in your infrastructure that a web application must pass through?
+Have you ever wondered why Windows has Parsec, and Linux does not? Have you ever wanted to obtain full frame on interactive 3D OpenGL/Vulkan/Direct3D-Wine applications or Linux video games without relying on proprietary installers or seated server licenses, from the convenience of your web browser that you enjoyed from noVNC or Apache Guacamole? Do you have a web server, reverse proxy, or load balancer in your infrastructure that a web application must pass through?
 
 Have you ever wondered if Moonlight and Sunshine, the only prominent open-source game streaming programs, could be exposed over an HTML5 web browser interface without the need to open as many ports? Or wondered how GeForce Now or Xbox Cloud delivered fluid streams in Chrome with WebRTC?
 
 None of these capabilities have to be behind proprietary walls, the community can build one!
 
+**Moonlight, Google Stadia, or GeForce NOW in noVNC form factor for Linux X11, in any HTML5 web interface you wish to embed inside, with at least 60 frames per second on Full HD resolution.**
+
 Selkies-GStreamer is an open-source low-latency high-performance Linux-native GPU/CPU-accelerated WebRTC HTML5 remote desktop streaming platform, for self-hosting, container, Kubernetes, or HPC platforms, [started out first by Google engineers](https://web.archive.org/web/20210310083658/https://cloud.google.com/solutions/gpu-accelerated-streaming-using-webrtc), then expanded by academic researchers.
 
-Selkies-GStreamer is designed for researchers including people in the visual AI/robotics/autonomous driving/drug discovery field, SLURM supercomputer/HPC system administrators, Jupyter/Kubernetes/Docker®/Coder infrastructure administrators, and Linux cloud gaming enthusiasts.
+Selkies-GStreamer is designed for researchers including people in the graphical AI/robotics/autonomous driving/drug discovery field, SLURM supercomputer/HPC system administrators, Jupyter/Kubernetes/Docker®/Coder infrastructure administrators, and Linux cloud gaming enthusiasts.
 
-While designed for clustered or containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance issue that would be problematic in cloud gaming platforms is also considered a bug.
+While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance issue that would be problematic in cloud gaming platforms is also considered a bug.
 
 ## Design
 
@@ -56,4 +58,4 @@ Therefore, Selkies-GStreamer is meant from the start to be a community-built pro
 
 Selkies-GStreamer mainly uses [`GStreamer-Python`](https://gitlab.freedesktop.org/gstreamer/gstreamer/-/tree/main/subprojects/gst-python), the [Python](https://www.python.org) bindings for GStreamer, [`webrtcbin`](https://gstreamer.freedesktop.org/documentation/webrtc/index.html), which provides the ability to send a WebRTC remote desktop stream to web browsers from GStreamer, and many more community plugins provided by GStreamer.
 
-**Head to [Getting Started](start.md) to deploy your own system.**
+**Head to [Getting Started](start.md) to deploy your own instance.**
