@@ -12,9 +12,7 @@ Selkies-GStreamer is designed for researchers including people in the visual AI/
 
 While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance issue that would be problematic in cloud gaming platforms is also considered a bug.
 
-[Read the Documentation](/docs) to get started.
-
-**Please read [Troubleshooting](#troubleshooting) first, then use [Discord](https://discord.gg/wDNGDeSW5F) or [GitHub Discussions](https://github.com/selkies-project/selkies-gstreamer/discussions) for support questions. Please only use [Issues](https://github.com/selkies-project/selkies-gstreamer/issues) for technical inquiries or bug reports.**
+**[Read the Documentation](/docs/README.md) to get started.**
 
 ## Citations in Academic Publications
 

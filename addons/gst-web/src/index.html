@@ -312,6 +312,15 @@
                 <li>Codec: <b>{{ connectionStat.connectionAudioCodecName }}</b></li>
                 <li>Bitrate: <b>{{ connectionStat.connectionAudioBitrate }} kbps</b></li>
               </ul>
+              <small style="color:gray">
+              Shortcuts
+              <ul>
+                <li>Fullscreen: Ctrl + Shift + F or Fullscreen Button</li>
+                <li>Remote (Game) Cursor: Ctrl + Shift + LeftClick</li>
+                <li>Open Side Menu: Ctrl + Shift + M</li>
+                <li><a style="color:inherit;text-decoration:none" target="_blank" rel="noopener noreferrer" href="https://github.com/selkies-project/selkies-gstreamer/blob/main/README.md#citations-in-academic-publications"><b>Please cite within your publication for academic usage</b></a></li>
+              </ul>
+              </small>
               </p>
               <hr />
               <v-textarea bottom class="scrolly" label="Status Logs" readonly :value="logEntries.join('\n\n')">

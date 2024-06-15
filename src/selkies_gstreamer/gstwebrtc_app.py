@@ -1134,6 +1134,10 @@ class GSTWebRTCApp:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
         # ADD_ENCODER: add new encoder to this list with required GStreamer plugin
+        if "av1" in self.encoder:
+            # rtpav1pay is in gst-plugins-rs
+            required.append("rsrtp")
+
         if self.encoder.startswith("nv"):
             required.append("nvcodec")
 

@@ -184,7 +184,7 @@ class Input {
             }
         }
 
-        // Hotkey to enable pointer lock, Ctrl-Shift-LeftButton
+        // Hotkey to enable pointer lock, Ctrl-Shift-LeftClick
         if (down && event.button === 0 && event.ctrlKey && event.shiftKey) {
             event.target.requestPointerLock().then(
                 () => {

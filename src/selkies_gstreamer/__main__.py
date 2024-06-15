@@ -25,6 +25,7 @@ import http.client
 import json
 import logging
 import os
+import signal
 import socket
 import sys
 import time
@@ -788,6 +789,9 @@ def main():
     # [START main_start]
     # Connect to the signalling server and process messages.
     loop = asyncio.get_event_loop()
+    # Handle SIGINT and SIGTERM where KeyboardInterrupt has issues with asyncio
+    loop.add_signal_handler(signal.SIGINT, lambda: sys.exit(1))
+    loop.add_signal_handler(signal.SIGTERM, lambda: sys.exit(1))
     webrtc_input.loop = loop
 
     # Initialize the signaling and web server
@@ -885,9 +889,6 @@ def main():
             app.stop_pipeline()
             audio_app.stop_pipeline()
             webrtc_input.stop_js_server()
-    except KeyboardInterrupt:
-        logger.info("Caught keyboard interrupt, stopping")
-        sys.exit(1)
     except Exception as e:
         logger.error("Caught exception: %s" % e)
         traceback.print_exc()
