@@ -8,7 +8,9 @@ Selkies-GStreamer is composed of various mandatory and optional components.
 
 ### Mandatory Components
 
-There are currently three mandatory components in Selkies-GStreamer:
+There are currently three mandatory components in Selkies-GStreamer.
+
+All mandatory components are available for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version, or [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` Build Artifacts (under `Artifacts Produced during runtime`) for each commit from the `main` branch.
 
 #### [Python Application](/src/selkies_gstreamer):
 
@@ -17,6 +19,18 @@ The term `host` or `server` refers to the [Python Components](/src/selkies_gstre
 The [Python Components](/src/selkies_gstreamer) are responsible for the host server backend, capturing and encoding the host screen and audio, receiving input signals and communicating other data (including the clipboard) between the client and the host, and establishing the WebRTC (with RTP underneath) connection to the client.
 
 Host screen video and audio are transported using the WebRTC `MediaStream` interface, and other data are transported using the WebRTC `DataChannel` interface.
+
+The components are available for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version, or [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` Build Artifacts (under `Artifacts Produced during runtime`) for each commit from the `main` branch.
+
+Otherwise, copy the Python Wheel file from the container image (DO NOT change the platform in non-x86_64 architectures, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
+
+```bash
+docker create --platform="linux/amd64" --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
+docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+docker rm selkies-py
+sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+```
 
 #### [Web Application](/addons/gst-web):
 
@@ -110,7 +124,7 @@ no-stun-backward-compatibility
 response-origin-only-with-rfc5780
 ```
 
-#### [TURN-REST Container](/addons/turn-rest):
+#### [TURN-REST](/addons/turn-rest):
 
 **NOTE that the below is an advanced concept for multi-user environments.**
 

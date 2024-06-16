@@ -4,7 +4,7 @@
 
 Have you ever wondered why Windows has Parsec, and Linux does not? Have you ever wanted to obtain full frame on interactive 3D OpenGL/Vulkan/Direct3D-Wine applications or Linux video games without relying on proprietary installers or seated server licenses, from the convenience of your web browser that you enjoyed from noVNC or Apache Guacamole? Do you have a web server, reverse proxy, or load balancer in your infrastructure that a web application must pass through?
 
-Have you ever wondered if Moonlight and Sunshine, the only prominent open-source game streaming programs, could be exposed over an HTML5 web browser interface without the need to open as many ports? Or wondered how GeForce Now or Xbox Cloud delivered fluid streams in Chrome with WebRTC?
+Have you ever wondered if Moonlight and Sunshine, the only prominent open-source game streaming program, could be exposed over an HTML5 web browser interface without the need to open as many ports? Or wondered how GeForce Now or Xbox Cloud delivered fluid streams in Chrome with WebRTC?
 
 None of these capabilities have to be behind proprietary walls, the community can build one!
 

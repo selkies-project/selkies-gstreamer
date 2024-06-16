@@ -34,10 +34,6 @@ Regardless of your experience level, there is always something that you could he
 
 When contributing, please follow the overall style of the code, and the names of all variables, classes, or functions should be unambiguous and as less generic/confusing as possible.
 
-## CI/CD Build
-
-We use Docker containers for building every commit. The root directory [`Dockerfile`](/Dockerfile) and Dockerfiles within the [`addons`](/addons) directory provide directions for building each component, so that you may replicate the procedures in your own setup even without Docker by copying the commands to your own shell.
-
 ## Collaborating Projects
 
 <https://github.com/Xpra-org/xpra>
@@ -58,7 +54,9 @@ These people make structural decisions for this project and press the `Merge Pul
 
 ### Code Contributors
 
-[PMohanJ](https://github.com/PMohanJ): Contributed new features for the X11 input protocol
+[PMohanJ](https://github.com/PMohanJ): Contributed new features for the X11 input protocol as well as providing various fixes for the project overall and providing various means of analysis
+
+[ayunami2000](https://github.com/ayunami2000): Provided various fixes for the WebRTC HTML5 web interface, as well as providing various means of analysis
 
 ### Past Contributors
 
