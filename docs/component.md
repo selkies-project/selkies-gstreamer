@@ -22,7 +22,7 @@ Pre-built `x86_64` portable distributions for **any Linux distribution with `gli
 
 For the most recent unreleased commit, download from the [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` **`conda_linux-amd64`** Build Artifact (under `Artifacts (Produced during runtime)`) for each commit from the `main` branch.
 
-Alternatively, copy the pre-built `x86_64` portable distribution build from the container image (change `main` to `latest` for the latest release):
+Alternatively, copy the pre-built `x86_64` portable distribution build from the container image (change `main` with `latest` for the latest release instead of commit):
 
 ```bash
 docker create --platform="linux/amd64" --name ghcr.io/selkies-project/selkies-gstreamer/conda:main
@@ -47,7 +47,7 @@ The architecture-independent components are available with the name **`selkies_g
 
 For the most recent unreleased commit, download from the [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` **`py-build_linux-amd64`** Build Artifact (under `Artifacts (Produced during runtime)`) for each commit from the `main` branch.
 
-Alternatively, copy the Python Wheel file from the build container image (DO NOT change the platform in non-`x86_64` architectures, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
+Alternatively, copy the Python Wheel file from the build container image (DO NOT change the platform in non-`x86_64` architectures, install [binfmt](https://github.com/tonistiigi/binfmt) instead, and change `main` with `latest` for the latest release instead of commit):
 
 ```bash
 docker create --platform="linux/amd64" --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
@@ -73,7 +73,7 @@ The architecture-independent components are available with the name **`selkies-g
 
 For the most recent unreleased commit, download from the [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` **`gst-web_linux-amd64`** Build Artifact (under `Artifacts (Produced during runtime)`) for each commit from the `main` branch.
 
-Alternatively, install the web interface components to the container image (DO NOT change the platform in non-`x86_64` architectures, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
+Alternatively, install the web interface components to the container image (DO NOT change the platform in non-`x86_64` architectures, install [binfmt](https://github.com/tonistiigi/binfmt) instead, and change `main` with `latest` for the latest release instead of commit):
 
 ```bash
 docker create --platform="linux/amd64" --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
@@ -93,7 +93,7 @@ Pre-built `x86_64` GStreamer components for Ubuntu are available with the name (
 
 For the most recent unreleased commit, download from the [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` **`gstreamer-ubuntu${DISTRIB_RELEASE}_linux-amd64`** Build Artifact (under `Artifacts (Produced during runtime)`) for each commit from the `main` branch.
 
-Alternatively, copy the pre-built `x86_64` GStreamer build from the container image and move it to `/opt/gstreamer` or your directory of choice:
+Alternatively, copy the pre-built `x86_64` GStreamer build from the container image and move it to `/opt/gstreamer` or your directory of choice (change `main` with `latest` for the latest release instead of commit):
 
 ```bash
 docker create --platform="linux/amd64" --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
@@ -115,7 +115,7 @@ Pre-built `x86_64` and `aarch64` joystick interposer components for Ubuntu are a
 
 For the most recent unreleased commit, download from the [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` **`js-interposer-ubuntu${DISTRIB_RELEASE}-tar.gz_linux-${ARCH}`** or **`js-interposer-ubuntu${DISTRIB_RELEASE}-deb_linux-${ARCH}`** Build Artifact (under `Artifacts (Produced during runtime)`) for each commit from the `main` branch.
 
-Alternatively, copy and install the pre-built Joystick Interposer build (change `--platform=` to `linux/arm64` for `aarch64`):
+Alternatively, copy and install the pre-built Joystick Interposer build (change `--platform=` to `linux/arm64` for `aarch64`, and change `main` with `latest` and `0.0.0` to the release version for the latest release instead of commit):
 
 ```bash
 docker create --platform="linux/amd64" --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
@@ -125,7 +125,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y /tmp/selk
 rm -f /tmp/selkies-js-interposer.deb
 ```
 
-Check the [Joystick Interposer README.md](/addons/js-interposer/README.md) documentation for compiling information on other platforms.
+Check the [Joystick Interposer README.md](/addons/js-interposer/README.md) documentation for usage instruction and compiling information on other platforms.
 
 Check the following links for explanations of similar, but different attempts, for reference:
 
@@ -142,8 +142,6 @@ Check the following links for explanations of similar, but different attempts, f
 #### [Example Container](/addons/example):
 
 The [Example Container](/addons/example) is the reference minimal-functionality container developers can base upon, or test Selkies-GStreamer quickly. The bare minimum Xfce4 desktop environment is installed together with Firefox, as well as an embedded TURN server inside the container for quick WebRTC firewall traversal.
-
-
 
 #### [coTURN](/addons/coturn):
 
