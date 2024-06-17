@@ -25,7 +25,7 @@ if [ ! -S "/tmp/.X11-unix/X${DISPLAY/:/}" ] && [ -x "$(command -v Xvfb)" ] || [ 
 fi
 
 # Wait for X server to start
-until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done
+until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 0.5; done
 echo 'X Server is ready'
 
 # Use selkies-gstreamer-resize to resize the screen, xrandr required in host (package x11-xserver-utils in Debian or xorg-x11-server-utils/xrandr in RHEL)
@@ -33,7 +33,8 @@ if [ "${ENABLE_XVFB,,}" = "true" ]; then ${CONDA_PREFIX}/bin/python ${CONDA_PREF
 
 # Start PulseAudio server in PULSE_SERVER if requested (bundled with Conda, running applications may need to restart or run afterwards to relay audio)
 export PIPEWIRE_LATENCY="32/48000"
-if [ "${ENABLE_PULSEAUDIO,,}" = "true" ] || [ -z "${PULSE_SERVER}" ]; then
+export PULSE_SERVER_PATH="${PULSE_SERVER#*:}"
+if [ "${ENABLE_PULSEAUDIO,,}" = "true" ] || [ ! -S "${PULSE_SERVER_PATH}" ]; then
     export ENABLE_PULSEAUDIO="true"
     # PipeWire/PulseAudio server socket path
     export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"

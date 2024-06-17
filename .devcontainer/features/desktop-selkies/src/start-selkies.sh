@@ -22,7 +22,7 @@ fi
 
 # Wait for X11 to start
 echo "Waiting for X socket"
-until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 1; done
+until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 0.5; done
 echo "X socket is ready"
 
 # Disable screen saver
