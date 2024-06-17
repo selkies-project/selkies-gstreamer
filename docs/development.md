@@ -58,7 +58,9 @@ These people make structural decisions for this project and press the `Merge Pul
 
 [ayunami2000](https://github.com/ayunami2000): Provided various fixes for the WebRTC HTML5 web interface, as well as providing various means of analysis
 
-### Past Contributors
+[Carlos Ruiz](https://github.com/cruizba): [OpenVidu](https://openvidu.io) Team, provided various proposals for fixing the X11 input protocol
+
+### Past Maintainers
 
 [Jan Van Bruggen](https://github.com/JanCVanB): Project Co-Founder, ex-Google, ex-NASA, ex-itopia, current Verily
 
