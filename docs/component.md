@@ -10,7 +10,7 @@ Selkies-GStreamer is composed of various mandatory and optional components.
 
 There are currently three mandatory components in Selkies-GStreamer.
 
-All mandatory components are available for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version, or [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` Build Artifacts (under `Artifacts Produced during runtime`) for each commit from the `main` branch.
+All mandatory components are available for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version, or [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` Build Artifacts (under `Artifacts Produced during runtime`) for each commit from the `main` branch. Build Artifacts can also be downloaded using the [GitHub CLI](https://cli.github.com/) command [`gh run download`](https://cli.github.com/manual/gh_run_download).
 
 #### [Python Application](/src/selkies_gstreamer):
 
