@@ -8,7 +8,7 @@ If you can deploy Docker® or Podman containers, this is the easiest way to get 
 
 ### Example Docker container
 
-**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker command to enable host networking and work around this requirement if your server is not behind NAT). Follow the instructions from [Using a TURN server](firewall.md) in order to make the container work using an external TURN server.**
+**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker command to enable host networking and work around this requirement if your server is not behind NAT). Follow the instructions from [WebRTC and Firewall Issues](firewall.md) in order to make the container work using an external TURN server.**
 
 An example image [`ghcr.io/selkies-project/selkies-gstreamer/gst-py-example`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-py-example) from the base [example Dockerfile](/example/Dockerfile) is available.
 
@@ -48,7 +48,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 ### Install the packaged version on a standalone machine or cloud instance
 
-**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](firewall.md) in order to make the container work using an external TURN server.**
+**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [WebRTC and Firewall Issues](firewall.md) in order to make the container work using an external TURN server.**
 
 While this instruction assumes that you are installing this project systemwide, it is possible to install and run all components completely within the userspace. Dependencies may also be installed without root permissions if you use [`conda`](https://conda.io) or other userspace package management systems. Documentation contributions for such instructions are welcome.
 
@@ -153,7 +153,7 @@ selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/
 
 Otherwise, Docker (or an equivalent) may be used if you are to use builds from the latest commit. Refer to the above section for more granular informations. This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. Change `main` to `latest` if you want the latest release version instead of the latest development version.
 
-**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [Using a TURN server](firewall.md) in order to make the container work using an external TURN server.**
+**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [WebRTC and Firewall Issues](firewall.md) in order to make the container work using an external TURN server.**
 
 While this instruction assumes that you are installing this project systemwide, it is possible to install and run all components completely within the userspace. Dependencies may also be installed without root permissions if you use [`conda`](https://conda.io) or other userspace package management systems. Documentation contributions for such instructions are welcome.
 

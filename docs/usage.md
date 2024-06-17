@@ -38,7 +38,7 @@ Also check if the WebRTC video codec is supported in the web browser, as the ser
 
 Moreover, if using HTTP but not HTTPS on a remote host that is not `localhost`, use port forwarding to `localhost` as much as possible. Many browsers do not support WebRTC or relevant features including pointer and keyboard lock in HTTP outside localhost.
 
-Then, please read [Using a TURN server](firewall.md).
+Then, please read [WebRTC and Firewall Issues](firewall.md).
 
 If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the private VPN IP of the TURN server host, such as `192.168.0.2`.
 
