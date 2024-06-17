@@ -20,9 +20,9 @@ The [Python Components](/src/selkies_gstreamer) are responsible for the host ser
 
 Host screen video and audio are transported using the WebRTC `MediaStream` interface, and other data are transported using the WebRTC `DataChannel` interface.
 
-The components are available for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version, or [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` Build Artifacts (under `Artifacts Produced during runtime`) for each commit from the `main` branch.
+The architecture-independent components are available with the name [`selkies_gstreamer-${VERSION}-py3-none-any.whl`] for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version, or [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` `py-build_linux-amd64` Build Artifact (under `Artifacts Produced during runtime`) for each commit from the `main` branch.
 
-Otherwise, copy the Python Wheel file from the container image (DO NOT change the platform in non-x86_64 architectures, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
+Alternatvely, copy the Python Wheel file from the build container image (DO NOT change the platform in non-x86_64 architectures, install [binfmt](https://github.com/tonistiigi/binfmt) instead):
 
 ```bash
 docker create --platform="linux/amd64" --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main

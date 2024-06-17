@@ -246,7 +246,6 @@ requirements:
     - psutil
     - watchdog
     - pillow
-    - python-xlib
     - wmctrl-cli                        # [linux]
     - xdotool                           # [linux]
     - xsel                              # [linux]
