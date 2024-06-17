@@ -68,7 +68,7 @@ However, it might be that the parameters for the WebRTC interface, video encoder
 
 This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use.
 
-In order to use the web interface when this is not possible (or when you are using SSH or other forms of remote access), check `sudo systemctl status sddm`, `sudo systemctl status lightdm`, or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running Selkies-GStreamer as `root`.
+In order to use the web interface when this is not possible (or when you are using SSH or other forms of remote access), check `sudo systemctl status sddm`, `sudo systemctl status lightdm`, or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running Selkies-GStreamer as `root` or `sudo`.
 
 ## My touchpad does not move while pressing a key with the keyboard.
 
