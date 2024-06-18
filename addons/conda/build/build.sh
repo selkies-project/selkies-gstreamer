@@ -40,5 +40,7 @@ cp -rf "${SELKIES_SOURCE}/gst-web" "${PREFIX}/share/selkies-web"
 # Install startup scripts
 cp -rf "${SELKIES_BUILD}/selkies-gstreamer-run" "${PREFIX}/bin/selkies-gstreamer-run"
 chmod -f +x "${PREFIX}/bin/selkies-gstreamer-run"
+ln -snf "${PREFIX}/bin/selkies-gstreamer-run" "${PREFIX}"
 cp -rf "${SELKIES_BUILD}/selkies-gstreamer-resize-run" "${PREFIX}/bin/selkies-gstreamer-resize-run"
 chmod -f +x "${PREFIX}/bin/selkies-gstreamer-resize-run"
+ln -snf "${PREFIX}/bin/selkies-gstreamer-resize-run" "${PREFIX}"

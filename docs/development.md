@@ -66,9 +66,9 @@ These people make structural decisions for this project and press the `Merge Pul
 
 [Reisbel Machado](https://github.com/reisbel): itopia
 
-# Development Advice
+# Knowledge Base
 
-This section is is a knowledge base for code contributions.
+This section is a knowledge base for code contributions.
 
 ## GStreamer Development Advice
 
@@ -81,4 +81,3 @@ Otherwise, any [GStreamer](https://gstreamer.freedesktop.org) plugin [Documentat
 Therefore, all contributors implementing or modifying code relevant to GStreamer are also to carefully check parent classes as well when configuring [properties](https://gstreamer.freedesktop.org/documentation/plugin-development/basics/args.html) or [capabilities](https://gstreamer.freedesktop.org/documentation/gstreamer/gstcaps.html).
 
 Please also note that objects based on GstBin (most notably `webrtcbin` and `rtpbin`) may embed multiple sub-objects into a single object.
-

@@ -57,6 +57,15 @@ sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall /
 rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 ```
 
+One other alternative way to install the Python application components from the most recent unreleased commit:
+
+```bash
+git clone https://github.com/selkies-project/selkies-gstreamer.git
+cd selkies-gstreamer
+export PIP_BREAK_SYSTEM_PACKAGES=1
+pip install --no-cache-dir --force-reinstall .
+```
+
 #### [Web Application](/addons/gst-web):
 
 The term `client` refers to the [Web Components](/addons/gst-web) across this documentation.
@@ -67,7 +76,7 @@ They receive and display the received screen and audio within the web browser, d
 
 They also handle remote cursors with the Pointer Lock API that allows you to correctly control interactive applications and games, and also modify the SDP (responsible for negotiating the stream between the host and the client) so that hidden web browser features can be utilized.
 
-WebRTC enables clients to decode the stream using GPU hardware acceleration, as well as GPU-accelerated stream encoding from the host.
+WebRTC enables web browser clients to decode the stream using GPU hardware acceleration, as well as GPU-accelerated stream encoding from the host.
 
 The architecture-independent components are available with the name **`selkies-gstreamer-web_${SELKIES_VERSION}.tar.gz`** for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version.
 
@@ -79,6 +88,14 @@ Alternatively, install the web interface components to the container image (DO N
 docker create --platform="linux/amd64" --name gst-web ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
 sudo docker cp gst-web:/usr/share/nginx/html /opt/gst-web
 docker rm gst-web
+```
+
+One other alternative way to install the web interface components from the most recent unreleased commit (replace `INSTALL_DIR=/opt/gst-web` with your own directory):
+
+```bash
+git clone https://github.com/selkies-project/selkies-gstreamer.git
+cd selkies-gstreamer/addons/gst-web
+sudo `INSTALL_DIR=/opt/gst-web` ./install.sh
 ```
 
 #### [GStreamer](/addons/gstreamer):
@@ -123,6 +140,14 @@ docker cp js-interposer:/opt/selkies-js-interposer_0.0.0.deb /tmp/selkies-js-int
 docker rm js-interposer
 sudo apt-get update && sudo apt-get install --no-install-recommends -y /tmp/selkies-js-interposer.deb
 rm -f /tmp/selkies-js-interposer.deb
+```
+
+To retrieve the `.tar.gz` tarball instead of the `.deb` installer:
+
+```bash
+docker create --platform="linux/amd64" --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
+docker cp js-interposer:/opt/selkies-js-interposer_0.0.0.tar.gz /opt/selkies-js-interposer_0.0.0.tar.gz
+docker rm js-interposer
 ```
 
 The following paths are required to exist for the Joystick Interposer to pass the joystick/gamepad input to various applications:

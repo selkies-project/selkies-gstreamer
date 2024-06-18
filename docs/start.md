@@ -33,7 +33,7 @@ export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}
 4. Run Selkies-GStreamer (change `--encoder=` to another value such as `nvh264enc`, `vah264enc`, `vp9enc`, or `vp8enc`, if you want to [use different codecs or GPU acceleration](component.md#encoders)):
 
 ```bash
-./selkies-gstreamer/bin/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
+./selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
 ```
 
 Use `--enable_resize=true` if you want to fit the remove resolution to the client window and skip the next section. You must **NOT** enable this option when streaming a physical monitor.
@@ -41,7 +41,7 @@ Use `--enable_resize=true` if you want to fit the remove resolution to the clien
 5. Resize to your intended resolution (**DO NOT resize when streaming a physical monitor**):
 
 ```bash
-./selkies-gstreamer/bin/selkies-gstreamer-resize-run 1920x1080
+./selkies-gstreamer/selkies-gstreamer-resize-run 1920x1080
 ```
 
 6. Check the [Joystick Interposer](component.md#joystick-interposer) section if you need to use joystick/gamepad devices from your web browser client.
