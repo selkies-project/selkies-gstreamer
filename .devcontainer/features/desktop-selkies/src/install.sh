@@ -44,7 +44,9 @@ apt-get update && apt-get install --no-install-recommends -y \
     libdrm2 \
     libegl1 \
     libgl1 \
+    libopengl0 \
     libgles1 \
+    libgles2 \
     libglvnd0 \
     libglx0 \
     wayland-protocols \

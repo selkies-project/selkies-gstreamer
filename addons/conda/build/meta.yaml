@@ -38,14 +38,14 @@ outputs:
     build:
       run_exports:
         - {{ pin_subpackage('selkies-gstreamer', max_pin='x.x') }}
-        - {{ pin_compatible('gstreamer', max_pin='x.x') }}
-        - {{ pin_compatible('gst-plugins-base', max_pin='x.x') }}
-        - {{ pin_compatible('gst-plugins-good', max_pin='x.x') }}
-        - {{ pin_compatible('gst-plugins-ugly', max_pin='x.x') }}
-        - {{ pin_compatible('gst-plugins-bad', max_pin='x.x') }}
-        - {{ pin_compatible('gst-libav', max_pin='x.x') }}
-        - {{ pin_compatible('gst-python', max_pin='x.x') }}
-        - {{ pin_compatible('gstreamer-orc', max_pin='x.x') }}
+        - {{ pin_subpackage('gstreamer', max_pin='x.x') }}
+        - {{ pin_subpackage('gst-plugins-base', max_pin='x.x') }}
+        - {{ pin_subpackage('gst-plugins-good', max_pin='x.x') }}
+        - {{ pin_subpackage('gst-plugins-ugly', max_pin='x.x') }}
+        - {{ pin_subpackage('gst-plugins-bad', max_pin='x.x') }}
+        - {{ pin_subpackage('gst-libav', max_pin='x.x') }}
+        - {{ pin_subpackage('gst-python', max_pin='x.x') }}
+        - {{ pin_subpackage('gstreamer-orc', max_pin='x.x') }}
 
 requirements:
   build:
