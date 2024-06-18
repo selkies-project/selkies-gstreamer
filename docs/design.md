@@ -18,7 +18,7 @@ While designed for clustered or unprivileged containerized environments, Selkies
 
 ## Design
 
-Selkies-GStreamer streams a Linux X11 desktop or Docker/Kubernetes container to a recent web browser using WebRTC with GPU hardware or CPU software acceleration from the server and the client. Linux Wayland, Mac, and Windows support is planned, but community contribution will always accelerate new features.
+Selkies-GStreamer streams a Linux X11 desktop or Docker®/Kubernetes container to a recent web browser using WebRTC with GPU hardware or CPU software acceleration from the server and the client. Linux Wayland, Mac, and Windows support is planned, but community contribution will always accelerate new features.
 
 This project is adequate as a high-performance replacement to most Linux remote desktop solutions, providing similar performance, delivering 60 frames per second at 1080p resolution with software encoding on 150% CPU consumption or better on an NVIDIA or Intel/AMD GPU. Selkies-GStreamer, overall, achieves comparable performance to proprietary remote desktop platforms and surpasses those of similar open-source applications by incorporating GPU-accelerated screen encoding and latency-eliminating techniques.
 
@@ -40,7 +40,7 @@ Second, Selkies-GStreamer can utilize H.264 hardware acceleration of GPUs, as we
 
 WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC, and Intel and AMD GPUs supported with VA-API, with progress on supporting other GPU hardware.
 
-Third, Selkies-GStreamer was designed not only for desktops and bare metal servers, but also for unprivileged Docker and Kubernetes containers.
+Third, Selkies-GStreamer was designed not only for desktops and bare metal servers, but also for unprivileged Docker® and Kubernetes containers.
 
 Unlike other similar Linux solutions, there are no dependencies that require access to special devices not available inside containers by default, and is also not dependent on `systemd`.
 

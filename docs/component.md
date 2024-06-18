@@ -14,9 +14,9 @@ All mandatory components are available for download from the [Releases](https://
 
 For the most recent unreleased commit, download from the [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` Build Artifacts (under `Artifacts (Produced during runtime)`) for each commit from the `main` branch. Build Artifacts can also be downloaded using the [GitHub CLI](https://cli.github.com) command [`gh run download`](https://cli.github.com/manual/gh_run_download).
 
-#### [Conda Toolchain](/addons/conda):
+#### Conda Toolchain:
 
-Our [reference portable distribution](/addons/conda) is compiled with the distribution-neutral [Conda](https://conda-forge.org) build toolchain, distributing all three mandatory components as well as portable versions of most dependencies in a tarball.
+Our [reference portable distribution toolchain](/addons/conda) is compiled with the distribution-neutral [Conda](https://conda-forge.org) build toolchain, distributing all three mandatory components as well as portable versions of most dependencies in a tarball.
 
 Pre-built `x86_64` portable distributions for **any Linux distribution with `glibc ≥ 2.17`** (CentOS 7 or newer) are available with the name **`selkies-gstreamer-portable-${SELKIES_VERSION}_amd64.tar.gz`** for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version.
 
@@ -35,7 +35,7 @@ cd /opt && sudo tar -xzf /tmp/selkies-gstreamer-latest.tar.gz && rm -f /tmp/selk
 
 Otherwise (for different system architectures), you can build your own portable distribution (currently tested with `aarch64` and `ppc64le`).
 
-#### [Python Application](/src/selkies_gstreamer):
+#### Python Application:
 
 The term `host` or `server` refers to the [Python Components](/src/selkies_gstreamer) across this documentation.
 
@@ -66,7 +66,7 @@ export PIP_BREAK_SYSTEM_PACKAGES=1
 pip install --no-cache-dir --force-reinstall .
 ```
 
-#### [Web Application](/addons/gst-web):
+#### Web Application:
 
 The term `client` refers to the [Web Components](/addons/gst-web) across this documentation.
 
@@ -98,7 +98,7 @@ cd selkies-gstreamer/addons/gst-web
 sudo `INSTALL_DIR=/opt/gst-web` ./install.sh
 ```
 
-#### [GStreamer](/addons/gstreamer):
+#### GStreamer:
 
 [GStreamer](https://gstreamer.freedesktop.org) "is a library for constructing graphs of media-handling components. The applications it supports range from simple Ogg/Vorbis playback, audio/video streaming to complex audio (mixing) and video (non-linear editing) processing." GStreamer is likely inside your smart TV, car infotainment system, or the digital street signage or surveillance camera near you, as well as many media players and video editing software.
 
@@ -124,7 +124,7 @@ Otherwise (for different operating system distributions or system architectures)
 
 These components are not required for Selkies-GStreamer, but may be required in specific cases of deployments or preferences. Recommended to read nonetheless.
 
-#### [Joystick Interposer](/addons/js-interposer):
+#### Joystick Interposer:
 
 The [Joystick Interposer](/addons/js-interposer) is a special library which allows the usage of joysticks or gamepads inside unprivileged containers (most of the occasions with shared Kubernetes clusters or HPC clusters), where host kernel devices required for creating a joystick interface are not available. It uses a `LD_PRELOAD` hack to intercept `uinput` input commands from joysticks or gamepads into Selkies-GStreamer (much like how [VirtualGL](https://github.com/VirtualGL/virtualgl) intercepts OpenGL commands).
 
@@ -181,11 +181,11 @@ Check the following links for explanations of similar, but different attempts, f
 
 <https://github.com/games-on-whales/wolf/tree/stable/src/fake-udev>
 
-#### [Example Container](/addons/example):
+#### Example Container:
 
 The [Example Container](/addons/example) is the reference minimal-functionality container developers can base upon, or test Selkies-GStreamer quickly. The bare minimum Xfce4 desktop environment is installed together with Firefox, as well as an embedded TURN server inside the container for quick WebRTC firewall traversal.
 
-Run the Docker/Podman container built from the [`Example Dockerfile`](/addons/example/Dockerfile), then connect to port **8080** of your Docker/Podman host to access the web interface (Username: **`ubuntu`**, Password: **`password`**, **change `DISTRIB_RELEASE` to `24.04`, `22.04`, or `20.04`, and replace `main` to `latest` for the latest stable release**):
+Run the Docker®/Podman container built from the [`Example Dockerfile`](/addons/example/Dockerfile), then connect to port **8080** of your Docker®/Podman host to access the web interface (Username: **`ubuntu`**, Password: **`password`**, **change `DISTRIB_RELEASE` to `24.04`, `22.04`, or `20.04`, and replace `main` to `latest` for the latest stable release**):
 
 ```bash
 docker run --pull=always --name selkies -it -d --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
@@ -193,15 +193,17 @@ docker run --pull=always --name selkies -it -d --rm -p 8080:8080 -p 3478:3478 gh
 
 Port 3478 is the port for the internal TURN server which is needed to route WebRTC through restrictive networks.
 
-**Otherwise, you will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker command to enable host networking and work around this requirement if your server is not behind NAT). Follow the instructions from [coTURN](#coturn) and [WebRTC and Firewall Issues](firewall.md) in order to make the container work using an external TURN server.**
+Otherwise, you will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker® command to enable host networking and work around this requirement if your server is not behind NAT).
 
-#### [coTURN](/addons/coturn):
+**Follow the instructions from [coTURN](#coturn) and [WebRTC and Firewall Issues](firewall.md) in order to make the container work using an external TURN server.**
+
+#### coTURN:
 
 Note that there are other different TURN server implementations other than coTURN, some of which are also compatible with Windows and MacOS.
 
 The [coTURN Container](/addons/coturn) is a reference container which provides the [coTURN](https://github.com/coturn/coturn) TURN server. Other than options including `-e TURN_SHARED_SECRET=`, `-e TURN_REALM=`, `-e TURN_PORT=`, `-e TURN_MIN_PORT=`, and `-e TURN_MAX_PORT=`, add more command-line options in `-e EXTRA_ARGS=`.
 
-Run the Docker/Podman container built from the [`coTURN Dockerfile`](/addons/coturn/Dockerfile) (replace `main` to `latest` for the latest stable release**):
+Run the Docker®/Podman container built from the [`coTURN Dockerfile`](/addons/coturn/Dockerfile) (replace `main` to `latest` for the latest stable release**):
 
 ```bash
 docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT="3478" -e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535" -p 3478:3478 -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
@@ -256,9 +258,11 @@ For single-user environments, traditional long-term credential authentication is
 
 Please read the [TURN-REST](#turn-rest) section for the difference between static auth secret/TURN REST API authentication and traditional long-term credential authentication.
 
-#### [TURN-REST](/addons/turn-rest):
+#### TURN-REST:
 
-**NOTE that the below is an advanced concept for multi-user environments.**
+**The below is an advanced concept for multi-user environments.**
+
+![TURN-REST.svg](assets/TURN-REST.svg)
 
 A TURN server is required with WebRTC when both the host and the client are under Symmetric NAT or are each under Port Restricted Cone NAT and Symmetric NAT.
 
@@ -274,9 +278,9 @@ This URL is ideally behind a local area network (LAN) inaccessible from the outs
 
 Because the time-limited TURN credentials automatically expire after some time, they are not useful even if they are leaked outside, as long as the pathway to the air-gapped or authenticated TURN-REST Container REST HTTP endpoint is not exposed plainly to the internet. [app.py](/addons/turn-rest/app.py) may also be hosted standalone without a container using the same startup command in the [Dockerfile](/addons/turn-rest/Dockerfile).
 
-The TURN-REST Container (or similarly, Kubernetes Pod) should be triggered with the Docker/Podman options `-e TURN_SHARED_SECRET=`, `-e TURN_HOST=`, `-e TURN_PORT=`, `-e TURN_PROTOCOL=`, `-e TURN_TLS=`, where the options are dependent on the TURN server configuration of [coTURN](#coturn) or other TURN server implementations.
+The TURN-REST Container (or similarly, Kubernetes Pod) should be triggered with the Docker®/Podman options `-e TURN_SHARED_SECRET=`, `-e TURN_HOST=`, `-e TURN_PORT=`, `-e TURN_PROTOCOL=`, `-e TURN_TLS=`, where the options are dependent on the TURN server configuration of [coTURN](#coturn) or other TURN server implementations.
 
-Run the Docker/Podman container built from the [`TURN-REST Dockerfile`](/addons/turn-rest/Dockerfile) (replace `main` to `latest` for the latest stable release**):
+Run the Docker®/Podman container built from the [`TURN-REST Dockerfile`](/addons/turn-rest/Dockerfile) (replace `main` to `latest` for the latest stable release**):
 
 ```bash
 docker run --pull=always --name turn-rest -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_HOST=turn.myinfrastructure.io -e TURN_PORT="3478" -e TURN_PROTOCOL=udp -e TURN_TLS="false" -p 8008:8008 ghcr.io/selkies-project/selkies-gstreamer/turn-rest:main
@@ -293,7 +297,7 @@ Note that both methods require additionally manually specifying the `selkies-gst
 
 Conversely, using the `selkies-gstreamer --turn_rest_uri=` option or `SELKIES_TURN_REST_URI` environment variable is sufficient when using the TURN REST API method, because the TURN-REST Container passes TURN server information with the credentials.
 
-#### [coTURN-Web](/addons/coturn-web):
+#### coTURN-Web:
 
 The [coTURN-Web Container](/addons/coturn-web) is a legacy component meant to provide similar capabilities to the [TURN-REST Container](/addons/turn-rest) for the Google Kubernetes Engine, mostly old remnants from the Google era. This component may be phased out as well as the [`infra/gce`](/infra/gce) and [`infra/gke`](/infra/gke) components and `cloudbuild.yml` configurations in favor of platform-agnostic Kubernetes configurations. Contributions are welcome.
 

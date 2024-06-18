@@ -1,6 +1,6 @@
 # Usage
 
-## Locking the cursor and fullscreen mode
+## Shortcuts
 
 **Fullscreen: `Control + Shift + F` or Fullscreen Button**
 
@@ -14,7 +14,7 @@ The cursor can be locked into the web interface using `Control + Shift + Left Cl
 
 The configuration menu is available by clicking the small button on the right side of the interface with the fullscreen turned off, or by using the shortcut `Control + Shift + M`.
 
-## Command-line options and environment variables
+## Command-Line Options and Environment Variables
 
 Use `selkies-gstreamer --help` for all command-line options, after the command `. ./gst-env` for compiled GStreamer or the command `. ./bin/activate` for Conda.
 
@@ -22,11 +22,11 @@ Environment variables for command-line options are available as capitalizations 
 
 ## Configuring Encoders, Display Capture, or Transport Protocols
 
-[Components](component.md)
+[Components](component.md#gstreamer-components)
 
 ## CI/CD Build
 
-We use Docker containers for building every commit. The root directory [`Dockerfile`](/Dockerfile) and Dockerfiles within the [`addons`](/addons) directory provide directions for building each component, so that you may replicate the procedures in your own setup even without Docker by copying the commands to your own shell.
+We use Docker® containers for building every commit. The root directory [`Dockerfile`](/Dockerfile) and Dockerfiles within the [`addons`](/addons) directory provide directions for building each component, so that you may replicate the procedures in your own setup even without Docker® by copying the commands to your own shell.
 
 # Troubleshooting and FAQs
 
@@ -80,14 +80,14 @@ You can start a new instance of Selkies-GStreamer by changing the `DISPLAY` envi
 
 ## I want to test a shared secret TURN server by manually generating a TURN credential from a shared secret.
 
-Try the [TURN-REST Container](component.md#turn-rest) or its underlying turn-rest `app.py` Flask web application. This will output TURN credentials automatically when the Docker/Podman options `-e TURN_SHARED_SECRET=`, `-e TURN_HOST=`, `-e TURN_PORT=`, `-e TURN_PROTOCOL=`, `-e TURN_TLS=` or environment variables `export TURN_SHARED_SECRET=`, `export TURN_HOST=`, `export TURN_PORT=`, `export TURN_PROTOCOL=`, `export TURN_TLS=` are set.
+Try the [TURN-REST Container](component.md#turn-rest) or its underlying turn-rest `app.py` Flask web application. This will output TURN credentials automatically when the Docker®/Podman options `-e TURN_SHARED_SECRET=`, `-e TURN_HOST=`, `-e TURN_PORT=`, `-e TURN_PROTOCOL=`, `-e TURN_TLS=` or environment variables `export TURN_SHARED_SECRET=`, `export TURN_HOST=`, `export TURN_PORT=`, `export TURN_PROTOCOL=`, `export TURN_TLS=` are set.
 
-The below steps can be used when you want to test your TURN server configured with a shared secret instead of the legacy username/password authentication.
+The below steps can be used when you want to test your TURN server configured with a shared secret instead of the legacy username/password authentication:
 
-1. Run the test container:
+1. Run the [Example Container](component.md#example-container) (fill in `DISTRIB_RELEASE` to Ubuntu versions such as `24.04`):
 
 ```bash
-docker run --name selkies-py ghcr.io/selkies-project/selkies-gstreamer/py-build:main
+docker run --pull=always --name selkies -it --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
 ```
 
 2. From inside the test container, call the `generate_rtc_config` method.
@@ -101,4 +101,4 @@ export SELKIES_TURN_USER="user"
 python3 -c 'import os;from selkies_gstreamer.signaling_web import generate_rtc_config; print(generate_rtc_config(os.environ["SELKIES_TURN_HOST"], os.environ["SELKIES_TURN_PORT"], os.environ["SELKIES_TURN_SECRET"], os.environ["SELKIES_TURN_USER"]))'
 ```
 
-Using either methods, you can then test your TURN server configuration from the [Trickle ICE](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/) website.
+Using both methods, you can then test your TURN server configuration from the [Trickle ICE](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/) website.

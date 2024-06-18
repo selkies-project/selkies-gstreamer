@@ -48,7 +48,7 @@ Use `--enable_resize=true` if you want to fit the remove resolution to the clien
 
 You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root path of your choice if using the `.tar.gz` tarball.
 
-7. **(MUST READ) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
+7. **(MANDATORY) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
 
 Depending on your environment, **this step may be mandatory**.
 
@@ -70,9 +70,9 @@ The [Example Container](/addons/example) is the reference minimal-functionality 
 
 Instructions are available in the [Example Container](component.md#example-container) section.
 
-**A TURN server is required if trying to use this project inside a Docker or Kubernetes container, or in other cases where the HTML5 web interface loads but the connection fails. This is required for all WebRTC applications, especially since Selkies-GStreamer is self-hosted, unlike other proprietary services which provide a TURN server for you. Follow the instructions from [WebRTC and Firewalls](firewall.md) in order to make the container or standalone instance using an external TURN server.**
+**(MANDATORY) Follow the instructions from [WebRTC and Firewall Issues](firewall.md) in order to make the container or self-hosted standalone instance using an external TURN server.**
 
-**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking (add `--network=host` to the Docker command to enable host networking and work around this requirement if your server is not behind NAT). Follow the instructions from [WebRTC and Firewall Issues](firewall.md) in order to make the container work using an external TURN server.**
+A TURN server is required if trying to use this project inside a Docker® or Kubernetes container without `--network=host`, or in other cases where the HTML5 web interface loads but the connection fails. This is required for all WebRTC applications, especially since Selkies-GStreamer is self-hosted, unlike other proprietary services which provide a TURN server for you.
 
 ## Advanced Install 
 
@@ -90,11 +90,11 @@ All three of the components are built and packaged [every release](https://githu
 
 For more information, check the [Components](component.md#components) section.
 
-The [all-in-one Desktop Containers](#desktop-container) support unprivileged self-hosted Kubernetes clusters and Docker/Podman.
+The [all-in-one Desktop Containers](#desktop-container) support unprivileged self-hosted Kubernetes clusters and Docker®/Podman.
 
 Example Google Compute Engine/Google Kubernetes Engine deployment configurations of all components are available in the [`infra/gce`](/infra/gce) and [`infra/gke`](/infra/gke) directories, but may be deprecated in favor of vendor-agnostic Kubernetes configurations.
 
-### Install the packaged version on a standalone machine or cloud instance
+### Install the packaged version on self-hosted standalone machines, cloud instances, or virtual machines
 
 **NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [WebRTC and Firewall Issues](firewall.md) to make the container work using an external TURN server.**
 
@@ -203,13 +203,13 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Replace with your wanted resolution if using without resize, DO NOT USE if there is a physical display
 # selkies-gstreamer-resize 1920x1080
 
-# Choose your video encoder, change to x264enc/vp8enc/vp9enc for software encoding or other encoders for different hardware
-# Do not set enable_resize to true if there is a physical display
 # Starts the remote desktop process
-selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=nvh264enc --enable_resize=false &
+# Change `--encoder=` to `nvh264enc`, `vah264enc`, `vp9enc`, or `vp8enc` for different video codecs or hardware encoders
+# DO NOT set `--enable_resize=true` if there is a physical display
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false &
 ```
 
-7. **(MUST READ) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
+7. **(MANDATORY) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
 
 Depending on your environment, **this step may be mandatory**.
 
@@ -217,12 +217,10 @@ Please read [**WebRTC and Firewall Issues (cannot connect)**](firewall.md).
 
 8. Check [**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.
 
-### Install the latest build on a standalone machine or cloud instance
+### Install the latest build on self-hosted standalone machines, cloud instances, or virtual machines
 
-**Build artifacts for every `main` branch commit are available as an after logging into GitHub in [Actions](https://github.com/selkies-project/selkies-gstreamer/actions), and you do not need Docker to download them.**
+**Build artifacts for every `main` branch commit are available as an after logging into GitHub in [Actions](https://github.com/selkies-project/selkies-gstreamer/actions), and you do not need Docker® to download them.**
 
-Otherwise, Docker/Podman (or any equivalent) may be used if you want to use builds from the latest commit. Refer to [Components](component.md) for more information.
+Otherwise, Docker®/Podman (or any equivalent) may be used if you want to use builds from the latest commit. Refer to [Components](component.md) for more information.
 
 This method can be also used when building a new container image with the `FROM [--platform=<platform>] <image> [AS <name>]` and `COPY [--from=<name>] <src_path> <dest_path>` instruction instead of using the `docker` CLI. Change `main` to `latest` if you want the latest release version instead of the latest development version.
-
-**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [WebRTC and Firewall Issues](firewall.md) in order to make the container work using an external TURN server.**
