@@ -100,7 +100,7 @@ Example Google Compute Engine/Google Kubernetes Engine deployment configurations
 
 While this instruction assumes that you are installing this project systemwide, it is possible to install and run all components completely within the userspace. Dependencies may also be installed without root permissions if you use the [**Quick Start**](#quick-start) procedures.
 
-1. Install the dependencies, for Ubuntu or Debian-based distros run this command:
+1. Install the dependencies, for Ubuntu or Debian-based distributions run this command:
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel libaa1 bzip2 libgcrypt20 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 alsa-utils jackd2 libjack-jackd2-0 libpulse0 libogg0 libopus0 libvorbis-dev libjpeg-turbo8 libopenjp2-7 libvpx-dev libwebp-dev x264 x265 libdrm2 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 wmctrl xsel xdotool x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6

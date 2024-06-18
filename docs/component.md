@@ -199,74 +199,37 @@ Otherwise, you will need to use an external STUN/TURN server capable of `srflx` 
 
 #### coTURN:
 
-Note that there are other different TURN server implementations other than coTURN, some of which are also compatible with Windows and MacOS.
+> Check the [WebRTC and Firewall Issues: coTURN](firewall.md#coturn) section for installing and running coTURN on self-hosted standalone machines, cloud instances, or virtual machines.
+>
+> [Pion TURN](https://github.com/pion/turn)'s `turn-server-simple` executable or [eturnal](https://eturnal.net) are recommended alternative TURN server implementations that support Windows as well as Linux or MacOS. [STUNner](https://github.com/l7mp/stunner) is a Kubernetes native STUN and TURN deployment if Helm is possible to be used.
 
-The [coTURN Container](/addons/coturn) is a reference container which provides the [coTURN](https://github.com/coturn/coturn) TURN server. Other than options including `-e TURN_SHARED_SECRET=`, `-e TURN_REALM=`, `-e TURN_PORT=`, `-e TURN_MIN_PORT=`, and `-e TURN_MAX_PORT=`, add more command-line options in `-e EXTRA_ARGS=`.
+The [coTURN Container](/addons/coturn) is a reference container which provides the [coTURN](https://github.com/coturn/coturn) TURN server. Other than options including `-e TURN_SHARED_SECRET=`, `-e TURN_REALM=`, `-e TURN_PORT=`, `-e TURN_MIN_PORT=`, and `-e TURN_MAX_PORT=`, add more command-line options in `-e TURN_EXTRA_ARGS=`.
 
 Run the Docker®/Podman container built from the [`coTURN Dockerfile`](/addons/coturn/Dockerfile) (replace `main` to `latest` for the latest stable release**):
 
 ```bash
-docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT="3478" -e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535" -p 3478:3478 -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
+docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT="3478" -e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535" -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
 ```
 
-Check the [coTURN documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) for specific usage directions.
+**The relay ports and the listening port must all be open to the internet.**
 
-For standalone self-hosted coTURN servers, a minimal barebones configuration for `/etc/turnserver.conf` is available below, where options are also all available as command-line options (check the [coTURN example configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more information):
+Modify the relay ports `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` combined with `-e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535"` as appropriate (at least two relay ports are required).
 
-```conf
-listening-ip=0.0.0.0
-listening-ip=::
+In addition, use the option `-e TURN_EXTRA_ARGS="--no-udp-relay"` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or `-e TURN_EXTRA_ARGS="--no-tcp-relay"` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
-listening-port=3478
+Simply using `--network=host` instead of specifying `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` is also plausible.
 
-# Choose one (mandatory):
-
-# When using static auth secret and/or TURN REST API authentication:
-# use-auth-secret
-# static-auth-secret=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace
-
-# When using traditional long-term credential authentication:
-# lt-cred-mech
-# user=username1:password1
-# user=username2:password2
-
-realm=turn.myinfrastructure.io
-
-# Specify minimum and maximum ports to allocate for coTURN TURN relay ports
-min-port=49152
-max-port=49172
-
-log-file=stdout
-pidfile=/tmp/turnserver.pid
-userdb=/tmp/turnserver.db
-
-# Certificate paths if TURN over TLS is to be used
-# cert=/ssl/tls.crt
-# pkey=/ssl/tls.key
-
-# Prometheus statistics
-prometheus
-
-# Add `allow-loopback-peers` if coTURN and Selkies-GStreamer are on the same node
-no-software-attribute
-no-rfc5780
-no-stun-backward-compatibility
-response-origin-only-with-rfc5780
-```
-
-For single-user environments, traditional long-term credential authentication is the easiest, but multi-user environments likely need TURN REST API authentication with a static auth secret.
-
-Please read the [TURN-REST](#turn-rest) section for the difference between static auth secret/TURN REST API authentication and traditional long-term credential authentication.
+Consult the [WebRTC and Firewall Issues: TURN Server Authentication Methods](firewall.md#turn-server-authentication-methods) and [TURN-REST](#turn-rest) sections for the difference between static auth secret/TURN REST API authentication and traditional long-term credential authentication.
 
 #### TURN-REST:
 
-**The below is an advanced concept for multi-user environments.**
-
-![TURN-REST.svg](assets/TURN-REST.svg)
+**The below is an advanced concept likely required for multi-user environments.**
 
 A TURN server is required with WebRTC when both the host and the client are under Symmetric NAT or are each under Port Restricted Cone NAT and Symmetric NAT.
 
 In easier words, if both the host and client are behind restrictive firewalls, the web interface and signaling connection (delivered using HTTP(S) and WebSocket) are delivered and established, but the video and audio stream (delivered using WebRTC) does not establish. In this case, the TURN server relays the WebRTC stream so that the host and client can send the video and audio stream, as well as other data.
+
+![TURN-REST.svg](assets/TURN-REST.svg)
 
 The recommended multi-user TURN server authentication mechanism is the [time-limited short-term credential/TURN REST API mechanism](https://datatracker.ietf.org/doc/html/draft-uberti-behave-turn-rest-00), where there is a single [Shared Secret](https://github.com/coturn/coturn/blob/master/README.turnserver) that is never exposed externally (only the TURN-REST Container and the coTURN TURN server know), but instead authenticates WebRTC clients (which are Selkies-GStreamer hosts and clients) based on generated credentials which are valid for only a short time (typically 24 hours).
 
@@ -286,16 +249,9 @@ Run the Docker®/Podman container built from the [`TURN-REST Dockerfile`](/addon
 docker run --pull=always --name turn-rest -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_HOST=turn.myinfrastructure.io -e TURN_PORT="3478" -e TURN_PROTOCOL=udp -e TURN_TLS="false" -p 8008:8008 ghcr.io/selkies-project/selkies-gstreamer/turn-rest:main
 ```
 
----
-Alternative methods of TURN server authentication without using TURN REST API authentication include two other different ways:
+From Selkies-GStreamer, it is sufficient to use the `selkies-gstreamer --turn_rest_uri=` option or `export SELKIES_TURN_REST_URI=` environment variable, pointing to the HTTP(S) URL to the TURN REST API server.
 
-First, directly inputting the TURN Shared Secret using the `selkies-gstreamer --turn_shared_secret=` option or the `SELKIES_TURN_SHARED_SECRET` environment variable (only for when the user running Selkies-GStreamer is trusted to unrestricted TURN server access for arbitrary purposes).
-
-Second, using traditional long-term credential authentication with fixed username and password combinations using the `selkies-gstreamer --turn_username=TURN_USERNAME --turn_password=TURN_PASSWORD`, or both the environment variables `SELKIES_TURN_USERNAME` and `SELKIES_TURN_PASSWORD` (also only for when the user running Selkies-GStreamer is trusted to unrestricted TURN server access for arbitrary purposes).
-
-Note that both methods require additionally manually specifying the `selkies-gstreamer --turn_host=TURN_HOST --turn_port=TURN_PORT --turn_protocol=TURN_PROTOCOL --turn_tls=TURN_TLS` options or the environment variables `SELKIES_TURN_HOST`, `SELKIES_TURN_PORT`, `SELKIES_TURN_PROTOCOL`, and `SELKIES_TURN_TLS`, in addition to the below options, because, unlike the TURN REST API method, information of the TURN server is not available together with the credentials through the REST API.
-
-Conversely, using the `selkies-gstreamer --turn_rest_uri=` option or `SELKIES_TURN_REST_URI` environment variable is sufficient when using the TURN REST API method, because the TURN-REST Container passes TURN server information with the credentials.
+Consult the [WebRTC and Firewall Issues: TURN Server Authentication Methods](firewall.md#turn-server-authentication-methods) section for more information on TURN authentication methods.
 
 #### coTURN-Web:
 

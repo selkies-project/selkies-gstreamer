@@ -268,6 +268,7 @@ set -e\n\
 exec turnserver\n\
     --verbose\n\
     --listening-ip=0.0.0.0\n\
+    --listening-ip=::\n\
     --listening-port=\${SELKIES_TURN_PORT:-3478}\n\
     --realm=\${TURN_REALM:-example.com}\n\
     --min-port=\${TURN_MIN_PORT:-49152}\n\
@@ -277,7 +278,7 @@ exec turnserver\n\
     --no-cli\n\
     --allow-loopback-peers\n\
     --db /tmp/coturn-turndb\n\
-    \${EXTRA_ARGS} \$@\
+    \${TURN_EXTRA_ARGS} \$@\
 " > /etc/start-turnserver.sh && chmod 755 /etc/start-turnserver.sh
 
 # Configure bashrc to show /etc/motd and /etc/issue

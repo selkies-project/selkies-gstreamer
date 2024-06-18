@@ -34,11 +34,11 @@ We use Docker® containers for building every commit. The root directory [`Docke
 
 First of all, ensure that there is a running PulseAudio or PipeWire-Pulse session as the interface does not establish without an audio server.
 
+**Then, please read [WebRTC and Firewall Issues](firewall.md).**
+
 Also check if the WebRTC video codec is supported in the web browser, as the server may panic if the codecs do not match. H.264, VP8, and VP9 are supported by all major web browsers.
 
 Moreover, if using HTTP but not HTTPS on a remote host that is not `localhost`, use port forwarding to `localhost` as much as possible. Many browsers do not support WebRTC or relevant features including pointer and keyboard lock in HTTP outside localhost.
-
-Then, please read [WebRTC and Firewall Issues](firewall.md).
 
 If you created the TURN server or the example container inside a VPN-enabled environment or virtual machine and the WebRTC connection fails, then you may need to add the `SELKIES_TURN_HOST` environment variable to the private VPN IP of the TURN server host, such as `192.168.0.2`.
 
@@ -52,15 +52,15 @@ If this is the case, first try enabling `--congestion_control`, meant to mitigat
 
 Moreover, always make sure that there are minimal background network processes, as live interactive streaming is much less tolerant to network fluctuation compared with other forms of video that may load the stream in advance. Using wired ethernet or a good 5GHz Wi-Fi connection is important (wired ethernet will eliminate all remaining issues of a good but slightly stuttering Wi-Fi connection).
 
-Ensure that the latency to your TURN server from the server and the client is ideally under 50 ms. If the latency is too high, your connection may be too laggy for any interactive 3D application.
+Ensure the latency to your TURN server from the server and the client is ideally under 50-75 ms. If the latency is too high, your connection might be too laggy for most interactive 3D applications.
 
-Next, there is a current issue with CPU congestion from the web interface when the side panel is open. Please make sure to test your experience when the side panel is closed.
+Next, there currently exists a current issue with CPU congestion from the web interface when the side panel is open. Please make sure to test your experience when the side panel is closed.
 
 Also note that a higher framerate will improve performance if you have sufficient bandwidth. This is because one screen refresh from a 60 fps screen takes 16.67 ms at a time, while one screen refresh from a 15 fps screen inevitably takes 66.67 ms, and therefore inherently causes a visible lag. Also try to keep the total bitrate reasonable, keeping around your service level agreement (SLA) bandwidth (which might be different from your maximum bandwidth contract).
 
-If the latency becomes higher while the screen is idle or when the tab is not focused, the internal efficiency control mechanism of the web browser may activate, which will be resolved automatically after a few seconds if there is new activity.
+If the latency becomes higher while the screen is idle or the tab is not focused for a long time, the internal efficiency control mechanism of the web browser may activate, which will be resolved automatically after a few seconds if there is new activity.
 
-If it does not, disable all power saving or efficiency features available in the web browser. In Windows 10 or 11, try `Start > Settings > System > Power & battery > Power mode > Best performance`. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to decode the screen.
+If it does not, disable all power saving or efficiency features available in the web browser. In Windows 10 or 11, try `Start > Settings > System > Power & battery > Power mode > Best performance`. Also, note that if you saturate your CPU or GPU with an application on the host, the remote desktop interface will also substantially slow down as it cannot use the CPU or GPU enough to decode the screen. Also, check for GPU driver/firmware updates in the client computer.
 
 However, it might be that the parameters for the WebRTC interface, video encoders, the RTSP payloader, or other [GStreamer](https://gstreamer.freedesktop.org) plugins are not optimized enough. If you find that it is the case, we always welcome [contributions](development.md). If your changes show noticeably better results in the same conditions, please make a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls), or tell us about the parameters in any channel that we can reach so that we could also test.
 
