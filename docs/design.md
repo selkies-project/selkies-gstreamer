@@ -22,7 +22,7 @@ Selkies-GStreamer streams a Linux X11 desktop or Docker®/Kubernetes container t
 
 This project is adequate as a high-performance replacement to most Linux remote desktop solutions, providing similar performance, delivering 60 frames per second at 1080p resolution with software encoding on 150% CPU consumption or better on an NVIDIA or Intel/AMD GPU. Selkies-GStreamer, overall, achieves comparable performance to proprietary remote desktop platforms and surpasses those of similar open-source applications by incorporating GPU-accelerated screen encoding and latency-eliminating techniques.
 
-You may create a self-hosted version of your favorite cloud gaming platform, running on a Linux host with a web-based client from any operating system. Wine and Proton allows `.exe` Windows games, as well as your research application, running in Linux, without the complicated Windows licenses.
+You may create a self-hosted version of your favorite cloud gaming platform, running on a Linux host with a web-based client from any operating system. Wine and Proton allow your `.exe` Windows application, as well as Windows games, to run with Linux, without the complicated Windows licensing.
 
 There are several strengths of Selkies-GStreamer compared to other game streaming or remote desktop platforms.
 
@@ -36,7 +36,7 @@ Compared to many remote desktop or game streaming applications requiring multipl
 
 A dedicated TURN server for actual traffic relaying can be flexibly configured within any location at or between the server and the client.
 
-Second, Selkies-GStreamer can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, H.265, VP8, VP9, and AV1 codecs. Audio streaming from the server is supported using the Opus codec. Check the [Components](component.md) section for current codec and interface support.
+Second, Selkies-GStreamer can utilize H.264 hardware acceleration of GPUs, as well as falling back to software acceleration with the H.264, H.265, VP8, VP9, and AV1 codecs. Audio streaming from the server is supported using the Opus codec. Check the [GStreamer Components](component.md#gstreamer-components) section for current codec and interface support.
 
 WebRTC ensures minimum latency from the server to the HTML5 web client interface. Any other video encoder, video converter, screen capturing interface, or protocol may be contributed from the community easily. NVIDIA GPUs are currently fully supported with NVENC, and Intel and AMD GPUs supported with VA-API, with progress on supporting other GPU hardware.
 

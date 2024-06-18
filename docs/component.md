@@ -321,7 +321,7 @@ This table specifies the currently supported audio interfaces and how each plugi
 
 | Plugin | Device Selector | Audio Interfaces | Operating Systems | Main Dependencies | Notes |
 |---|---|---|---|---|---|
-| [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` environment | PulseAudio or PipeWire-Pulse | Linux | `libpulse` | N/A |
+| [`pulsesrc`](https://gstreamer.freedesktop.org/documentation/pulseaudio/pulsesrc.html) | `PULSE_SERVER` or `PULSE_RUNTIME_PATH` environment | PulseAudio or PipeWire-Pulse | Linux | `libpulse` | N/A |
 
 ### Stream Transport Protocols
 

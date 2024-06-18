@@ -9,7 +9,9 @@ set -e
 # Set default display
 export DISPLAY="${DISPLAY:-:0}"
 # PipeWire-Pulse server socket path
-export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+export PULSE_RUNTIME_PATH="${XDG_RUNTIME_DIR:-/tmp}/pulse"
+export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 export PIPEWIRE_LATENCY="32/48000"
 
 # Source environment for GStreamer

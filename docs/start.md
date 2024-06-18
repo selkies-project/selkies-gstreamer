@@ -11,14 +11,14 @@ Read [Conda Toolchain](component.md#conda-toolchain) for more details of this st
 1. Install required dependencies, for Ubuntu or Debian-based distributions run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq curl libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xvfb
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xvfb
 ```
 
 2. Download and unpack the latest stable release of the Selkies-GStreamer portable distribution inside a directory of your choice:
 
 ```bash
 export SELKIES_VERSION="$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')"
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-portable-v${SELKIES_VERSION}_amd64.tar.gz" | sudo tar -xzf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-portable-v${SELKIES_VERSION}_amd64.tar.gz" | tar -xzf -
 ```
 
 3. Set your `DISPLAY` and `PULSE_SERVER` environment variables for the X.Org X11 display server or PulseAudio audio server.
@@ -27,7 +27,9 @@ Set `DISPLAY` to an unoccupied display server ID (such as `:99`) if you want Sel
 
 ```bash
 export DISPLAY="${DISPLAY:-:0}"
-export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+export PULSE_RUNTIME_PATH="${XDG_RUNTIME_DIR:-/tmp}/pulse"
+export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 ```
 
 4. Run Selkies-GStreamer (change `--encoder=` to another value such as `nvh264enc`, `vah264enc`, `vp9enc`, or `vp8enc`, if you want to [use different codecs or GPU acceleration](component.md#encoders)):
@@ -36,7 +38,7 @@ export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}
 ./selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
 ```
 
-Use `--enable_resize=true` if you want to fit the remove resolution to the client window and skip the next section. You must **NOT** enable this option when streaming a physical monitor.
+Use `--enable_resize=true` if you want to fit the remove resolution to the client window and skip the next section. You **must NOT** enable this option when streaming a physical monitor.
 
 5. Resize to your intended resolution (**DO NOT resize when streaming a physical monitor**):
 
@@ -178,17 +180,19 @@ sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # Choose one between PulseAudio and PipeWire if not already running, either one must be installed
 
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
-# export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
+# export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+# export PULSE_RUNTIME_PATH="${XDG_RUNTIME_DIR:-/tmp}/pulse"
+# export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 # /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
 # /usr/bin/pulseaudio --verbose --log-target=file:/tmp/pulseaudio_selkies.log --disallow-exit &
 
 # Initialize PipeWire
 # export PIPEWIRE_LATENCY="32/48000"
 # export DISABLE_RTKIT="y"
+# export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 # export PIPEWIRE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PULSE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR:-/tmp}/pulse/native}"
+# export PULSE_RUNTIME_PATH="${XDG_RUNTIME_DIR:-/tmp}/pulse"
+# export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 # pipewire &
 # wireplumber &
 # pipewire-pulse &

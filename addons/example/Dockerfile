@@ -301,7 +301,7 @@ SHELL ["/bin/sh", "-c"]
 USER 1000
 ENV SHELL /bin/bash
 ENV USER=ubuntu
-ENV XDG_RUNTIME_DIR /tmp/runtime-user
+ENV XDG_RUNTIME_DIR /tmp/runtime-ubuntu
 WORKDIR /home/ubuntu
 
 EXPOSE 8080
