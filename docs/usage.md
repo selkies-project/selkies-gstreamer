@@ -16,7 +16,7 @@ The configuration menu is available by clicking the small button on the right si
 
 ## Command-Line Options and Environment Variables
 
-Use `selkies-gstreamer --help` for all command-line options, after the command `. ./gst-env` for compiled GStreamer or the command `. ./bin/activate` for Conda.
+Use `selkies-gstreamer --help` for all command-line options, after the source command `. ./gst-env` for compiled GStreamer or the source command `. ./bin/activate` for Conda.
 
 Environment variables for command-line options are available as capitalizations of the options prepended by `SELKIES_` (such as `SELKIES_VIDEO_BITRATE` for `--video_bitrate`).
 

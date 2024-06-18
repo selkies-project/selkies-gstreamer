@@ -12,7 +12,7 @@ This section is intended for starters and self-hosting users. You may require a 
 
 ### Self-Hosted Instances
 
-For standalone self-hosted instances, **open UDP ports 49152–65535 in your host server network**.
+For standalone self-hosted instances, **open UDP and TCP ports 49152–65535 in your host server network**.
 
 A configuration in your internet router called `Full Cone NAT` (otherwise called peer-to-peer/P2P mode or game mode) or (if not available) `(Address-)Restricted Cone NAT` is another alternative.
 
@@ -22,7 +22,7 @@ For an easy fix for containers, add the option `--network=host` to your Docker®
 
 This exposes your container to the host network, which disables container network isolation.
 
-**UDP ports 49152–65535 in your host server network** should still be open or be under `Full Cone NAT` as in [Self-Hosted Instances](#self-hosted-instances).
+**UDP and TCP ports 49152–65535 in your host server network** should still be open or be under `Full Cone NAT` as in [Self-Hosted Instances](#self-hosted-instances).
 
 If this does not fix the connection issue (normally when the server is behind another additional firewall) or you cannot use the above fixes for security or technical reasons, **move on to the next section**.
 
@@ -74,9 +74,9 @@ Other authentication methods such as TURN-REST over various types of REST API au
 
 ## coTURN
 
-An open-source TURN server for Linux or UNIX-like operating systems that may be used is [coTURN](https://github.com/coturn/coturn), available in major package repositories or as an example container [`coturn/coturn:latest`](https://hub.docker.com/r/coturn/coturn).
+An open-source TURN server for Linux or UNIX-like operating systems that may be used is [coTURN](https://github.com/coturn/coturn), available in major package repositories or as an official container [`coturn/coturn:latest`](https://hub.docker.com/r/coturn/coturn).
 
-The Selkies-GStreamer [`coturn`](/addons/coturn) image [`ghcr.io/selkies-project/selkies-gstreamer/coturn:main`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fcoturn) is also included in this repository, and may be used to host your own STUN/TURN infrastructure. As this image contains additional features for identifying the external server IP in cloud environments, usage of this container is recommended.
+The Selkies-GStreamer [coTURN](component.md#coturn) image [`ghcr.io/selkies-project/selkies-gstreamer/coturn:main`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fcoturn) is also included in this repository, and may be used to host your own STUN/TURN infrastructure. As this image contains additional features for identifying the external server IP in cloud environments, usage of this container is recommended.
 
 [Pion TURN](https://github.com/pion/turn)'s `turn-server-simple` executable or [eturnal](https://eturnal.net) are recommended alternative TURN server implementations that support Windows as well as Linux or MacOS. [STUNner](https://github.com/l7mp/stunner) is a Kubernetes native STUN and TURN deployment if Helm is possible to be used.
 
@@ -90,7 +90,7 @@ It is possible to install [coTURN](https://github.com/coturn/coturn) on your own
 sudo apt-get update && sudo apt-get install --no-install-recommends -y coturn
 ```
 
-2. For self-hosted standalone coTURN servers, a minimal barebones configuration for `/etc/turnserver.conf` is available below, where options are also all available as command-line options (check the [coTURN example configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more information):
+2. For self-hosted standalone coTURN servers, a minimal barebones configuration for `/etc/turnserver.conf` is available below, where options are also all available as command-line options (check the [coTURN Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more information):
 
 ```conf
 listening-ip=0.0.0.0
@@ -133,13 +133,13 @@ no-stun-backward-compatibility
 response-origin-only-with-rfc5780
 ```
 
-In explanation, `/etc/turnserver.conf` must have the lines `listening-ip=0.0.0.0` and `realm=example.com` (change the realm as appropriate), and either the lines `use-auth-secret` and `static-auth-secret=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace`, or the lines `lt-cred-mech` and `user=username1:password1`.
+`/etc/turnserver.conf` must have the lines `listening-ip=0.0.0.0` and `realm=example.com` (change the realm as appropriate), and either the lines `use-auth-secret` and `static-auth-secret=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace`, or the lines `lt-cred-mech` and `user=username1:password1` are required.
 
 For single-user environments, traditional long-term credential authentication is the easiest, but multi-user environments likely need TURN REST API authentication with a static auth secret.
 
 **Ports specified in `listening-port=`, `min-port=` and `max-port=` must be opened.**
 
-It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies your relay ports between TURN servers (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
+It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies the relay ports (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
 The `cert=` and `pkey=` options are required for using TURN over TLS/DTLS, but are otherwise optional. They should lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) or [Let's Encrypt](https://letsencrypt.org/getting-started/) with a valid hostname which resolves to the TURN server.
 
@@ -166,10 +166,10 @@ After this is configured, enable the coTURN systemd service:
 
 ```bash
 sudo systemctl enable coturn
-sudo systemctl start coturn
+sudo systemctl restart coturn
 ```
 
-Consult the [coTURN documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
+Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
 
 ### Deploy coTURN with Docker®
 
@@ -211,7 +211,7 @@ In addition, use the option `--no-udp-relay` after `-n` if you cannot open the U
 
 Simply using `--network=host` instead of specifying `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` is also plausible.
 
-Consult the [coTURN documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
+Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
 
 #### TURN over TLS
 
@@ -221,11 +221,11 @@ Provide the certificate and private files to the coTURN container with `-v /my_l
 
 ### Deploy coTURN With Kubernetes
 
-Before you read, [STUNner](https://github.com/l7mp/stunner) is a pretty good method to deploy a TURN or STUN server on Kubernetes if you are able to use Helm.
+Before you continue, [STUNner](https://github.com/l7mp/stunner) is a pretty good method to deploy a TURN or STUN server on Kubernetes if you are able to use Helm.
 
 You are recommended to use a `ConfigMap` for creating the configuration file for coTURN.
 
-Consult the [coTURN documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
+Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
 
 Other instructions for the configuration are same as the [Standalone Deployment](#coturn).
 
@@ -241,4 +241,4 @@ In the configuration, under `args:`, set `-c /etc/turnserver.conf` and use the `
 
 The `cert=` and `pkey=` options are required for using TURN over TLS/DTLS, but are otherwise optional. Use [cert-manager](https://cert-manager.io) to issue a valid certificate from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) or [Let's Encrypt](https://letsencrypt.org/getting-started/) with a valid hostname which resolves to the TURN server, and mount to the paths which lead to the `cert=` and `pkey=` options.
 
-Consult the [coTURN documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
+Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.

@@ -16,7 +16,7 @@
 
 [**WebRTC and Firewall Issues (cannot connect)**](firewall.md)
 
-[**In-Depth Usage**](usage.md#usage)
+[**Usage**](usage.md#usage)
 
 [**Components including Encoders and Interfaces**](component.md)
 

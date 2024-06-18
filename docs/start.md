@@ -54,7 +54,7 @@ You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root pat
 
 Depending on your environment, **this step may be mandatory**.
 
-Please read [**WebRTC and Firewall Issues (cannot connect)**](firewall.md).
+Please read [**WebRTC and Firewall Issues**](firewall.md).
 
 8. Check [**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.
 
@@ -92,20 +92,20 @@ All three of the components are built and packaged [every release](https://githu
 
 For more information, check the [Components](component.md#components) section.
 
-The [all-in-one Desktop Containers](#desktop-container) support unprivileged self-hosted Kubernetes clusters and Docker®/Podman.
+The [All-In-One Desktop Containers](#desktop-container) support unprivileged self-hosted Kubernetes clusters and Docker®/Podman.
 
 Example Google Compute Engine/Google Kubernetes Engine deployment configurations of all components are available in the [`infra/gce`](/infra/gce) and [`infra/gke`](/infra/gke) directories, but may be deprecated in favor of vendor-agnostic Kubernetes configurations.
 
 ### Install the packaged version on self-hosted standalone machines, cloud instances, or virtual machines
 
-**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the TCP and UDP port ranges 49152-65535 of your server, or follow the instructions from [WebRTC and Firewall Issues](firewall.md) to make the container work using an external TURN server.**
+**NOTE: You will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if both your server and client have ports closed or are under a restrictive firewall. Either open the UDP and TCP port ranges 49152-65535 of your server, or follow the instructions from [WebRTC and Firewall Issues](firewall.md) to make the container work using an external TURN server.**
 
 While this instruction assumes that you are installing this project systemwide, it is possible to install and run all components completely within the userspace. Dependencies may also be installed without root permissions if you use the [**Quick Start**](#quick-start) procedures.
 
 1. Install the dependencies, for Ubuntu or Debian-based distributions run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq python3-pip python3-dev python3-gi python3-setuptools python3-wheel libaa1 bzip2 libgcrypt20 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 alsa-utils jackd2 libjack-jackd2-0 libpulse0 libogg0 libopus0 libvorbis-dev libjpeg-turbo8 libopenjp2-7 libvpx-dev libwebp-dev x264 x265 libdrm2 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 wmctrl xsel xdotool x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl python3-pip python3-dev python3-gi python3-setuptools python3-wheel libaa1 bzip2 libgcrypt20 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 alsa-utils jackd2 libjack-jackd2-0 libpulse0 libogg0 libopus0 libvorbis-dev libjpeg-turbo8 libopenjp2-7 libvpx-dev libwebp-dev x264 x265 libdrm2 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 wmctrl xsel xdotool x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6
 ```
 
 Install additional dependencies if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
@@ -217,7 +217,7 @@ selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/
 
 Depending on your environment, **this step may be mandatory**.
 
-Please read [**WebRTC and Firewall Issues (cannot connect)**](firewall.md).
+Please read [**WebRTC and Firewall Issues**](firewall.md).
 
 8. Check [**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.
 
