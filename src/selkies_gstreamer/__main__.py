@@ -408,10 +408,10 @@ def main():
                         default=os.environ.get('SELKIES_GPU_ID', '0'),
                         help='GPU ID for GStreamer hardware encoders, will use enumerated GPU ID (0, 1, ..., n) for NVIDIA and /dev/dri/renderD{128 + n} for VA-API')
     parser.add_argument('--framerate',
-                        default=os.environ.get('SELKIES_FRAMERATE', '30'),
+                        default=os.environ.get('SELKIES_FRAMERATE', '60'),
                         help='Framerate of the streaming pipeline')
     parser.add_argument('--video_bitrate',
-                        default=os.environ.get('SELKIES_VIDEO_BITRATE', '4000'),
+                        default=os.environ.get('SELKIES_VIDEO_BITRATE', '8000'),
                         help='Default video bitrate')
     parser.add_argument('--keyframe_distance',
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '-1'),
@@ -423,7 +423,7 @@ def main():
                         default=os.environ.get('SELKIES_VIDEO_PACKETLOSS_PERCENT', '0'),
                         help='Expected packet loss percentage (%%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')
     parser.add_argument('--audio_bitrate',
-                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '96000'),
+                        default=os.environ.get('SELKIES_AUDIO_BITRATE', '128000'),
                         help='Default audio bitrate')
     parser.add_argument('--audio_channels',
                         default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
