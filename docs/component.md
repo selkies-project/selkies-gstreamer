@@ -14,6 +14,12 @@ export DISTRIB_RELEASE="$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d
 export ARCH="$(dpkg --print-architecture)"
 ```
 
+When instructed to install [binfmt](https://github.com/tonistiigi/binfmt), use the following command with Docker/Podman:
+
+```bash
+docker run --rm --privileged tonistiigi/binfmt:latest --install all
+```
+
 ### Mandatory Components
 
 There are currently three mandatory components in Selkies-GStreamer.
