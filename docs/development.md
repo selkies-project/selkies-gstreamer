@@ -50,7 +50,7 @@ These people make structural decisions for this project and press the `Merge Pul
 
 [Dan Isla](https://github.com/danisla): Project Founder, Owner, Industry Representative (ex-Google, ex-NASA, ex-itopia), Head Maintainer (Start - Sep 2023, July 2024 -)
 
-[Seungmin Kim](https://github.com/ehfd): Co-Owner, Academia Representative (Yonsei University College of Medicine, San Diego Supercomputer Center), Head Maintainer (Sep 2023 - July 2024, est. 2025 -)
+[Seungmin Kim](https://github.com/ehfd): Co-Owner, Academia Representative (Yonsei University College of Medicine, San Diego Supercomputer Center), Head Maintainer (Apr 2022 - July 2024, est. 2025 -)
 
 ### Code Contributors
 

@@ -31,11 +31,11 @@ rm -rf build
 
 popd
 
-# Install Selkies Python components with dependencies
-# C_INCLUDE_PATH is for evdev
+# Install Selkies Python components with dependencies because of python-xlib patch
 export PIP_NO_DEPENDENCIES="False"
 export PIP_NO_BUILD_ISOLATION="True"
 export PIP_NO_INDEX="False"
+# C_INCLUDE_PATH is for building evdev
 C_INCLUDE_PATH="${CONDA_BUILD_SYSROOT}/usr/include" ${PYTHON} -m pip install -vv "${SELKIES_SOURCE}/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl"
 # Install web interface components
 cp -rf "${SELKIES_SOURCE}/gst-web" "${PREFIX}/share/selkies-web"

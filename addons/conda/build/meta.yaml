@@ -205,8 +205,7 @@ requirements:
   run:
     - python {{ python }}
     - pygobject
-    # Currently installed with pip
-    # - six
+    # Currently installed with pip because of python-xlib patch
     # - websockets
     # - basicauth
     # - gputil
@@ -216,6 +215,7 @@ requirements:
     # - psutil
     # - watchdog
     # - pillow
+    # - python-xlib
     - {{ pin_compatible('glib') }}
     - pulseaudio                         # [linux]
     - pulseaudio-client                  # [linux]
