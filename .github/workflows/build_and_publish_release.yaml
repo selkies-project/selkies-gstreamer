@@ -78,6 +78,8 @@ jobs:
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
           context: addons/conda
 
         - name: coturn
