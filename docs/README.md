@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/selkies-project/selkies-gstreamer/actions/workflows/build_and_publish_all_images.yaml/badge.svg)](https://github.com/selkies-project/selkies-gstreamer/actions/workflows/build_and_publish_all_images.yaml)
 
-[![Discord](https://img.shields.io/badge/dynamic/json?logo=discord&label=Discord&query=approximate_member_count&url=https%3A%2F%2Fdiscordapp.com%2Fapi%2Finvites%2FwDNGDeSW5F%3Fwith_counts%3Dtrue)](https://discord.gg/wDNGDeSW5F)
+[![Discord](https://img.shields.io/badge/dynamic/json?logo=discord&label=Discord%20Members&query=approximate_member_count&url=https%3A%2F%2Fdiscordapp.com%2Fapi%2Finvites%2FwDNGDeSW5F%3Fwith_counts%3Dtrue)](https://discord.gg/wDNGDeSW5F)
 
 **Please read [Troubleshooting](usage.md#troubleshooting-and-faqs) first, then use [Discord](https://discord.gg/wDNGDeSW5F) or [GitHub Discussions](https://github.com/selkies-project/selkies-gstreamer/discussions) for support questions. Please only use [Issues](https://github.com/selkies-project/selkies-gstreamer/issues) for technical inquiries or bug reports.**
 
