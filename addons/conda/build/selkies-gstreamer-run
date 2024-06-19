@@ -15,8 +15,9 @@ export DISPLAY="${DISPLAY:-:0}"
 
 export GSTREAMER_PATH="${CONDA_PREFIX}"
 export PATH="${GSTREAMER_PATH}/bin${PATH:+:${PATH}}"
-export LD_LIBRARY_PATH="${GSTREAMER_PATH}/lib:/usr/lib/x86_64-linux-gnu:/usr/lib:/usr/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-export GI_TYPELIB_PATH="${GSTREAMER_PATH}/lib/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/girepository-1.0:/usr/lib64/girepository-1.0${GI_TYPELIB_PATH:+:${GI_TYPELIB_PATH}}"
+export LD_LIBRARY_PATH="${GSTREAMER_PATH}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export GST_PLUGIN_PATH="${GSTREAMER_PATH}/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0:/usr/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/lib/arm-linux-gnueabihf/gstreamer-1.0:/usr/lib/powerpc64le-linux-gnu/gstreamer-1.0:/usr/lib/s390x-linux-gnu/gstreamer-1.0:/usr/lib/riscv64-linux-gnu/gstreamer-1.0:/usr/lib64/gstreamer-1.0:/usr/lib/gstreamer-1.0:/usr/lib/i386-linux-gnu/gstreamer-1.0:/usr/lib32/gstreamer-1.0${GST_PLUGIN_PATH:+:${GST_PLUGIN_PATH}}"
+export GI_TYPELIB_PATH="${GSTREAMER_PATH}/lib/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/aarch64-linux-gnu/girepository-1.0:/usr/lib/arm-linux-gnueabihf/girepository-1.0:/usr/lib/powerpc64le-linux-gnu/girepository-1.0:/usr/lib/s390x-linux-gnu/girepository-1.0:/usr/lib/riscv64-linux-gnu/girepository-1.0:/usr/lib64/girepository-1.0:/usr/lib/girepository-1.0:/usr/lib/i386-linux-gnu/girepository-1.0:/usr/lib32/girepository-1.0${GI_TYPELIB_PATH:+:${GI_TYPELIB_PATH}}"
 
 # Start Xvfb server in DISPLAY if needed (package xvfb in Debian or xorg-x11-server-Xvfb in RHEL required in host)
 if [ ! -S "/tmp/.X11-unix/X${DISPLAY/:/}" ] && [ -x "$(command -v Xvfb)" ] || [ "${ENABLE_XVFB,,}" = "true" ]; then
