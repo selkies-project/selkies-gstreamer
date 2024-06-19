@@ -70,7 +70,11 @@ These people make structural decisions for this project and press the `Merge Pul
 
 This section is a knowledge base for code contributions.
 
-## GStreamer Development Advice
+## Style Guide
+
+- Shell scripts should use POSIX `sh` syntax as much as possible. Despite the scripts being run in `bash`, avoid using syntax only available in `bash` (such as `[[ ]]`), `zsh`, or other types of shells, unless absolutely needed.
+
+## GStreamer Development Guide
 
 GStreamer is based on GLib, which is an object-oriented programming interface on top of C (or C++/Rust). Therefore, many GStreamer objects inherit from other base objects, and object properties (configurations) are inherited from parent objects as well. Therefore, many object properties tend to be missing in the [Documentation Page](https://gstreamer.freedesktop.org/documentation/plugins_doc.html).
 

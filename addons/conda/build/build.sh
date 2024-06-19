@@ -31,10 +31,8 @@ rm -rf build
 
 popd
 
-# Install Selkies python-xlib fork
-${PYTHON} -m pip install -vv --no-deps --no-build-isolation "https://github.com/selkies-project/python-xlib/archive/master.zip"
 # Install Selkies Python components
-${PYTHON} -m pip install -vv --no-deps --no-build-isolation "${SELKIES_SOURCE}/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl"
+${PYTHON} -m pip install -vv --no-build-isolation "${SELKIES_SOURCE}/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl"
 # Install web interface components
 cp -rf "${SELKIES_SOURCE}/gst-web" "${PREFIX}/share/selkies-web"
 # Install startup scripts

@@ -23,12 +23,14 @@ cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/rele
 
 3. Set your `DISPLAY` and `PULSE_SERVER` environment variables for the X.Org X11 display server or PulseAudio audio server.
 
-Set `DISPLAY` to an unoccupied display server ID (such as `:99`) if you want Selkies-GStreamer to start its own virtual X11 display server (defaults to `:0`), and keep `PULSE_SERVER` empty if you want Selkies-GStreamer to start a portable PulseAudio audio server.
+Set `DISPLAY` to an unoccupied display server ID (such as `:99`) if you want Selkies-GStreamer to start its own virtual X11 display server (defaults to `:0`), and keep environment variables `PULSE_RUNTIME_PATH` and `PULSE_SERVER` empty if you want Selkies-GStreamer to start a portable PulseAudio audio server.
 
 ```bash
 export DISPLAY="${DISPLAY:-:0}"
+export PIPEWIRE_LATENCY="32/48000"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-export PULSE_RUNTIME_PATH="${XDG_RUNTIME_DIR:-/tmp}/pulse"
+export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
+export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
 export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 ```
 
@@ -118,12 +120,20 @@ If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and 
 
 If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
 
+Use the following commands to retrieve the latest `SELKIES_VERSION` release, the current Ubuntu `DISTRIB_RELEASE`, and the current architecture `ARCH` in the following steps:
+
+```bash
+export SELKIES_VERSION="$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')"
+export DISTRIB_RELEASE="$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')"
+export ARCH="$(dpkg --print-architecture)"
+```
+
 2. Unpack the GStreamer components of Selkies-GStreamer (fill in `SELKIES_VERSION`, `DISTRIB_RELEASE`), using your own GStreamer build on any architecture can work **as long as it is the most recent stable version with the required plugins included**:
 
 Read [GStreamer](component.md#gstreamer) for more details of this step and procedures for installing from the latest commit in the `main` branch.
 
 ```bash
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_amd64.tar.gz" | sudo tar -xzf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_v${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_amd64.tar.gz" | sudo tar -xzf -
 ```
 
 This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the the environment variable `GSTREAMER_PATH` to the directory. GStreamer builds for `aarch64` are not provided but can be built following procedures in the [GStreamer Dockerfile](/addons/gstreamer/Dockerfile) or [Conda Dockerfile](/addons/conda/Dockerfile).
@@ -141,20 +151,20 @@ cd /tmp && curl -O -fsSL "https://github.com/selkies-project/selkies-gstreamer/r
 Read [Web Application](component.md#web-application) for more details of this step and procedures for installing from the latest commit in the `main` branch.
 
 ```bash
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_${SELKIES_VERSION}.tar.gz" | sudo tar -xzf -
+cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-web_v${SELKIES_VERSION}.tar.gz" | sudo tar -xzf -
 ```
 
-This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `SELKIES_WEB_ROOT` or add the command-line option `--web_root` to Selkies-GStreamer. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
+This will install the HTML5 components to the default directory of `/opt/gst-web`. If you are unpacking to a different directory, make sure to set the directory to the environment variable `SELKIES_WEB_ROOT` or add the command-line option `--web_root=` to Selkies-GStreamer. Note that you should change `manifest.json` and `cacheName` in `sw.js` to rebrand the web interface to a different name.
 
 5. Install the Joystick Interposer to process gamepad input if you need to use joystick/gamepad devices from your web browser client (fill in `SELKIES_VERSION`, `DISTRIB_RELEASE`, and `ARCH` of either `amd64` for `x86_64`, and `arm64` for `aarch64`):
 
 Read [Joystick Interposer](component.md#joystick-interposer) for more details of this step and procedures for installing from the latest commit in the `main` branch.
 
 ```bash
-cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y ./selkies-js-interposer.deb && rm -f selkies-js-interposer.deb
+cd /tmp && curl -o selkies-js-interposer.deb -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-js-interposer_v${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.deb" && sudo apt-get update && sudo apt-get install --no-install-recommends -y ./selkies-js-interposer.deb && rm -f selkies-js-interposer.deb
 ```
 
-Alternatively, users may directly place the Joystick Interposer libraries from the `selkies-js-interposer_${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.tar.gz` tarball into the library path, for instance into `/usr/lib/i386-linux-gnu` and `/usr/lib/i386-linux-gnu`. More information can be found in [Joystick Interposer](component.md#joystick-interposer).
+Alternatively, users may directly place the Joystick Interposer libraries from the `selkies-js-interposer_v${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.tar.gz` tarball into the library path, for instance into `/usr/lib/i386-linux-gnu` and `/usr/lib/i386-linux-gnu`. More information can be found in [Joystick Interposer](component.md#joystick-interposer).
 
 You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root path of your choice if using the `.tar.gz` tarball.
 
@@ -181,7 +191,7 @@ sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 
 # Initialize PulseAudio (set PULSE_SERVER to unix:/run/pulse/native if your user is in the pulse-access group and pulseaudio is triggered with sudo/root), omit the below lines if a PulseAudio server is already running
 # export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PULSE_RUNTIME_PATH="${XDG_RUNTIME_DIR:-/tmp}/pulse"
+# export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
 # export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 # /usr/bin/pulseaudio -k >/dev/null 2>&1 || true
 # /usr/bin/pulseaudio --verbose --log-target=file:/tmp/pulseaudio_selkies.log --disallow-exit &
@@ -190,8 +200,8 @@ sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # export PIPEWIRE_LATENCY="32/48000"
 # export DISABLE_RTKIT="y"
 # export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PIPEWIRE_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-# export PULSE_RUNTIME_PATH="${XDG_RUNTIME_DIR:-/tmp}/pulse"
+# export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
+# export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
 # export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 # pipewire &
 # wireplumber &

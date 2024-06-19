@@ -32,7 +32,7 @@ xset s noblank
 # Disable power management
 xset -dpms
 
-# Start pulse audio server
+# Start PulseAudio server
 export PULSE_SERVER=tcp:127.0.0.1:4713
 sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1' &
