@@ -37,11 +37,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libaa1-dev \
         libbz2-dev \
         libgcrypt20-dev \
-        libegl-dev \
-        libgl-dev \
-        libgles-dev \
-        libglvnd-dev \
-        libglx-dev \
         libgmp-dev \
         libgsl-dev \
         libcairo2-dev \
@@ -54,17 +49,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libglib2.0-dev \
         libjson-glib-dev \
         libgudev-1.0-dev \
-        libx11-xcb-dev \
-        libxcb-dri3-dev \
-        libxkbcommon-dev \
-        libxdamage-dev \
-        libxfixes-dev \
-        libxtst-dev \
-        libxext-dev \
-        wayland-protocols \
-        libwayland-dev \
-        libwayland-egl-backend-dev \
-        libdrm-dev \
         libasound2-dev \
         libjack-jackd2-dev \
         libjpeg-turbo8-dev \
@@ -79,7 +63,24 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libvpx-dev \
         libwebp-dev \
         libx264-dev \
-        libx265-dev && \
+        libx265-dev \
+        libdrm-dev \
+        libegl-dev \
+        libgl-dev \
+        libopengl-dev \
+        libgles-dev \
+        libglvnd-dev \
+        libglx-dev \
+        wayland-protocols \
+        libwayland-dev \
+        libwayland-egl-backend-dev \
+        libx11-xcb-dev \
+        libxcb-dri3-dev \
+        libxkbcommon-dev \
+        libxdamage-dev \
+        libxfixes-dev \
+        libxtst-dev \
+        libxext-dev && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get update && apt-get install --no-install-recommends -y libopenh264-dev libde265-dev svt-av1 libsvtav1enc-dev libsvtav1dec-dev aom-tools libaom-dev; fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*
 

@@ -31,7 +31,7 @@ rm -rf build
 
 popd
 
-# Install Selkies Python components
+# Install Selkies Python components with dependencies
 ${PYTHON} -m pip install -vv "${SELKIES_SOURCE}/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl"
 # Install web interface components
 cp -rf "${SELKIES_SOURCE}/gst-web" "${PREFIX}/share/selkies-web"
