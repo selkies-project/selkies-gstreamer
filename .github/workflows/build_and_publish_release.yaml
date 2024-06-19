@@ -5,8 +5,12 @@
 name: Publish release
 
 on:
-  push:
-    tags: [ "v*.*.*" ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag"
+        required: true
+        type: string
 
 jobs:
   get_semver:
@@ -17,7 +21,7 @@ jobs:
     steps:
     - id: get
       env:
-        RELEASE_VERSION: ${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+        RELEASE_VERSION: ${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
       run: |
         if [[ "${RELEASE_VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
           echo "semver=${RELEASE_VERSION/v/}" >> "$GITHUB_OUTPUT"
@@ -58,12 +62,14 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
         tags: |
-          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}${{ matrix.version_suffix }}
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   component_images:
-    needs: core_images
+    needs:
+    - get_semver
+    - core_images
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -152,7 +158,7 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
         tags: |
-          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}${{ matrix.version_suffix }}
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
   # Note: When modifying this job, copy modifications to all other workflow image jobs
@@ -169,10 +175,10 @@ jobs:
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
             DISTRIB_RELEASE=20.04
-            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
           context: addons/example
 
@@ -181,10 +187,10 @@ jobs:
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
             DISTRIB_RELEASE=22.04
-            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
           context: addons/example
 
@@ -193,10 +199,10 @@ jobs:
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
             DISTRIB_RELEASE=24.04
-            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
-            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}
+            GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
+            JS_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             JS_BASE_IMAGE=ghcr.io/${{ github.repository }}/js-interposer
           context: addons/example
 
@@ -214,7 +220,7 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         subproject: ${{ matrix.name }}
         tags: |
-          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}
+          ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}${{ matrix.version_suffix }}
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
   create_release:
@@ -248,92 +254,92 @@ jobs:
         include:
         - name: conda
           source: /opt/selkies-gstreamer-conda.tar.gz
-          target: selkies-gstreamer-portable-${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_amd64.tar.gz
+          target: selkies-gstreamer-portable-${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_amd64.tar.gz
 
         - name: gst-web
           source: /opt/gst-web.tar.gz
-          target: selkies-gstreamer-web_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}.tar.gz
+          target: selkies-gstreamer-web_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}.tar.gz
 
         - name: gstreamer
           version_suffix: -ubuntu20.04
           source: /opt/selkies-gstreamer-latest.tar.gz
-          target: gstreamer-selkies_gpl_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu20.04_amd64.tar.gz
+          target: gstreamer-selkies_gpl_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_amd64.tar.gz
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           source: /opt/selkies-gstreamer-latest.tar.gz
-          target: gstreamer-selkies_gpl_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu22.04_amd64.tar.gz
+          target: gstreamer-selkies_gpl_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_amd64.tar.gz
 
         - name: gstreamer
           version_suffix: -ubuntu24.04
           source: /opt/selkies-gstreamer-latest.tar.gz
-          target: gstreamer-selkies_gpl_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu24.04_amd64.tar.gz
+          target: gstreamer-selkies_gpl_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu20.04_amd64.deb
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu22.04_amd64.deb
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu24.04_amd64.deb
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu20.04_arm64.deb
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_arm64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu22.04_arm64.deb
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_arm64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu24.04_arm64.deb
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_arm64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu20.04_amd64.tar.gz
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu22.04_amd64.tar.gz
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu24.04_amd64.tar.gz
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu20.04_arm64.tar.gz
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_arm64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu22.04_arm64.tar.gz
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_arm64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           platforms: linux/arm64
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
-          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}_ubuntu24.04_arm64.tar.gz
+          target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_arm64.tar.gz
 
         - name: py-build
           source: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
@@ -356,7 +362,7 @@ jobs:
 
     - name: ${{ matrix.description }} release artifact extraction
       run: |
-        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.ref_name || 'main' }}${{ matrix.version_suffix }}"
+        docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}${{ matrix.version_suffix }}"
         TARGET_PATH="${{ env.TMPDIR }}/${{ matrix.target }}"
         docker container cp "copy:${{ matrix.source }}" "${TARGET_PATH}"
         if [ -d "${TARGET_PATH}" ]; then
