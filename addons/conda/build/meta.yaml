@@ -220,6 +220,7 @@ requirements:
     - pulseaudio                         # [linux]
     - pulseaudio-client                  # [linux]
     - libva-utils                        # [linux]
+    - libvulkan-loader
     - libxcb                             # [linux]
     - libxkbcommon                       # [linux]
     - libxkbfile                         # [linux]
