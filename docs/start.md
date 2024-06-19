@@ -27,6 +27,8 @@ cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/rele
 
 Set `DISPLAY` to an unoccupied display server ID (such as `:99`) if you want Selkies-GStreamer to start its own virtual X11 display server (defaults to `:0`), and keep environment variables `PULSE_RUNTIME_PATH` and `PULSE_SERVER` empty if you want Selkies-GStreamer to start a portable PulseAudio audio server.
 
+**The environment variables that are set here should also be set with the host application or desktop environment, else you will likely not have audio or be shown an error.**
+
 ```bash
 export DISPLAY="${DISPLAY:-:0}"
 export PIPEWIRE_LATENCY="32/48000"
@@ -55,6 +57,8 @@ Use `--enable_resize=true` if you want to fit the remove resolution to the clien
 You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root path of your choice if using the `.tar.gz` tarball.
 
 7. **(MANDATORY) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
+
+**Moreover, when there is a very high latency or stutter, and the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, this section is very important.**
 
 Depending on your environment, **this step may be mandatory**.
 
@@ -226,6 +230,8 @@ selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/
 ```
 
 7. **(MANDATORY) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
+
+**Moreover, when there is a very high latency or stutter, and the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, this section is very important.**
 
 Depending on your environment, **this step may be mandatory**.
 

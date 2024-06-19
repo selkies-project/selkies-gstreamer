@@ -34,7 +34,9 @@ A TURN server is required if trying to use this project inside a Docker® or Kub
 
 In most cases when either of your server or client does not have a restrictive firewall, the default Google STUN server configuration will work without additional configuration. However, when connecting from networks that cannot be traversed with STUN, a TURN server is required.
 
-[Open Relay](https://www.metered.ca/tools/openrelay) is a free TURN server instance that may be used for personal testing purposes, but may not be optimal for production usage. Because there is only one server location, this will add substantial latency to your connections.
+[Open Relay](https://www.metered.ca/tools/openrelay) is a free TURN server instance that may be used for personal testing purposes, but may not be optimal for production usage.
+
+**While the [Open Relay](https://www.metered.ca/tools/openrelay) TURN server is the default when no TURN server is set, because there is only one server location, any connection with the type `relay` will add substantial latency as well as stutters to your connections.**
 
 For self-hosters with restricted host networks, the [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free) Arm Compute Instance provides up to 10 TB Outbound Data Transfer every month, which accounts to a total of nearly 30 mbps bandwidth even when Selkies-GStreamer is utilized 24/7. You may configure coTURN with any computer, server, cloud service, or virtual machine you want. Make sure to use a location that is as close as possible to the web client or the host server.
 
