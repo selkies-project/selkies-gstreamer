@@ -231,12 +231,12 @@ jobs:
     - component_images
     - example_images
     runs-on: ubuntu-latest
-    name: Create ${{ github.ref }} draft release
+    name: Create ${{ github.event.inputs.tag }} draft release
     steps:
     - uses: softprops/action-gh-release@v2
       with:
-        name: "Release ${{ github.ref }}"
-        tag_name: ${{ github.ref }}
+        name: "Release ${{ github.event.inputs.tag }}"
+        tag_name: ${{ github.event.inputs.tag }}
         body: "**By downloading the GStreamer build files, you acknowledge and agree to the terms of libraries and executables licensed GPLv2, GPLv3 or https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt.**"
         draft: true
         generate_release_notes: true
@@ -379,5 +379,5 @@ jobs:
       with:
         draft: true
         overwrite: true
-        tag: ${{ github.ref }}
+        tag: ${{ github.event.inputs.tag }}
         file: ${{ env.TMPDIR }}/${{ matrix.target }}
