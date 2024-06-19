@@ -142,6 +142,7 @@ requirements:
     - libsoup
     - libvulkan-loader
     - libvulkan-headers
+    - shaderc
     - openexr
     - openjpeg
     - libjpeg-turbo
