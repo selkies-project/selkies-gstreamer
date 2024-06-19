@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag"
+        description: "Release Tag"
         required: true
         type: string
 
@@ -167,6 +167,7 @@ jobs:
   example_images:
     needs:
     - get_semver
+    - core_images
     - component_images
     runs-on: ubuntu-latest
     strategy:
@@ -228,6 +229,7 @@ jobs:
   create_release:
     needs:
     - get_semver
+    - core_images
     - component_images
     - example_images
     runs-on: ubuntu-latest
@@ -244,6 +246,7 @@ jobs:
   upload_artifacts:
     needs:
     - get_semver
+    - core_images
     - component_images
     - example_images
     - create_release
