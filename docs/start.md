@@ -11,7 +11,7 @@ Read [Conda Toolchain](component.md#conda-toolchain) for more details of this st
 1. Install required dependencies, for Ubuntu or Debian-based distributions run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl libpulse0 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6 xvfb
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl libpulse0 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6 xvfb
 ```
 
 In the future, this host dependency requirement may be completely eliminated if relevant [conda-forge](https://conda-forge.org) feedstocks are available.
@@ -24,6 +24,8 @@ cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/rele
 ```
 
 3. Set your `DISPLAY` and `PULSE_SERVER` environment variables for the X.Org X11 display server or PulseAudio audio server.
+
+**Check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display.**
 
 Set `DISPLAY` to an unoccupied display server ID (such as `:99`) if you want Selkies-GStreamer to start its own virtual X11 display server (defaults to `:0`), and keep environment variables `PULSE_RUNTIME_PATH` and `PULSE_SERVER` empty if you want Selkies-GStreamer to start a portable PulseAudio audio server.
 
@@ -113,7 +115,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distributions run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl python3-pip python3-dev python3-gi python3-setuptools python3-wheel libaa1 bzip2 libgcrypt20 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 alsa-utils jackd2 libjack-jackd2-0 libpulse0 libogg0 libopus0 libvorbis-dev libjpeg-turbo8 libopenjp2-7 libvpx-dev libwebp-dev x264 x265 libdrm2 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 wmctrl xsel xdotool x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxtst6 libxext6
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl python3-pip python3-dev python3-gi python3-setuptools python3-wheel libaa1 bzip2 libgcrypt20 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 alsa-utils jackd2 libjack-jackd2-0 libpulse0 libogg0 libopus0 libvorbis-dev libjpeg-turbo8 libopenjp2-7 libvpx-dev libwebp-dev x264 x265 libdrm2 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 wmctrl xsel xdotool x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6
 ```
 
 Install additional dependencies if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
@@ -175,6 +177,8 @@ Alternatively, users may directly place the Joystick Interposer libraries from t
 You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root path of your choice if using the `.tar.gz` tarball.
 
 6. Run Selkies-GStreamer after changing the script below appropriately (install `xvfb` and uncomment relevant sections if there is no real display, **DO NOT resize when streaming a physical monitor**):
+
+**Check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display.**
 
 ```bash
 export DISPLAY="${DISPLAY:-:0}"

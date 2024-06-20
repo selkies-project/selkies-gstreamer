@@ -34,6 +34,8 @@ We use Docker® containers for building every commit. The root directory [`Docke
 
 First of all, ensure that there is a running PulseAudio or PipeWire-Pulse session as the interface does not establish without an audio server.
 
+**Moreover, check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display.**
+
 **Then, please read [WebRTC and Firewall Issues](firewall.md).**
 
 Also check if the WebRTC video codec is supported in the web browser, as the server may panic if the codecs do not match. H.264, VP8, and VP9 are supported by all major web browsers.

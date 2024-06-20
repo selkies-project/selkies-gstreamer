@@ -358,6 +358,7 @@ jobs:
           tar -czvf "temp.tar.gz" "${SOURCE_DIRNAME}" && rm -rf "${SOURCE_DIRNAME}" && mv -f "temp.tar.gz" "${TARGET_PATH}"
         fi
         docker container rm --force --volumes copy
+        echo "release_arch=$(echo ${{ matrix.platforms || 'linux/amd64' }} | sed -e 's/\//\-/')" >> "$GITHUB_ENV"
 
     - name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
       uses: actions/upload-artifact@v4

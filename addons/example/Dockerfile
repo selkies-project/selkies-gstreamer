@@ -119,6 +119,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libxkbcommon0 \
         libxdamage1 \
         libxfixes3 \
+        libxv1 \
         libxtst6 \
         libxext6 \
         # Graphics driver dependencies

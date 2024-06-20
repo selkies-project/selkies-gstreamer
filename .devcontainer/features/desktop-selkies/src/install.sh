@@ -63,6 +63,7 @@ apt-get update && apt-get install --no-install-recommends -y \
     libxkbcommon0 \
     libxdamage1 \
     libxfixes3 \
+    libxv1 \
     libxtst6 \
     libxext6 && \
 if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
