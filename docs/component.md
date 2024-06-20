@@ -44,7 +44,7 @@ docker cp conda:/opt/selkies-gstreamer-latest.tar.gz /tmp/selkies-gstreamer-late
 docker rm conda
 cd /opt && sudo tar -xzf /tmp/selkies-gstreamer-latest.tar.gz && rm -f /tmp/selkies-gstreamer-latest.tar.gz
 # Run Selkies-GStreamer portable distribution
-/opt/selkies-gstreamer/bin/selkies-gstreamer-run
+/opt/selkies-gstreamer/selkies-gstreamer-run
 ```
 
 Otherwise (for different system architectures), you can build your own portable distribution (currently tested with `aarch64` and `ppc64le`).
@@ -77,7 +77,7 @@ One other alternative way to install the Python application components from the 
 git clone https://github.com/selkies-project/selkies-gstreamer.git
 cd selkies-gstreamer
 export PIP_BREAK_SYSTEM_PACKAGES=1
-pip install --no-cache-dir --force-reinstall .
+pip3 install --no-cache-dir --force-reinstall .
 ```
 
 #### Web Application:
