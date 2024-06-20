@@ -180,12 +180,12 @@ The [coTURN Container](/addons/coturn) is a reference container which provides t
 Run the Docker®/Podman container built from the [`coTURN Dockerfile`](/addons/coturn/Dockerfile) (replace `main` to `latest` for the latest stable release**):
 
 ```bash
-docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT="3478" -e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535" -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
+docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT=3478 -e TURN_MIN_PORT=49152 -e TURN_MAX_PORT=65535 -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
 ```
 
 **The relay ports and the listening port must all be open to the internet.**
 
-Modify the relay ports `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` combined with `-e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535"` as appropriate (at least two relay ports are required).
+Modify the relay ports `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` combined with `-e TURN_MIN_PORT=49152 -e TURN_MAX_PORT=65535` as appropriate (at least two relay ports are required).
 
 In addition, use the option `-e TURN_EXTRA_ARGS="--no-udp-relay"` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or `-e TURN_EXTRA_ARGS="--no-tcp-relay"` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 

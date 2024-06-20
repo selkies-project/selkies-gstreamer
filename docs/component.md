@@ -36,15 +36,15 @@ Pre-built `x86_64` portable distributions for **any Linux distribution with `gli
 
 For the most recent unreleased commit, download from the [GitHub Actions Workflow Runs](https://github.com/selkies-project/selkies-gstreamer/actions) `Build & publish all images` **`conda_linux-amd64`** Build Artifact (under `Artifacts (Produced during runtime)`) for each commit from the `main` branch.
 
-Alternatively, copy the pre-built `x86_64` portable distribution build from the container image (change `main` with `latest` for the latest stable release):
+Alternatively, copy the pre-built `x86_64` portable distribution build from the container image (use your own directory other than `/opt`, change `main` with `latest` for the latest stable release):
 
 ```bash
-docker create --platform="linux/amd64" --name ghcr.io/selkies-project/selkies-gstreamer/conda:main
-docker cp conda:/opt/selkies-gstreamer-latest.tar.gz /tmp/selkies-gstreamer-latest.tar.gz
+docker create --platform="linux/amd64" --name conda ghcr.io/selkies-project/selkies-gstreamer/conda:main
+docker cp conda:/opt/selkies-gstreamer-conda.tar.gz /tmp/selkies-gstreamer-conda.tar.gz
 docker rm conda
-cd /opt && sudo tar -xzf /tmp/selkies-gstreamer-latest.tar.gz && rm -f /tmp/selkies-gstreamer-latest.tar.gz
+cd /opt && sudo tar -xzf /tmp/selkies-gstreamer-conda.tar.gz && rm -f /tmp/selkies-gstreamer-conda.tar.gz
 # Run Selkies-GStreamer portable distribution
-/opt/selkies-gstreamer/selkies-gstreamer-run
+/opt/selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
 ```
 
 Otherwise (for different system architectures), you can build your own portable distribution (currently tested with `aarch64` and `ppc64le`).
@@ -69,6 +69,8 @@ docker cp selkies-py:/opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.wh
 docker rm selkies-py
 sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
+# Run Selkies-GStreamer Python executable after all components are installed
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
 ```
 
 One other alternative way to install the Python application components from the most recent unreleased commit:
@@ -76,8 +78,9 @@ One other alternative way to install the Python application components from the 
 ```bash
 git clone https://github.com/selkies-project/selkies-gstreamer.git
 cd selkies-gstreamer
-export PIP_BREAK_SYSTEM_PACKAGES=1
-pip3 install --no-cache-dir --force-reinstall .
+sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall .
+# Run Selkies-GStreamer Python executable after all components are installed
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
 ```
 
 #### Web Application:
@@ -130,17 +133,19 @@ Alternatively, copy the pre-built `x86_64` GStreamer build from the container im
 docker create --platform="linux/amd64" --name gstreamer ghcr.io/selkies-project/selkies-gstreamer/gstreamer:main-ubuntu${DISTRIB_RELEASE}
 sudo docker cp gstreamer:/opt/gstreamer /opt/gstreamer
 docker rm gstreamer
+# Initialize the pre-built GStreamer environment for Selkies-GStreamer to use
+. /opt/gstreamer/gst-env
 ```
 
 Otherwise (for different operating system distributions or system architectures), you can build your own GStreamer version as long as it is the latest possible stable version.
 
 ### Optional Components
 
-These components are not required for Selkies-GStreamer, but may be required in specific cases of deployments or preferences. Recommended to read nonetheless.
+These components are not required for Selkies-GStreamer, but may be required in specific cases of deployments or preferences. These sections are recommended to be nonetheless, read carefully.
 
 #### Joystick Interposer:
 
-The [Joystick Interposer](/addons/js-interposer) is a special library which allows the usage of joysticks or gamepads inside unprivileged containers (most of the occasions with shared Kubernetes clusters or HPC clusters), where host kernel devices required for creating a joystick interface are not available. It uses a `LD_PRELOAD` hack to intercept `uinput` input commands from joysticks or gamepads into Selkies-GStreamer (much like how [VirtualGL](https://github.com/VirtualGL/virtualgl) intercepts OpenGL commands).
+The [Joystick Interposer](/addons/js-interposer) is a special library that allows the usage of joysticks or gamepads inside unprivileged containers (most of the occasions with shared Kubernetes clusters or HPC clusters), where host kernel devices required for creating a joystick interface are not available. It uses a `LD_PRELOAD` hack to intercept `uinput` input commands from joysticks or gamepads into Selkies-GStreamer (much like how [VirtualGL](https://github.com/VirtualGL/virtualgl) intercepts OpenGL commands).
 
 Pre-built `x86_64` and `aarch64` joystick interposer components for Ubuntu are available with the name (fill in the OS version `DISTRIB_RELEASE` such as `24.04`, `22.04`, Ubuntu-style architecture `ARCH` such as `amd64` and `arm64`) **`selkies-js-interposer_v${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.tar.gz`** or **`selkies-js-interposer_v${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_${ARCH}.deb`** for download in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) for the latest stable version.
 
@@ -160,9 +165,11 @@ To retrieve the `.tar.gz` tarball instead of the `.deb` installer:
 
 ```bash
 docker create --platform="linux/amd64" --name js-interposer ghcr.io/selkies-project/selkies-gstreamer/js-interposer:main-ubuntu${DISTRIB_RELEASE}
-docker cp js-interposer:/opt/selkies-js-interposer_0.0.0.tar.gz /opt/selkies-js-interposer_0.0.0.tar.gz
+docker cp js-interposer:/opt/selkies-js-interposer_0.0.0.tar.gz /tmp/selkies-js-interposer_0.0.0.tar.gz
 docker rm js-interposer
 ```
+
+After extracting the `.tar.gz` tarball, move the `.so` library files to the library path (such as `/usr/lib/x86_64-linux-gnu` and `/usr/lib/i386-linux-gnu`) of your Linux distribution.
 
 The following paths are required to exist for the Joystick Interposer to pass the joystick/gamepad input to various applications:
 
@@ -222,12 +229,12 @@ The [coTURN Container](/addons/coturn) is a reference container which provides t
 Run the Docker®/Podman container built from the [`coTURN Dockerfile`](/addons/coturn/Dockerfile) (replace `main` to `latest` for the latest stable release**):
 
 ```bash
-docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT="3478" -e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535" -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
+docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT=3478 -e TURN_MIN_PORT=49152 -e TURN_MAX_PORT=65535 -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
 ```
 
 **The relay ports and the listening port must all be open to the internet.**
 
-Modify the relay ports `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` combined with `-e TURN_MIN_PORT="49152" -e TURN_MAX_PORT="65535"` as appropriate (at least two relay ports are required).
+Modify the relay ports `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` combined with `-e TURN_MIN_PORT=49152 -e TURN_MAX_PORT=65535` as appropriate (at least two relay ports are required).
 
 In addition, use the option `-e TURN_EXTRA_ARGS="--no-udp-relay"` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or `-e TURN_EXTRA_ARGS="--no-tcp-relay"` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
 
@@ -260,7 +267,7 @@ The TURN-REST Container (or similarly, Kubernetes Pod) should be triggered with 
 Run the Docker®/Podman container built from the [`TURN-REST Dockerfile`](/addons/turn-rest/Dockerfile) (replace `main` to `latest` for the latest stable release**):
 
 ```bash
-docker run --pull=always --name turn-rest -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_HOST=turn.myinfrastructure.io -e TURN_PORT="3478" -e TURN_PROTOCOL=udp -e TURN_TLS="false" -p 8008:8008 ghcr.io/selkies-project/selkies-gstreamer/turn-rest:main
+docker run --pull=always --name turn-rest -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_HOST=turn.myinfrastructure.io -e TURN_PORT=3478 -e TURN_PROTOCOL=udp -e TURN_TLS=false -p 8008:8008 ghcr.io/selkies-project/selkies-gstreamer/turn-rest:main
 ```
 
 From Selkies-GStreamer, it is sufficient to use the `selkies-gstreamer --turn_rest_uri=` option or `export SELKIES_TURN_REST_URI=` environment variable, pointing to the HTTP(S) URL to the TURN REST API server.
