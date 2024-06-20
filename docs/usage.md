@@ -98,7 +98,7 @@ export SELKIES_TURN_PORT="YOUR_TURN_PORT"
 export SELKIES_TURN_SECRET="YOUR_SHARED_SECRET"
 export SELKIES_TURN_USER="user"
 
-python3 -c 'import os;from selkies_gstreamer.signaling_web import generate_rtc_config; print(generate_rtc_config(os.environ["SELKIES_TURN_HOST"], os.environ["SELKIES_TURN_PORT"], os.environ["SELKIES_TURN_SECRET"], os.environ["SELKIES_TURN_USER"]))'
+python3 -c 'import os;from selkies_gstreamer.signalling_web import generate_rtc_config; print(generate_rtc_config(os.environ["SELKIES_TURN_HOST"], os.environ["SELKIES_TURN_PORT"], os.environ["SELKIES_TURN_SECRET"], os.environ["SELKIES_TURN_USER"]))'
 ```
 
 Using both methods, you can then test your TURN server configuration from the [Trickle ICE](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/) website.

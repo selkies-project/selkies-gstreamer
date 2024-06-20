@@ -13,15 +13,13 @@ on:
         type: string
 
 jobs:
-  create_tag:
-    name: Create Tag
+  get_semver:
+    name: Get Semantic Version
     runs-on: ubuntu-latest
-    permissions: write-all
     outputs:
       semver: ${{ steps.semver.outputs.semver }}
     steps:
     - id: semver
-      name: Get Semantic Version
       env:
         RELEASE_VERSION: ${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
       run: |
@@ -35,21 +33,9 @@ jobs:
           exit 1
         fi
 
-    - id: create
-      name: Create Tag
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/v${{ steps.semver.outputs.semver }}',
-              sha: context.sha
-          })
-
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   core_images:
-    needs: create_tag
+    needs: get_semver
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -59,14 +45,12 @@ jobs:
 
         - name: py-build
           build_args: |
-            PACKAGE_VERSION=${{ needs.create_tag.outputs.semver }}
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
           context: .
 
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: 'refs/tags/v${{ needs.create_tag.outputs.semver }}'
 
     - name: Build & publish ${{ matrix.name }} image
       uses: ./.github/actions/build_and_publish_image
@@ -84,7 +68,7 @@ jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   component_images:
     needs:
-    - create_tag
+    - get_semver
     - core_images
     runs-on: ubuntu-latest
     strategy:
@@ -92,8 +76,8 @@ jobs:
         include:
         - name: conda
           build_args: |
-            PACKAGE_VERSION=${{ needs.create_tag.outputs.semver }}
-            PKG_VERSION=${{ needs.create_tag.outputs.semver }}
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             WEB_IMAGE=ghcr.io/${{ github.repository }}/gst-web:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
           context: addons/conda
@@ -129,7 +113,7 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=20.04
             PKG_NAME=selkies-js-interposer
-            PKG_VERSION=${{ needs.create_tag.outputs.semver }}
+            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
           platforms: linux/amd64,linux/arm64
@@ -139,7 +123,7 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=22.04
             PKG_NAME=selkies-js-interposer
-            PKG_VERSION=${{ needs.create_tag.outputs.semver }}
+            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
           platforms: linux/amd64,linux/arm64
@@ -149,7 +133,7 @@ jobs:
           build_args: |
             DISTRIB_RELEASE=24.04
             PKG_NAME=selkies-js-interposer
-            PKG_VERSION=${{ needs.create_tag.outputs.semver }}
+            PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.ubuntu_debpkg
           platforms: linux/amd64,linux/arm64
@@ -165,8 +149,6 @@ jobs:
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: 'refs/tags/v${{ needs.create_tag.outputs.semver }}'
 
     - name: Build & publish ${{ matrix.name }} image
       uses: ./.github/actions/build_and_publish_image
@@ -184,7 +166,7 @@ jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   example_images:
     needs:
-    - create_tag
+    - get_semver
     - core_images
     - component_images
     runs-on: ubuntu-latest
@@ -194,7 +176,7 @@ jobs:
         - name: gst-py-example
           version_suffix: -ubuntu20.04
           build_args: |
-            PACKAGE_VERSION=${{ needs.create_tag.outputs.semver }}
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
             DISTRIB_RELEASE=20.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
@@ -206,7 +188,7 @@ jobs:
         - name: gst-py-example
           version_suffix: -ubuntu22.04
           build_args: |
-            PACKAGE_VERSION=${{ needs.create_tag.outputs.semver }}
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
             DISTRIB_RELEASE=22.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
@@ -218,7 +200,7 @@ jobs:
         - name: gst-py-example
           version_suffix: -ubuntu24.04
           build_args: |
-            PACKAGE_VERSION=${{ needs.create_tag.outputs.semver }}
+            PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
             DISTRIB_RELEASE=24.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
@@ -230,8 +212,6 @@ jobs:
     name: ${{ matrix.name }}${{ matrix.version_suffix }} image build & publish
     steps:
     - uses: actions/checkout@v4
-      with:
-        ref: 'refs/tags/v${{ needs.create_tag.outputs.semver }}'
 
     - name: Build & publish ${{ matrix.name }} image
       uses: ./.github/actions/build_and_publish_image
@@ -246,30 +226,12 @@ jobs:
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}${{ matrix.version_suffix }}
           ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest${{ matrix.version_suffix }}
 
-  create_release:
-    needs:
-    - create_tag
-    - core_images
-    - component_images
-    - example_images
-    runs-on: ubuntu-latest
-    name: Create v${{ needs.create_tag.outputs.semver }} draft release
-    steps:
-    - uses: softprops/action-gh-release@v2
-      with:
-        name: "Release v${{ needs.create_tag.outputs.semver }}"
-        tag_name: v${{ needs.create_tag.outputs.semver }}
-        body: "**By downloading the GStreamer build files, you acknowledge and agree to the terms of libraries and executables licensed GPLv2, GPLv3 or https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt.**"
-        draft: true
-        generate_release_notes: true
-
   upload_artifacts:
     needs:
-    - create_tag
+    - get_semver
     - core_images
     - component_images
     - example_images
-    - create_release
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}
     env:
@@ -302,75 +264,75 @@ jobs:
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           platforms: linux/arm64
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_arm64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           platforms: linux/arm64
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_arm64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           platforms: linux/arm64
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.deb
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_arm64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.tar.gz
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.tar.gz
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.tar.gz
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           platforms: linux/arm64
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.tar.gz
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_arm64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           platforms: linux/arm64
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.tar.gz
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_arm64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           platforms: linux/arm64
-          source: /opt/selkies-js-interposer_${{ needs.create_tag.outputs.semver }}.tar.gz
+          source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_arm64.tar.gz
 
         - name: py-build
-          source: /opt/pypi/dist/selkies_gstreamer-${{ needs.create_tag.outputs.semver }}-py3-none-any.whl
-          target: selkies_gstreamer-${{ needs.create_tag.outputs.semver }}-py3-none-any.whl
+          source: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
+          target: selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
 
-    name: ${{ matrix.description }} release artifact extraction & upload
+    name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ matrix.platforms || 'linux/amd64' }} release artifact extraction & upload
     steps:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -385,7 +347,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ github.token }}
 
-    - name: ${{ matrix.description }} release artifact extraction
+    - name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ matrix.platforms || 'linux/amd64' }} release artifact extraction
       run: |
         docker container create --name=copy --platform="${{ matrix.platforms || 'linux/amd64' }}" "ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}${{ matrix.version_suffix }}"
         TARGET_PATH="${{ env.TMPDIR }}/${{ matrix.target }}"
@@ -397,10 +359,40 @@ jobs:
         fi
         docker container rm --force --volumes copy
 
-    - name: ${{ matrix.description }} upload
-      uses: svenstaro/upload-release-action@v2
+    - name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ matrix.platforms || 'linux/amd64' }} upload
+      uses: actions/upload-artifact@v4
       with:
-        draft: true
+        if-no-files-found: error
         overwrite: true
-        tag: v${{ needs.create_tag.outputs.semver }}
-        file: ${{ env.TMPDIR }}/${{ matrix.target }}
+        name: ${{ matrix.name }}${{ matrix.version_suffix }}${{ matrix.suffix }}_${{ env.release_arch }}
+        path: ${{ env.TMPDIR }}/${{ matrix.target }}
+
+  create_release:
+    needs:
+    - get_semver
+    - core_images
+    - component_images
+    - example_images
+    - upload_artifacts
+    runs-on: ubuntu-latest
+    name: Create v${{ needs.get_semver.outputs.semver }} draft release
+    steps:
+    - name: Download v${{ needs.get_semver.outputs.semver }} artifacts
+      id: artifact
+      uses: actions/download-artifact@v4
+      with:
+        merge-multiple: true
+        path: ${{ github.workspace }}/artifacts
+
+    - name: Create v${{ needs.get_semver.outputs.semver }} draft release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: "Release v${{ needs.get_semver.outputs.semver }}"
+        tag_name: v${{ needs.get_semver.outputs.semver }}
+        append_body: true
+        body: "**By downloading the GStreamer build files, you acknowledge and agree to the terms of libraries and executables licensed GPLv2, GPLv3, or https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt.**"
+        draft: true
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        files: |
+          ${{ steps.artifact.outputs.download-path }}/*
