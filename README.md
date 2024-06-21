@@ -20,7 +20,7 @@ While designed for clustered or unprivileged containerized environments, Selkies
 
 Remote desktop software projects have always been primarily proprietary. It is difficult to maintain such a project without consistent full-time compensation or financial upkeep.
 
-Therefore, citations in academic publications are crucial for keeping this project under academic community governance. Therefore, we kindly, but strongly ask all software projects which are applying into, embedding in, forking from, deriving from, or taking influence from this project to retain the below sections in a clearly visible location of your project and/or documentation.
+Therefore, citations in academic publications are crucial for keeping this project under academic community governance, as well as to track and report the demographics of our users. Therefore, we kindly, but strongly ask all software projects which are applying into, embedding in, forking from, deriving from, or taking influence from this project to retain the below sections in a clearly visible location of your project and/or documentation.
 
 **Users of this open-source software project should cite the following publications when publishing in academic form to keep this project and original upstream projects sustainable:**
 

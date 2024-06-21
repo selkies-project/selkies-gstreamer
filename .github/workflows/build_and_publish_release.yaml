@@ -388,6 +388,9 @@ jobs:
     - example_images
     - upload_artifacts
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
+    env:
+      TMPDIR: /tmp
     name: Create v${{ needs.get_semver.outputs.semver }} draft release
     steps:
     - name: Download v${{ needs.get_semver.outputs.semver }} artifacts
@@ -395,7 +398,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         merge-multiple: true
-        path: ${{ github.workspace }}/artifacts
+        path: ${{ env.TMPDIR }}/artifacts
 
     - name: Create v${{ needs.get_semver.outputs.semver }} draft release
       uses: softprops/action-gh-release@v2
@@ -403,7 +406,7 @@ jobs:
         name: "Release v${{ needs.get_semver.outputs.semver }}"
         tag_name: v${{ needs.get_semver.outputs.semver }}
         append_body: true
-        body: "**By downloading the GStreamer build files, you acknowledge and agree to the terms of libraries and executables licensed GPLv2, GPLv3, or https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt.**"
+        body: "**By downloading the GStreamer build files or the portable distribution, you acknowledge and agree to the terms of libraries and executables licensed (L)GPLv2, (L)GPLv3, and https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt.**"
         draft: true
         generate_release_notes: true
         fail_on_unmatched_files: true
