@@ -264,69 +264,81 @@ jobs:
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
+          suffix: -deb
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
+          suffix: -deb
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
+          suffix: -deb
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_amd64.deb
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          platforms: linux/arm64
+          suffix: -deb
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_arm64.deb
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          platforms: linux/arm64
+          suffix: -deb
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_arm64.deb
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
-          platforms: linux/arm64
+          suffix: -deb
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.deb
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_arm64.deb
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
+          suffix: -tar.gz
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
+          suffix: -tar.gz
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
+          suffix: -tar.gz
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_amd64.tar.gz
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
-          platforms: linux/arm64
+          suffix: -tar.gz
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu20.04_arm64.tar.gz
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
-          platforms: linux/arm64
+          suffix: -tar.gz
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu22.04_arm64.tar.gz
+          platforms: linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
-          platforms: linux/arm64
+          suffix: -tar.gz
           source: /opt/selkies-js-interposer_${{ needs.get_semver.outputs.semver }}.tar.gz
           target: selkies-js-interposer_${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}_ubuntu24.04_arm64.tar.gz
+          platforms: linux/arm64
 
         - name: py-build
           source: /opt/pypi/dist/selkies_gstreamer-${{ needs.get_semver.outputs.semver }}-py3-none-any.whl
