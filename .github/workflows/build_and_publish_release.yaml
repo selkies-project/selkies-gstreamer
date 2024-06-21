@@ -406,7 +406,7 @@ jobs:
         name: "Release v${{ needs.get_semver.outputs.semver }}"
         tag_name: v${{ needs.get_semver.outputs.semver }}
         append_body: true
-        body: "**By downloading the GStreamer build files or the portable distribution, you acknowledge and agree to the terms of libraries and executables licensed (L)GPLv2, (L)GPLv3, and https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt.**"
+        body: "**By downloading the GStreamer build files or the portable distribution, you acknowledge, agree, and adhere to the terms of works licensed under (L)GPLv2, (L)GPLv3, and https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt licenses, as well as other terms of intellectual property, including but not limited to patents.**"
         draft: true
         generate_release_notes: true
         fail_on_unmatched_files: true
