@@ -112,6 +112,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         xsel \
         xdotool \
         x11-utils \
+        x11-xkb-utils \
         x11-xserver-utils \
         xserver-xorg-core \
         libx11-xcb1 \
@@ -123,14 +124,16 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libxtst6 \
         libxext6 \
         # Graphics driver dependencies
-        va-driver-all \
-        i965-va-driver-shaders \
-        intel-media-va-driver-non-free \
+        mesa-va-drivers \
         libva2 \
         vainfo \
+        vdpau-driver-all \
+        libvdpau-va-gl1 \
+        vdpauinfo \
         mesa-vulkan-drivers \
         vulkan-tools \
-        nvtop && \
+        radeontop && \
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then apt-get install --no-install-recommends -y intel-gpu-tools nvtop va-driver-all i965-va-driver-shaders intel-media-va-driver-non-free; fi && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
     echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
@@ -162,6 +165,8 @@ ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES all
 # Disable VSYNC for NVIDIA GPUs
 ENV __GL_SYNC_TO_VBLANK 0
+# Set default DISPLAY environment
+ENV DISPLAY ":0"
 
 # Install VirtualGL and make libraries available for preload
 ENV VGL_DISPLAY egl
@@ -252,9 +257,6 @@ ARG PIP_BREAK_SYSTEM_PACKAGES=1
 COPY --chown=1000:1000 --from=selkies-build /opt/pypi/dist/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl .
 RUN pip3 install --no-cache-dir --force-reinstall /opt/${PYPI_PACKAGE}-${PACKAGE_VERSION}-py3-none-any.whl
 
-# Setup global bashrc to configure X11 environment
-ENV DISPLAY ":0"
-
 # Copy scripts and configurations used to start the container
 COPY --chown=1000:1000 entrypoint.sh /etc/entrypoint.sh
 RUN chmod 755 /etc/entrypoint.sh
@@ -299,10 +301,15 @@ python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\
 
 SHELL ["/bin/sh", "-c"]
 
+ENV PIPEWIRE_LATENCY "32/48000"
+ENV XDG_RUNTIME_DIR /tmp/runtime-ubuntu
+ENV PIPEWIRE_RUNTIME_DIR "${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
+ENV PULSE_RUNTIME_PATH "${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
+ENV PULSE_SERVER "${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
+
 USER 1000
 ENV SHELL /bin/bash
 ENV USER=ubuntu
-ENV XDG_RUNTIME_DIR /tmp/runtime-ubuntu
 WORKDIR /home/ubuntu
 
 EXPOSE 8080

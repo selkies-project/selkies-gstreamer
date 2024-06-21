@@ -56,6 +56,7 @@ apt-get update && apt-get install --no-install-recommends -y \
     xsel \
     xdotool \
     x11-utils \
+    x11-xkb-utils \
     x11-xserver-utils \
     xserver-xorg-core \
     libx11-xcb1 \

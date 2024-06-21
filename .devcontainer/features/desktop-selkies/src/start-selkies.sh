@@ -17,13 +17,11 @@ trap cleanup SIGINT SIGKILL EXIT
 
 # Start Xvfb Xserver
 if [ "${XSERVER}" = "XVFB" ]; then
-    Xvfb -screen :0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
+    Xvfb -screen "${DISPLAY}" 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb.log 2>&1 &
 fi
 
-# Wait for X11 to start
-echo "Waiting for X socket"
-until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 0.5; done
-echo "X socket is ready"
+# Wait for X server to start
+echo 'Waiting for X socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
 # Disable screen saver
 xset s off

@@ -11,7 +11,7 @@ Read [Conda Toolchain](component.md#conda-toolchain) for more details of this st
 1. Install required dependencies, for Ubuntu or Debian-based distributions run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl libpulse0 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6 xvfb
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl libpulse0 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xkb-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6 xvfb
 ```
 
 In the future, this host dependency requirement may be completely eliminated if relevant [conda-forge](https://conda-forge.org) feedstocks are available.
@@ -115,7 +115,7 @@ While this instruction assumes that you are installing this project systemwide, 
 1. Install the dependencies, for Ubuntu or Debian-based distributions run this command:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel libaa1 bzip2 libgcrypt20 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 alsa-utils jackd2 libjack-jackd2-0 libpulse0 libogg0 libopus0 libvorbis-dev libjpeg-turbo8 libopenjp2-7 libvpx-dev libwebp-dev x264 x265 libdrm2 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 wmctrl xsel xdotool x11-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl build-essential python3-pip python3-dev python3-gi python3-setuptools python3-wheel libaa1 bzip2 libgcrypt20 libcairo-gobject2 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libsoup2.4-1 libsoup-gnome2.4-1 libgirepository-1.0-1 glib-networking libglib2.0-0 libjson-glib-1.0-0 libgudev-1.0-0 alsa-utils jackd2 libjack-jackd2-0 libpulse0 libogg0 libopus0 libvorbis-dev libjpeg-turbo8 libopenjp2-7 libvpx-dev libwebp-dev x264 x265 libdrm2 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 wmctrl xsel xdotool x11-utils x11-xkb-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6
 ```
 
 Install additional dependencies if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
@@ -126,7 +126,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libo
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and NVRTC (procedures below).
 
-If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop` for GPU monitoring.
+If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop`, or `nvtop` for GPU monitoring.
 
 Use the following commands to retrieve the latest `SELKIES_VERSION` release, the current Ubuntu `DISTRIB_RELEASE`, and the current architecture `ARCH` in the following steps:
 
@@ -194,8 +194,8 @@ sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # Start a virtual X11 server if not already running, skip this line if an X server already exists or you are already using a display
 # Xvfb -screen "${DISPLAY}" 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -noreset -shmem >/tmp/Xvfb_selkies.log 2>&1 &
 
-# Ensure the X server is ready
-# until [ -S "/tmp/.X11-unix/X${DISPLAY/:/}" ]; do sleep 0.5; done && echo 'X Server is ready'
+# Wait for X server to start
+# echo 'Waiting for X socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
 # Choose one between PulseAudio and PipeWire if not already running, either one must be installed
 
