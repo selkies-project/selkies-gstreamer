@@ -6,7 +6,7 @@ This project was meant to be built upon community contributions from people with
 
 Please return your developments with a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls) if you made modifications to the code or added new features, especially if you use this project commercially (as per MPL-2.0 license obligations). We will be happy to help or consult if you are stuck.
 
-**NOTE: this project is licensed under the [Mozilla Public License, version 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/), which obliges to share modified code files licensed by MPL-2.0 when distributed externally, but does not apply for any larger work outside this project, which might be open-source or proprietary under any license of choice.**
+**NOTE: this project is licensed under the [Mozilla Public License, version 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/), which obliges to share modified code files licensed by MPL-2.0 when distributed externally, but does not apply for any larger work outside this project, which might be open-source or proprietary under any license of choice. Externally originated components outside this project may contain work licensed over more restrictive copyleft/proprietary licenses or patents, which users or developers are obliged to adhere to.**
 
 Our license prevents proprietary entities from engulfing our code without providing anything back, unlike the Apache License, but does not impede any larger proprietary work embedding our code, unlike the GNU GPL/LGPL/AGPL. Either way, we strongly encourage proprietary entities to provide back your developments in terms of pull requests directly into our code repository.
 
@@ -48,15 +48,15 @@ When contributing, please follow the overall style of the code, and the names of
 
 These people make structural decisions for this project and press the `Merge Pull Request` button.
 
-[Dan Isla](https://github.com/danisla): Project Founder, Owner, Industry Representative (ex-Google, ex-NASA, ex-itopia), Head Maintainer (Start - Sep 2023, July 2024 -)
+[Dan Isla](https://github.com/danisla): Project Founder, Owner, Industry Representative (ex-Google, ex-NASA, ex-itopia), Head Maintainer (Start - Sep 2023, July 2024 -), **currently available for paid consulting tasks**
 
-[Seungmin Kim](https://github.com/ehfd): Co-Owner, Academia Representative (Yonsei University College of Medicine, San Diego Supercomputer Center), Head Maintainer (Apr 2022 - July 2024, est. 2025 -)
+[Seungmin Kim](https://github.com/ehfd): Co-Owner, Academia Representative (Yonsei University College of Medicine, San Diego Supercomputer Center), Head Maintainer (Apr 2022 - July 2024, est. 2025 -), currently not available for paid consulting tasks
 
 ### Code Contributors
 
 [PMohanJ](https://github.com/PMohanJ): Contributed new features for the X11 input protocol as well as providing various fixes for the project overall and providing various means of analysis
 
-[ayunami2000](https://github.com/ayunami2000): Provided various fixes for the WebRTC HTML5 web interface, as well as providing various means of analysis
+[ayunami2000](https://github.com/ayunami2000): Provided various fixes for the WebRTC HTML5 web interface, as well as providing various means of analysis, **currently available for paid consulting tasks**
 
 [Carlos Ruiz](https://github.com/cruizba): [OpenVidu](https://openvidu.io) Team, provided various proposals for fixing the X11 input protocol
 
