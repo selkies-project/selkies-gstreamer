@@ -27,7 +27,6 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
         apt-utils \
         dbus-user-session \
         fakeroot \
-        fuse \
         locales \
         ssl-cert \
         sudo \
@@ -228,7 +227,6 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         xfce4-terminal \
         mesa-utils \
         adwaita-icon-theme-full \
-        dbus-x11 \
         x11-apps \
         firefox \
         pavucontrol \
