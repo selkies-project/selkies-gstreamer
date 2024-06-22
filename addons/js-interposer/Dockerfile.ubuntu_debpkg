@@ -8,7 +8,7 @@
 #        -t selkies-js-interposer-deb:latest -f Dockerfile.ubuntu_debpkg .
 
 ARG DISTRIB_RELEASE=24.04
-FROM ubuntu:${DISTRIB_RELEASE} as build
+FROM ubuntu:${DISTRIB_RELEASE} AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -30,7 +30,7 @@ RUN ./build_ubuntu_deb.sh && \
     tar -czvf /opt/${PKG_NAME}_${PKG_VERSION}.tar.gz selkies_joystick_interposer*.so
 
 ARG DISTRIB_RELEASE
-FROM ubuntu:${DISTRIB_RELEASE} as test
+FROM ubuntu:${DISTRIB_RELEASE} AS test
 ARG PKG_NAME
 ARG PKG_VERSION
 ARG DEBFULLNAME

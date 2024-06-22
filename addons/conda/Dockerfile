@@ -4,8 +4,8 @@
 
 ARG PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 ARG WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
-FROM ${PY_BUILD_IMAGE} as selkies-build
-FROM ${WEB_IMAGE} as selkies-web
+FROM ${PY_BUILD_IMAGE} AS selkies-build
+FROM ${WEB_IMAGE} AS selkies-web
 FROM quay.io/condaforge/miniforge3:latest
 
 # Version for Conda

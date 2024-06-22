@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-FROM hashicorp/terraform:1.0.7 as terraform
+FROM hashicorp/terraform:1.0.7 AS terraform
 
 FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine
 

@@ -19,7 +19,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-FROM golang:1.22-alpine as build
+FROM golang:1.22-alpine AS build
 WORKDIR /go/src/coturn-web
 COPY *.go ./
 RUN go mod init selkies.io/coturn-web && go get -u -d ./... && go mod tidy
