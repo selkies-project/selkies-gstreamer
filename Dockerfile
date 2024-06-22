@@ -4,7 +4,7 @@
 
 FROM python:3
 
-LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
+LABEL maintainer="https://github.com/danisla,https://github.com/ehfd"
 
 # Install build deps
 ARG PIP_BREAK_SYSTEM_PACKAGES=1

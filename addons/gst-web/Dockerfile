@@ -33,8 +33,8 @@ RUN cp -R /usr/share/nginx/html /tmp/gst-web && \
     cd /tmp && tar -czvf /opt/gst-web.tar.gz gst-web && \
     rm -rf /tmp/gst-web
 
-ENV GST_WEB_PORT 80
-ENV PATH_PREFIX /
+ENV GST_WEB_PORT=80
+ENV PATH_PREFIX="/"
 
 COPY entrypoint.sh /entrypoint.sh
 CMD /entrypoint.sh

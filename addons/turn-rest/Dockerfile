@@ -12,13 +12,13 @@ COPY app.py /etc
 WORKDIR /etc
 
 # Gunicorn environment variables, number of workers
-ENV WEB_CONCURRENCY 3
+ENV WEB_CONCURRENCY=3
 # Replace environment with customized TURN server
-ENV TURN_SHARED_SECRET openrelayprojectsecret
-ENV TURN_HOST staticauth.openrelay.metered.ca
-ENV TURN_PORT 443
-ENV TURN_PROTOCOL udp
-ENV TURN_TLS false
+ENV TURN_SHARED_SECRET=openrelayprojectsecret
+ENV TURN_HOST=staticauth.openrelay.metered.ca
+ENV TURN_PORT=443
+ENV TURN_PROTOCOL=udp
+ENV TURN_TLS=false
 
 EXPOSE 8008
 

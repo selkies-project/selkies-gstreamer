@@ -17,7 +17,7 @@ FROM ${JS_BASE_IMAGE}:${JS_BASE_IMAGE_RELEASE}-ubuntu${DISTRIB_RELEASE} as selki
 FROM ubuntu:${DISTRIB_RELEASE}
 ARG DISTRIB_RELEASE
 
-LABEL maintainer "https://github.com/danisla,https://github.com/ehfd"
+LABEL maintainer="https://github.com/danisla,https://github.com/ehfd"
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Configure rootless user environment for constrained conditions without escalated root privileges inside containers
@@ -48,9 +48,9 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
     chown -R -f --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf /usr/libexec/sudo || true && chmod -f 4755 /usr/bin/sudo-root || true
 
 # Set locales
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG="en_US.UTF-8"
+ENV LANGUAGE="en_US:en"
+ENV LC_ALL="en_US.UTF-8"
 
 USER 1000
 # Use BUILDAH_FORMAT=docker in buildah
@@ -157,19 +157,19 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     }\n\
 }" > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 # Expose NVIDIA libraries and paths
-ENV PATH /usr/local/nvidia/bin${PATH:+:${PATH}}
-ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+ENV PATH="/usr/local/nvidia/bin${PATH:+:${PATH}}"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
 # Make all NVIDIA GPUs visible by default
-ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_VISIBLE_DEVICES=all
 # All NVIDIA driver capabilities should preferably be used, check `NVIDIA_DRIVER_CAPABILITIES` inside the container if things do not work
-ENV NVIDIA_DRIVER_CAPABILITIES all
+ENV NVIDIA_DRIVER_CAPABILITIES=all
 # Disable VSYNC for NVIDIA GPUs
-ENV __GL_SYNC_TO_VBLANK 0
+ENV __GL_SYNC_TO_VBLANK=0
 # Set default DISPLAY environment
-ENV DISPLAY ":0"
+ENV DISPLAY=":0"
 
 # Install VirtualGL and make libraries available for preload
-ENV VGL_DISPLAY egl
+ENV VGL_DISPLAY=egl
 RUN cd /tmp && VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/VirtualGL/virtualgl/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
     if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
     dpkg --add-architecture i386 && \
@@ -301,15 +301,15 @@ python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\
 
 SHELL ["/bin/sh", "-c"]
 
-ENV PIPEWIRE_LATENCY "32/48000"
-ENV XDG_RUNTIME_DIR /tmp/runtime-ubuntu
-ENV PIPEWIRE_RUNTIME_DIR "${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
-ENV PULSE_RUNTIME_PATH "${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
-ENV PULSE_SERVER "${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
+ENV PIPEWIRE_LATENCY="32/48000"
+ENV XDG_RUNTIME_DIR=/tmp/runtime-ubuntu
+ENV PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
+ENV PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
+ENV PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 
 USER 1000
-ENV SHELL /bin/bash
-ENV USER ubuntu
+ENV SHELL=/bin/bash
+ENV USER=ubuntu
 WORKDIR /home/ubuntu
 
 EXPOSE 8080
