@@ -33,17 +33,18 @@ turnserver \
     --verbose \
     --listening-ip="0.0.0.0" \
     --listening-ip="::" \
-    --listening-port=${TURN_PORT:-3478} \
-    --aux-server="0.0.0.0:${TURN_ALT_PORT:-443}" \
-    --aux-server="[::]:${TURN_ALT_PORT:-443}" \
-    --external-ip="${EXTERNAL_IP?missing env}" \
-    --realm=${TURN_REALM:-example.com} \
+    --listening-port="${TURN_PORT:-3478}" \
+    --aux-server="0.0.0.0:${TURN_ALT_PORT:-8443}" \
+    --aux-server="[::]:${TURN_ALT_PORT:-8443}" \
+    --realm="${TURN_REALM:-example.com}" \
+    --external-ip="${EXTERNAL_IP:-$(curl -fsSL checkip.amazonaws.com)}" \
+    --min-port="${TURN_MIN_PORT:-49152}" \
+    --max-port="${TURN_MAX_PORT:-65535}" \
+    --channel-lifetime="${TURN_CHANNEL_LIFETIME:--1}" \
     --use-auth-secret \
-    --static-auth-secret=${TURN_SHARED_SECRET:-changeme} \
+    --static-auth-secret="${TURN_SHARED_SECRET:-changeme}" \
+    --no-cli \
+    --cli-password="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)" \
     --allow-loopback-peers \
-    --rest-api-separator="-" \
-    --channel-lifetime=${TURN_CHANNEL_LIFETIME:-"-1"} \
-    --min-port=${TURN_MIN_PORT:-49152} \
-    --max-port=${TURN_MAX_PORT:-65535} \
     --prometheus \
     ${TURN_EXTRA_ARGS} $@

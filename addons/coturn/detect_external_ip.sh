@@ -22,7 +22,7 @@
 #   limitations under the License.
 
 if [ -z "$EXTERNAL_IP" ]; then
-  export EXTERNAL_IP="$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | sed s,\",,g)"
+  export EXTERNAL_IP="$(curl -fsSL checkip.amazonaws.com)"
 fi
 
 echo "$EXTERNAL_IP"

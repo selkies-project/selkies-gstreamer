@@ -268,19 +268,21 @@ RUN chmod 755 /etc/supervisord.conf
 # Configure coTURN script
 RUN echo "#!/bin/bash\n\
 set -e\n\
-exec turnserver\n\
-    --verbose\n\
-    --listening-ip=0.0.0.0\n\
-    --listening-ip=::\n\
-    --listening-port=\${SELKIES_TURN_PORT:-3478}\n\
-    --realm=\${TURN_REALM:-example.com}\n\
-    --min-port=\${TURN_MIN_PORT:-49152}\n\
-    --max-port=\${TURN_MAX_PORT:-65535}\n\
-    --lt-cred-mech\n\
-    --user selkies:\${TURN_RANDOM_PASSWORD}\n\
-    --no-cli\n\
-    --allow-loopback-peers\n\
-    --db /tmp/coturn-turndb\n\
+turnserver \
+    --verbose \
+    --listening-ip=\"0.0.0.0\" \
+    --listening-ip=\"::\" \
+    --listening-port=\"\${SELKIES_TURN_PORT:-3478}\" \
+    --realm=\"\${TURN_REALM:-example.com}\" \
+    --external-ip=\"\${SELKIES_TURN_HOST:-\$(curl -fsSL checkip.amazonaws.com)}\" \
+    --min-port=\"\${TURN_MIN_PORT:-49152}\" \
+    --max-port=\"\${TURN_MAX_PORT:-65535}\" \
+    --channel-lifetime=\"\${TURN_CHANNEL_LIFETIME:--1}\" \
+    --lt-cred-mech \
+    --user \"selkies:\${TURN_RANDOM_PASSWORD}\" \
+    --no-cli \
+    --cli-password=\"\${TURN_RANDOM_PASSWORD:-\$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)}\" \
+    --allow-loopback-peers \
     \${TURN_EXTRA_ARGS} \$@\
 " > /etc/start-turnserver.sh && chmod 755 /etc/start-turnserver.sh
 
