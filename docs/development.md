@@ -34,13 +34,11 @@ Regardless of your experience level, there is always something that you could he
 
 When contributing, please follow the overall style of the code, and the names of all variables, classes, or functions should be unambiguous and as less generic/confusing as possible.
 
-## Collaborating Projects
+## Influenced Projects
 
-<https://github.com/Xpra-org/xpra>
+Currently in collaboration and received influences from: <https://github.com/Xpra-org/xpra>, <https://github.com/m1k1o/neko>
 
-<https://github.com/m1k1o/neko>
-
-<https://github.com/nestriness/nestri>
+Heavy influences to other projects: <https://github.com/nestriness/nestri> <https://github.com/Steam-Headless/docker-steam-headless>
 
 ## Contributors
 
