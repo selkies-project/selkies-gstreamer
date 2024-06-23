@@ -38,7 +38,7 @@ When contributing, please follow the overall style of the code, and the names of
 
 Currently in collaboration and received influences from: <https://github.com/Xpra-org/xpra>, <https://github.com/m1k1o/neko>
 
-Heavy influences to other projects: <https://github.com/nestriness/nestri> <https://github.com/Steam-Headless/docker-steam-headless>
+Provided heavy influences to other projects: <https://github.com/nestriness/nestri>, <https://github.com/Steam-Headless/docker-steam-headless>
 
 ## Contributors
 

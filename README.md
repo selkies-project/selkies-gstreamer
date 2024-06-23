@@ -18,7 +18,7 @@ While designed for clustered or unprivileged containerized environments, Selkies
 
 **NOTE that this section is also applicable for developers applying, embedding, forking, deriving, or taking influence from this project.**
 
-**Crediting and recognizing through citations is the currency of scientific research. Citing in your publications is the main driver of keeping this project alive.**
+**Citations are the currency of scientific research. Citing in your publications is the main driver of keeping this project alive.**
 
 Remote desktop software projects have always been primarily proprietary. It is difficult to maintain such a project without consistent full-time compensation or financial upkeep.
 
