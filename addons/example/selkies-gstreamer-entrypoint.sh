@@ -40,7 +40,7 @@ echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do 
 # Clear the cache registry
 rm -rf "${HOME}/.cache/gstreamer-1.0"
 
-# Start the selkies-gstreamer WebRTC HTML5 remote desktop application
+# Start the Selkies-GStreamer WebRTC HTML5 remote desktop application
 selkies-gstreamer \
     --addr="0.0.0.0" \
     --port="8080" \
