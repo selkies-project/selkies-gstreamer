@@ -189,13 +189,13 @@ class WebRTCSimpleServer(object):
                 response_headers.append(('WWW-Authenticate', 'Basic realm="restricted, charset="UTF-8"'))
                 return http.HTTPStatus.UNAUTHORIZED, response_headers, b'Authorization required'
 
-        if path == "/ws" or path.endswith("/signalling/"):
+        if path == "/ws" or path.endswith("/signalling/") or path.endswith("/signalling"):
             return None
 
         if path == self.health_path:
             return http.HTTPStatus.OK, response_headers, b"OK\n"
 
-        if path == '/turn/' or path == '/turn':
+        if path == "/turn/" or path == "/turn":
             if self.turn_shared_secret:
                 # Get username from auth header.
                 if not username:
