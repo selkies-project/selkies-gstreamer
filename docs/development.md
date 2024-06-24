@@ -68,11 +68,29 @@ These people make structural decisions for this project and press the `Merge Pul
 
 # Knowledge Base
 
-This section is a knowledge base for code contributions.
+This section is a knowledge base for code contributions and development.
+
+## Code Guide
+
+- When editing certain parts of the codebase, it is very common that they interact with other components in a very different location. Therefore, it is very likely to mess up if you do not use search capabilities across the whole codebase. Because of this, use the Visual Studio Code (or any other IDE of choice) **Search and Replace** capabilities (especially with capitalization and regular expressions) rigorously. However, the replacement capability, if without adequate care, may replace totally unrelated code. Take great care while using this capability, and reviewers must take special attention to detect potentially breaking typos which may arise from bulk replacement.
 
 ## Style Guide
 
 - Shell scripts should use POSIX `sh` syntax as much as possible. Despite the scripts being run in `bash`, avoid using syntax only available in `bash` (such as `[[ ]]`), `zsh`, or other types of shells, unless absolutely needed.
+
+- There should be a line break at the end of each code file unless the specific code file format should not have one. If there is not, it is okay, but include the line break with your Pull Requests if possible.
+
+## docker-nvidia-{egl,glx}-desktop
+
+The desktop container repositories share various components between each other:
+
+`LICENSE`, `supervisord.conf`, and `selkies-gstreamer-entrypoint.sh` are always identical in both containers.
+
+The `Dockerfile` components are always identical below and above the lines that say `Anything above/below this line should always be kept the same...`
+
+The `entrypoint.sh` components are always identical from the start until the line containing `export PULSE_SERVER=..."`. The script for the KasmVNC fallback web interface is always identical. The script for installing NVIDIA userspace driver components are always identical except for the outermost `if` condition. Other script sections require manual assessment when updating.
+
+`egl.yml` and `xgl.yml` files require manual assessment when updating.
 
 ## GStreamer Development Guide
 

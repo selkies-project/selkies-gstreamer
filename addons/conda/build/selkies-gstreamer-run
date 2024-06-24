@@ -21,7 +21,7 @@ export GST_PLUGIN_SYSTEM_PATH="${XDG_DATA_HOME:-${HOME:-~}/.local/share}/gstream
 export GI_TYPELIB_PATH="${GSTREAMER_PATH}/lib/girepository-1.0:/usr/lib/x86_64-linux-gnu/girepository-1.0:/usr/lib/aarch64-linux-gnu/girepository-1.0:/usr/lib/arm-linux-gnueabihf/girepository-1.0:/usr/lib/powerpc64le-linux-gnu/girepository-1.0:/usr/lib/s390x-linux-gnu/girepository-1.0:/usr/lib/riscv64-linux-gnu/girepository-1.0:/usr/lib64/girepository-1.0:/usr/lib/girepository-1.0:/usr/lib/i386-linux-gnu/girepository-1.0:/usr/lib32/girepository-1.0${GI_TYPELIB_PATH:+:${GI_TYPELIB_PATH}}"
 
 # Start Xvfb server in DISPLAY if needed (package xvfb in Debian or xorg-x11-server-Xvfb in RHEL required in host)
-if [ ! -S "/tmp/.X11-unix/X${DISPLAY#*:}" ] && [ -x "$(command -v Xvfb)" ] || [ "${ENABLE_XVFB,,}" = "true" ]; then
+if [ ! -S "/tmp/.X11-unix/X${DISPLAY#*:}" ] && [ -x "$(command -v Xvfb)" ] || [ "$(echo ${ENABLE_XVFB} | tr '[:upper:]' '[:lower:]')" = "true" ]; then
     export ENABLE_XVFB="true"
     Xvfb "${DISPLAY}" -screen 0 8192x4096x24 +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -ac -noreset -shmem >${LOGDIR}/Xvfb_selkies.log 2>&1 &
 fi
@@ -30,7 +30,7 @@ fi
 echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
 # Use selkies-gstreamer-resize to resize the screen, xrandr required in host (package x11-xserver-utils in Debian or xorg-x11-server-utils/xrandr in RHEL)
-if [ "${ENABLE_XVFB,,}" = "true" ]; then ${CONDA_PREFIX}/bin/python ${CONDA_PREFIX}/bin/selkies-gstreamer-resize 1920x1080; fi
+if [ "$(echo ${ENABLE_XVFB} | tr '[:upper:]' '[:lower:]')" = "true" ]; then ${CONDA_PREFIX}/bin/python ${CONDA_PREFIX}/bin/selkies-gstreamer-resize 1920x1080; fi
 
 # PulseAudio server socket location
 export PIPEWIRE_LATENCY="32/48000"
@@ -40,7 +40,7 @@ export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}
 export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 
 # Start PulseAudio server in PULSE_SERVER if needed (bundled with Conda, running applications may need to restart or run afterwards to relay audio)
-if [ "${ENABLE_PULSEAUDIO,,}" = "true" ] || [ ! -S "${PULSE_SERVER#*:}" ]; then
+if [ "$(echo ${ENABLE_PULSEAUDIO} | tr '[:upper:]' '[:lower:]')" = "true" ] || [ ! -S "${PULSE_SERVER#*:}" ]; then
     export ENABLE_PULSEAUDIO="true"
     export PULSE_CONFIG="${CONDA_PREFIX}/etc/pulse/daemon.conf"
     export PULSE_DLPATH="${CONDA_PREFIX}/lib/pulseaudio/modules"
