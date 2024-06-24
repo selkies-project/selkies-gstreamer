@@ -1041,7 +1041,7 @@ class GSTWebRTCApp:
         opusenc.set_property("dtx", True)
         # OPUS_FRAME: Modify all locations with "OPUS_FRAME:"
         # Browser-side SDP munging ("minptime=3"/"minptime=5") is required if frame-size < 10
-        opusenc.set_property("frame-size", "2.5")
+        opusenc.set_property("frame-size", "10")
         opusenc.set_property("perfect-timestamp", True)
         opusenc.set_property("max-payload-size", 4000)
         # In-band FEC in Opus
@@ -1550,7 +1550,7 @@ class GSTWebRTCApp:
                 sdp_text = re.sub(r'sps-pps-idr-in-keyframe=\d+', r'sps-pps-idr-in-keyframe=1', sdp_text)
         if "opus/" in sdp_text.lower():
             # OPUS_FRAME: Add ptime explicitly to SDP offer
-            sdp_text = re.sub(r'([^-]sprop-[^\r\n]+)', r'\1\r\na=ptime:3', sdp_text)
+            sdp_text = re.sub(r'([^-]sprop-[^\r\n]+)', r'\1\r\na=ptime:10', sdp_text)
         # Set final SDP offer
         loop.run_until_complete(self.on_sdp('offer', sdp_text))
 

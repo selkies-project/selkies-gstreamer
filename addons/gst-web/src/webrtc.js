@@ -297,13 +297,13 @@ class WebRTCDemo {
                                 local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'stereo=1;useinbandfec=');
                             }
                         }
-                        // OPUS_FRAME: Override SDP to reduce packet size to 2.5 (3) ms
-                        if (!(/[^-]minptime=3[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
+                        // OPUS_FRAME: Override SDP to reduce packet size to 10 ms
+                        if (!(/[^-]minptime=10[^\d]/gm.test(local_sdp.sdp)) && (/[^-]useinbandfec=/gm.test(local_sdp.sdp))) {
                             console.log("Overriding WebRTC SDP to allow low-latency audio packet");
                             if (/[^-]minptime=\d+/gm.test(local_sdp.sdp)) {
-                                local_sdp.sdp = local_sdp.sdp.replace(/minptime=\d+/gm, 'minptime=3');
+                                local_sdp.sdp = local_sdp.sdp.replace(/minptime=\d+/gm, 'minptime=10');
                             } else {
-                                local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'minptime=3;useinbandfec=');
+                                local_sdp.sdp = local_sdp.sdp.replace('useinbandfec=', 'minptime=10;useinbandfec=');
                             }
                         }
                     }
