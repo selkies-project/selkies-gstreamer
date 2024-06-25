@@ -192,7 +192,7 @@ class WebRTCSimpleServer(object):
         if path == "/ws" or path.endswith("/signalling/") or path.endswith("/signalling"):
             return None
 
-        if path == self.health_path:
+        if path == self.health_path + "/" or path == self.health_path:
             return http.HTTPStatus.OK, response_headers, b"OK\n"
 
         if path == "/turn/" or path == "/turn":
