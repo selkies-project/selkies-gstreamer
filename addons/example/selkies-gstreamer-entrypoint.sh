@@ -125,9 +125,9 @@ if ( [ -z "${SELKIES_TURN_USERNAME}" ] || [ -z "${SELKIES_TURN_PASSWORD}" ] ) &&
   export SELKIES_TURN_PORT="3478"
   export SELKIES_TURN_USERNAME="selkies"
   export SELKIES_TURN_PASSWORD="${TURN_RANDOM_PASSWORD}"
+  export SELKIES_TURN_PROTOCOL="${SELKIES_TURN_PROTOCOL:-tcp}"
   /etc/start-turnserver.sh &
 fi
-export SELKIES_TURN_PROTOCOL="${SELKIES_TURN_PROTOCOL:-tcp}"
 
 # Wait for X server to start
 echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
