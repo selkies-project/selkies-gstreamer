@@ -232,7 +232,13 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         firefox \
         pavucontrol \
         jstest-gtk \
-        coturn && \
+        coturn \
+        # NGINX web server
+        nginx \
+        apache2-utils && \
+    # Sanitize NGINX path
+    sed -i -e 's/\/var\/log\/nginx\/access\.log/\/dev\/stdout/g' -e 's/\/var\/log\/nginx\/error\.log/\/dev\/stderr/g' -e 's/\/run\/nginx\.pid/\/tmp\/nginx\.pid/g' /etc/nginx/nginx.conf && \
+    echo "error_log /dev/stderr;" >> /etc/nginx/nginx.conf && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
     # Prevent dialogs at Xfce4 desktop environment start
     cp -rf /etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
