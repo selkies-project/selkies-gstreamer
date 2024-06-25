@@ -38,7 +38,7 @@ When contributing, please follow the overall style of the code, and the names of
 
 Currently in collaboration and received influences from: <https://github.com/Xpra-org/xpra>, <https://github.com/m1k1o/neko>
 
-Provided heavy influences to other projects: <https://github.com/nestriness/nestri>, <https://github.com/Steam-Headless/docker-steam-headless>
+Provided heavy influences to other projects: <https://github.com/nestriness/nestri>, <https://github.com/Steam-Headless/docker-steam-headless>, <https://github.com/ai-dock>
 
 ## Contributors
 
@@ -70,27 +70,35 @@ These people make structural decisions for this project and press the `Merge Pul
 
 This section is a knowledge base for code contributions and development.
 
-## Code Guide
-
-- When editing certain parts of the codebase, it is very common that they interact with other components in a very different location. Therefore, it is very likely to mess up if you do not use search capabilities across the whole codebase. Because of this, use the Visual Studio Code (or any other IDE of choice) **Search and Replace** capabilities (especially with capitalization and regular expressions) rigorously. However, the replacement capability, if without adequate care, may replace totally unrelated code. Take great care while using this capability, and reviewers must take special attention to detect potentially breaking typos which may arise from bulk replacement.
-
 ## Style Guide
 
-- Shell scripts should use POSIX `sh` syntax as much as possible. Despite the scripts being run in `bash`, avoid using syntax only available in `bash` (such as `[[ ]]`), `zsh`, or other types of shells, unless absolutely needed.
+- Shell scripts and Dockerfiles should use POSIX `sh` syntax as much as possible. Despite the shell scripts being run in `bash`, avoid using syntax only available in `bash` (such as `[[ ]]`), `zsh`, or other types of shells, unless absolutely needed.
 
-- There should be a line break at the end of each code file unless the specific code file format should not have one. If there is not, it is okay, but include the line break with your Pull Requests if possible.
+- For Python, [Ruff](https://github.com/astral-sh/ruff) with Black formatting or [Black](https://github.com/psf/black) formatting are recommended. For JavaScript, HTML, CSS, Markdown, YAML, and other files, [Prettier](https://github.com/prettier/prettier) formatting is recommended. For code that is not already formatted in these formats, use the formatters with your Pull Requests if possible.
 
-## docker-nvidia-{egl,glx}-desktop
+- There should be no empty lines with whitespaces, or line endings with whitespaces. Moreover, there should be a line break at the end of each code file unless the specific code file format should not have one. If there is not, it is okay, but include the line break with your Pull Requests if possible.
 
-The desktop container repositories share various components between each other:
+## Code Guide
 
-`LICENSE`, `supervisord.conf`, and `selkies-gstreamer-entrypoint.sh` are always identical in both containers.
+- When editing certain parts of the codebase, they are very likely to interact with other components in a very different location, or the same content needs to be edited in multiple different locations. Therefore, commits or Pull Requests are very likely to corrupt the repository if you do not use search capabilities across the whole codebase as often as possible.
 
-The `Dockerfile` components are always identical below and above the lines that say `Anything above/below this line should always be kept the same...`
+- Because of this, use the Visual Studio Code (or any other IDE of choice) **Search and Replace** capabilities rigorously (especially with fine-tuning through capitalization and regular expressions).
 
-The `entrypoint.sh` components are always identical from the start until the line containing `export PULSE_SERVER=..."`. The script for the KasmVNC fallback web interface is always identical. The script for installing NVIDIA userspace driver components are always identical except for the outermost `if` condition. Other script sections require manual assessment when updating.
+- However, the replacement capability, if without adequate care, may replace totally unrelated code. Take great care while using this capability, and reviewers must take special attention to detect potentially breaking typos which may arise from bulk replacement.
 
-`egl.yml` and `xgl.yml` files require manual assessment when updating.
+- Some code components have `CAPITALIZED_COMMENT:` comment sections such as `ADD_ENCODER:` or `OPUS_FRAME:`. These sections indicate that locations with the `CAPITALIZED_COMMENT:` need to be edited or added simultaneously.
+
+## Container Guide
+
+The [`docker-nvidia-glx-desktop`](https://github.com/selkies-project/docker-nvidia-glx-desktop) and [`docker-nvidia-egl-desktop`](https://github.com/selkies-project/docker-nvidia-egl-desktop) desktop container repositories and the [Example Container](/addons/example) share various components between each other:
+
+`LICENSE`, `supervisord.conf`, `kasmvnc-entrypoint.sh`, and `selkies-gstreamer-entrypoint.sh` are always identical in both containers. As these components are also very similar to the [Example Container](/addons/example), it should be updated with both desktop containers.
+
+The `Dockerfile` is always identical below and above the lines that say `Anything above/below this line should always be kept the same...`. This component is not shared with the [Example Container](/addons/example), and installation procedures for Selkies-GStreamer should be updated to the desktop containers on every release.
+
+The `entrypoint.sh` components are always identical from the start until the line containing `export PULSE_SERVER=..."`. The script for installing NVIDIA userspace driver components are always identical except for the outermost `if` condition. Other script sections require manual assessment when updating.
+
+`README.md` and `egl.yml`/`xgl.yml` files are similar but have different components, thus requiring manual assessment when updating.
 
 ## GStreamer Development Guide
 
