@@ -224,6 +224,7 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         supervisor \
         xvfb \
         xfce4 \
+        xfce4-goodies \
         xfce4-terminal \
         mesa-utils \
         adwaita-icon-theme-full \
