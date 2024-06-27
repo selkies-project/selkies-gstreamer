@@ -304,19 +304,19 @@ def main():
     parser.add_argument('--addr',
                         default=os.environ.get(
                             'SELKIES_ADDR', '0.0.0.0'),
-                        help='Host to listen on for the signaling and web server, default: "0.0.0.0"')
+                        help='Host to listen to for the signaling and web server, default: "0.0.0.0"')
     parser.add_argument('--port',
                         default=os.environ.get(
                             'SELKIES_PORT', '8080'),
-                        help='Port to listen on for the signaling and web server, default: "8080"')
+                        help='Port to listen to for the signaling and web server, default: "8080"')
     parser.add_argument('--web_root',
                         default=os.environ.get(
                             'SELKIES_WEB_ROOT', '/opt/gst-web'),
-                        help='Path to directory containing web app source, default: "/opt/gst-web"')
+                        help='Path to directory containing web application files, default: "/opt/gst-web"')
     parser.add_argument('--enable_https',
                         default=os.environ.get(
                             'SELKIES_ENABLE_HTTPS', 'false'),
-                        help='Enable or disable HTTPS for the web app, specifing a valid server certificate is recommended')
+                        help='Enable or disable HTTPS for the web application, specifying a valid server certificate is recommended')
     parser.add_argument('--https_cert',
                         default=os.environ.get(
                             'SELKIES_HTTPS_CERT', '/etc/ssl/certs/ssl-cert-snakeoil.pem'),
@@ -324,7 +324,7 @@ def main():
     parser.add_argument('--https_key',
                         default=os.environ.get(
                             'SELKIES_HTTPS_KEY', '/etc/ssl/private/ssl-cert-snakeoil.key'),
-                        help='Path to the TLS server private key file when HTTPS is enabled, set to an empty string if the private key is included in the certificate')
+                        help='Path to the TLS server private key file when HTTPS is enabled, set to an empty value if the private key is included in the certificate')
     parser.add_argument('--enable_basic_auth',
                         default=os.environ.get(
                             'SELKIES_ENABLE_BASIC_AUTH', 'true'),
@@ -332,7 +332,7 @@ def main():
     parser.add_argument('--basic_auth_user',
                         default=os.environ.get(
                             'SELKIES_BASIC_AUTH_USER', os.environ.get('USER', '')),
-                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if it does not exist. Must also set --basic_auth_password to enforce basic authentication')
+                        help='Username for basic authentication, default is to use the USER environment variable or a blank username if not present, must also set --basic_auth_password to enforce basic authentication')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
                             'SELKIES_BASIC_AUTH_PASSWORD', 'password'),
@@ -391,28 +391,28 @@ def main():
                         help='Legacy non-HMAC TURN credential password, also requires --turn_host and --turn_port')
     parser.add_argument('--app_wait_ready',
                         default=os.environ.get('SELKIES_APP_WAIT_READY', 'false'),
-                        help='If set to "true" waits for --app_ready_file to exist before starting stream')
+                        help='Waits for --app_ready_file to exist before starting stream if set to "true"')
     parser.add_argument('--app_ready_file',
                         default=os.environ.get('SELKIES_APP_READY_FILE', '/tmp/selkies-appready'),
                         help='File set by sidecar used to indicate that app is initialized and ready')
     parser.add_argument('--uinput_mouse_socket',
                         default=os.environ.get('SELKIES_UINPUT_MOUSE_SOCKET', ''),
-                        help='Path to the uinput mouse socket provided by the uinput-device-plugin, if not provided uinput is used directly')
+                        help='Path to the uinput mouse socket, if not provided uinput is used directly')
     parser.add_argument('--js_socket_path',
                         default=os.environ.get('SELKIES_JS_SOCKET_PATH', '/tmp'),
                         help='Directory to write the Selkies Joystick Interposer communication sockets to, default: /tmp, results in socket files: /tmp/selkies_js{0-3}.sock')
     parser.add_argument('--encoder',
                         default=os.environ.get('SELKIES_ENCODER', 'x264enc'),
-                        help='GStreamer encoder plugin to use')
+                        help='GStreamer video encoder to use')
     parser.add_argument('--gpu_id',
                         default=os.environ.get('SELKIES_GPU_ID', '0'),
-                        help='GPU ID for GStreamer hardware encoders, will use enumerated GPU ID (0, 1, ..., n) for NVIDIA and /dev/dri/renderD{128 + n} for VA-API')
+                        help='GPU ID for GStreamer hardware video encoders, will use enumerated GPU ID (0, 1, ..., n) for NVIDIA and /dev/dri/renderD{128 + n} for VA-API')
     parser.add_argument('--framerate',
                         default=os.environ.get('SELKIES_FRAMERATE', '60'),
-                        help='Framerate of the streaming pipeline')
+                        help='Framerate of the streamed remote desktop')
     parser.add_argument('--video_bitrate',
                         default=os.environ.get('SELKIES_VIDEO_BITRATE', '8000'),
-                        help='Default video bitrate')
+                        help='Default video bitrate in kilobits per second')
     parser.add_argument('--keyframe_distance',
                         default=os.environ.get('SELKIES_KEYFRAME_DISTANCE', '-1'),
                         help='Distance between video keyframes/GOP-frames in seconds, defaults to "-1" for infinite keyframe distance (ideal for low latency and preventing periodic blurs)')
@@ -424,7 +424,7 @@ def main():
                         help='Expected packet loss percentage (%%) for ULP/RED Forward Error Correction (FEC) in video, use "0" to disable FEC, less effective because of other mechanisms including NACK/PLI, enabling not recommended if Google Congestion Control is enabled')
     parser.add_argument('--audio_bitrate',
                         default=os.environ.get('SELKIES_AUDIO_BITRATE', '128000'),
-                        help='Default audio bitrate')
+                        help='Default audio bitrate in bits per second')
     parser.add_argument('--audio_channels',
                         default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
                         help='Number of audio channels, defaults to stereo (2 channels)')

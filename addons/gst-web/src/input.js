@@ -25,7 +25,7 @@
 
 class Input {
     /**
-     * Input handling for WebRTC web app
+     * Input handling for WebRTC web application
      *
      * @constructor
      * @param {Element} [element]
