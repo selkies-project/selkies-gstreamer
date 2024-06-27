@@ -65,7 +65,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=96000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=96000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=0.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.

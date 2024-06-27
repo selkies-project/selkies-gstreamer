@@ -429,7 +429,7 @@ def main():
                         default=os.environ.get('SELKIES_AUDIO_CHANNELS', '2'),
                         help='Number of audio channels, defaults to stereo (2 channels)')
     parser.add_argument('--audio_packetloss_percent',
-                        default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '25'),
+                        default=os.environ.get('SELKIES_AUDIO_PACKETLOSS_PERCENT', '0'),
                         help='Expected packet loss percentage (%%) for ULP/RED Forward Error Correction (FEC) in audio, use "0" to disable FEC')
     parser.add_argument('--enable_clipboard',
                         default=os.environ.get('SELKIES_ENABLE_CLIPBOARD', 'true'),
