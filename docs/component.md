@@ -256,9 +256,9 @@ The recommended multi-user TURN server authentication mechanism is the [time-lim
 
 The [TURN-REST Container](/addons/turn-rest) is an easy way to distribute short-term TURN server authentication credentials and the information of the TURN server based on the REST API to many Selkies-GStreamer host instances, particularly when behind a local area network (LAN), which may or may not have restricted firewalls.
 
-Using the `selkies-gstreamer --turn_rest_uri=` option or `SELKIES_TURN_REST_URI` environment variable, the Selkies-GStreamer host periodically queries a URL such as `https://turn-rest.myinfrastructure.io/myturnrest` or `http://192.168.0.10/myturnrest`.
+Using the `selkies-gstreamer --turn_rest_uri=` option or `SELKIES_TURN_REST_URI` environment variable, the Selkies-GStreamer host periodically queries a URI such as `https://turn-rest.myinfrastructure.io/myturnrest` or `http://192.168.0.10/myturnrest`.
 
-This URL is ideally behind a local area network (LAN) inaccessible from the outside and only accessible to the Python hosts inside the LAN, or alternatively behind authentication using any web server or reverse proxy, if accessible from the outside. This information is periodically sent to the web client (that is also preferably behind authentication with HTTP Basic Authentication or a web server/reverse proxy) through HTTP(S), thus the TURN server information and credentials being propagated to both the Python host and the web client without exposing the TURN server information outside.
+This URI is ideally behind a local area network (LAN) inaccessible from the outside and only accessible to the Python hosts inside the LAN, or alternatively behind authentication using any web server or reverse proxy, if accessible from the outside. This information is periodically sent to the web client (that is also preferably behind authentication with HTTP Basic Authentication or a web server/reverse proxy) through HTTP(S), thus the TURN server information and credentials being propagated to both the Python host and the web client without exposing the TURN server information outside.
 
 Because the time-limited TURN credentials automatically expire after some time, they are not useful even if they are leaked outside, as long as the pathway to the air-gapped or authenticated TURN-REST Container REST HTTP endpoint is not exposed plainly to the internet. [app.py](/addons/turn-rest/app.py) may also be hosted standalone without a container using the same startup command in the [Dockerfile](/addons/turn-rest/Dockerfile).
 
@@ -270,7 +270,7 @@ Run the Docker®/Podman container built from the [`TURN-REST Dockerfile`](/addon
 docker run --pull=always --name turn-rest -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_HOST=turn.myinfrastructure.io -e TURN_PORT=3478 -e TURN_PROTOCOL=udp -e TURN_TLS=false -p 8008:8008 ghcr.io/selkies-project/selkies-gstreamer/turn-rest:main
 ```
 
-From Selkies-GStreamer, it is sufficient to use the `selkies-gstreamer --turn_rest_uri=` option or `export SELKIES_TURN_REST_URI=` environment variable, pointing to the HTTP(S) URL to the TURN REST API server.
+From Selkies-GStreamer, it is sufficient to use the `selkies-gstreamer --turn_rest_uri=` option or `export SELKIES_TURN_REST_URI=` environment variable, pointing to the HTTP(S) URI to the TURN REST API server.
 
 Consult the [WebRTC and Firewall Issues: TURN Server Authentication Methods](firewall.md#turn-server-authentication-methods) section for more information on TURN authentication methods.
 
