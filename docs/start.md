@@ -20,12 +20,12 @@ In the future, this host dependency requirement may be completely eliminated if 
 
 ```bash
 export SELKIES_VERSION="$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')"
-cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-portable-v${SELKIES_VERSION}_amd64.tar.gz" | tar -xzf -
+cd ~ && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-portable-v${SELKIES_VERSION}_amd64.tar.gz" | tar -xzf -
 ```
 
 3. Set your `DISPLAY` and `PULSE_SERVER` environment variables for the X.Org X11 display server or PulseAudio audio server.
 
-**Check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display.**
+**Check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display. You also need to be logged in from the login screen or autologin should be enabled.**
 
 Set `DISPLAY` to an unoccupied display server ID (such as `:99`) if you want Selkies-GStreamer to start its own virtual X11 display server (defaults to `:0`), and keep environment variables `PULSE_RUNTIME_PATH` and `PULSE_SERVER` empty if you want Selkies-GStreamer to start a portable PulseAudio audio server.
 
@@ -178,7 +178,7 @@ You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root pat
 
 6. Run Selkies-GStreamer after changing the script below appropriately (install `xvfb` and uncomment relevant sections if there is no real display, **DO NOT resize when streaming a physical monitor**):
 
-**Check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display.**
+**Check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display. You also need to be logged in from the login screen or autologin should be enabled.**
 
 ```bash
 export DISPLAY="${DISPLAY:-:0}"

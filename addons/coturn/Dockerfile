@@ -23,7 +23,7 @@ FROM coturn/coturn:alpine
 
 USER root
 
-RUN apk add -u --no-cache bind-tools
+RUN apk add -u --no-cache curl
 
 COPY detect_external_ip.sh /usr/bin/detect_external_ip
 RUN chmod +x /usr/bin/detect_external_ip

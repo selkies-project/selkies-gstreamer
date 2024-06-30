@@ -16,7 +16,7 @@ To compile the `i386` library for Wine and other 32-bit packages, add `-m32` wit
 
 1. Install to your library path (may be `/usr/lib/x86_64-linux-gnu/selkies_joystick_interposer.so` and `/usr/lib/i386-linux-gnu/selkies_joystick_interposer.so` for Ubuntu), also available as a tarball or `.deb` installer.
 
-If using Wine with x86_64, both `/usr/lib/x86_64-linux-gnu/selkies_joystick_interposer.so` and `/usr/lib/i386-linux-gnu/selkies_joystick_interposer.so` are likely required.
+If using Wine with `x86_64`, both `/usr/lib/x86_64-linux-gnu/selkies_joystick_interposer.so` and `/usr/lib/i386-linux-gnu/selkies_joystick_interposer.so` are likely required.
 
 2. The following paths are required to exist for the Joystick Interposer to pass the joystick/gamepad input to various applications:
 
@@ -52,8 +52,8 @@ python3 js-interposer-test.py
 
 This creates a new unix domain socket at `/tmp/selkies_js0.sock` and simulates joystick button presses and axis motion when a connection from the interposer is detected.
 
-2. Run `jstest` with the interposer library:
+2. Run `jstest` with the interposer library (`LD_PRELOAD` environment variable path can be set as adequate):
 
 ```bash
-LD_PRELOAD=${PWD}/selkies_joystick_interposer.so jstest /dev/input/js0
+LD_PRELOAD='/usr/$LIB/selkies_joystick_interposer.so' jstest /dev/input/js0
 ```

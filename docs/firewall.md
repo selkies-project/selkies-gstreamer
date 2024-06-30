@@ -177,41 +177,29 @@ Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/
 
 The [coTURN Container](/addons/coturn) is a reference container which provides the [coTURN](https://github.com/coturn/coturn) TURN server. Other than options including `-e TURN_SHARED_SECRET=`, `-e TURN_REALM=`, `-e TURN_PORT=`, `-e TURN_MIN_PORT=`, and `-e TURN_MAX_PORT=`, add more command-line options in `-e TURN_EXTRA_ARGS=`.
 
-Run the Docker®/Podman container built from the [`coTURN Dockerfile`](/addons/coturn/Dockerfile) (replace `main` to `latest` for the latest stable release**):
+**Read the [coTURN](component.md#coturn) section to get started.**
 
-```bash
-docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT=3478 -e TURN_MIN_PORT=49152 -e TURN_MAX_PORT=65535 -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
-```
-
-**The relay ports and the listening port must all be open to the internet.**
-
-Modify the relay ports `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` combined with `-e TURN_MIN_PORT=49152 -e TURN_MAX_PORT=65535` as appropriate (at least two relay ports are required).
-
-In addition, use the option `-e TURN_EXTRA_ARGS="--no-udp-relay"` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or `-e TURN_EXTRA_ARGS="--no-tcp-relay"` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
-
-Simply using `--network=host` instead of specifying `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` is also plausible.
-
-Alternatively, using the official coTURN container:
+**Alternatively**, using the official coTURN container (`--min-port` is at least `49152` and `--max-port` is at most `65535`):
 
 For time-limited shared secret TURN authentication:
 
 ```bash
-docker run -d -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --min-port=49152 --max-port=65535 --use-auth-secret --static-auth-secret=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace
+docker run --name coturn --rm -d -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --external-ip="$(curl -fsSL checkip.amazonaws.com)" --min-port=65500 --max-port=65535 --use-auth-secret --static-auth-secret=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace
 ```
 
 For legacy long-term TURN authentication:
 
 ```bash
-docker run -d -p 3478:3478 -p 3478:3478/udp -p 49152-65535:49152-65535 -p 49152-65535:49152-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --min-port=49152 --max-port=65535 --lt-cred-mech --user=username1:password1
+docker run --name coturn --rm -d -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --external-ip="$(curl -fsSL checkip.amazonaws.com)" --min-port=65500 --max-port=65535 --lt-cred-mech --user=username1:password1
 ```
 
 **The relay ports and the listening port must all be open to the internet.**
 
-Modify the relay ports `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` combined with `--min-port=49152` and `--max-port=65535` after `-n` as appropriate (at least two relay ports are required).
+If the TURN relay port range is wide, it may take a very long time for the containers to start up. Simply using `--network=host` instead of specifying `-p 65500-65535:65500-65535` and `-p 65500-65535:65500-65535/udp` can also be plausible.
+
+Modify the relay ports `-p 65500-65535:65500-65535` and `-p 65500-65535:65500-65535/udp` combined with `--min-port=65500` and `--max-port=65535` after `-n` as appropriate (at least two relay ports are required per connection).
 
 In addition, use the option `--no-udp-relay` after `-n` if you cannot open the UDP `--min-port=` to `--max-port=` port ranges, or `--no-tcp-relay` after `-n` if you cannot open the TCP `--min-port=` to `--max-port=` port ranges.
-
-Simply using `--network=host` instead of specifying `-p 49152-65535:49152-65535` and `-p 49152-65535:49152-65535/udp` is also plausible.
 
 Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
 

@@ -22,7 +22,7 @@ LABEL maintainer="https://github.com/danisla,https://github.com/ehfd"
 ARG DEBIAN_FRONTEND=noninteractive
 # Configure rootless user environment for constrained conditions without escalated root privileges inside containers
 ARG TZ=UTC
-ARG PASSWD=mypasswd
+ENV PASSWD=mypasswd
 RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends -y \
         apt-utils \
         dbus-user-session \
