@@ -282,7 +282,6 @@ turnserver \
     --external-ip=\"\${SELKIES_TURN_HOST:-\$(curl -fsSL checkip.amazonaws.com)}\" \
     --min-port=\"\${TURN_MIN_PORT:-49152}\" \
     --max-port=\"\${TURN_MAX_PORT:-65535}\" \
-    --no-udp-relay \
     --channel-lifetime=\"\${TURN_CHANNEL_LIFETIME:--1}\" \
     --lt-cred-mech \
     --user \"selkies:\${TURN_RANDOM_PASSWORD}\" \
