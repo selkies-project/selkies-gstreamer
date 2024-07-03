@@ -6,10 +6,8 @@
 
 set -e
 
-# Create and modify permissions of XDG_RUNTIME_DIR
-mkdir -pm700 "${XDG_RUNTIME_DIR}"
-chown -f ubuntu:ubuntu "${XDG_RUNTIME_DIR}"
-chmod -f 700 "${XDG_RUNTIME_DIR}"
+# Wait for XDG_RUNTIME_DIR
+until [ -d "${XDG_RUNTIME_DIR}" ]; do sleep 0.5; done
 
 # Configure joystick interposer
 export SELKIES_INTERPOSER='/usr/$LIB/selkies_joystick_interposer.so'
