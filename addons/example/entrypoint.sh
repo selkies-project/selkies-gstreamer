@@ -17,7 +17,7 @@ mkdir -pm777 /dev/input || sudo-root mkdir -pm777 /dev/input || echo 'Failed to 
 touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || sudo-root touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3 || echo 'Failed to create joystick interposer devices'
 
 # Set default display
-export DISPLAY="${DISPLAY:-:0}"
+export DISPLAY="${DISPLAY:-:20}"
 # PipeWire-Pulse server socket location
 export PIPEWIRE_LATENCY="32/48000"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"

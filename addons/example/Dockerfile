@@ -164,7 +164,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES=all
 # Disable VSYNC for NVIDIA GPUs
 ENV __GL_SYNC_TO_VBLANK=0
 # Set default DISPLAY environment
-ENV DISPLAY=":0"
+ENV DISPLAY=":20"
 
 # Install VirtualGL and make libraries available for preload
 ENV VGL_DISPLAY=egl

@@ -1,4 +1,4 @@
-export DISPLAY=:0
+export DISPLAY=:20
 unset WAYLAND_DISPLAY
 export XSERVER=${XSERVER:-XVFB}
 
