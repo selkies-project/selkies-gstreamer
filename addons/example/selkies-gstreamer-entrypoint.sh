@@ -18,6 +18,28 @@ export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
 export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
 export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 
+# Export environment variables required for Selkies-GStreamer
+export GST_DEBUG="${GST_DEBUG:-*:2}"
+export GSTREAMER_PATH=/opt/gstreamer
+
+# Source environment for GStreamer
+. /opt/gstreamer/gst-env
+
+export SELKIES_ENCODER="${SELKIES_ENCODER:-x264enc}"
+export SELKIES_ENABLE_RESIZE="${SELKIES_ENABLE_RESIZE:-false}"
+if ( [ -z "${SELKIES_TURN_USERNAME}" ] || [ -z "${SELKIES_TURN_PASSWORD}" ] ) && [ -z "${SELKIES_TURN_SHARED_SECRET}" ] || [ -z "${SELKIES_TURN_HOST}" ] || [ -z "${SELKIES_TURN_PORT}" ]; then
+  export TURN_RANDOM_PASSWORD="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)"
+  export SELKIES_TURN_HOST="$(curl -fsSL checkip.amazonaws.com)"
+  export SELKIES_TURN_PORT="3478"
+  export SELKIES_TURN_USERNAME="selkies"
+  export SELKIES_TURN_PASSWORD="${TURN_RANDOM_PASSWORD}"
+  export SELKIES_TURN_PROTOCOL="${SELKIES_TURN_PROTOCOL:-tcp}"
+  /etc/start-turnserver.sh &
+fi
+
+# Wait for X server to start
+echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
+
 # Configure NGINX
 if [ "$(echo ${SELKIES_ENABLE_BASIC_AUTH} | tr '[:upper:]' '[:lower:]')" != "false" ]; then htpasswd -bcm "${XDG_RUNTIME_DIR}/.htpasswd" "${SELKIES_BASIC_AUTH_USER:-${USER}}" "${SELKIES_BASIC_AUTH_PASSWORD:-${PASSWD}}"; fi
 echo "# Selkies-GStreamer NGINX Configuration
@@ -116,28 +138,6 @@ server {
         root /opt/gst-web/;
     }
 }" | tee /etc/nginx/sites-available/default > /dev/null
-
-# Export environment variables required for Selkies-GStreamer
-export GST_DEBUG="${GST_DEBUG:-*:2}"
-export GSTREAMER_PATH=/opt/gstreamer
-
-# Source environment for GStreamer
-. /opt/gstreamer/gst-env
-
-export SELKIES_ENCODER="${SELKIES_ENCODER:-x264enc}"
-export SELKIES_ENABLE_RESIZE="${SELKIES_ENABLE_RESIZE:-false}"
-if ( [ -z "${SELKIES_TURN_USERNAME}" ] || [ -z "${SELKIES_TURN_PASSWORD}" ] ) && [ -z "${SELKIES_TURN_SHARED_SECRET}" ] || [ -z "${SELKIES_TURN_HOST}" ] || [ -z "${SELKIES_TURN_PORT}" ]; then
-  export TURN_RANDOM_PASSWORD="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)"
-  export SELKIES_TURN_HOST="$(curl -fsSL checkip.amazonaws.com)"
-  export SELKIES_TURN_PORT="3478"
-  export SELKIES_TURN_USERNAME="selkies"
-  export SELKIES_TURN_PASSWORD="${TURN_RANDOM_PASSWORD}"
-  export SELKIES_TURN_PROTOCOL="${SELKIES_TURN_PROTOCOL:-tcp}"
-  /etc/start-turnserver.sh &
-fi
-
-# Wait for X server to start
-echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
 # Clear the cache registry
 rm -rf "${HOME}/.cache/gstreamer-1.0"
