@@ -20,9 +20,11 @@ A configuration in your internet router called `Full Cone NAT` (otherwise called
 
 For an easy fix for containers, add the option `--network=host` to your Docker® command, or add `hostNetwork: true` under your Kubernetes YAML configuration file's pod `spec:` entry, which should be indented in the same depth as `containers:` (note that your cluster may have not allowed this, resulting in an error).
 
+**However, this only allows one container per host to work, because of UNIX socket restrictions. If you need multiple containers in one host, you should move on to the next section.**
+
 This exposes your container to the host network, which disables container network isolation.
 
-**UDP and TCP ports 49152–65535 in your host server network** should still be open or be under `Full Cone NAT` as in [Self-Hosted Instances](#self-hosted-instances).
+**UDP and TCP ports 49152–65535 in your host server network should still be open** or be under `Full Cone NAT` as in [Self-Hosted Instances](#self-hosted-instances).
 
 If this does not fix the connection issue (normally when the server is behind another additional firewall) or you cannot use the above fixes for security or technical reasons, **move on to the next section**.
 

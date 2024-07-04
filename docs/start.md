@@ -60,9 +60,9 @@ You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root pat
 
 7. **(MANDATORY) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
 
-**Moreover, when there is a very high latency or stutter, and the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, this section is very important.**
-
 Depending on your environment, **this step may be mandatory**.
+
+**Moreover, when there is a very high latency or stutter, and the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, this section is very important.**
 
 Please read [**WebRTC and Firewall Issues**](firewall.md).
 
@@ -235,9 +235,9 @@ selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/
 
 7. **(MANDATORY) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
 
-**Moreover, when there is a very high latency or stutter, and the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, this section is very important.**
-
 Depending on your environment, **this step may be mandatory**.
+
+**Moreover, when there is a very high latency or stutter, and the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, this section is very important.**
 
 Please read [**WebRTC and Firewall Issues**](firewall.md).
 
