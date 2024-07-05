@@ -18,7 +18,7 @@ COPY src ./src
 COPY pyproject.toml setup.cfg ./
 
 ARG PYPI_PACKAGE=selkies-gstreamer
-ARG PACKAGE_VERSION=1.0.0
+ARG PACKAGE_VERSION=0.0.0.dev0
 
 # Patch the package name and version
 RUN sed -i \
