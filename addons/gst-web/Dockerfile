@@ -37,4 +37,4 @@ ENV GST_WEB_PORT=80
 ENV PATH_PREFIX="/"
 
 COPY entrypoint.sh /entrypoint.sh
-CMD /entrypoint.sh
+CMD ["sh", "-c", "/entrypoint.sh"]
