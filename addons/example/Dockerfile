@@ -327,6 +327,7 @@ ENV DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR:-/tmp}/dbus-session-${
 USER 1000
 ENV SHELL=/bin/bash
 ENV USER=ubuntu
+ENV HOME=/home/ubuntu
 WORKDIR /home/ubuntu
 
 EXPOSE 8080
