@@ -332,4 +332,4 @@ WORKDIR /home/ubuntu
 
 EXPOSE 8080
 
-CMD ["/usr/bin/supervisord"]
+ENTRYPOINT ["/usr/bin/supervisord"]
