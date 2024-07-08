@@ -20,7 +20,7 @@ A configuration in your internet router called `Full Cone NAT` (otherwise called
 
 For an easy fix for containers, add the option `--network=host` to your Docker® command, or add `hostNetwork: true` under your Kubernetes YAML configuration file's pod `spec:` entry, which should be indented in the same depth as `containers:` (note that your cluster may have not allowed this, resulting in an error).
 
-**However, this only allows one container per host to work, because of UNIX socket restrictions. If you need multiple containers in one host, you should move on to the next section.**
+**You must also pass a new `DISPLAY` environment variable such as `-e DISPLAY=:22`, that is not used with any other X11 server or container in the same host, into the container.**
 
 This exposes your container to the host network, which disables container network isolation.
 
