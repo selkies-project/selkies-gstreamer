@@ -43,8 +43,10 @@ export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DI
 4. Run Selkies-GStreamer (change `--encoder=` to another value such as `nvh264enc`, `vah264enc`, `vp9enc`, or `vp8enc`, if you want to [use different codecs or GPU acceleration](component.md#encoders)):
 
 ```bash
-./selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
+./selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=mypasswd --encoder=x264enc --enable_resize=false
 ```
+
+The default username (set with `--basic_auth_user=` or `SELKIES_BASIC_AUTH_USER`), when not specified, is the current user environment variable `$USER` (empty username if nonexistent), and the default password (set with `--basic_auth_password=` or `SELKIES_BASIC_AUTH_PASSWORD`), when not specified, is `mypasswd`.
 
 Use `--enable_resize=true` if you want to fit the remove resolution to the client window and skip the next section. You **must NOT** enable this option when streaming a physical monitor.
 
@@ -230,8 +232,10 @@ export GSTREAMER_PATH=/opt/gstreamer
 # Starts the remote desktop process
 # Change `--encoder=` to `nvh264enc`, `vah264enc`, `vp9enc`, or `vp8enc` for different video codecs or hardware encoders
 # DO NOT set `--enable_resize=true` if there is a physical display
-selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false &
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=mypasswd --encoder=x264enc --enable_resize=false &
 ```
+
+The default username (set with `--basic_auth_user=` or `SELKIES_BASIC_AUTH_USER`), when not specified, is the current user environment variable `$USER` (empty username if nonexistent), and the default password (set with `--basic_auth_password=` or `SELKIES_BASIC_AUTH_PASSWORD`), when not specified, is `mypasswd`.
 
 7. **(MANDATORY) If the HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start**:
 

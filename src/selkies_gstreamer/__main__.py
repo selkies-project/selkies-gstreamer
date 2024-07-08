@@ -335,7 +335,7 @@ def main():
                         help='Username for basic authentication, default is to use the USER environment variable or a blank username if not present, must also set --basic_auth_password to enforce basic authentication')
     parser.add_argument('--basic_auth_password',
                         default=os.environ.get(
-                            'SELKIES_BASIC_AUTH_PASSWORD', 'password'),
+                            'SELKIES_BASIC_AUTH_PASSWORD', 'mypasswd'),
                         help='Password used when basic authentication is set')
     parser.add_argument('--turn_rest_uri',
                         default=os.environ.get(

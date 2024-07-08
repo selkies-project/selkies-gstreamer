@@ -46,7 +46,7 @@ docker cp conda:/opt/selkies-gstreamer-conda.tar.gz /tmp/selkies-gstreamer-conda
 docker rm conda
 cd ~ && tar -xzf /tmp/selkies-gstreamer-conda.tar.gz && rm -f /tmp/selkies-gstreamer-conda.tar.gz
 # Run Selkies-GStreamer portable distribution
-/opt/selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
+/opt/selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=mypasswd --encoder=x264enc --enable_resize=false
 ```
 
 Otherwise (for different system architectures), you can build your own portable distribution (currently tested with `aarch64` and `ppc64le`).
@@ -74,7 +74,7 @@ docker rm selkies-py
 sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 rm -f /tmp/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
 # Run Selkies-GStreamer Python executable after all components are installed
-selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=mypasswd --encoder=x264enc --enable_resize=false
 ```
 
 One other alternative way to install the Python application components from the most recent unreleased commit:
@@ -84,7 +84,7 @@ git clone https://github.com/selkies-project/selkies-gstreamer.git
 cd selkies-gstreamer
 sudo PIP_BREAK_SYSTEM_PACKAGES=1 pip3 install --no-cache-dir --force-reinstall .
 # Run Selkies-GStreamer Python executable after all components are installed
-selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=password --encoder=x264enc --enable_resize=false
+selkies-gstreamer --addr=0.0.0.0 --port=8080 --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=user --basic_auth_password=mypasswd --encoder=x264enc --enable_resize=false
 ```
 
 #### Web Application:
