@@ -32,6 +32,9 @@ We use Docker® containers for building every commit. The root directory [`Docke
 
 ## The HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start.
 
+<details>
+  <summary>Open Answer</summary>
+
 First of all, ensure that there is a running PulseAudio or PipeWire-Pulse session as the interface does not establish without an audio server.
 
 **Moreover, check that you are using X.Org instead of Wayland (which is the default in many distributions but not supported) when using an existing display.**
@@ -46,7 +49,14 @@ If you created the TURN server or the example container inside a VPN-enabled env
 
 Make sure to also check that you enabled automatic login with your display manager, as the remote desktop cannot access the initial login screen after boot without login. 
 
+</details>
+
 ## The HTML5 web interface is slow, lagging, or stuttering.
+
+<details>
+  <summary>Open Answer</summary>
+
+**First, check if the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, and if so, please read [WebRTC and Firewall Issues](firewall.md).**
 
 **Usually, if the host-client distance is not too far physically, the issue arises from using a Wi-Fi router with bufferbloat issues, especially if you observe stuttering. Try using the [Bufferbloat Test](https://www.waveform.com/tools/bufferbloat) to identify the issue first before moving on.**
 
@@ -66,21 +76,41 @@ If it does not, disable all power saving or efficiency features available in the
 
 However, it might be that the parameters for the WebRTC interface, video encoders, the RTSP payloader, or other [GStreamer](https://gstreamer.freedesktop.org) plugins are not optimized enough. If you find that it is the case, we always welcome [contributions](development.md). If your changes show noticeably better results in the same conditions, please make a [Pull Request](https://github.com/selkies-project/selkies-gstreamer/pulls), or tell us about the parameters in any channel that we can reach so that we could also test.
 
+</details>
+
 ## The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
+
+<details>
+  <summary>Open Answer</summary>
 
 This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use.
 
 In order to use the web interface when this is not possible (or when you are using SSH or other forms of remote access), check `sudo systemctl status sddm`, `sudo systemctl status lightdm`, or `sudo systemctl status gdm3` (use your display session manager) and find the path next to the `-auth` argument. Set the environment variable `XAUTHORITY` to the path you found while running Selkies-GStreamer as `root` or `sudo`.
 
+</details>
+
 ## My touchpad does not move while pressing a key with the keyboard.
+
+<details>
+  <summary>Open Answer</summary>
 
 This is a setting from the client operating system and will show the same behavior with any other application. In Windows, go to `Settings > Bluetooth & devices > Touchpad > Taps` to increase your touchpad sensitivity. In Linux or Mac, turn off the setting `Touchpad > Disable while typing`.
 
+</details>
+
 ## I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
+
+<details>
+  <summary>Open Answer</summary>
 
 You can start a new instance of Selkies-GStreamer by changing the `DISPLAY` environment variable (or even use the same one for multiple instances) and setting a different web interface port in a different terminal to pass a different screen simultaneously to your current screen. Reverse proxy server/web servers supporting WebSocket such as `nginx` can be utilized to expose the interfaces to multiple users in different paths.
 
+</details>
+
 ## I want to test a shared secret TURN server by manually generating a TURN credential from a shared secret.
+
+<details>
+  <summary>Open Answer</summary>
 
 Try the [TURN-REST Container](component.md#turn-rest) or its underlying turn-rest `app.py` Flask web application. This will output TURN credentials automatically when the Docker®/Podman options `-e TURN_SHARED_SECRET=`, `-e TURN_HOST=`, `-e TURN_PORT=`, `-e TURN_PROTOCOL=`, `-e TURN_TLS=` or environment variables `export TURN_SHARED_SECRET=`, `export TURN_HOST=`, `export TURN_PORT=`, `export TURN_PROTOCOL=`, `export TURN_TLS=` are set.
 
@@ -105,3 +135,5 @@ python3 -c 'import os;from selkies_gstreamer.signalling_web import generate_rtc_
 ```
 
 Using both methods, you can then test your TURN server configuration from the [Trickle ICE](https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/) website.
+
+</details>
