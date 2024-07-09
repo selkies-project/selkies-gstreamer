@@ -1,5 +1,7 @@
 # Development and Contributions
 
+**We are in need of maintainers and community contributors. Please consider stepping up, as we can never have too much help!**
+
 This project was meant to be built upon community contributions from people without any prior media networking experience.
 
 [GStreamer](https://gstreamer.freedesktop.org) is much easier to develop without prior experience on multimedia application development, and this project is a perfect starting point for anyone who wants to get started.

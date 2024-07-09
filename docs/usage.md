@@ -116,14 +116,14 @@ Try the [TURN-REST Container](component.md#turn-rest) or its underlying turn-res
 
 The below steps can be used when you want to test your TURN server configured with a shared secret instead of the legacy username/password authentication:
 
-1. Run the [Example Container](component.md#example-container) (fill in `DISTRIB_RELEASE` to Ubuntu versions such as `24.04`):
+**1. Run the [Example Container](component.md#example-container) (fill in `DISTRIB_RELEASE` to Ubuntu versions such as `24.04`):**
 
 ```bash
 docker run --pull=always --name selkies -it -d --rm -p 8080:8080 -p 3478:3478 ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
 docker exec -it selkies bash
 ```
 
-2. From inside the test container, call the `generate_rtc_config` method.
+**2. From inside the test container, call the `generate_rtc_config` method.**
 
 ```bash
 export SELKIES_TURN_HOST="YOUR_TURN_HOST"

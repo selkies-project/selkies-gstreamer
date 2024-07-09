@@ -6,6 +6,8 @@
 
 **Moonlight, Google Stadia, or GeForce NOW in noVNC form factor for Linux X11, in any HTML5 web interface you wish to embed inside, with at least 60 frames per second on Full HD resolution.**
 
+**We are in need of maintainers and community contributors. Please consider stepping up, as we can never have too much help!**
+
 Selkies-GStreamer is an open-source low-latency high-performance Linux-native GPU/CPU-accelerated WebRTC HTML5 remote desktop streaming platform, for self-hosting, containers, Kubernetes, or Cloud/HPC platforms, [started out first by Google engineers](https://web.archive.org/web/20210310083658/https://cloud.google.com/solutions/gpu-accelerated-streaming-using-webrtc), then expanded by academic researchers.
 
 Selkies-GStreamer is designed for researchers including people in the graphical AI/robotics/autonomous driving/drug discovery field, SLURM supercomputer/HPC system administrators, Jupyter/Kubernetes/Docker®/Coder infrastructure administrators, and Linux cloud gaming enthusiasts.
@@ -16,7 +18,7 @@ While designed for clustered or unprivileged containerized environments, Selkies
 
 ## Citations in Academic Publications
 
-**NOTE that this section is also applicable for developers applying, embedding, forking, deriving, or taking influence from this project.**
+> **NOTE: This section is also applicable for developers applying, embedding, forking, deriving, or taking influence from this project.**
 
 **Citations are the currency of scientific research. Citing in your publications is the main driver of keeping this project alive.**
 

@@ -88,13 +88,13 @@ The Selkies-GStreamer [coTURN](component.md#coturn) image [`ghcr.io/selkies-proj
 
 It is possible to install [coTURN](https://github.com/coturn/coturn) on your own server or PC from a package repository, as long as the listening port and the relay ports may be opened.
 
-1. Installation for Ubuntu or Debian-based distributions (available in EPEL for CentOS/RHEL):
+**1. Installation for Ubuntu or Debian-based distributions (available in EPEL for CentOS/RHEL):**
 
 ```bash
 sudo apt-get update && sudo apt-get install --no-install-recommends -y coturn
 ```
 
-2. For self-hosted standalone coTURN servers, a minimal barebones configuration for `/etc/turnserver.conf` is available below, where options are also all available as command-line options (check the [coTURN Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more information):
+**2. For self-hosted standalone coTURN servers, a minimal barebones configuration for `/etc/turnserver.conf` is available below**, where options are also all available as command-line options (check the [coTURN Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for more information)**:**
 
 ```conf
 listening-ip=0.0.0.0
@@ -147,7 +147,7 @@ It is strongly recommended to set the `min-port=` and `max-port=` parameters whi
 
 The `cert=` and `pkey=` options are required for using TURN over TLS/DTLS, but are otherwise optional. They should lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) or [Let's Encrypt](https://letsencrypt.org/getting-started/) with a valid hostname which resolves to the TURN server.
 
-3. Enable the coTURN service:
+**3. Enable the coTURN service:**
 
 Modify the file `/etc/default/coturn`:
 
