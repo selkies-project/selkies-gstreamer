@@ -37,7 +37,7 @@ turnserver \
     --aux-server="0.0.0.0:${TURN_ALT_PORT:-8443}" \
     --aux-server="[::]:${TURN_ALT_PORT:-8443}" \
     --realm="${TURN_REALM:-example.com}" \
-    --external-ip="${EXTERNAL_IP:-$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}')}" \
+    --external-ip="${EXTERNAL_IP:-$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1')}" \
     --min-port="${TURN_MIN_PORT:-49152}" \
     --max-port="${TURN_MAX_PORT:-65535}" \
     --channel-lifetime="${TURN_CHANNEL_LIFETIME:--1}" \

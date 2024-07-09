@@ -22,7 +22,7 @@
 #   limitations under the License.
 
 if [ -z "$EXTERNAL_IP" ]; then
-  export EXTERNAL_IP="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}')"
+  export EXTERNAL_IP="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1')"
 fi
 
 echo "$EXTERNAL_IP"
