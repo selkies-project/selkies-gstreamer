@@ -9,6 +9,11 @@ set -e
 # Wait for XDG_RUNTIME_DIR
 until [ -d "${XDG_RUNTIME_DIR}" ]; do sleep 0.5; done
 
+# Configure joystick interposer
+export SELKIES_INTERPOSER='/usr/$LIB/selkies_joystick_interposer.so'
+export LD_PRELOAD="${SELKIES_INTERPOSER}${LD_PRELOAD:+:${LD_PRELOAD}}"
+export SDL_JOYSTICK_DEVICE=/dev/input/js0
+
 # Set default display
 export DISPLAY="${DISPLAY:-:20}"
 # PipeWire-Pulse server socket path
@@ -29,7 +34,7 @@ export SELKIES_ENCODER="${SELKIES_ENCODER:-x264enc}"
 export SELKIES_ENABLE_RESIZE="${SELKIES_ENABLE_RESIZE:-false}"
 if ( [ -z "${SELKIES_TURN_USERNAME}" ] || [ -z "${SELKIES_TURN_PASSWORD}" ] ) && [ -z "${SELKIES_TURN_SHARED_SECRET}" ] || [ -z "${SELKIES_TURN_HOST}" ] || [ -z "${SELKIES_TURN_PORT}" ]; then
   export TURN_RANDOM_PASSWORD="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)"
-  export SELKIES_TURN_HOST="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}')"
+  export SELKIES_TURN_HOST="${SELKIES_TURN_HOST:-$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}')}"
   export SELKIES_TURN_PORT="3478"
   export SELKIES_TURN_USERNAME="selkies"
   export SELKIES_TURN_PASSWORD="${TURN_RANDOM_PASSWORD}"
