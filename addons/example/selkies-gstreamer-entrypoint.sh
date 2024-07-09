@@ -29,7 +29,7 @@ export SELKIES_ENCODER="${SELKIES_ENCODER:-x264enc}"
 export SELKIES_ENABLE_RESIZE="${SELKIES_ENABLE_RESIZE:-false}"
 if ( [ -z "${SELKIES_TURN_USERNAME}" ] || [ -z "${SELKIES_TURN_PASSWORD}" ] ) && [ -z "${SELKIES_TURN_SHARED_SECRET}" ] || [ -z "${SELKIES_TURN_HOST}" ] || [ -z "${SELKIES_TURN_PORT}" ]; then
   export TURN_RANDOM_PASSWORD="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)"
-  export SELKIES_TURN_HOST="$(curl -fsSL checkip.amazonaws.com)"
+  export SELKIES_TURN_HOST="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}')"
   export SELKIES_TURN_PORT="3478"
   export SELKIES_TURN_USERNAME="selkies"
   export SELKIES_TURN_PASSWORD="${TURN_RANDOM_PASSWORD}"

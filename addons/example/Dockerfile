@@ -279,7 +279,7 @@ turnserver \
     --listening-ip=\"::\" \
     --listening-port=\"\${SELKIES_TURN_PORT:-3478}\" \
     --realm=\"\${TURN_REALM:-example.com}\" \
-    --external-ip=\"\${SELKIES_TURN_HOST:-\$(curl -fsSL checkip.amazonaws.com)}\" \
+    --external-ip=\"\${SELKIES_TURN_HOST:-\$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print \$1}')}\" \
     --min-port=\"\${TURN_MIN_PORT:-49152}\" \
     --max-port=\"\${TURN_MAX_PORT:-65535}\" \
     --channel-lifetime=\"\${TURN_CHANNEL_LIFETIME:--1}\" \
