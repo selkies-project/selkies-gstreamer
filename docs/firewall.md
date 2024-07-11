@@ -186,13 +186,13 @@ The [coTURN Container](/addons/coturn) is a reference container which provides t
 For time-limited shared secret TURN authentication:
 
 ```bash
-docker run --name coturn --rm -d -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --external-ip="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1')" --min-port=65500 --max-port=65535 --use-auth-secret --static-auth-secret=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace
+docker run --name coturn --rm -d -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --external-ip="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1; exit}' || echo '127.0.0.1')" --min-port=65500 --max-port=65535 --use-auth-secret --static-auth-secret=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace
 ```
 
 For legacy long-term TURN authentication:
 
 ```bash
-docker run --name coturn --rm -d -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --external-ip="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1')" --min-port=65500 --max-port=65535 --lt-cred-mech --user=username1:password1
+docker run --name coturn --rm -d -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp coturn/coturn -n --listening-ip="0.0.0.0" --listening-ip="::" --realm=example.com --external-ip="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1; exit}' || echo '127.0.0.1')" --min-port=65500 --max-port=65535 --lt-cred-mech --user=username1:password1
 ```
 
 **The relay ports and the listening port must all be open to the internet.**

@@ -41,7 +41,7 @@ spec:
             - name: "PORT"
               value: "8080"
             # Use external IP of LoadBalancer
-            - name: EXTERNAL_IP
+            - name: TURN_EXTERNAL_IP
               valueFrom:
                 secretKeyRef:
                   name: turn-shared-secret

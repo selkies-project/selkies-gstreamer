@@ -23,7 +23,7 @@
 
 set -e
 
-export EXTERNAL_IP="${EXTERNAL_IP:-$(detect_external_ip)}"
+export TURN_EXTERNAL_IP="${TURN_EXTERNAL_IP:-$(detect_external_ip)}"
 
 # NOTE that the listening IP must be bound to only the IPs you will be responding to.
 # Binding to the wrong IP(s) can result in connectivity issues that are difficult to trace.
@@ -37,7 +37,7 @@ turnserver \
     --aux-server="0.0.0.0:${TURN_ALT_PORT:-8443}" \
     --aux-server="[::]:${TURN_ALT_PORT:-8443}" \
     --realm="${TURN_REALM:-example.com}" \
-    --external-ip="${EXTERNAL_IP:-$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1')}" \
+    --external-ip="${TURN_EXTERNAL_IP:-$(dig TXT +short @ns1.google.com o-o.myaddr.l.google.com 2>/dev/null | { read output; if [ -z "$output" ] || echo "$output" | grep -q '^;;'; then exit 1; else echo "$(echo $output | sed 's,\",,g')"; fi } || dig -6 TXT +short @ns1.google.com o-o.myaddr.l.google.com 2>/dev/null | { read output; if [ -z "$output" ] || echo "$output" | grep -q '^;;'; then exit 1; else echo "$(echo $output | sed 's,\",,g')"; fi } || hostname -I 2>/dev/null | awk '{print $1; exit}' || echo '127.0.0.1')}" \
     --min-port="${TURN_MIN_PORT:-49152}" \
     --max-port="${TURN_MAX_PORT:-65535}" \
     --channel-lifetime="${TURN_CHANNEL_LIFETIME:--1}" \

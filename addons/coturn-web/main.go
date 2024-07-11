@@ -77,7 +77,7 @@ type ConcurrentMap struct {
 }
 
 func main() {
-	externalIP := popVarFromEnv("EXTERNAL_IP", false, getMyExternalIP())
+	externalIP := popVarFromEnv("TURN_EXTERNAL_IP", false, getMyExternalIP())
 	turnPort := popVarFromEnv("TURN_PORT", false, "80")
 	turnAltPort := popVarFromEnv("TURN_ALT_PORT", false, "443")
 	sharedSecret := popVarFromEnv("TURN_SHARED_SECRET", true, "")
@@ -96,7 +96,7 @@ func main() {
 
 	// Make sure at least one external IP method was found.
 	if len(externalIP) == 0 && len(endpointsDiscoveryName) == 0 && len(migFilterPattern) == 0 {
-		log.Fatalf("ERROR: no EXTERNAL_IP, DISCOVERY_DNS_NAME, or MIG_DISCO_FILTER was not found, cannot continue.")
+		log.Fatalf("ERROR: no TURN_EXTERNAL_IP, DISCOVERY_DNS_NAME, or MIG_DISCO_FILTER was not found, cannot continue.")
 	}
 
 	// Flags used for connecting out-of-cluster.

@@ -39,7 +39,7 @@ spec:
           imagePullPolicy: Always
           env:
             # User external IP from LoadBalancer
-            - name: EXTERNAL_IP
+            - name: TURN_EXTERNAL_IP
               valueFrom:
                 secretKeyRef:
                   name: turn-shared-secret

@@ -21,8 +21,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-if [ -z "$EXTERNAL_IP" ]; then
-  export EXTERNAL_IP="$(curl -fsSL checkip.amazonaws.com 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo '127.0.0.1')"
+if [ -z "${TURN_EXTERNAL_IP}" ]; then
+  export TURN_EXTERNAL_IP="$(dig TXT +short @ns1.google.com o-o.myaddr.l.google.com 2>/dev/null | { read output; if [ -z "$output" ] || echo "$output" | grep -q '^;;'; then exit 1; else echo "$(echo $output | sed 's,\",,g')"; fi } || dig -6 TXT +short @ns1.google.com o-o.myaddr.l.google.com 2>/dev/null | { read output; if [ -z "$output" ] || echo "$output" | grep -q '^;;'; then exit 1; else echo "$(echo $output | sed 's,\",,g')"; fi } || hostname -I 2>/dev/null | awk '{print $1; exit}' || echo '127.0.0.1')"
 fi
 
-echo "$EXTERNAL_IP"
+echo "${TURN_EXTERNAL_IP}"
