@@ -20,13 +20,13 @@ A configuration in your internet router called `Full Cone NAT` (otherwise called
 
 For an easy fix for containers, add the option `--network=host` to your Docker® command, or add `hostNetwork: true` under your Kubernetes YAML configuration file's pod `spec:` entry, which should be indented in the same depth as `containers:` (note that your cluster may have not allowed this, resulting in an error).
 
-**You must also pass a new `DISPLAY` environment variable such as `-e DISPLAY=:22`, that is not used with any other X11 server or container in the same host, into the container.**
+**Note that running multiple desktop containers in one host under this configuration may be problematic and is not recommended. You must also pass a new `DISPLAY` environment variable such as `-e DISPLAY=:22` into the container, that is not used with any other X11 server or container in the same host.**
 
 This exposes your container to the host network, which disables container network isolation.
 
 **UDP and TCP ports 49152–65535 in your host server network should still be open** or be under `Full Cone NAT` as in [Self-Hosted Instances](#self-hosted-instances).
 
-If this does not fix the connection issue (normally when the server is behind another additional firewall) or you cannot use the above fixes for security or technical reasons, **move on to the next section**.
+If this does not fix the connection issue (normally when the server is behind another additional firewall), you cannot use the above fixes for security or technical reasons, or when deploying multiple desktop containers in one host, **move on to the next section**.
 
 ## TURN Server
 
@@ -40,7 +40,7 @@ In most cases when either of your server or client does not have a restrictive f
 
 **While the [Open Relay](https://www.metered.ca/tools/openrelay) TURN server is the default when no TURN server is set, because there is only one server location, any connection with the type `relay` will add substantial latency as well as stutters to your connections.**
 
-For self-hosters with restricted host networks, the [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free) Arm Compute Instance provides up to 10 TB Outbound Data Transfer every month, which accounts to a total of nearly 30 mbps bandwidth even when Selkies-GStreamer is utilized 24/7. You may configure coTURN with any computer, server, cloud service, or virtual machine you want. Make sure to use a location that is as close as possible to the web client or the host server.
+For self-hosting with restricted host networks, the [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free) Arm Compute Instance provides up to 10 TB Outbound Data Transfer every month, which accounts to a total of nearly 30 mbps bandwidth even when Selkies-GStreamer is utilized 24/7. You may configure coTURN with any computer, server, cloud service, or virtual machine you want. Make sure to use a location that is as close as possible to the web client or the host server.
 
 Otherwise, [Cloudflare](https://developers.cloudflare.com/calls/turn/overview/) and [Twilio](https://www.twilio.com/docs/stun-turn) also provide paid TURN server services.
 

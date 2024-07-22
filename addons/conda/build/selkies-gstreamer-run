@@ -32,7 +32,7 @@ echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do 
 # Use selkies-gstreamer-resize to resize the screen, xrandr required in host (package x11-xserver-utils in Debian or xorg-x11-server-utils/xrandr in RHEL)
 if [ "$(echo ${ENABLE_XVFB} | tr '[:upper:]' '[:lower:]')" = "true" ]; then ${CONDA_PREFIX}/bin/python ${CONDA_PREFIX}/bin/selkies-gstreamer-resize 1920x1080; fi
 
-# PulseAudio server socket location
+# PulseAudio server socket path
 export PIPEWIRE_LATENCY="32/48000"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"

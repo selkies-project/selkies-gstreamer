@@ -228,7 +228,7 @@ All these ports must be exposed to the internet if you need access over the inte
 
 If UDP cannot be used, at the cost of higher latency and lower performance, omit the ports containing `/udp` and use the environment variable `-e SELKIES_TURN_PROTOCOL=tcp`.
 
-Otherwise, to enable host networking, add `--network=host` to the Docker® command to enable host networking and work around this requirement if your server is not behind a firewall. You must also pass a new `DISPLAY` environment variable such as `-e DISPLAY=:22`, that is not used with any other X11 server or container in the same host, into the container.
+Otherwise, to enable host networking, add `--network=host` to the Docker® command to enable host networking and work around this requirement if your server is not behind a firewall. Note that running multiple desktop containers in one host under this configuration may be problematic and is not recommended. You must also pass a new `DISPLAY` environment variable such as `-e DISPLAY=:22` into the container, that is not used with any other X11 server or container in the same host.
 
 If you are behind a reverse proxy or can only expose one HTTP port, you will need to use an external STUN/TURN server capable of `srflx` or `relay` type ICE connections if you use this in a container WITHOUT host networking.
 
