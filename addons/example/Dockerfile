@@ -43,7 +43,7 @@ RUN apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get instal
     usermod -a -G adm,audio,cdrom,dialout,dip,fax,floppy,games,input,lp,plugdev,render,ssl-cert,sudo,tape,tty,video,voice ubuntu && \
     echo "ubuntu ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     echo "ubuntu:${PASSWD}" | chpasswd && \
-    chown -R -f -h --no-preserve-root ubuntu:ubuntu / || echo 'Failed to set filesystem ownership to ubuntu user'
+    chown -R -f -h --no-preserve-root ubuntu:ubuntu / || echo 'Failed to set filesystem ownership in some paths to ubuntu user'
 
 # Set locales
 ENV LANG="en_US.UTF-8"
