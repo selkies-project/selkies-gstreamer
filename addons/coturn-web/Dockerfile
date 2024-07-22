@@ -34,6 +34,6 @@ RUN apk add -u bash jq bind-tools curl
 COPY --from=build /go/src/coturn-web/coturn-web /usr/local/bin/coturn-web
 
 COPY entrypoint.sh /etc/
-RUN chmod +x /etc/entrypoint.sh
+RUN chmod -f +x /etc/entrypoint.sh
 
 ENTRYPOINT ["/etc/entrypoint.sh"]

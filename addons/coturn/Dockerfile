@@ -26,10 +26,10 @@ USER root
 RUN apk add -u --no-cache bind-tools
 
 COPY detect_external_ip.sh /usr/bin/detect_external_ip
-RUN chmod +x /usr/bin/detect_external_ip
+RUN chmod -f +x /usr/bin/detect_external_ip
 
 COPY entrypoint.sh /
-RUN chmod +x /entrypoint.sh
+RUN chmod -f +x /entrypoint.sh
 
 USER nobody:nogroup
 

@@ -105,8 +105,8 @@ mkdir -pm755 /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/v
 
 # Copy turnserver script
 cp start-turnserver.sh /usr/local/bin/start-turnserver.sh
-chmod +x /usr/local/bin/start-turnserver.sh &
+chmod -f +x /usr/local/bin/start-turnserver.sh
 
 # Copy the startup script
 cp start-selkies.sh /usr/local/bin/start-selkies.sh
-chmod +x /usr/local/bin/start-selkies.sh
+chmod -f +x /usr/local/bin/start-selkies.sh
