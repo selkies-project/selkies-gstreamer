@@ -1128,7 +1128,7 @@ class GSTWebRTCApp:
             GSTWebRTCAppError -- thrown if any plugins are missing.
         """
 
-        required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp", "rtpmanager", "ximagesrc"]
+        required = ["opus", "nice", "webrtc", "dtls", "srtp", "rtp", "sctp", "sdp", "rtpmanager", "ximagesrc"]
 
         # ADD_ENCODER: add new encoder to this list
         supported = ["nvh264enc", "nvh265enc", "nvav1enc", "vah264enc", "vah265enc", "vavp9enc", "vaav1enc", "x264enc", "openh264enc", "x265enc", "vp8enc", "vp9enc", "svtav1enc", "av1enc", "rav1enc"]
@@ -1136,8 +1136,8 @@ class GSTWebRTCApp:
             raise GSTWebRTCAppError('Unsupported encoder, must be one of: ' + ','.join(supported))
 
         # ADD_ENCODER: add new encoder to this list with required GStreamer plugin
-        if "av1" in self.encoder:
-            # rtpav1pay is in gst-plugins-rs
+        if "av1" in self.encoder or self.congestion_control:
+            # rtpav1pay and rtpgccbwe are in gst-plugins-rs
             required.append("rsrtp")
 
         if self.encoder.startswith("nv"):

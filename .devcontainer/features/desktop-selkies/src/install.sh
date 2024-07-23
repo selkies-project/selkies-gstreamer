@@ -15,8 +15,6 @@ apt-get update && apt-get install --no-install-recommends -y \
     python3-gi \
     python3-setuptools \
     python3-wheel \
-    libaa1 \
-    bzip2 \
     libgcrypt20 \
     libcairo-gobject2 \
     libpangocairo-1.0-0 \
@@ -32,13 +30,8 @@ apt-get update && apt-get install --no-install-recommends -y \
     jackd2 \
     libjack-jackd2-0 \
     libpulse0 \
-    libogg0 \
     libopus0 \
-    libvorbis-dev \
-    libjpeg-turbo8 \
-    libopenjp2-7 \
     libvpx-dev \
-    libwebp-dev \
     x264 \
     x265 \
     libdrm2 \

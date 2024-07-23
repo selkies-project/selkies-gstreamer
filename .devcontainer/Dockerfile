@@ -3,15 +3,13 @@ FROM mcr.microsoft.com/devcontainers/base:${IMAGE_TAG}
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install base dependencies
+# Install base Selkies-GStreamer dependencies
 RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         python3-pip \
         python3-dev \
         python3-gi \
         python3-setuptools \
         python3-wheel \
-        libaa1 \
-        bzip2 \
         libgcrypt20 \
         libcairo-gobject2 \
         libpangocairo-1.0-0 \
@@ -27,13 +25,8 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         jackd2 \
         libjack-jackd2-0 \
         libpulse0 \
-        libogg0 \
         libopus0 \
-        libvorbis-dev \
-        libjpeg-turbo8 \
-        libopenjp2-7 \
         libvpx-dev \
-        libwebp-dev \
         x264 \
         x265 \
         libdrm2 \
