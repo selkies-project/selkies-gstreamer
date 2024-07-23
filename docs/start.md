@@ -121,7 +121,7 @@ sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gz
 Install additional dependencies if using Ubuntu ≥ 22.04 (Mint 21) or a higher equivalent version of another operating system:
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev libde265-0 svt-av1 aom-tools
+sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev svt-av1 aom-tools
 ```
 
 If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and NVRTC (procedures below).
