@@ -92,7 +92,7 @@ WORKDIR /src
 ARG GSTREAMER_VERSION=1.24.5
 RUN if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:aom=enabled ${GSTREAMER_EXTRA_ARGS}"; else export GSTREAMER_EXTRA_ARGS="${GSTREAMER_EXTRA_ARGS}"; fi && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "22.04" ]; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:svtav1=enabled ${GSTREAMER_EXTRA_ARGS}"; fi && \
-    export GSTREAMER_FALLBACK_SUBPROJECTS="abseil-cpp,gl-headers,graphene,libnice,libsrtp2,orc,webrtc-audio-processing"
+    export GSTREAMER_FALLBACK_SUBPROJECTS="abseil-cpp,gl-headers,graphene,libnice,libsrtp2,orc,webrtc-audio-processing" && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \< "22.04" ]; then export GSTREAMER_FALLBACK_SUBPROJECTS="json-glib,libva,openh264,x264,${GSTREAMER_FALLBACK_SUBPROJECTS}"; fi && \
     curl --proto '=https' --tlsv1.2 -fsSL "https://sh.rustup.rs" | sh -s -- -y && \
     . "$HOME/.cargo/env" && \
