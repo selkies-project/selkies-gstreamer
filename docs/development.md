@@ -1,3 +1,5 @@
+**Go to [Knowledge Base](#knowledge-base) for information on customization.**
+
 # Development and Contributions
 
 **We are in need of maintainers and community contributors. Please consider stepping up, as we can never have too much help!**
@@ -71,6 +73,57 @@ These people make structural decisions for this project and press the `Merge Pul
 # Knowledge Base
 
 This section is a knowledge base for code contributions and development.
+
+## Container Customization
+
+**If you want to change the `Dockerfile`, you are recommended to use the original container as a base container and only replace the `entrypoint.sh` and `supervisord.conf` files. This will keep you up to date with the latest updates. Use persistent container tags (such as `v1.6.1-ubuntu24.04` for the [Example Container](component.md#example-container) or `24.04-20210101010101` for the desktop containers) to preserve a specific container build.**
+
+Start with the below sample `Dockerfile` example and place your modified `entrypoint.sh` and `supervisord.conf` files within the same empty directory or Git repository (switch the `FROM` line to `ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}` for the [Example Container](component.md#example-container), and `ghcr.io/selkies-project/nvidia-glx-desktop:${DISTRIB_RELEASE}` or `ghcr.io/selkies-project/nvidia-egl-desktop:${DISTRIB_RELEASE}` for the desktop containers):
+
+```dockerfile
+ARG DISTRIB_RELEASE=24.04
+FROM ghcr.io/selkies-project/nvidia-glx-desktop:${DISTRIB_RELEASE}
+ARG DISTRIB_RELEASE
+
+USER 0
+# Enable sudo through sudo-root with uid 0
+RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_LIB="/usr/lib/sudo"; fi && \
+    chown -R -f -h --no-preserve-root ubuntu:ubuntu /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf "${SUDO_LIB}" || echo 'Failed to provide root permissions in some paths relevant to sudo'
+USER 1000
+
+# Use BUILDAH_FORMAT=docker in buildah
+SHELL ["/usr/bin/fakeroot", "--", "/bin/sh", "-c"]
+# Install and configure below this line
+
+# Replace changed files
+# Copy scripts and configurations used to start the container with `--chown=1000:1000`
+#COPY --chown=1000:1000 entrypoint.sh /etc/entrypoint.sh
+#RUN chmod -f 755 /etc/entrypoint.sh
+#COPY --chown=1000:1000 selkies-gstreamer-entrypoint.sh /etc/selkies-gstreamer-entrypoint.sh
+#RUN chmod -f 755 /etc/selkies-gstreamer-entrypoint.sh
+#COPY --chown=1000:1000 kasmvnc-entrypoint.sh /etc/kasmvnc-entrypoint.sh
+#RUN chmod -f 755 /etc/kasmvnc-entrypoint.sh
+#COPY --chown=1000:1000 supervisord.conf /etc/supervisord.conf
+#RUN chmod -f 755 /etc/supervisord.conf
+
+SHELL ["/bin/sh", "-c"]
+
+USER 0
+# Enable sudo through sudo-root with uid 0
+RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_LIB="/usr/lib/sudo"; fi && \
+    chown -R -f -h --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf "${SUDO_LIB}" || echo 'Failed to provide root permissions in some paths relevant to sudo' && \
+    chmod -f 4755 /usr/bin/sudo-root || echo 'Failed to set chmod for sudo-root'
+
+USER 1000
+ENV SHELL=/bin/bash
+ENV USER=ubuntu
+ENV HOME=/home/ubuntu
+WORKDIR /home/ubuntu
+
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/bin/supervisord"]
+```
 
 ## Style Guide
 

@@ -216,17 +216,19 @@ Check the following links for explanations of similar, but different attempts, f
 
 The [Example Container](/addons/example) is the reference minimal-functionality container developers can base upon, or test Selkies-GStreamer quickly. The bare minimum Xfce4 desktop environment is installed together with Firefox, as well as an embedded TURN server inside the container for quick WebRTC firewall traversal.
 
+Read the [Development](development.md) section for customizing this container for your own usage.
+
 Run the Docker®/Podman container built from the [`Example Dockerfile`](/addons/example/Dockerfile), then connect to port **8080** of your Docker®/Podman host to access the web interface (Username: **`ubuntu`**, Password: **`mypasswd`**, **change `DISTRIB_RELEASE` to `24.04`, `22.04`, or `20.04`, and replace `main` to `latest` for the latest stable release**):
 
 ```bash
-docker run --pull=always --name selkies -it -d --rm -e SELKIES_TURN_PROTOCOL=udp -e SELKIES_TURN_PORT=3478 -e TURN_MIN_PORT=65534 -e TURN_MAX_PORT=65535 -p 8080:8080 -p 3478:3478 -p 3478:3478/udp -p 65534-65535:65534-65535 -p 65534-65535:65534-65535/udp ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
+docker run --name selkies -it -d --rm -e SELKIES_TURN_PROTOCOL=udp -e SELKIES_TURN_PORT=3478 -e TURN_MIN_PORT=65534 -e TURN_MAX_PORT=65535 -p 8080:8080 -p 3478:3478 -p 3478:3478/udp -p 65534-65535:65534-65535 -p 65534-65535:65534-65535/udp ghcr.io/selkies-project/selkies-gstreamer/gst-py-example:main-ubuntu${DISTRIB_RELEASE}
 ```
 
 Port 3478 and 65534-65535 (change the ports accordingly) are the ports for the internal TURN server needed to route WebRTC through restrictive networks. When deploying multiple containers, these ports must be changed (together with the environment variables `TURN_MIN_PORT`/`TURN_MAX_PORT` with at least two ports in the range plus the environment variable`SELKIES_TURN_PORT`) and cannot be used by any other host process or container.
 
-All these ports must be exposed to the internet if you need access over the internet. If you need use TURN within a local network, add `-e SELKIES_TURN_HOST=[YOUR_INTERNAL_IP]` with `YOUR_INTERNAL_IP` to the internal hostname or IP of the local network.
-
 If UDP cannot be used, at the cost of higher latency and lower performance, omit the ports containing `/udp` and use the environment variable `-e SELKIES_TURN_PROTOCOL=tcp`.
+
+All these ports must be exposed to the internet if you need access over the internet. If you need use TURN within a local network, add `-e SELKIES_TURN_HOST=[YOUR_INTERNAL_IP]` with `YOUR_INTERNAL_IP` to the internal hostname or IP of the local network.
 
 Otherwise, to enable host networking, add `--network=host` to the Docker® command to enable host networking and work around this requirement if your server is not behind a firewall. Note that running multiple desktop containers in one host under this configuration may be problematic and is not recommended. You must also pass a new `DISPLAY` environment variable such as `-e DISPLAY=:22` into the container, that is not used with any other X11 server or container in the same host.
 
@@ -245,7 +247,7 @@ The [coTURN Container](/addons/coturn) is a reference container which provides t
 Run the Docker®/Podman container built from the [`coTURN Dockerfile`](/addons/coturn/Dockerfile) (**replace `main` to `latest` for the latest stable release**):
 
 ```bash
-docker run --pull=always --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT=3478 -e TURN_MIN_PORT=65500 -e TURN_MAX_PORT=65535 -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
+docker run --name coturn -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_REALM=example.com -e TURN_PORT=3478 -e TURN_MIN_PORT=65500 -e TURN_MAX_PORT=65535 -p 3478:3478 -p 3478:3478/udp -p 65500-65535:65500-65535 -p 65500-65535:65500-65535/udp ghcr.io/selkies-project/selkies-gstreamer/coturn:main
 ```
 
 **The relay ports and the listening port must all be open to the internet.**
@@ -283,7 +285,7 @@ The TURN-REST Container (or similarly, Kubernetes Pod) should be triggered with 
 Run the Docker®/Podman container built from the [`TURN-REST Dockerfile`](/addons/turn-rest/Dockerfile) (replace `main` to `latest` for the latest stable release**):
 
 ```bash
-docker run --pull=always --name turn-rest -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_HOST=turn.myinfrastructure.io -e TURN_PORT=3478 -e TURN_PROTOCOL=udp -e TURN_TLS=false -p 8008:8008 ghcr.io/selkies-project/selkies-gstreamer/turn-rest:main
+docker run --name turn-rest -it -d --rm -e TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace -e TURN_HOST=turn.myinfrastructure.io -e TURN_PORT=3478 -e TURN_PROTOCOL=udp -e TURN_TLS=false -p 8008:8008 ghcr.io/selkies-project/selkies-gstreamer/turn-rest:main
 ```
 
 From Selkies-GStreamer, it is sufficient to use the `selkies-gstreamer --turn_rest_uri=` option or `export SELKIES_TURN_REST_URI=` environment variable, pointing to the HTTP(S) URI to the TURN REST API server.
