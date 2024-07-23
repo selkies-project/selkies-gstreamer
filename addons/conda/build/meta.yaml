@@ -119,9 +119,6 @@ requirements:
     - pygobject
     - setuptools
     - libsoup
-    - libvulkan-loader
-    - libvulkan-headers
-    - shaderc
     - libcap
     - libvpx
     - openh264
@@ -182,7 +179,6 @@ requirements:
     - pulseaudio                         # [linux]
     - pulseaudio-client                  # [linux]
     - libva-utils                        # [linux]
-    - libvulkan-loader
     - libxcb                             # [linux]
     - libxkbcommon                       # [linux]
     - libxkbfile                         # [linux]
