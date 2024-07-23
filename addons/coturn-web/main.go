@@ -463,8 +463,7 @@ func makeCredential(secret, user string) (string, string) {
 
 	ttlOneDay := 24 * 3600 * time.Second
 	nowPlusTTL := time.Now().Add(ttlOneDay).Unix()
-	// Make sure to set --rest-api-separator="-" in the coturn config.
-	username = fmt.Sprintf("%d-%s", nowPlusTTL, user)
+	username = fmt.Sprintf("%d:%s", nowPlusTTL, user)
 
 	mac := hmac.New(sha1.New, []byte(secret))
 	mac.Write([]byte(username))

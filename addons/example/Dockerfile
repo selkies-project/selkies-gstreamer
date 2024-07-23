@@ -288,9 +288,10 @@ turnserver \
     --max-port=\"\${TURN_MAX_PORT:-65535}\" \
     --channel-lifetime=\"\${TURN_CHANNEL_LIFETIME:--1}\" \
     --lt-cred-mech \
-    --user \"selkies:\${TURN_RANDOM_PASSWORD}\" \
+    --user=\"selkies:\${TURN_RANDOM_PASSWORD:-\$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)}\" \
     --no-cli \
     --cli-password=\"\${TURN_RANDOM_PASSWORD:-\$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)}\" \
+    --db=\"\${XDG_RUNTIME_DIR:-/tmp}/coturn-turndb\" \
     --allow-loopback-peers \
     \${TURN_EXTRA_ARGS} \$@\
 " > /etc/start-turnserver.sh && chmod -f 755 /etc/start-turnserver.sh
@@ -300,14 +301,6 @@ RUN echo "[ ! -z \"\$TERM\" -a -r /etc/motd ] && echo \"\$(grep PRETTY_NAME= /et
     echo "==============================================\n\
 = Selkies-GStreamer Example Docker Container =\n\
 ==============================================\n\
-\n\
-To test the package:\n\
-\n\
-'/etc/entrypoint.sh' and '/etc/selkies-gstreamer-entrypoint.sh'\n\
-\n\
-To test the standalone signaling server:\n\
-\n\
-python3 signalling_web.py --port 8080 --web_root=/opt/gst-web &\
 " > /etc/motd
 
 SHELL ["/bin/sh", "-c"]

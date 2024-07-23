@@ -1,6 +1,6 @@
 # GKE Deployment
 
-This repo contains tutorials for deploying a GKE cluster and TURN infrastructure needed to host selkies-gstreamer workloads.
+This repo contains tutorials for deploying a GKE cluster and TURN infrastructure needed to host Selkies-GStreamer workloads.
 
 You must complete the following guides in order:
 

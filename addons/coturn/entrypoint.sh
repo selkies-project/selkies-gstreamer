@@ -25,7 +25,7 @@ set -e
 
 export TURN_EXTERNAL_IP="${TURN_EXTERNAL_IP:-$(detect_external_ip)}"
 
-# NOTE that the listening IP must be bound to only the IPs you will be responding to.
+# NOTE that the listening IP must be bound to only the IPs you will be responding to if not using "0.0.0.0" or "::".
 # Binding to the wrong IP(s) can result in connectivity issues that are difficult to trace.
 # Typically $(hostname -i) will return the primary IP to listen on.
 
@@ -45,6 +45,7 @@ turnserver \
     --static-auth-secret="${TURN_SHARED_SECRET:-changeme}" \
     --no-cli \
     --cli-password="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)" \
+    --db="/tmp/coturn-turndb" \
     --allow-loopback-peers \
     --prometheus \
     ${TURN_EXTRA_ARGS} $@
