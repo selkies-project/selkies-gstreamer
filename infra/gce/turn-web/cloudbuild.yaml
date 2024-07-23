@@ -36,7 +36,7 @@ steps:
     args:
       - -exc
       - |
-        if [ -e /workspace/access_token ]; then
+        if [ -e "/workspace/access_token" ]; then
           echo "INFO: Copying coturn-web image from GCHR to project GCR so it can be used with Cloud Run"
           cat /workspace/access_token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
           docker pull ${_GHCR_IMAGE}:${_IMAGE_TAG}

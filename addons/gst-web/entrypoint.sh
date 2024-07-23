@@ -23,7 +23,7 @@ if [ -n "${PWA_ICON_URL}" ]; then
   else
     curl -s -L "${PWA_ICON_URL}" > /tmp/icon.png
   fi
-  if [ -e /tmp/icon.png ]; then
+  if [ -e "/tmp/icon.png" ]; then
     echo "INFO: Creating PWA icon sizes"
     convert /tmp/icon.png /usr/share/nginx/html/icon.png
     rm -f /tmp/icon.png
