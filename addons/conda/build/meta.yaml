@@ -5,7 +5,6 @@
 {% set name = "selkies-gstreamer" %}
 {% set gstreamer_version = "1.24.5" %}
 {% set python = "3.12" %}
-{% set ffmpeg = ">=6.1" %}
 {% set posix = 'm2-' if win else '' %}
 
 package:
