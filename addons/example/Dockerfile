@@ -199,15 +199,18 @@ Pin-Priority: -1" > /etc/apt/preferences.d/firefox-nosnap && \
         pipewire-jack \
         pipewire-locales \
         pipewire-v4l2 \
+        pipewire-vulkan \
         pipewire-libcamera \
+        gstreamer1.0-libcamera \
         gstreamer1.0-pipewire \
         libpipewire-0.3-modules \
         libpipewire-module-x11-bell \
+        libspa-0.2-bluetooth \
         libspa-0.2-jack \
         libspa-0.2-modules \
         wireplumber \
         wireplumber-locales \
-        gir1.2-wp-0.4 \
+        gir1.2-wp-0.5 \
         # Example packages
         git \
         tmux \
