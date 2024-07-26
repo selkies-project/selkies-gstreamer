@@ -406,7 +406,7 @@ def main():
                         help='GStreamer video encoder to use')
     parser.add_argument('--gpu_id',
                         default=os.environ.get('SELKIES_GPU_ID', '0'),
-                        help='GPU ID for GStreamer hardware video encoders, will use enumerated GPU ID (0, 1, ..., n) for NVIDIA and /dev/dri/renderD{128 + n} for VA-API')
+                        help='GPU ID for GStreamer hardware video encoders, will use enumerated GPU ID (0, 1, ..., n) for NVIDIA and /dev/dri/rendered{128 + n} for VA-API')
     parser.add_argument('--framerate',
                         default=os.environ.get('SELKIES_FRAMERATE', '60'),
                         help='Framerate of the streamed remote desktop')
