@@ -4,3 +4,9 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git*,*.svg,*.css,*.min.*,addons'
+check-hidden = true
+ignore-regex = '\b/dev/dri/renderD\b'
+ignore-words-list = 'implementors'
