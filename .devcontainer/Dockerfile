@@ -11,15 +11,9 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         python3-setuptools \
         python3-wheel \
         libgcrypt20 \
-        libcairo-gobject2 \
-        libpangocairo-1.0-0 \
-        libgdk-pixbuf2.0-0 \
-        libsoup2.4-1 \
-        libsoup-gnome2.4-1 \
         libgirepository-1.0-1 \
         glib-networking \
         libglib2.0-0 \
-        libjson-glib-1.0-0 \
         libgudev-1.0-0 \
         alsa-utils \
         jackd2 \
@@ -49,7 +43,6 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends -y \
         xserver-xorg-core \
         libx11-xcb1 \
         libxcb-dri3-0 \
-        libxkbcommon0 \
         libxdamage1 \
         libxfixes3 \
         libxv1 \

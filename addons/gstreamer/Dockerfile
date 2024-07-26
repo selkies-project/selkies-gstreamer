@@ -34,25 +34,18 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         nasm \
         valgrind \
         yasm \
-        libgcrypt20-dev \
         libgmp-dev \
         libgsl-dev \
-        libcairo2-dev \
-        libpango1.0-dev \
-        libgdk-pixbuf2.0-dev \
-        libsoup2.4-dev \
-        libsoup-gnome2.4-dev \
+        libgcrypt20-dev \
         libgirepository1.0-dev \
         glib-networking \
         libglib2.0-dev \
-        libjson-glib-dev \
         libgudev-1.0-dev \
         libasound2-dev \
         libjack-jackd2-dev \
         libopus-dev \
         libpulse-dev \
         libssl-dev \
-        libvdpau-dev \
         libva-dev \
         libvpx-dev \
         libx264-dev \
@@ -69,7 +62,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         libwayland-egl-backend-dev \
         libx11-xcb-dev \
         libxcb-dri3-dev \
-        libxkbcommon-dev \
         libxdamage-dev \
         libxfixes-dev \
         libxv-dev \

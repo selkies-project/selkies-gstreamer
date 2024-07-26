@@ -72,15 +72,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         python3-setuptools \
         python3-wheel \
         libgcrypt20 \
-        libcairo-gobject2 \
-        libpangocairo-1.0-0 \
-        libgdk-pixbuf2.0-0 \
-        libsoup2.4-1 \
-        libsoup-gnome2.4-1 \
         libgirepository-1.0-1 \
         glib-networking \
         libglib2.0-0 \
-        libjson-glib-1.0-0 \
         libgudev-1.0-0 \
         alsa-utils \
         jackd2 \
@@ -110,7 +104,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         xserver-xorg-core \
         libx11-xcb1 \
         libxcb-dri3-0 \
-        libxkbcommon0 \
         libxdamage1 \
         libxfixes3 \
         libxv1 \
@@ -126,8 +119,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
         mesa-vulkan-drivers \
         vulkan-tools \
         radeontop && \
-    if [ "$(dpkg --print-architecture)" = "amd64" ]; then apt-get install --no-install-recommends -y intel-gpu-tools nvtop va-driver-all i965-va-driver-shaders intel-media-va-driver-non-free; fi && \
     if [ "$(grep VERSION_ID= /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; then apt-get install --no-install-recommends -y xcvt libopenh264-dev svt-av1 aom-tools; else apt-get install --no-install-recommends -y mesa-utils-extra; fi && \
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then apt-get install --no-install-recommends -y intel-gpu-tools nvtop va-driver-all i965-va-driver-shaders intel-media-va-driver-non-free; fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
     echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf && \
