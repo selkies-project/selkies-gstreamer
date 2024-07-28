@@ -86,9 +86,9 @@ FROM ghcr.io/selkies-project/nvidia-glx-desktop:${DISTRIB_RELEASE}
 ARG DISTRIB_RELEASE
 
 USER 0
-# Enable sudo through sudo-root with uid 0
+# Restore file permissions to ubuntu user
 RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_LIB="/usr/lib/sudo"; fi && \
-    chown -R -f -h --no-preserve-root ubuntu:ubuntu /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf "${SUDO_LIB}" || echo 'Failed to provide root permissions in some paths relevant to sudo'
+    chown -R -f -h --no-preserve-root ubuntu:ubuntu /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf "${SUDO_LIB}" || echo 'Failed to provide user permissions in some paths relevant to sudo'
 USER 1000
 
 # Use BUILDAH_FORMAT=docker in buildah
@@ -112,7 +112,7 @@ USER 0
 # Enable sudo through sudo-root with uid 0
 RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_LIB="/usr/lib/sudo"; fi && \
     chown -R -f -h --no-preserve-root root:root /usr/bin/sudo-root /etc/sudo.conf /etc/sudoers /etc/sudoers.d /etc/sudo_logsrvd.conf "${SUDO_LIB}" || echo 'Failed to provide root permissions in some paths relevant to sudo' && \
-    chmod -f 4755 /usr/bin/sudo-root || echo 'Failed to set chmod setuid for sudo-root'
+    chmod -f 4755 /usr/bin/sudo-root || echo 'Failed to set chmod setuid for root'
 
 USER 1000
 ENV SHELL=/bin/bash
