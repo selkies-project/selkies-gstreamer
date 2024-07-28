@@ -133,7 +133,7 @@ ENTRYPOINT ["/usr/bin/supervisord"]
 
 - There should be no empty lines with whitespaces, or line endings with whitespaces. Moreover, there should be a line break at the end of each code file unless the specific code file format should not have one. If there is not, it is okay, but include the line break with your Pull Requests if possible.
 
-- Try using [`codespell`](https://github.com/codespell-project/codespell) or any other code spelling checker that can check text spelling errors before finalizing your pull request.
+- Try using [`codespell`](https://github.com/codespell-project/codespell) or any other code spelling checker including the Visual Studio Code [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker), that can check spelling errors in the codebase before finalizing your pull request. Note that some fixes may be false positives, so please check the fixes manually.
 
 ## Code Guide
 
