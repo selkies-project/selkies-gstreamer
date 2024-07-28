@@ -246,7 +246,7 @@ class GSTWebRTCApp:
         # to generate buffers at 60 frames per second (FPS).
         # The higher the FPS, the lower the latency so this parameter is one
         # way to set the overall target latency of the pipeline though keep in
-        # mind that the pipeline may not always perfom at the full 60 FPS.
+        # mind that the pipeline may not always perform at the full 60 FPS.
         self.ximagesrc_caps.set_value("framerate", Gst.Fraction(self.framerate, 1))
 
         # Create a capability filter for the ximagesrc_caps
@@ -324,7 +324,7 @@ class GSTWebRTCApp:
             # Minimize GOP-to-GOP rate fluctuations
             nvh264enc.set_property("strict-gop", True)
 
-            # The NVENC encoder supports a limited nubmer of encoding presets.
+            # The NVENC encoder supports a limited number of encoding presets.
             # These presets are different than the open x264 standard.
             # The presets control the picture coding technique, bitrate,
             # and encoding quality.
@@ -628,7 +628,7 @@ class GSTWebRTCApp:
             x264enc.set_property("mb-tree", False)
             x264enc.set_property("rc-lookahead", 0)
             x264enc.set_property("sync-lookahead", 0)
-            # Set VBV/HRD buffer size (miliseconds) to optimize for live streaming
+            # Set VBV/HRD buffer size (milliseconds) to optimize for live streaming
             x264enc.set_property("vbv-buf-capacity", int((1000 + self.framerate - 1) // self.framerate * self.vbv_multiplier_sw))
             x264enc.set_property("sliced-threads", True)
             x264enc.set_property("byte-stream", True)
@@ -700,7 +700,7 @@ class GSTWebRTCApp:
 
             # VPX Parameters
             vpenc.set_property("threads", min(16, max(1, len(os.sched_getaffinity(0)) - 1)))
-            # Set VBV/HRD buffer size (miliseconds) to optimize for live streaming
+            # Set VBV/HRD buffer size (milliseconds) to optimize for live streaming
             vbv_buffer_size = int((1000 + self.framerate - 1) // self.framerate * self.vbv_multiplier_vp)
             vpenc.set_property("buffer-initial-size", vbv_buffer_size)
             vpenc.set_property("buffer-optimal-size", vbv_buffer_size)
@@ -1180,7 +1180,7 @@ class GSTWebRTCApp:
             sdp {object} -- SDP object
 
         Raises:
-            GSTWebRTCAppError -- thrown if SDP is recevied before session has been started.
+            GSTWebRTCAppError -- thrown if SDP is received before session has been started.
             GSTWebRTCAppError -- thrown if SDP type is not 'answer', this script initiates the call, not the peer.
         """
 
@@ -1391,7 +1391,7 @@ class GSTWebRTCApp:
         Arguments:
             load {float} -- utilization of GPU between 0 and 1
             memory_total {float} -- total memory on GPU in MB
-            memory_used {float} -- memor used on GPU in MB
+            memory_used {float} -- memory used on GPU in MB
         """
 
         self.__send_data_channel_message("gpu_stats", {

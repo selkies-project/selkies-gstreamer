@@ -467,7 +467,7 @@ eval $(${WORKDIR?}/create_oauth_client.sh ${CLUSTER?})
 
 > If you want to authorize users from outside your Google Workspace Domain, you must enable External user types from the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent?project=) settings page.
 
-> The programatic OAuth client creation only works on projects with Internal configured OAuth Consent screens. If you previously configured the OAuth client on this project and made the OAuth client external, this script will return an error like this:
+> The programmatic OAuth client creation only works on projects with Internal configured OAuth Consent screens. If you previously configured the OAuth client on this project and made the OAuth client external, this script will return an error like this:
 
 ```
 ERROR: (gcloud.alpha.iap.oauth-clients.create) FAILED_PRECONDITION: Precondition check failed.

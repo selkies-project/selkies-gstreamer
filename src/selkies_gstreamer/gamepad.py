@@ -209,13 +209,13 @@ class SelkiesGamepad:
         Requires that self.config has been set first.
         '''
         if not self.config:
-            logger.error("could not make js config becuase it has not yet been set.")
+            logger.error("could not make js config because it has not yet been set.")
             return None
 
         num_btns = len(self.config["btn_map"])
         num_axes = len(self.config["axes_map"])
 
-        # zero fill array to max lenth.
+        # zero fill array to max length.
         btn_map = [i for i in self.config["btn_map"]]
         axes_map = [i for i in self.config["axes_map"]]
 

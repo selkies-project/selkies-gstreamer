@@ -180,7 +180,7 @@ def make_config():
     num_btns = len(cfg["btn_map"])
     num_axes = len(cfg["axes_map"])
 
-    # zero fill array to max lenth.
+    # zero fill array to max length.
     btn_map = [i for i in cfg["btn_map"]]
     axes_map = [i for i in cfg["axes_map"]]
 

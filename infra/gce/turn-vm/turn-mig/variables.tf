@@ -99,7 +99,7 @@ variable "allow_stopping_for_update" {
 }
 
 variable "cloud_init_custom_var" {
-  description = "String passed in to the cloud-config template as custome variable."
+  description = "String passed in to the cloud-config template as custom variable."
   type        = string
   default     = ""
 }

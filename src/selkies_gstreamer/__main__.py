@@ -300,7 +300,7 @@ def main():
     parser.add_argument('--json_config',
                         default=os.environ.get(
                             'SELKIES_JSON_CONFIG', '/tmp/selkies_config.json'),
-                        help='Path to the JSON file containing argument key-value pairs that are overlayed with CLI arguments or environment variables, this path must be writable')
+                        help='Path to the JSON file containing argument key-value pairs that are overlaid with CLI arguments or environment variables, this path must be writable')
     parser.add_argument('--addr',
                         default=os.environ.get(
                             'SELKIES_ADDR', '0.0.0.0'),
@@ -676,7 +676,7 @@ def main():
 
     app.on_data_open = lambda: data_channel_ready()
 
-    # Send incomming messages from data channel to input handler
+    # Send incoming messages from data channel to input handler
     app.on_data_message = webrtc_input.on_message
 
     # Send video bitrate messages to app
@@ -831,7 +831,7 @@ def main():
                     app.webrtcbin.emit("add-turn-server", turn_server)
         server.set_rtc_config(rtc_config)
 
-    # Initialize periodic montior to refresh TURN RTC config when using shared secret.
+    # Initialize periodic monitor to refresh TURN RTC config when using shared secret.
     hmac_turn_mon = HMACRTCMonitor(
         args.turn_host,
         args.turn_port,

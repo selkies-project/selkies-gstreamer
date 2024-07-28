@@ -133,6 +133,8 @@ ENTRYPOINT ["/usr/bin/supervisord"]
 
 - There should be no empty lines with whitespaces, or line endings with whitespaces. Moreover, there should be a line break at the end of each code file unless the specific code file format should not have one. If there is not, it is okay, but include the line break with your Pull Requests if possible.
 
+- Try using [`codespell`](https://github.com/codespell-project/codespell) or any other code spelling checker that can check text spelling errors before finalizing your pull request.
+
 ## Code Guide
 
 - When editing certain parts of the codebase, they are very likely to interact with other components in a very different location, or the same content needs to be edited in multiple different locations. Therefore, commits or Pull Requests are very likely to corrupt the repository if you do not use search capabilities across the whole codebase as often as possible.

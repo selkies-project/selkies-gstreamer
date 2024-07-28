@@ -430,7 +430,7 @@ class WebRTCDemo {
                 this.onlatencymeasurement(msg.data.latency_ms);
             }
         } else {
-            this._setError("Unhandled message recevied: " + msg.type);
+            this._setError("Unhandled message received: " + msg.type);
         }
     }
 

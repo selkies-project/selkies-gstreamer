@@ -54,7 +54,7 @@ class WebRTCSignallingErrorNoPeer(Exception):
 
 class WebRTCSignalling:
     def __init__(self, server, id, peer_id, enable_https=False, enable_basic_auth=False, basic_auth_user=None, basic_auth_password=None):
-        """Initialize the signalling instnance
+        """Initialize the signalling instance
 
         Arguments:
             server {string} -- websocket URI to connect to, example: ws://127.0.0.1:8080
@@ -119,7 +119,7 @@ class WebRTCSignalling:
             self.on_disconnect()
 
     async def send_ice(self, mlineindex, candidate):
-        """Sends te ice candidate to peer
+        """Sends the ice candidate to peer
 
         Arguments:
             mlineindex {integer} -- the mlineindex
@@ -161,8 +161,8 @@ class WebRTCSignalling:
 
         on_connect: fired when HELLO is received.
         on_session: fired after setup_call() succeeds and SESSION_OK is received.
-        on_error(WebRTCSignallingErrorNoPeer): fired when setup_call() failes and peer not found message is received.
-        on_error(WebRTCSignallingError): fired when message parsing failes or unexpected message is received.
+        on_error(WebRTCSignallingErrorNoPeer): fired when setup_call() fails and peer not found message is received.
+        on_error(WebRTCSignallingError): fired when message parsing fails or unexpected message is received.
 
         """
         async for message in self.conn:
