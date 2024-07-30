@@ -25,8 +25,8 @@ services:
     image: selkies-gstreamer-example:latest-ubuntu${DISTRIB_RELEASE:-24.04}
     entrypoint: ["/tini", "--", "/bin/bash"]
     build:
-      context: .
-      dockerfile: Dockerfile.example
+      context: ./addons/example
+      dockerfile: Dockerfile
       args:
         DISTRIB_RELEASE: ${DISTRIB_RELEASE:-24.04}
 
