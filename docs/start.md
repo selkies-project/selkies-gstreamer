@@ -33,7 +33,7 @@ Set `DISPLAY` to an unoccupied display server ID (such as `:99`) if you want Sel
 
 ```bash
 export DISPLAY="${DISPLAY:-:0}"
-export PIPEWIRE_LATENCY="32/48000"
+export PIPEWIRE_LATENCY="128/48000"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
 export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
@@ -207,7 +207,7 @@ sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
 # /usr/bin/pulseaudio --verbose --log-target=file:/tmp/pulseaudio_selkies.log --disallow-exit &
 
 # Initialize PipeWire
-# export PIPEWIRE_LATENCY="32/48000"
+# export PIPEWIRE_LATENCY="128/48000"
 # export DISABLE_RTKIT="y"
 # export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 # export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"

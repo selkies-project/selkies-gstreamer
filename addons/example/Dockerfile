@@ -304,7 +304,7 @@ RUN if [ -d "/usr/libexec/sudo" ]; then SUDO_LIB="/usr/libexec/sudo"; else SUDO_
     chmod -f 4755 /usr/bin/sudo-root || echo 'Failed to set chmod setuid for root'
 USER 1000
 
-ENV PIPEWIRE_LATENCY="32/48000"
+ENV PIPEWIRE_LATENCY="128/48000"
 ENV XDG_RUNTIME_DIR=/tmp/runtime-ubuntu
 ENV PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
 ENV PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
