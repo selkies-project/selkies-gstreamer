@@ -1038,7 +1038,6 @@ class GSTWebRTCApp:
         opusenc.set_property("audio-type", "restricted-lowdelay")
         opusenc.set_property("bandwidth", "fullband")
         opusenc.set_property("bitrate-type", "cbr")
-        opusenc.set_property("dtx", True)
         # OPUS_FRAME: Modify all locations with "OPUS_FRAME:"
         # Browser-side SDP munging ("minptime=3"/"minptime=5") is required if frame-size < 10
         opusenc.set_property("frame-size", "10")
@@ -1056,7 +1055,6 @@ class GSTWebRTCApp:
         # RTP packets that are sent over the connection transport.
         rtpopuspay = Gst.ElementFactory.make("rtpopuspay")
         rtpopuspay.set_property("mtu", 1200)
-        rtpopuspay.set_property("dtx", True)
 
         # Add WebRTC RTP extensions
         extensions_return = self.rtp_add_extensions(rtpopuspay, audio=True)
