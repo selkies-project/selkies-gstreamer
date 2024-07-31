@@ -65,7 +65,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=96000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=0.0):
+    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=96000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=10.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -1115,10 +1115,10 @@ class GSTWebRTCApp:
             if not Gst.Element.link(pipeline_elements[i], pipeline_elements[i + 1]):
                 raise GSTWebRTCAppError("Failed to link {} -> {}".format(pipeline_elements[i].get_name(), pipeline_elements[i + 1].get_name()))
 
-        # Enable redundancy (RED) in the audio stream, does not work currently
-        # transceiver = self.webrtcbin.emit("get-transceiver", 0)
-        # transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
-        # transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
+        # Enable redundancy in the audio stream
+        transceiver = self.webrtcbin.emit("get-transceiver", 0)
+        transceiver.set_property("fec-type", GstWebRTC.WebRTCFECType.ULP_RED if self.audio_packetloss_percent > 0 else GstWebRTC.WebRTCFECType.NONE)
+        transceiver.set_property("fec-percentage", self.audio_packetloss_percent)
     # [END build_audio_pipeline]
 
     def check_plugins(self):
