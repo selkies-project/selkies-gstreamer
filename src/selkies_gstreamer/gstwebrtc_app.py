@@ -98,8 +98,8 @@ class GSTWebRTCApp:
         self.min_keyframe_frame_distance = 60
         self.keyframe_frame_distance = -1 if self.keyframe_distance == -1.0 else max(self.min_keyframe_frame_distance, int(self.framerate * self.keyframe_distance))
         # Set VBV/HRD buffer multiplier to frame time, set 1.5x when optimal to prevent quality degradation in software encoders, relax 2x when keyframe/GOP is periodic
-        self.vbv_multiplier_nv = 1 if self.keyframe_distance == -1.0 else 2
-        self.vbv_multiplier_va = 1 if self.keyframe_distance == -1.0 else 2
+        self.vbv_multiplier_nv = 1.5 if self.keyframe_distance == -1.0 else 3
+        self.vbv_multiplier_va = 1.5 if self.keyframe_distance == -1.0 else 3
         self.vbv_multiplier_vp = 1.5 if self.keyframe_distance == -1.0 else 3
         self.vbv_multiplier_sw = 1.5 if self.keyframe_distance == -1.0 else 3
         # Packet loss base percentage
