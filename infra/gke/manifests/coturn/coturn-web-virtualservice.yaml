@@ -14,7 +14,7 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /turn/
+            prefix: /turn
       route:
         - destination:
             host: coturn-web

@@ -822,7 +822,7 @@ var checkPublishing = () => {
 // checkPublishing();
 
 // Fetch RTC configuration containing STUN/TURN servers.
-fetch("/turn/")
+fetch("/turn")
     .then(function (response) {
         return response.json();
     })

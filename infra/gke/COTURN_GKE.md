@@ -47,10 +47,10 @@ kubectl kustomize manifests/coturn | \
     kubectl apply -f -
 ```
 
-3. Verify the deployment by visiting the `/turn/` route:
+3. Verify the deployment by visiting the `/turn` route:
 
 ```bash
-echo "https://${CLUSTER?}.endpoints.${PROJECT_ID?}.cloud.goog/turn/"
+echo "https://${CLUSTER?}.endpoints.${PROJECT_ID?}.cloud.goog/turn"
 ```
 
 Example output:
