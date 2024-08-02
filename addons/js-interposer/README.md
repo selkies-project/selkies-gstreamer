@@ -21,8 +21,9 @@ If using Wine with `x86_64`, both `/usr/lib/x86_64-linux-gnu/selkies_joystick_in
 2. The following paths are required to exist for the Joystick Interposer to pass the joystick/gamepad input to various applications:
 
 ```bash
-sudo mkdir -pm755 /dev/input
+sudo mkdir -pm1777 /dev/input
 sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
+sudo chmod 777 /dev/input/js*
 ```
 
 3. Use the below command before running your target application as well as Selkies-GStreamer for the interposer library to intercept joystick/gamepad events (the single quotes are required in the first line).

@@ -184,8 +184,9 @@ After extracting the `.tar.gz` tarball, move the `.so` library files to the libr
 The following paths are required to exist for the Joystick Interposer to pass the joystick/gamepad input to various applications:
 
 ```bash
-sudo mkdir -pm755 /dev/input
+sudo mkdir -pm1777 /dev/input
 sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
+sudo chmod 777 /dev/input/js*
 ```
 
 The following environment variables are required to be set in the environment each application is being run in to receive the joystick/gamepad input.

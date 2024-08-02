@@ -36,8 +36,9 @@ sudo /usr/bin/pulseaudio -k >/dev/null 2>&1
 sudo /usr/bin/pulseaudio --system --verbose --log-target=file:/tmp/pulseaudio.log --realtime=true --disallow-exit -L 'module-native-protocol-tcp auth-ip-acl=127.0.0.0/8 port=4713 auth-anonymous=1' &
 
 # Create /dev/input/jsX if they don't already exists
-sudo mkdir -p /dev/input
+sudo mkdir -pm1777 /dev/input
 sudo touch /dev/input/{js0,js1,js2,js3}
+sudo chmod 777 /dev/input/js*
 
 # If installed, add the joystick interposer to LD_PRELOAD
 if [ -e "/usr/lib/x86_64-linux-gnu/selkies_joystick_interposer.so" ]; then

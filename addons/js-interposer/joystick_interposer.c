@@ -15,8 +15,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     These ioctl requests were mostly reverse engineered from the joystick.h source and using the jstest command to test.
 
     Note that some applications list the /dev/input/* directory to discover JS devices, to solve for this, create empty files at the following paths:
-        sudo mkdir -p /dev/input
+        sudo mkdir -pm1777 /dev/input
         sudo touch /dev/input/{js0,js1,js2,js3}
+        sudo chmod 777 /dev/input/js*
 
     For SDL2 support, only 1 interposed joystick device is supported at a time and the following env var must be set:
         export SDL_JOYSTICK_DEVICE=/dev/input/js0
