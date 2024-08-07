@@ -570,7 +570,7 @@ def main():
     using_hmac_turn = False
     using_rtc_config_json = False
     if os.path.exists(args.rtc_config_json):
-        logger.warning("Using JSON file from argument for RTC config")
+        logger.warning("using JSON file from argument for RTC config, overrides all other STUN/TURN configuration")
         with open(args.rtc_config_json, 'r') as f:
             stun_servers, turn_servers, rtc_config = parse_rtc_config(f.read())
         using_rtc_config_json = True
@@ -579,7 +579,7 @@ def main():
             try:
                 stun_servers, turn_servers, rtc_config = fetch_turn_rest(
                     args.turn_rest_uri, turn_rest_username, args.turn_rest_username_auth_header, turn_protocol, args.turn_rest_protocol_header, using_turn_tls, args.turn_rest_tls_header)
-                logger.info("using TURN REST API RTC configuration, overrides all other WebRTC STUN/TURN configuration")
+                logger.info("using TURN REST API RTC configuration, overrides long-term username/password or short-term shared secret STUN/TURN configuration")
                 using_turn_rest = True
             except Exception as e:
                 logger.warning("error fetching TURN REST API RTC configuration, falling back to other methods: {}".format(str(e)))
@@ -588,7 +588,7 @@ def main():
             if (args.turn_username and args.turn_password) and (args.turn_host and args.turn_port):
                 config_json = make_turn_rtc_config_json_legacy(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls, args.stun_host, args.stun_port)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
-                logger.info("using TURN long-term username/password credentials")
+                logger.info("using TURN long-term username/password credentials, prioritized over short-term shared secret configuration")
             elif args.turn_shared_secret and (args.turn_host and args.turn_port):
                 hmac_data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, turn_rest_username, turn_protocol, using_turn_tls, args.stun_host, args.stun_port)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
