@@ -177,7 +177,7 @@ class GSTWebRTCApp:
                                candidate: self.__send_ice(webrtcbin, mlineindex, candidate))
 
         # Add STUN server
-        # TODO: figure out how to add more than 1 stun server.
+        # TODO: figure out how to add more than one STUN server.
         if self.stun_servers:
             logger.info("updating STUN server")
             self.webrtcbin.set_property("stun-server", self.stun_servers[0])

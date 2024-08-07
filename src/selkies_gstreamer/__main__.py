@@ -60,13 +60,15 @@ DEFAULT_RTC_CONFIG = """{
 }"""
 
 class HMACRTCMonitor:
-    def __init__(self, turn_host, turn_port, turn_shared_secret, turn_username, turn_protocol='udp', turn_tls=False, period=60, enabled=True):
+    def __init__(self, turn_host, turn_port, turn_shared_secret, turn_username, turn_protocol='udp', turn_tls=False, stun_host=None, stun_port=None, period=60, enabled=True):
         self.turn_host = turn_host
         self.turn_port = turn_port
         self.turn_username = turn_username
         self.turn_shared_secret = turn_shared_secret
         self.turn_protocol = turn_protocol
         self.turn_tls = turn_tls
+        self.stun_host = stun_host
+        self.stun_port = stun_port
         self.period = period
         self.enabled = enabled
 
@@ -80,7 +82,7 @@ class HMACRTCMonitor:
             while self.running:
                 if self.enabled and int(time.time()) % self.period == 0:
                     try:
-                        hmac_data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls)
+                        hmac_data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls, self.stun_host, self.stun_port)
                         stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
                         self.on_rtc_config(stun_servers, turn_servers, rtc_config)
                     except Exception as e:
@@ -157,27 +159,30 @@ class RTCConfigFileMonitor:
         logger.info("RTC config file monitor stopped")
         self.running = False
 
-def make_turn_rtc_config_json(host, port, username, password, protocol='udp', tls=False):
-    return """{
-  "lifetimeDuration": "86400s",
-  "iceServers": [
-    {
-      "urls": [
-        "stun:%s:%s",
-        "stun:stun.l.google.com:19302"
-      ]
-    },
-    {
-      "urls": [
-        "%s:%s:%s?transport=%s"
-      ],
-      "username": "%s",
-      "credential": "%s"
-    }
-  ],
-  "blockStatus": "NOT_BLOCKED",
-  "iceTransportPolicy": "all"
-}""" % (host, port, 'turns' if tls else 'turn', host, port, protocol, username, password)
+def make_turn_rtc_config_json_legacy(turn_host, turn_port, username, password, protocol='udp', turn_tls=False, stun_host=None, stun_port=None):
+    stun_list = ["stun:{}:{}".format(turn_host, turn_port)]
+    if stun_host is not None and stun_port is not None and (stun_host != turn_host or str(stun_port) != str(turn_port)):
+        stun_list.insert(0, "stun:{}:{}".format(stun_host, stun_port))
+    if stun_host != "stun.l.google.com" or (str(stun_port) != "19302"):
+        stun_list.append("stun:stun.l.google.com:19302")
+
+    rtc_config = {}
+    rtc_config["lifetimeDuration"] = "86400s"
+    rtc_config["blockStatus"] = "NOT_BLOCKED"
+    rtc_config["iceTransportPolicy"] = "all"
+    rtc_config["iceServers"] = []
+    rtc_config["iceServers"].append({
+        "urls": stun_list
+    })
+    rtc_config["iceServers"].append({
+        "urls": [
+            "{}:{}:{}?transport={}".format('turns' if turn_tls else 'turn', turn_host, turn_port, protocol)
+        ],
+        "username": username,
+        "credential": password
+    })
+
+    return json.dumps(rtc_config, indent=2)
 
 def parse_rtc_config(data):
     ice_servers = json.loads(data)['iceServers']
@@ -337,6 +342,10 @@ def main():
                         default=os.environ.get(
                             'SELKIES_BASIC_AUTH_PASSWORD', 'mypasswd'),
                         help='Password used when basic authentication is set')
+    parser.add_argument('--rtc_config_json',
+                        default=os.environ.get(
+                            'SELKIES_RTC_CONFIG_JSON', '/tmp/rtc.json'),
+                        help='JSON file with WebRTC configuration to use, checked periodically, overriding all other STUN/TURN settings')
     parser.add_argument('--turn_rest_uri',
                         default=os.environ.get(
                             'SELKIES_TURN_REST_URI', ''),
@@ -357,10 +366,6 @@ def main():
                         default=os.environ.get(
                             'SELKIES_TURN_REST_TLS_HEADER', 'x-turn-tls'),
                         help='Header to pass TURN (D)TLS usage to TURN REST API service')
-    parser.add_argument('--rtc_config_json',
-                        default=os.environ.get(
-                            'SELKIES_RTC_CONFIG_JSON', '/tmp/rtc.json'),
-                        help='JSON file with RTC config to use instead of other TURN services, checked periodically')
     parser.add_argument('--turn_host',
                         default=os.environ.get(
                             'SELKIES_TURN_HOST', 'staticauth.openrelay.metered.ca'),
@@ -389,6 +394,14 @@ def main():
                         default=os.environ.get(
                             'SELKIES_TURN_PASSWORD', ''),
                         help='Legacy non-HMAC TURN credential password, also requires --turn_host and --turn_port')
+    parser.add_argument('--stun_host',
+                        default=os.environ.get(
+                            'SELKIES_STUN_HOST', 'stun.l.google.com'),
+                        help='STUN host for NAT hole punching with WebRTC, change to your internal STUN/TURN server for local networks without internet, defaults to "stun.l.google.com"')
+    parser.add_argument('--stun_port',
+                        default=os.environ.get(
+                            'SELKIES_STUN_PORT', '19302'),
+                        help='STUN port for NAT hole punching with WebRTC, change to your internal STUN/TURN server for local networks without internet, defaults to "19302"')
     parser.add_argument('--app_wait_ready',
                         default=os.environ.get('SELKIES_APP_WAIT_READY', 'false'),
                         help='Waits for --app_ready_file to exist before starting stream if set to "true"')
@@ -566,18 +579,18 @@ def main():
             try:
                 stun_servers, turn_servers, rtc_config = fetch_turn_rest(
                     args.turn_rest_uri, turn_rest_username, args.turn_rest_username_auth_header, turn_protocol, args.turn_rest_protocol_header, using_turn_tls, args.turn_rest_tls_header)
-                logger.info("using TURN REST API RTC configuration")
+                logger.info("using TURN REST API RTC configuration, overrides all other WebRTC STUN/TURN configuration")
                 using_turn_rest = True
             except Exception as e:
                 logger.warning("error fetching TURN REST API RTC configuration, falling back to other methods: {}".format(str(e)))
                 using_turn_rest = False
         if not using_turn_rest:
             if (args.turn_username and args.turn_password) and (args.turn_host and args.turn_port):
-                config_json = make_turn_rtc_config_json(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls)
+                config_json = make_turn_rtc_config_json_legacy(args.turn_host, args.turn_port, args.turn_username, args.turn_password, turn_protocol, using_turn_tls, args.stun_host, args.stun_port)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(config_json)
                 logger.info("using TURN long-term username/password credentials")
             elif args.turn_shared_secret and (args.turn_host and args.turn_port):
-                hmac_data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, turn_rest_username, turn_protocol, using_turn_tls)
+                hmac_data = generate_rtc_config(args.turn_host, args.turn_port, args.turn_shared_secret, turn_rest_username, turn_protocol, using_turn_tls, args.stun_host, args.stun_port)
                 stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
                 logger.info("using TURN short-term shared secret HMAC credentials")
                 using_hmac_turn = True
@@ -807,7 +820,7 @@ def main():
     options.health = "/health"
     options.web_root = os.path.abspath(args.web_root)
     options.keepalive_timeout = 30
-    options.cert_restart = False
+    options.cert_restart = False # using_https
     options.rtc_config_file = args.rtc_config_json
     options.rtc_config = rtc_config
     options.turn_shared_secret = args.turn_shared_secret if using_hmac_turn else ''
@@ -816,6 +829,8 @@ def main():
     options.turn_protocol = turn_protocol
     options.turn_tls = using_turn_tls
     options.turn_auth_header_name = args.turn_rest_username_auth_header
+    options.stun_host = args.stun_host
+    options.stun_port = args.stun_port
     server = WebRTCSimpleServer(loop, options)
 
     # Callback method to update TURN servers of a running pipeline.
@@ -839,6 +854,8 @@ def main():
         turn_rest_username,
         turn_protocol=turn_protocol,
         turn_tls=using_turn_tls,
+        stun_host=args.stun_host,
+        stun_port=args.stun_port,
         period=60, enabled=using_hmac_turn)
     hmac_turn_mon.on_rtc_config = mon_rtc_config
 

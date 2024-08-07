@@ -137,7 +137,7 @@ ENTRYPOINT ["/usr/bin/supervisord"]
 
 ## Code Guide
 
-- When editing certain parts of the codebase, they are very likely to interact with other components in a very different location, or the same content needs to be edited in multiple different locations. Therefore, commits or Pull Requests are very likely to corrupt the repository if you do not use search capabilities across the whole codebase as often as possible.
+- **You need to understand the whole codebase fully before contributing developments.** When editing certain parts of the codebase, they are very likely to interact with other components in a very different location, or the same content needs to be edited in multiple different locations. Therefore, Commits or Pull Requests are very likely to corrupt the repository **UNLESS** you use rigorous search capabilities across the whole codebase as often as possible. Check previous commits as a starting point for the files that tend to be edited together.
 
 - Because of this, use the Visual Studio Code (or any other IDE of choice) **Search and Replace** capabilities rigorously (especially with fine-tuning through capitalization and regular expressions).
 
@@ -149,7 +149,7 @@ ENTRYPOINT ["/usr/bin/supervisord"]
 
 The [`docker-nvidia-glx-desktop`](https://github.com/selkies-project/docker-nvidia-glx-desktop) and [`docker-nvidia-egl-desktop`](https://github.com/selkies-project/docker-nvidia-egl-desktop) desktop container repositories and the [Example Container](/addons/example) share various components between each other:
 
-`LICENSE`, `supervisord.conf`, `kasmvnc-entrypoint.sh`, and `selkies-gstreamer-entrypoint.sh` are always identical in both containers. As these components are also very similar to the [Example Container](/addons/example), it should be updated with both desktop containers.
+`LICENSE`, `supervisord.conf`, `kasmvnc-entrypoint.sh`, and `selkies-gstreamer-entrypoint.sh` are always identical in both containers. As these components are also very similar to the [Example Container](/addons/example), they **MUST** be updated with both desktop containers. So you need to do three Pull Requests.
 
 The `Dockerfile` is always identical below and above the lines that say `Anything above/below this line should always be kept the same...`. This component is not shared with the [Example Container](/addons/example), and installation procedures for Selkies-GStreamer should be updated to the desktop containers on every release.
 

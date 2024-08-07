@@ -19,7 +19,9 @@ ENV TURN_HOST=staticauth.openrelay.metered.ca
 ENV TURN_PORT=443
 ENV TURN_PROTOCOL=udp
 ENV TURN_TLS=false
+ENV STUN_HOST=stun.l.google.com
+ENV STUN_PORT=19302
 
 EXPOSE 8008
 
-CMD ["sh", "-c", "python -m gunicorn --worker-class=gthread --workers=1 --threads=${WEB_CONCURRENCY} --bind=0.0.0.0:8008 app:app"]
+CMD ["sh", "-c", "python -m gunicorn --worker-class=gthread --workers=1 --threads=${WEB_CONCURRENCY:-3} --bind=0.0.0.0:8008 app:app"]

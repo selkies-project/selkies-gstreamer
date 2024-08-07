@@ -46,8 +46,8 @@ MIME_TYPES = {
     "ico": "image/x-icon"
 }
 
-def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp', turn_tls=False):
-    # Use shared secret to generate hmac credential.
+def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp', turn_tls=False, stun_host=None, stun_port=None):
+    # Use shared secret to generate HMAC credential
 
     # Sanitize user for credential compatibility
     user = user.replace(":", "-")
@@ -62,16 +62,20 @@ def generate_rtc_config(turn_host, turn_port, shared_secret, user, protocol='udp
     hashed = hmac.new(bytes(shared_secret, "utf-8"), bytes(username, "utf-8"), hashlib.sha1).digest()
     password = base64.b64encode(hashed).decode()
 
+    # Configure STUN servers
+    stun_list = ["stun:{}:{}".format(turn_host, turn_port)]
+    if stun_host is not None and stun_port is not None and (stun_host != turn_host or str(stun_port) != str(turn_port)):
+        stun_list.insert(0, "stun:{}:{}".format(stun_host, stun_port))
+    if stun_host != "stun.l.google.com" or (str(stun_port) != "19302"):
+        stun_list.append("stun:stun.l.google.com:19302")
+
     rtc_config = {}
     rtc_config["lifetimeDuration"] = "{}s".format(expiry_hour * 3600)
     rtc_config["blockStatus"] = "NOT_BLOCKED"
     rtc_config["iceTransportPolicy"] = "all"
     rtc_config["iceServers"] = []
     rtc_config["iceServers"].append({
-        "urls": [
-            "stun:{}:{}".format(turn_host, turn_port),
-            "stun:stun.l.google.com:19302"
-        ]
+        "urls": stun_list
     })
     rtc_config["iceServers"].append({
         "urls": [
@@ -134,6 +138,8 @@ class WebRTCSimpleServer(object):
             self.turn_protocol = 'udp'
         self.turn_tls = options.turn_tls
         self.turn_auth_header_name = options.turn_auth_header_name
+        self.stun_host = options.stun_host
+        self.stun_port = options.stun_port
 
         # Basic authentication options
         self.enable_basic_auth = options.enable_basic_auth
@@ -204,7 +210,7 @@ class WebRTCSimpleServer(object):
                         web_logger.warning("HTTP GET {} 401 Unauthorized - missing auth header: {}".format(path, self.turn_auth_header_name))
                         return HTTPStatus.UNAUTHORIZED, response_headers, b'401 Unauthorized - missing auth header'
                 web_logger.info("Generating HMAC credential for user: {}".format(username))
-                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, username, self.turn_protocol, self.turn_tls)
+                rtc_config = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, username, self.turn_protocol, self.turn_tls, self.stun_host, self.stun_port)
                 return http.HTTPStatus.OK, response_headers, str.encode(rtc_config)
 
             elif self.rtc_config:
@@ -521,9 +527,11 @@ def main():
     parser.add_argument('--turn_shared_secret', default="", type=str, help='shared secret for generating TURN HMAC credentials')
     parser.add_argument('--turn_host', default="", type=str, help='TURN host when generating RTC config with shared secret')
     parser.add_argument('--turn_port', default="", type=str, help='TURN port when generating RTC config with shared secret')
-    parser.add_argument('--turn_protocol', default="udp", type=str, help='TURN protocol to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network.')
-    parser.add_argument('--enable_turn_tls', default=False, dest='turn_tls', action='store_true', help='enable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required.')
+    parser.add_argument('--turn_protocol', default="udp", type=str, help='TURN protocol to use ("udp" or "tcp"), set to "tcp" without the quotes if "udp" is blocked on the network')
+    parser.add_argument('--enable_turn_tls', default=False, dest='turn_tls', action='store_true', help='enable TURN over TLS (for the TCP protocol) or TURN over DTLS (for the UDP protocol), valid TURN server certificate required')
     parser.add_argument('--turn_auth_header_name', default="x-auth-user", type=str, help='auth header for TURN REST username')
+    parser.add_argument('--stun_host', default="stun.l.google.com", type=str, help='STUN host for WebRTC hole punching')
+    parser.add_argument('--stun_port', default="19302", type=str, help='STUN port for WebRTC hole punching')
     parser.add_argument('--keepalive_timeout', dest='keepalive_timeout', default=30, type=int, help='Timeout for keepalive (in seconds)')
     parser.add_argument('--enable_https', default=False, help='Enable HTTPS connection', action='store_true')
     parser.add_argument('--https_cert', default="/etc/ssl/certs/ssl-cert-snakeoil.pem", type=str, help='HTTPS certificate file path')

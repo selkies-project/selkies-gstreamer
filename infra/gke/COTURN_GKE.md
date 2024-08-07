@@ -73,7 +73,7 @@ Example output:
         "turn:xxx.xxx.xxx.xxx:443?transport=udp"
       ],
       "username": "1660844019-user@example.com",
-      "credential": "DeadBeef94xRwpiQz4bxey7N/M="
+      "credential": "NotReal094xRwpiQz4bxey7N/M="
     }
   ],
   "blockStatus": "NOT_BLOCKED",
@@ -83,4 +83,4 @@ Example output:
 
 > NOTE: The `iceServers` list should contain the IP of the LoadBalancer and static IP provisioned earlier.
 
-> Test the stun and turn servers at the Trickle ICE page: https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
+> Test the STUN and TURN servers at the Trickle ICE page: https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
