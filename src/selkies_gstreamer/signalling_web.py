@@ -539,8 +539,8 @@ def main():
     parser.add_argument('--health', default='/health', help='Health check route')
     parser.add_argument('--restart_on_cert_change', default=False, dest='cert_restart', action='store_true', help='Automatically restart if the HTTPS certificate changes')
     parser.add_argument('--enable_basic_auth', default=False, dest='enable_basic_auth', action='store_true', help="Use basic authentication, must also set basic_auth_user, and basic_auth_password arguments")
-    parser.add_argument('--basic_auth_user', default="", help='Username for basic authentication.')
-    parser.add_argument('--basic_auth_password', default="", help='Password for basic authentication, if not set, no authorization will be enforced.')
+    parser.add_argument('--basic_auth_user', default="", help='Username for basic authentication')
+    parser.add_argument('--basic_auth_password', default="", help='Password for basic authentication, if not set, no authorization will be enforced')
 
     options = parser.parse_args(sys.argv[1:])
 
