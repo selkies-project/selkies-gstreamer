@@ -40,6 +40,8 @@ if [ -z "${SELKIES_TURN_REST_URI}" ] && { { [ -z "${SELKIES_TURN_USERNAME}" ] ||
   export SELKIES_TURN_USERNAME="selkies"
   export SELKIES_TURN_PASSWORD="${TURN_RANDOM_PASSWORD}"
   export SELKIES_TURN_PROTOCOL="${SELKIES_TURN_PROTOCOL:-tcp}"
+  export SELKIES_STUN_HOST="${SELKIES_STUN_HOST:-stun.l.google.com}"
+  export SELKIES_STUN_PORT="${SELKIES_STUN_PORT:-19302}"
   /etc/start-turnserver.sh &
 fi
 
