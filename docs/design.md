@@ -2,7 +2,7 @@
 
 ## What is Selkies-GStreamer?
 
-Have you ever wondered why Windows has Parsec, and Linux does not? Have you ever wanted to obtain full frame on interactive 3D OpenGL/Vulkan/Direct3D-Wine applications or Linux/Wine video games, without relying on proprietary installers or seated server licenses, from the convenience of your web browser that you enjoyed from noVNC or Apache Guacamole? Do you have a web server, reverse proxy, or load balancer in your infrastructure that a web application deployment must pass through?
+Have you ever wondered why Windows has Parsec, and Linux does not? Have you ever wanted to obtain full frame on interactive 3D OpenGL/Vulkan/Wine-Direct3D applications or Linux/Wine video games, without relying on proprietary installers or seated server licenses, from the convenience of your web browser that you enjoyed from noVNC or Apache Guacamole? Do you have a web server, reverse proxy, or load balancer in your infrastructure that a web application deployment must pass through?
 
 Have you ever wondered if Parsec, Moonlight + Sunshine, or Steam Remote Play could be exposed over an HTML5 web browser interface without the need to open as many ports? Or ever wondered how GeForce Now or Xbox Cloud Gaming delivered fluid streams in Google Chrome with WebRTC?
 
@@ -14,7 +14,7 @@ Selkies-GStreamer is an open-source low-latency high-performance Linux-native GP
 
 Selkies-GStreamer is designed for researchers including people in the graphical AI/robotics/autonomous driving/drug discovery field, SLURM supercomputer/HPC system administrators, Jupyter/Kubernetes/Docker®/Coder infrastructure administrators, and Linux cloud gaming enthusiasts.
 
-While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance issue that would be problematic in cloud gaming platforms is also considered a bug.
+While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance or quality issue that would be problematic with cloud gaming platforms is also considered a bug.
 
 ## Design
 
