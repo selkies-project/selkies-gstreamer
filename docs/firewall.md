@@ -143,7 +143,7 @@ For single-user environments, traditional long-term credential authentication is
 
 **Ports specified in `listening-port=`, `min-port=` and `max-port=` must be opened.**
 
-It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies the relay ports (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
+It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies the relay ports (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges. Note that the `--no-udp-relay` argument may not be supported with web browsers and may lead to the TURN server not working.
 
 The `cert=` and `pkey=` options are required for using TURN over TLS/DTLS, but are otherwise optional. They should lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) or [Let's Encrypt](https://letsencrypt.org/getting-started/) with a valid hostname which resolves to the TURN server.
 
@@ -201,7 +201,7 @@ If the TURN relay port range is wide, it may take a very long time for the conta
 
 Modify the relay ports `-p 65500-65535:65500-65535` and `-p 65500-65535:65500-65535/udp` combined with `--min-port=65500` and `--max-port=65535` after `-n` as appropriate (at least two relay ports are required per connection).
 
-In addition, use the option `--no-udp-relay` after `-n` if you cannot open the UDP `--min-port=` to `--max-port=` port ranges, or `--no-tcp-relay` after `-n` if you cannot open the TCP `--min-port=` to `--max-port=` port ranges.
+In addition, use the option `--no-udp-relay` after `-n` if you cannot open the UDP `--min-port=` to `--max-port=` port ranges, or `--no-tcp-relay` after `-n` if you cannot open the TCP `--min-port=` to `--max-port=` port ranges. Note that the `--no-udp-relay` argument may not be supported with web browsers and may lead to the TURN server not working.
 
 Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
 
@@ -227,7 +227,7 @@ Then, all ports between `min-port=` and `max-port=` that you set in `/etc/turnse
 
 **The relay ports and the listening port must all be open to the internet.**
 
-Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges.
+Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges. Note that the `--no-udp-relay` argument may not be supported with web browsers and may lead to the TURN server not working.
 
 In the configuration, under `args:`, set `-c /etc/turnserver.conf` and use the `coturn/coturn:latest` image.
 
