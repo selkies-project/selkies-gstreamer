@@ -14,6 +14,8 @@ exec turnserver \
     --lt-cred-mech \
     --user="selkies:selkies" \
     --allow-loopback-peers \
-    --db="/tmp/coturn-turndb" \
+    --userdb="/tmp/turnserver-turndb" \
+    --log-file="stdout" \
+    --pidfile="/tmp/turnserver.pid" \
     --prometheus \
     ${TURN_EXTRA_ARGS} $@

@@ -45,7 +45,9 @@ turnserver \
     --static-auth-secret="${TURN_SHARED_SECRET:-changeme}" \
     --no-cli \
     --cli-password="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)" \
-    --db="/tmp/coturn-turndb" \
+    --userdb="/tmp/turnserver-turndb" \
+    --log-file="stdout" \
+    --pidfile="/tmp/turnserver.pid" \
     --allow-loopback-peers \
     --prometheus \
     ${TURN_EXTRA_ARGS} $@
