@@ -16,6 +16,12 @@ Selkies-GStreamer is designed for researchers, including people in the graphical
 
 While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance or quality issue that would be problematic with cloud gaming platforms is also considered a bug.
 
+## Motivation
+
+The Linux operating system (OS) has now become more than a server or enthusiast operating system. It has become the operating system of choice for artificial intelligence (AI), machine learning (ML), and deep learning, together with the cloud computing paradigm. In this era, artificial intelligence, especially including large deep learning models, has rewarded massive scale from clustered computing and supercomputers.
+
+The first step of a user working in a clustered computing environment always tends to be some type of gateway. Many use SSH into a login node, and others can use a web frontend interface such as Jupyter to start and manage their workload. But one sector The Linux operating system landscape lacked a proper successor to VNC. VNC allowed GUI applications from clustered environments to be directly from such clusters.
+
 ## Design
 
 Selkies-GStreamer streams a Linux X11 desktop or Docker®/Kubernetes container to a recent web browser using WebRTC with GPU hardware or CPU software acceleration from the server and the client. Linux Wayland, Mac, and Windows support is planned, but community contribution will always accelerate new features.
