@@ -78,6 +78,15 @@ However, it might be that the parameters for the WebRTC interface, video encoder
 
 </details>
 
+## The clipboard does not work.
+
+<details>
+  <summary>Open Answer</summary>
+
+This is very likely a web browser constraint that is applied because you are using HTTP for an address to the web interface that is not localhost. The clipboard only works when you use HTTPS (with a valid or self-signed certificate), or when accessing localhost (some browsers do not support this as well). You could use port forwarding to access through localhost or obtain an HTTPS certificate.
+
+</details>
+
 ## The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
 
 <details>
