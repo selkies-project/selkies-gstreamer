@@ -90,7 +90,6 @@ requirements:
     - {{ cdt('mesa-libgl-devel') }}  # [linux]
     - {{ cdt('mesa-libegl-devel') }}  # [linux]
     - {{ cdt('mesa-libgbm') }}  # [linux]
-    - {{ cdt('libdrm-devel') }}  # [linux]
     - {{ cdt('mesa-dri-drivers') }}  # [linux]
     - {{ cdt('libglvnd-devel') }}  # [linux]
     - {{ cdt('libglvnd-glx') }}  # [linux]
