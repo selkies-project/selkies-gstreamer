@@ -70,6 +70,7 @@ requirements:
     - git
     - git-lfs
     - gmp
+    - gobject-introspection
     - gsl
     - cmake
     - libcap
@@ -105,10 +106,10 @@ requirements:
     - libdrm
     - openssl
     - libzlib
+    - gobject-introspection
     - glib
     - glib-networking
     - gnutls
-    - gobject-introspection
     - pygobject
     - setuptools
     - libvpx
