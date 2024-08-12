@@ -45,9 +45,6 @@ requirements:
     - cross-python_{{ target_platform }} {{ python }}  # [build_platform != target_platform]
     - cargo-c
     - pkg-config
-    - autoconf
-    - automake
-    - bash-completion
     - binutils
     - {{ posix }}bison
     - file
@@ -58,10 +55,10 @@ requirements:
     - git
     - git-lfs
     - gmp
-    - glib
     - gobject-introspection
     - gsl
     - libcap
+    - libiconv
     - libtool
     - libgcrypt
     - nasm
