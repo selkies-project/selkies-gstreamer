@@ -13,7 +13,6 @@ package:
 
 source:
   - url: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/{{ gstreamer_version }}/gstreamer-{{ gstreamer_version }}.tar.gz
-    folder: gstreamer
 
 about:
   home: https://github.com/selkies-project/selkies-gstreamer
