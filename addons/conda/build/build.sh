@@ -10,7 +10,7 @@ pushd build
 
 export XDG_DATA_DIRS="${XDG_DATA_DIRS}:${PREFIX}/share:${BUILD_PREFIX}/share"
 export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${PREFIX}/lib/pkgconfig:${BUILD_PREFIX}/lib/pkgconfig"
-export PKG_CONFIG="${BUILD_PREFIX}/bin/pkgconfig"
+export PKG_CONFIG="${BUILD_PREFIX}/bin/pkg-config"
 
 # Build and install GStreamer
 export EXTRA_FLAGS="${EXTRA_FLAGS}"

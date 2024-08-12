@@ -58,7 +58,6 @@ requirements:
     - gobject-introspection
     - gsl
     - libcap
-    - libiconv
     - libtool
     - libgcrypt
     - nasm
@@ -69,21 +68,6 @@ requirements:
     - tomli
     - perl
     - openssl
-    # Replace with host dependency libglvnd when merged
-    # https://github.com/conda-forge/staged-recipes/pull/25919
-    # https://github.com/conda-forge/cdt-builds/issues/66#issuecomment-1833417828
-    - {{ cdt('mesa-libgl-devel') }}  # [linux]
-    - {{ cdt('mesa-libegl-devel') }}  # [linux]
-    - {{ cdt('mesa-libgbm') }}  # [linux]
-    - {{ cdt('mesa-dri-drivers') }}  # [linux]
-    - {{ cdt('libglvnd-devel') }}  # [linux]
-    - {{ cdt('libglvnd-glx') }}  # [linux]
-    - {{ cdt('libglvnd-egl') }}  # [linux]
-    - {{ cdt('libglvnd-gles') }}  # [linux]
-    - {{ cdt('libglvnd-opengl') }}  # [linux]
-    - {{ cdt('libxshmfence-devel') }}  # [linux]
-    - {{ cdt('mesa-khr-devel') }}  # [linux]
-    - {{ cdt('libselinux-devel') }}  # [linux]
   host:
     - python {{ python }}
     - pip
@@ -104,6 +88,11 @@ requirements:
     - aom
     - svt-av1
     - libopus
+    - libegl-devel                       # [linux]
+    - libgl-devel                        # [linux]
+    - libgles-devel                      # [linux]
+    - libglx-devel                       # [linux]
+    - libopengl-devel                    # [linux]
     - libva                              # [linux]
     - libudev                            # [linux]
     - jack                               # [linux]
