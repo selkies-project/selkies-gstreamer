@@ -34,18 +34,6 @@ build:
 outputs:
   - name: "{{ name|lower }}"
     type: conda_v2
-    build:
-      run_exports:
-        - {{ pin_subpackage('selkies-gstreamer', max_pin='x.x') }}
-        - {{ pin_subpackage('python-xlib', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gstreamer', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gst-plugins-base', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gst-plugins-good', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gst-plugins-ugly', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gst-plugins-bad', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gst-libav', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gst-python', allow_no_other_outputs=True) }}
-        - {{ pin_subpackage('gstreamer-orc', allow_no_other_outputs=True) }}
 
 requirements:
   build:
@@ -70,6 +58,7 @@ requirements:
     - git
     - git-lfs
     - gmp
+    - glib
     - gobject-introspection
     - gsl
     - libcap
