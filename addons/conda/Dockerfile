@@ -28,10 +28,6 @@ COPY --from=selkies-web /usr/share/nginx/html ${SELKIES_SOURCE}/gst-web
 
 WORKDIR /opt
 RUN . /opt/conda/bin/activate && \
-    # Remove APT install when Conda host dependency libglvnd is used
-    apt-get clean && apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends -y \
-        libglvnd-dev && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/* && \
     conda install -c conda-forge -y conda-build conda-pack && \
     SELKIES_VERSION="${PKG_VERSION}" conda-build -c conda-forge -c nvidia --error-overlinking "${SELKIES_BUILD}" && \
     conda create -n selkies-gstreamer -y --use-local -c conda-forge -c nvidia selkies-gstreamer && \
