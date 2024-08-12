@@ -24,6 +24,7 @@ about:
   dev_url: https://github.com/selkies-project/selkies-gstreamer
 
 build:
+  activate_in_script: true
   skip: true  # [not linux]
   script_env:
     - PYPI_PACKAGE
@@ -106,7 +107,6 @@ requirements:
     - libiconv
     - openssl
     - libzlib
-    - libgirepository
     - glib
     - glib-networking
     - gnutls
