@@ -72,7 +72,6 @@ requirements:
     - gmp
     - gobject-introspection
     - gsl
-    - cmake
     - libcap
     - libtool
     - libgcrypt
