@@ -106,7 +106,7 @@ requirements:
     - libdrm
     - openssl
     - libzlib
-    - gobject-introspection
+    - libgirepository
     - glib
     - glib-networking
     - gnutls
