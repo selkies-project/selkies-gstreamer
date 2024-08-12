@@ -3,6 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 # Supported base images: Ubuntu 24.04, 22.04, 20.04
+ARG DISTRIB_IMAGE=ubuntu
 ARG DISTRIB_RELEASE=24.04
 ARG GSTREAMER_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gstreamer
 ARG GSTREAMER_BASE_IMAGE_RELEASE=main
@@ -14,7 +15,8 @@ FROM ${GSTREAMER_BASE_IMAGE}:${GSTREAMER_BASE_IMAGE_RELEASE}-ubuntu${DISTRIB_REL
 FROM ${PY_BUILD_IMAGE} AS selkies-build
 FROM ${WEB_IMAGE} AS selkies-web
 FROM ${JS_BASE_IMAGE}:${JS_BASE_IMAGE_RELEASE}-ubuntu${DISTRIB_RELEASE} AS selkies-js-interposer
-FROM ubuntu:${DISTRIB_RELEASE}
+FROM ${DISTRIB_IMAGE}:${DISTRIB_RELEASE}
+ARG DISTRIB_IMAGE
 ARG DISTRIB_RELEASE
 
 LABEL maintainer="https://github.com/danisla,https://github.com/ehfd"
