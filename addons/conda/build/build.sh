@@ -27,8 +27,6 @@ popd
 
 rm -rf build
 
-popd
-
 # Install Selkies Python components with dependencies because of python-xlib patch
 export PIP_NO_DEPENDENCIES="False"
 export PIP_NO_BUILD_ISOLATION="True"
