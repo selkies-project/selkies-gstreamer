@@ -47,8 +47,7 @@ turnserver \
     --cli-password="$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)" \
     --userdb="/tmp/turnserver-turndb" \
     --pidfile="/tmp/turnserver.pid" \
-    --no-stdout-log \
-    --log-file="/tmp/turnserver.log" \
+    --log-file="stdout" \
     --allow-loopback-peers \
     --prometheus \
     ${TURN_EXTRA_ARGS} $@
