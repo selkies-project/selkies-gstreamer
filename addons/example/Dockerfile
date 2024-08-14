@@ -286,8 +286,8 @@ turnserver \
     --no-cli \
     --cli-password=\"\${TURN_RANDOM_PASSWORD:-\$(tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 24)}\" \
     --userdb=\"\${XDG_RUNTIME_DIR:-/tmp}/turnserver-turndb\" \
-    --log-file=\"stdout\" \
     --pidfile=\"\${XDG_RUNTIME_DIR:-/tmp}/turnserver.pid\" \
+    --log-file=\"/tmp/turnserver.log\" \
     --allow-loopback-peers \
     \${TURN_EXTRA_ARGS} \$@\
 " > /etc/start-turnserver.sh && chmod -f 755 /etc/start-turnserver.sh
