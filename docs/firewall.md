@@ -1,6 +1,6 @@
 # WebRTC and Firewall Issues
 
-WebRTC uses the UDP protocol (and TCP when UDP is not available) to transport your desktop.
+WebRTC uses the UDP protocol (and may use TCP in some cases when UDP is not available) to transport your desktop.
 
 While WebRTC is the reason Selkies-GStreamer enjoys low latency and better performance compared to other solutions, your network firewall may still prevent you from connecting to your instance.
 
@@ -50,31 +50,35 @@ Otherwise, [Cloudflare](https://developers.cloudflare.com/calls/turn/overview/) 
 
 After configuring your TURN server, the following options are required to be used with Selkies-GStreamer:
 
-- TURN server hostname (command-line option `--turn_host=` or environment variable `SELKIES_TURN_HOST`, not required for TURN REST API authentication)
+- TURN server hostname (command-line option `--turn_host=` or environment variable `SELKIES_TURN_HOST`, not used with `--rtc_config_json` JSON file authentication or `--turn_rest_uri` TURN REST API authentication)
 
-- TURN server port (command-line option `--turn_port=` or environment variable `SELKIES_TURN_PORT`, not required for TURN REST API authentication)
-
-- **One of the methods in the next section for authentication**
+- TURN server port (command-line option `--turn_port=` or environment variable `SELKIES_TURN_PORT`, not used with `--rtc_config_json` JSON file authentication or `--turn_rest_uri` TURN REST API authentication)
 
 - You may set the command-line option `--turn_protocol=tcp` or the environment variable `SELKIES_TURN_PROTOCOL` to `tcp` if you are unable to open the UDP listening port to the internet for the coTURN container, or if the UDP protocol is blocked or throttled in your client network.
 
 - You may also set the command-line option `--turn_tls=true` or the environment variable `SELKIES_TURN_TLS` to `true` if TURN over TLS/DTLS was properly configured with a certificate and key combination from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) or [Let's Encrypt](https://letsencrypt.org/getting-started/) with a valid hostname which resolves to the TURN server.
 
+- **One of the methods in the TURN Server Authentication Methods section for authentication are required.**
+
 ### TURN Server Authentication Methods
 
-There are currently three different supported TURN server authentication methods:
+There are currently four different supported TURN server authentication methods, in the order of priority:
 
-- Directly inputting the time-limited TURN shared secret credential using the `selkies-gstreamer --turn_shared_secret=` option or the `SELKIES_TURN_SHARED_SECRET` environment variable.
+- Using the JSON configuration file authentication method with the `selkies-gstreamer --rtc_config_json=` option or the `SELKIES_RTC_CONFIG_JSON` environment variable. Selkies-GStreamer probes this file periodically, so it will automatically update the TURN authentication credentials if the JSON file is updated. **All other STUN/TURN credentials are overridden if this file exists.**
+
+- Using the TURN REST API authentication method with the the `selkies-gstreamer --turn_rest_uri=` option or the `SELKIES_TURN_REST_URI` environment variable. Selkies-GStreamer probes this REST API endpoint periodically, so it will automatically update the TURN authentication credentials. Consult the **[TURN-REST](component.md#turn-rest)** section for more details of this authentication method. **All other STUN/TURN credentials below are overridden if this option is provided and is valid.**
+
+- **Note that the below two methods are only safe when the Selkies-GStreamer user also has legitimate control of the TURN server. Otherwise, if you maintain a multi-user environment, you are looking for the TURN REST API authentication method, right above.**
 
 - Using traditional long-term credential authentication with a fixed username and password combination using the `selkies-gstreamer --turn_username= --turn_password=`, or both environment variables `SELKIES_TURN_USERNAME` and `SELKIES_TURN_PASSWORD`.
 
-**Note that the above two methods are only safe when the Selkies-GStreamer user also has legitimate control of the TURN server. Otherwise, if you maintain a multi-user environment, you are looking for the TURN REST API method, coming next.**
+- Directly inputting the time-limited TURN shared secret credential using the `selkies-gstreamer --turn_shared_secret=` option or the `SELKIES_TURN_SHARED_SECRET` environment variable.
 
-- Using the TURN REST API method with the the `selkies-gstreamer --turn_rest_uri=` option or the `SELKIES_TURN_REST_URI` environment variable. Consult the **[TURN-REST](component.md#turn-rest)** section for more details of this authentication method.
+The `--turn_host=` and `--turn_port=` options or the equivalent environment variables `SELKIES_TURN_HOST` and `SELKIES_TURN_PORT` are required for traditional long-term credential authentication or time-limited TURN shared secret credential authentication, but are NOT used for the JSON configuration file authentication method and TURN REST API authentication method.
 
-The `--turn_host=` and `--turn_port=` options or the equivalent environment variables are required for time-limited TURN shared secret credential authentication or traditional long-term credential authentication, but NOT for the `--turn_rest_uri=` option.
+Moreover, the `--stun_host=` and `--stun_port=` STUN server options, defaulting to `stun.l.google.com` and `19302` (the default Google STUN servers), take priority for for traditional long-term credential authentication or time-limited TURN shared secret credential authentication, but are NOT used for the JSON configuration file authentication method and TURN REST API authentication method. The JSON configuration file authentication method and TURN REST API authentication method takes the first STUN server received from their respective configuration file or API.
 
-Other authentication methods such as TURN-REST over various types of REST API authentication (but adding support for Basic Authentication is trivial, so reach out) or TURN oAuth authentication are not supported as of now, and likely requires funding.
+If you are using Selkies-GStreamer in a private network without access to the internet, you must update the `--stun_host=` and `--stun_port=` options to your local STUN/TURN server if using traditional long-term credential authentication or time-limited TURN shared secret credential authentication. Else, you may have WebRTC connectivity issues. The JSON configuration file authentication method and TURN REST API authentication method uses the first STUN server received from the configuration file or API.
 
 ## coTURN
 
@@ -82,7 +86,7 @@ An open-source TURN server for Linux or UNIX-like operating systems that may be 
 
 The Selkies-GStreamer [coTURN](component.md#coturn) image [`ghcr.io/selkies-project/selkies-gstreamer/coturn:main`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fcoturn) is also included in this repository, and may be used to host your own STUN/TURN infrastructure. As this image contains additional features for identifying the external server IP in cloud environments, usage of this container is recommended.
 
-[Pion TURN](https://github.com/pion/turn)'s `turn-server-simple` executable or [eturnal](https://eturnal.net) are recommended alternative TURN server implementations that support Windows as well as Linux or MacOS. [STUNner](https://github.com/l7mp/stunner) is a Kubernetes native STUN and TURN deployment if Helm is possible to be used.
+[Pion TURN](https://github.com/pion/turn)'s `turn-server-simple` executable or [eturnal](https://eturnal.net) are recommended alternative TURN server implementations that support Windows as well as Linux or MacOS. [STUNner](https://github.com/l7mp/stunner) is a Kubernetes-native STUN and TURN deployment if Helm is possible to be used.
 
 ## Install and run coTURN on self-hosted standalone machines, cloud instances, or virtual machines
 
@@ -143,7 +147,7 @@ For single-user environments, traditional long-term credential authentication is
 
 **Ports specified in `listening-port=`, `min-port=` and `max-port=` must be opened.**
 
-It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies the relay ports (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges. Note that the `--no-udp-relay` argument may not be supported with web browsers and may lead to the TURN server not working.
+It is strongly recommended to set the `min-port=` and `max-port=` parameters which specifies the relay ports (all ports between this range must be open). Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges. Note that the `no-udp-relay` option may not be supported with web browsers and may lead to the TURN server not working.
 
 The `cert=` and `pkey=` options are required for using TURN over TLS/DTLS, but are otherwise optional. They should lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) or [Let's Encrypt](https://letsencrypt.org/getting-started/) with a valid hostname which resolves to the TURN server.
 
@@ -201,7 +205,7 @@ If the TURN relay port range is wide, it may take a very long time for the conta
 
 Modify the relay ports `-p 65500-65535:65500-65535` and `-p 65500-65535:65500-65535/udp` combined with `--min-port=65500` and `--max-port=65535` after `-n` as appropriate (at least two relay ports are required per connection).
 
-In addition, use the option `--no-udp-relay` after `-n` if you cannot open the UDP `--min-port=` to `--max-port=` port ranges, or `--no-tcp-relay` after `-n` if you cannot open the TCP `--min-port=` to `--max-port=` port ranges. Note that the `--no-udp-relay` argument may not be supported with web browsers and may lead to the TURN server not working.
+In addition, use the option `--no-udp-relay` after `-n` if you cannot open the UDP `--min-port=` to `--max-port=` port ranges, or `--no-tcp-relay` after `-n` if you cannot open the TCP `--min-port=` to `--max-port=` port ranges. Note that the `--no-udp-relay` option may not be supported with web browsers and may lead to the TURN server not working.
 
 Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/README.turnserver) and [Example Configuration](https://github.com/coturn/coturn/blob/master/examples/etc/turnserver.conf) for specific usage directions.
 
@@ -227,7 +231,7 @@ Then, all ports between `min-port=` and `max-port=` that you set in `/etc/turnse
 
 **The relay ports and the listening port must all be open to the internet.**
 
-Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges. Note that the `--no-udp-relay` argument may not be supported with web browsers and may lead to the TURN server not working.
+Add the line `no-udp-relay` if you cannot open the UDP `min-port=` to `max-port=` port ranges, or the line `no-tcp-relay` if you cannot open the TCP `min-port=` to `max-port=` port ranges. Note that the `no-udp-relay` option may not be supported with web browsers and may lead to the TURN server not working.
 
 In the configuration, under `args:`, set `-c /etc/turnserver.conf` and use the `coturn/coturn:latest` image.
 

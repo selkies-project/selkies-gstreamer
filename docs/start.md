@@ -11,7 +11,7 @@ Read [Conda Toolchain](component.md#conda-toolchain) for more details of this st
 **1. Install required dependencies, for Ubuntu or Debian-based distributions, run this command:**
 
 ```bash
-sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl libpulse0 libegl1 libgl1 libopengl0 libgles1 libgles2 libglvnd0 libglx0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xkb-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6 xvfb
+sudo apt-get update && sudo apt-get install --no-install-recommends -y jq tar gzip ca-certificates curl libpulse0 wayland-protocols libwayland-dev libwayland-egl1 x11-utils x11-xkb-utils x11-xserver-utils xserver-xorg-core libx11-xcb1 libxcb-dri3-0 libxkbcommon0 libxdamage1 libxfixes3 libxv1 libxtst6 libxext6 xvfb
 ```
 
 In the future, this host dependency requirement may be completely eliminated if relevant [conda-forge](https://conda-forge.org) feedstocks are available.
