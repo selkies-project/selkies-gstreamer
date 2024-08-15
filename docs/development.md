@@ -161,46 +161,50 @@ EXPOSE 8080
 ENTRYPOINT ["/usr/bin/supervisord"]
 ```
 
+## Container Guide
+
+The [`docker-nvidia-glx-desktop`](https://github.com/selkies-project/docker-nvidia-glx-desktop)/[`docker-nvidia-egl-desktop`](https://github.com/selkies-project/docker-nvidia-egl-desktop) desktop container repositories (referenced as Desktop Containers here), and the [Example Container](/addons/example) share various components between each other:
+
+`LICENSE`, `supervisord.conf`, `kasmvnc-entrypoint.sh`, and `selkies-gstreamer-entrypoint.sh` are always identical in both Desktop Containers (copy and paste between each container). As these components are also very similar to the [Example Container](/addons/example), **you need to do three Pull Requests including the [Example Container](/addons/example) if relevant lines changed in the [Example Container](/addons/example), and at least two Pull Requests for both Desktop Containers.**
+
+The `Dockerfile` is always identical below and above the lines that say `Anything above/below this line should always be kept the same...` in both Desktop Containers. This component is not shared with the [Example Container](/addons/example), and installation procedures for Selkies-GStreamer should be updated to the desktop containers on every release, so **you need to do three Pull Requests including the [Example Container](/addons/example) if relevant lines changed in the [Example Container](/addons/example), and at least two Pull Requests for both Desktop Containers.**
+
+The `entrypoint.sh` components are always identical from the start until the line containing `export PULSE_SERVER=..."` in both Desktop Containers. The script for installing NVIDIA userspace driver components are always identical except for the outermost `if` condition. Other script sections require manual assessment when updating, so **you need to do three Pull Requests including the [Example Container](/addons/example) if relevant lines changed in both Desktop Containers and the [Example Container](/addons/example).**
+
+`README.md` and `egl.yml`/`xgl.yml` files in both Desktop Containers are similar but have different components, thus requiring manual assessment for both Desktop Containers when updating.
+
 ## Style Guide
 
-- Shell scripts and Dockerfiles should use POSIX `sh` syntax as much as possible. Despite the shell scripts being run in `bash`, avoid using syntax only available in `bash` (such as `[[ ]]`), `zsh`, or other types of shells, unless absolutely needed.
+- Shell scripts and Dockerfiles should use POSIX `sh` syntax as much as possible. Despite the shell scripts being run in `bash`, avoid using syntax only available in `bash` (such as `[[ ]]`), `zsh`, or other types of shells, unless absolutely needed. If non-POSIX syntax is used, prefer using `bash` syntax, but only if there are no equivalent POSIX alternatives.
 
 - For Python, [Ruff](https://github.com/astral-sh/ruff) with Black formatting or [Black](https://github.com/psf/black) formatting are recommended. For JavaScript, HTML, CSS, Markdown, YAML, and other files, [Prettier](https://github.com/prettier/prettier) formatting is recommended. For code that is not already formatted in these formats, use the formatters with your Pull Requests if possible.
 
 - There should be no empty lines with whitespaces, or line endings with whitespaces. Moreover, there should be a line break at the end of each code file unless the specific code file format should not have one. If there is not, it is okay, but include the line break with your Pull Requests if possible.
 
-- Try using [`codespell`](https://github.com/codespell-project/codespell) or any other code spelling checker including the Visual Studio Code [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker), that can check spelling errors in the codebase before finalizing your pull request. Note that some fixes may be false positives, so please check the fixes manually.
+- Try using [`codespell`](https://github.com/codespell-project/codespell) or any other code spelling checker including the Visual Studio Code [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker), that can check spelling errors in the codebase before finalizing your pull request. Note that some fixes may be false positives, so please check the fixes manually (most notable false positives include `/dev/dri/renderD`).
 
 ## Code Guide
 
 - **You need to understand the whole codebase fully before contributing developments.** When editing certain parts of the codebase, they are very likely to interact with other components in a very different location, or the same content needs to be edited in multiple different locations. Therefore, Commits or Pull Requests are very likely to corrupt the repository **UNLESS** you use rigorous search capabilities across the whole codebase as often as possible. Check previous commits as a starting point for the files that tend to be edited together.
 
-- Because of this, use the Visual Studio Code (or any other IDE of choice) **Search and Replace** capabilities rigorously (especially with fine-tuning through capitalization and regular expressions).
+- Because of this, use the Visual Studio Code (or any other IDE of choice) **Search and Replace** capabilities rigorously (especially with fine-tuning through case-sensitive search and regular expressions). However, the replacement capability, without adequate care, may replace totally unrelated code. Take great care while using this capability, and reviewers must take special attention to detect potentially breaking typos which may arise from Search and Replace.
 
-- However, the replacement capability, if without adequate care, may replace totally unrelated code. Take great care while using this capability, and reviewers must take special attention to detect potentially breaking typos which may arise from bulk replacement.
+- **Write or edit code in relevant files and reference them so that the code style is kept consistent.** For instance, many handler methods that start with `on_` are initially unset, then set and referenced in other components or classes during initialization. If you are implementing a new capability on certain methods or handlers that use methods starting with `on_` frequently, you have to create new `on_` methods as well to handle your capability. This assists with keeping the code highly readable, and putting methods or functions in the wrong files will harm the consistency of the code style. **If you are starting to feel that the location you are writing code in does not blend properly into adjacent code, you are probably writing it in the wrong place!**
 
-- Some code components have `CAPITALIZED_COMMENT:` comment sections such as `ADD_ENCODER:` or `OPUS_FRAME:`. These sections indicate that locations with the `CAPITALIZED_COMMENT:` need to be edited or added simultaneously.
+- For example, assume that we are writing a new component that receives WebRTC Metrics from the web interface and writes them into multiple CSV files in the host ([#141](https://github.com/selkies-project/selkies-gstreamer/pull/141)). Because the WebRTC RTCDataChannel interface is used, receiving the metrics will be handled in [`webrtc_input.py`](/src/selkies_gstreamer/webrtc_input.py). But this does not mean that everything should be implemented in this file. Instead, they should be [implemented in the `Metrics` class](https://github.com/selkies-project/selkies-gstreamer/pull/141/commits/abae13645fdf0082f27041c59a14e1c030cf3763) of [`metrics.py`](/src/selkies_gstreamer/metrics.py), and be initialized in [`__main__.py`](/src/selkies_gstreamer/__main__.py). This way, relevant code stays in appropriate files and is initialized only when the capabilities are needed.
 
-## Container Guide
-
-The [`docker-nvidia-glx-desktop`](https://github.com/selkies-project/docker-nvidia-glx-desktop) and [`docker-nvidia-egl-desktop`](https://github.com/selkies-project/docker-nvidia-egl-desktop) desktop container repositories and the [Example Container](/addons/example) share various components between each other:
-
-`LICENSE`, `supervisord.conf`, `kasmvnc-entrypoint.sh`, and `selkies-gstreamer-entrypoint.sh` are always identical in both containers. As these components are also very similar to the [Example Container](/addons/example), they **MUST** be updated with both desktop containers. So you need to do three Pull Requests.
-
-The `Dockerfile` is always identical below and above the lines that say `Anything above/below this line should always be kept the same...`. This component is not shared with the [Example Container](/addons/example), and installation procedures for Selkies-GStreamer should be updated to the desktop containers on every release.
-
-The `entrypoint.sh` components are always identical from the start until the line containing `export PULSE_SERVER=..."`. The script for installing NVIDIA userspace driver components are always identical except for the outermost `if` condition. Other script sections require manual assessment when updating.
-
-`README.md` and `egl.yml`/`xgl.yml` files are similar but have different components, thus requiring manual assessment when updating.
+- Some code components have `CAPITALIZED_COMMENT:` comment sections such as `ADD_ENCODER:` or `OPUS_FRAME:`. These sections indicate that locations with the `CAPITALIZED_COMMENT:` must be edited or added simultaneously.
 
 ## GStreamer Development Guide
 
+**Read [GStreamer Components](component.md#gstreamer-components) together with this guide.**
+
 GStreamer is based on GLib, which is an object-oriented programming interface on top of C (or C++/Rust). Therefore, many GStreamer objects inherit from other base objects, and object properties (configurations) are inherited from parent objects as well. Therefore, many object properties tend to be missing in the [Documentation Page](https://gstreamer.freedesktop.org/documentation/plugins_doc.html).
 
-**NOTE: an easy and accurate way to identify GStreamer object properties is to use `gst-inspect-1.0 element_to_look`.** This will show all properties, including those of parent objects.
+**NOTE: an easy and accurate way to identify GStreamer object properties is to use `gst-inspect-1.0 element_to_look`.** This will show all properties, including those inherited from parent objects.
 
-Otherwise, any [GStreamer](https://gstreamer.freedesktop.org) plugin [Documentation Page](https://gstreamer.freedesktop.org/documentation/plugins_doc.html) is supposed to have a **Hierarchy** section. As all GStreamer objects are defined as **classes** used with object-oriented programming, so any properties that you see in parent classes are also properties that you may use for your own classes and plugins.
+Otherwise, any [GStreamer](https://gstreamer.freedesktop.org) plugin [Documentation Page](https://gstreamer.freedesktop.org/documentation/plugins_doc.html) is supposed to have a **Hierarchy** section. As all GStreamer objects are defined as **classes** used with object-oriented programming, all properties that you see in parent classes are also properties that you may use for your own classes and plugins that inherit from the parent classes.
 
-Therefore, all contributors implementing or modifying code relevant to GStreamer are also to carefully check parent classes as well when configuring [properties](https://gstreamer.freedesktop.org/documentation/plugin-development/basics/args.html) or [capabilities](https://gstreamer.freedesktop.org/documentation/gstreamer/gstcaps.html).
+Therefore, all contributors implementing or modifying code relevant to GStreamer must also carefully check parent classes as well when configuring [Properties](https://gstreamer.freedesktop.org/documentation/plugin-development/basics/args.html) or [Capabilities](https://gstreamer.freedesktop.org/documentation/gstreamer/gstcaps.html).
 
 Please also note that objects based on GstBin (most notably `webrtcbin` and `rtpbin`) may embed multiple sub-objects into a single object.

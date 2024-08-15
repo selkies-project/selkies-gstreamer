@@ -299,6 +299,8 @@ The [coTURN-Web Container](/addons/coturn-web) is a legacy component meant to pr
 
 ## GStreamer Components
 
+**Read [GStreamer Development Guide](development.md#gstreamer-development-guide) together with this part.**
+
 Below are GStreamer components that are implemented and therefore used with Selkies-GStreamer. Some include environment variables or command-line options which may be used select one type of component, and others are chosen automatically based on the operating system or configuration. This section is to be continuously updated.
 
 ### Encoders
