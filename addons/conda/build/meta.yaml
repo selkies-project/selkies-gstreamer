@@ -143,5 +143,6 @@ requirements:
     - wmctrl-cli                         # [linux]
     - xdotool                            # [linux]
     - xsel                               # [linux]
+    # NVIDIA NVRTC/nvJPEG dependency, https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt
     - cuda-nvrtc 11.3.*
     - libnvjpeg 11.4.*

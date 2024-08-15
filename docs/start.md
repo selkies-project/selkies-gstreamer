@@ -94,11 +94,11 @@ This distribution is slightly more complicated to deploy, yet is the recommended
 
 ### Backgrounds
 
-Selkies-GStreamer has a highly modularized architecture, and it is composed of components.
+Selkies-GStreamer has a highly modularized architecture, composed of multiple components.
 
 Three mandatory components are required to run Selkies-GStreamer: the [standalone or distribution-provided build of GStreamer](/addons/gstreamer) with the most recent version (currently ≥ 1.22), the [Python component wheel package](/src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface components](/addons/gst-web). Currently, Ubuntu 24.04 (Mint 22), 22.04 (Mint 21), 20.04 (Mint 20) are supported, but other operating systems should also work if using your own GStreamer build of the newest version (contributions for build workflows of more operating systems are welcome).
 
-All three of the components are built and packaged [every release](https://github.com/selkies-project/selkies-gstreamer/releases). In addition, every latest commit gets built and is made available in container forms [`ghcr.io/selkies-project/selkies-gstreamer/gstreamer`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgstreamer), [`ghcr.io/selkies-project/selkies-gstreamer/py-build`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fpy-build), and [`ghcr.io/selkies-project/selkies-gstreamer/gst-web`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-web).
+All three of the components are built and packaged every [Release](https://github.com/selkies-project/selkies-gstreamer/releases). In addition, every latest commit gets built and is made available in container forms [`ghcr.io/selkies-project/selkies-gstreamer/gstreamer`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgstreamer), [`ghcr.io/selkies-project/selkies-gstreamer/py-build`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fpy-build), and [`ghcr.io/selkies-project/selkies-gstreamer/gst-web`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-web).
 
 For more information, check the [Components](component.md#components) section.
 
@@ -124,7 +124,7 @@ Install additional dependencies if using Ubuntu ≥ 22.04 (Mint 21) or a higher 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev svt-av1 aom-tools
 ```
 
-If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and NVRTC (procedures below).
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and NVRTC (bundled with pre-built GStreamer component, check the [GStreamer Dockerfile](/addons/gstreamer/Dockerfile) for manual installation instructions).
 
 If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop`, or `nvtop` for GPU monitoring.
 

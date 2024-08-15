@@ -78,7 +78,7 @@ These people make structural decisions for this project and press the `Merge Pul
 
 This section is a knowledge base for code contributions and development.
 
-## Communities:
+## Communities
 
 - Selkies Discord: <https://discord.gg/wDNGDeSW5F>
 
@@ -88,7 +88,7 @@ This section is a knowledge base for code contributions and development.
 
 - GStreamer Matrix Space (Specific to GStreamer, needs Matrix Account from <https://app.element.io>): <https://matrix.to/#/#community:gstreamer.org>
 
-## Resources:
+## Resources
 
 - **Our [Documentation](/docs/README.md) and [Issues](https://github.com/selkies-project/selkies-gstreamer/issues)/[Pull Requests](https://github.com/selkies-project/selkies-gstreamer/pulls)** (including closed Issues/Pull Requests) and <https://github.com/m1k1o/neko/issues/371>
 
@@ -208,3 +208,7 @@ Otherwise, any [GStreamer](https://gstreamer.freedesktop.org) plugin [Documentat
 Therefore, all contributors implementing or modifying code relevant to GStreamer must also carefully check parent classes as well when configuring [Properties](https://gstreamer.freedesktop.org/documentation/plugin-development/basics/args.html) or [Capabilities](https://gstreamer.freedesktop.org/documentation/gstreamer/gstcaps.html).
 
 Please also note that objects based on GstBin (most notably `webrtcbin` and `rtpbin`) may embed multiple sub-objects into a single object.
+
+# Maintainer Documentation
+
+- New releases are published by going to the [Publish release](https://github.com/selkies-project/selkies-gstreamer/actions/workflows/build_and_publish_release.yaml) GitHub Action Workflow, and triggering `workflow_dispatch` by clicking on `Run workflow` with `Branch: main`, and specifying the release tag. The draft release for the new proposed release will be generated in the [Releases](https://github.com/selkies-project/selkies-gstreamer/releases) page, only visible to the maintainers. After waiting for the release build to finish, editing the release notes, and publishing the release, the release will be visible as the latest release.
