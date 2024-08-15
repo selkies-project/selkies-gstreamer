@@ -52,13 +52,17 @@ Contact information for contributors currently available for paid consulting tas
 
 These people make structural decisions for this project and press the `Merge Pull Request` button.
 
-[Dan Isla](https://github.com/danisla): Project Founder, Owner, Industry Representative (ex-Google, ex-NASA, ex-itopia), Head Maintainer (Start - Sep 2023, July 2024 -), **currently available for paid consulting tasks**
+[Dan Isla](https://github.com/danisla): Project Founder, Owner, Head Maintainer (Start - Sep 2023, August 2024 -), Industry Representative (ex-Google, ex-NASA, ex-itopia), **currently available for paid consulting tasks**
 
-[Seungmin Kim](https://github.com/ehfd): Co-Owner, Academia Representative (Yonsei University College of Medicine, San Diego Supercomputer Center), Head Maintainer (Apr 2022 - July 2024, est. 2025 -), currently not available for paid consulting tasks
+[Seungmin Kim](https://github.com/ehfd): Co-Owner, Head Maintainer (Apr 2022 - August 2024, est. 2025 -), Academia Representative (Yonsei University College of Medicine, San Diego Supercomputer Center), currently not available for paid consulting tasks (on hiatus from project)
+
+[Dmitry Mishin](https://github.com/dimm0): Interim Head Maintainer (August 2024 -), Interim Academia Representative (University of California San Diego, San Diego Supercomputer Center)
 
 ### Code Contributors
 
 [PMohanJ](https://github.com/PMohanJ): Contributed new features for the X11 input protocol as well as providing various fixes for the project overall and providing various means of analysis, **currently available for paid consulting tasks in tandem with senior maintainers**
+
+[Kristian Ollikainen](https://github.com/DatCaptainHorse): Professional WebRTC and JavaScript frontend engineer, contributed various insights to the GStreamer and web components
 
 [ayunami2000](https://github.com/ayunami2000): Provided various fixes for the WebRTC HTML5 web interface, as well as providing various means of analysis, **currently available for paid consulting tasks in tandem with senior maintainers**
 
@@ -73,6 +77,38 @@ These people make structural decisions for this project and press the `Merge Pul
 # Knowledge Base
 
 This section is a knowledge base for code contributions and development.
+
+## Communities:
+
+- Selkies Discord: <https://discord.gg/wDNGDeSW5F>
+
+- Selkies Matrix Space (Connect with United States HPC Academics, needs Matrix Account from <https://app.element.io>): <https://matrix.to/#/#ue4research:matrix.nrp-nautilus.io>
+
+- Real-Time Streaming Discord (General WebRTC Advice): <https://discord.gg/KFS32mYXPr>
+
+- GStreamer Matrix Space (Specific to GStreamer, needs Matrix Account from <https://app.element.io>): <https://matrix.to/#/#community:gstreamer.org>
+
+## Resources:
+
+- **Our [Documentation](/docs/README.md) and [Issues](https://github.com/selkies-project/selkies-gstreamer/issues)/[Pull Requests](https://github.com/selkies-project/selkies-gstreamer/pulls)** (including closed Issues/Pull Requests) and <https://github.com/m1k1o/neko/issues/371>
+
+- GStreamer Repository (sources of truth are below, other repositories such as `gst-plugins-base` have been relocated to the below):
+
+<https://gitlab.freedesktop.org/gstreamer/gstreamer>
+
+<https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs>
+
+<https://gitlab.freedesktop.org/gstreamer/meson-ports>
+
+- GStreamer Documentation (`gst-inspect-1.0 module` tends to be much more accurate than this): <https://gstreamer.freedesktop.org/documentation/>
+
+- WebRTC for the Curious: <https://webrtcforthecurious.com>
+
+- WebRTC Official Google Groups: <https://groups.google.com/g/discuss-webrtc>
+
+- Mozilla MDN: <https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API>
+
+- WebRTC Hacks: <https://webrtchacks.com>
 
 ## Container Customization
 
