@@ -66,7 +66,7 @@ You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root pat
 
 Please read [**WebRTC and Firewall Issues**](firewall.md).
 
-**8. Read [**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.**
+**8. Read [**Troubleshooting and FAQs**](faq.md) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.**
 
 ## Desktop Container
 
@@ -78,7 +78,7 @@ The [`selkies-vdi`](https://github.com/selkies-project/selkies-vdi) or [`selkies
 
 ## Minimal Container
 
-The [Example Container](/addons/example) is the reference minimal-functionality container developers can base upon, or test Selkies-GStreamer quickly. The bare minimum Xfce4 desktop environment is installed together with Firefox, as well as an embedded TURN server inside the container for quick WebRTC firewall traversal.
+The [Example Container](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/example) is the reference minimal-functionality container developers can base upon, or test Selkies-GStreamer quickly. The bare minimum Xfce4 desktop environment is installed together with Firefox, as well as an embedded TURN server inside the container for quick WebRTC firewall traversal.
 
 Instructions are available in the [Example Container](component.md#example-container) section.
 
@@ -96,7 +96,7 @@ This distribution is slightly more complicated to deploy, yet is the recommended
 
 Selkies-GStreamer has a highly modularized architecture, composed of multiple components.
 
-Three mandatory components are required to run Selkies-GStreamer: the [standalone or distribution-provided build of GStreamer](/addons/gstreamer) with the most recent version (currently ≥ 1.22), the [Python component wheel package](/src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface components](/addons/gst-web). Currently, Ubuntu 24.04 (Mint 22), 22.04 (Mint 21), 20.04 (Mint 20) are supported, but other operating systems should also work if using your own GStreamer build of the newest version (contributions for build workflows of more operating systems are welcome).
+Three mandatory components are required to run Selkies-GStreamer: the [standalone or distribution-provided build of GStreamer](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/gstreamer) with the most recent version (currently ≥ 1.22), the [Python component wheel package](https://github.com/selkies-project/selkies-gstreamer/blob/main/src/selkies_gstreamer) including the signaling server, and the [HTML5 web interface components](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/gst-web). Currently, Ubuntu 24.04 (Mint 22), 22.04 (Mint 21), 20.04 (Mint 20) are supported, but other operating systems should also work if using your own GStreamer build of the newest version (contributions for build workflows of more operating systems are welcome).
 
 All three of the components are built and packaged every [Release](https://github.com/selkies-project/selkies-gstreamer/releases). In addition, every latest commit gets built and is made available in container forms [`ghcr.io/selkies-project/selkies-gstreamer/gstreamer`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgstreamer), [`ghcr.io/selkies-project/selkies-gstreamer/py-build`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fpy-build), and [`ghcr.io/selkies-project/selkies-gstreamer/gst-web`](https://github.com/selkies-project/selkies-gstreamer/pkgs/container/selkies-gstreamer%2Fgst-web).
 
@@ -104,7 +104,7 @@ For more information, check the [Components](component.md#components) section.
 
 The [All-In-One Desktop Containers](#desktop-container) support unprivileged self-hosted Kubernetes clusters and Docker®/Podman.
 
-Example Google Compute Engine/Google Kubernetes Engine deployment configurations of all components are available in the [`infra/gce`](/infra/gce) and [`infra/gke`](/infra/gke) directories, but may be deprecated in favor of vendor-agnostic Kubernetes configurations.
+Example Google Compute Engine/Google Kubernetes Engine deployment configurations of all components are available in the [`infra/gce`](https://github.com/selkies-project/selkies-gstreamer/tree/main/infra/gce) and [`infra/gke`](https://github.com/selkies-project/selkies-gstreamer/tree/main/infra/gke) directories, but may be deprecated in favor of vendor-agnostic Kubernetes configurations.
 
 ### Install the packaged version on self-hosted standalone machines, cloud instances, or virtual machines
 
@@ -124,7 +124,7 @@ Install additional dependencies if using Ubuntu ≥ 22.04 (Mint 21) or a higher 
 sudo apt-get update && sudo apt-get install --no-install-recommends -y xcvt libopenh264-dev svt-av1 aom-tools
 ```
 
-If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and NVRTC (bundled with pre-built GStreamer component, check the [GStreamer Dockerfile](/addons/gstreamer/Dockerfile) for manual installation instructions).
+If using supported NVIDIA GPUs, install NVENC (bundled with the GPU driver) and NVRTC (bundled with pre-built GStreamer component, check the [GStreamer Dockerfile](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/gstreamer/Dockerfile) for manual installation instructions).
 
 If using AMD or Intel GPUs, install its graphics and VA-API drivers, as well as `libva2`. The bundled VA-API driver in the AMDGPU Pro graphics driver is recommended for AMD GPUs and the `i965-va-driver-shaders` or `intel-media-va-driver-non-free` packages are recommended depending on your Intel GPU generation. Optionally install `vainfo`, `intel-gpu-tools`, `radeontop`, or `nvtop` for GPU monitoring.
 
@@ -144,7 +144,7 @@ Read [GStreamer](component.md#gstreamer) for more details of this step and proce
 cd /opt && curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/gstreamer-selkies_gpl_v${SELKIES_VERSION}_ubuntu${DISTRIB_RELEASE}_amd64.tar.gz" | sudo tar -xzf -
 ```
 
-This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the the environment variable `GSTREAMER_PATH` to the directory. GStreamer builds for `aarch64` are not provided but can be built following procedures in the [GStreamer Dockerfile](/addons/gstreamer/Dockerfile) or [Conda Dockerfile](/addons/conda/Dockerfile).
+This will install the GStreamer components to the default directory of `/opt/gstreamer`. If you are unpacking to a different directory, make sure to set the the environment variable `GSTREAMER_PATH` to the directory. GStreamer builds for `aarch64` are not provided but can be built following procedures in the [GStreamer Dockerfile](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/gstreamer/Dockerfile) or [Conda Dockerfile](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/conda/Dockerfile).
 
 **3. Install the Selkies-GStreamer Python components** (this component is pure Python and any operating system is compatible, fill in `SELKIES_VERSION`)**:**
 
@@ -242,7 +242,7 @@ The default username (set with `--basic_auth_user=` or `SELKIES_BASIC_AUTH_USER`
 
 Please read [**WebRTC and Firewall Issues**](firewall.md).
 
-**8. Read [**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.**
+**8. Read [**Troubleshooting and FAQs**](faq.md) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.**
 
 ### Install the latest build on self-hosted standalone machines, cloud instances, or virtual machines
 

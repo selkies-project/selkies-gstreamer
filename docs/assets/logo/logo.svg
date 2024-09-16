@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 630 630" xml:space="preserve">
+<desc>Created with Fabric.js 2.3.5</desc>
+<defs>
+</defs>
+<g id="logo" transform="translate(315 315) scale(1.00 1.00)" style="">
+	<path d="M 671.7 69.5 h -65.6 L 549.2 0 L 414.6 38.5 L 307.2 253.7 h -23.6 l 27.7 -64.1 L 0 343.4 h 560.3 l 53.5 -53.5 L 595 176.6 l -51.4 -29.2 h 105.7 l 34 -57.7 C 688.5 80.8 682.1 69.5 671.7 69.5 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(30,54,103); fill-rule: nonzero; opacity: 1;" transform="translate(0 -89.4) translate(-342.57247804660534, -171.7) " stroke-linecap="round" />
+	<polygon points="-36.5,8 3.1,-26.8 36.5,-1 5.9,26.8 " style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform="translate(181.93 -183.6) "/>
+	<polygon points="-63.5,-70.1 35.8,-70.1 82.9,-6.4 -20.5,70.1 -82.9,70.1 -25.2,5.7 " style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(30,54,103); fill-rule: nonzero; opacity: 1;" transform="translate(158.53 190.9) "/>
+	<path d="M 406.8 431.9 l -25.2 -50 c -12.9 0 -360.6 0 -381.6 0 l 10.7 77.9 l 88.6 62.4 L 79 431.9 H 406.8 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(30,54,103); fill-rule: nonzero; opacity: 1;" transform="translate(-139.17 190.95) translate(-203.4, -452.04999999999995) " stroke-linecap="round" />
+</g>
+</svg>
