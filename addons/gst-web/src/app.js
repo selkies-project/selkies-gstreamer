@@ -247,7 +247,7 @@ var app = new Vue({
             }
             console.log("Publishing new image", data);
 
-            fetch("/publish/" + app.appName, {
+            fetch("./publish/" + app.appName, {
                 method: "POST",
                 headers: {
                     "content-type": "application/json"
@@ -802,7 +802,7 @@ if (navigator.permissions) {
 
 // Check if editing is allowed.
 var checkPublishing = () => {
-    fetch("/publish/" + app.appName)
+    fetch("./publish/" + app.appName)
         .then((response) => {
             return response.json();
         })
@@ -822,7 +822,7 @@ var checkPublishing = () => {
 // checkPublishing();
 
 // Fetch RTC configuration containing STUN/TURN servers.
-fetch("/turn")
+fetch("./turn")
     .then(function (response) {
         return response.json();
     })
