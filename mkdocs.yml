@@ -1,4 +1,5 @@
 site_name: SELKIES
+site_url: site_url: https://selkies-project.github.io
 site_description: >-
   Open-Source Low-Latency Accelerated Linux WebRTC HTML5 Remote Desktop Streaming Platform for Self-Hosting, Containers, Kubernetes, or Cloud/HPC
 theme:
