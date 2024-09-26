@@ -110,7 +110,7 @@ markdown_extensions:
 
 # Page tree
 nav:
-  - Home: index.md
+  - Home: README.md
   - Design: design.md
   - Getting started: start.md
   - FAQs: faq.md
