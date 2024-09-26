@@ -201,7 +201,7 @@ class WebRTCDemoSignalling {
         if (this._ws_conn.readyState === this._ws_conn.CLOSED) {
             setTimeout(() => {
                 if (this.retry_count > 3) {
-                    window.location.replace(window.location.href.replace(window.location.pathname, "/"));
+                    window.location.reload();
                 } else {
                     this.connect();
                 }

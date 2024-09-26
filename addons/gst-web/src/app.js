@@ -247,7 +247,7 @@ var app = new Vue({
             }
             console.log("Publishing new image", data);
 
-            fetch("/publish/" + app.appName, {
+            fetch("./publish/" + app.appName, {
                 method: "POST",
                 headers: {
                     "content-type": "application/json"
@@ -369,10 +369,12 @@ if (audioElement === null) {
 
 // WebRTC entrypoint, connect to the signalling server
 /*global WebRTCDemoSignalling, WebRTCDemo*/
+var pathname = window.location.pathname;
+pathname = pathname.slice(0, pathname.lastIndexOf("/") + 1);
 var protocol = (location.protocol == "http:" ? "ws://" : "wss://");
-var signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + "/" + app.appName + "/signalling/"));
+var signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + pathname + app.appName + "/signalling/"));
 var webrtc = new WebRTCDemo(signalling, videoElement, 1);
-var audio_signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + "/" + app.appName + "/signalling/"));
+var audio_signalling = new WebRTCDemoSignalling(new URL(protocol + window.location.host + pathname + app.appName + "/signalling/"));
 var audio_webrtc = new WebRTCDemo(audio_signalling, audioElement, 3);
 
 // Function to add timestamp to logs.
@@ -802,7 +804,7 @@ if (navigator.permissions) {
 
 // Check if editing is allowed.
 var checkPublishing = () => {
-    fetch("/publish/" + app.appName)
+    fetch("./publish/" + app.appName)
         .then((response) => {
             return response.json();
         })
@@ -822,7 +824,7 @@ var checkPublishing = () => {
 // checkPublishing();
 
 // Fetch RTC configuration containing STUN/TURN servers.
-fetch("/turn")
+fetch("./turn")
     .then(function (response) {
         return response.json();
     })
