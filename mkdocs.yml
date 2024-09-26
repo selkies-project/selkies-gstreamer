@@ -1,5 +1,5 @@
 site_name: SELKIES
-site_url: site_url: https://selkies-project.github.io
+site_url: https://selkies-project.github.io
 site_description: >-
   Open-Source Low-Latency Accelerated Linux WebRTC HTML5 Remote Desktop Streaming Platform for Self-Hosting, Containers, Kubernetes, or Cloud/HPC
 theme:
@@ -17,7 +17,7 @@ theme:
   name: material
   # custom_dir: overrides
   features:
-    - announce.dismiss
+    # - announce.dismiss
     - content.action.edit
     - content.action.view
     - content.code.annotate
@@ -27,14 +27,14 @@ theme:
     # - content.tabs.link
     - content.tooltips
     # - header.autohide
-    # - navigation.expand
+    - navigation.expand
     - navigation.footer
     - navigation.indexes
     # - navigation.instant
     # - navigation.instant.prefetch
     # - navigation.instant.progress
     # - navigation.prune
-    - navigation.path
+    # - navigation.path
     - navigation.sections
     - navigation.tabs
     - navigation.tabs.sticky
@@ -98,7 +98,7 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
-  - pymdownx.details
+  # - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -118,4 +118,3 @@ nav:
   - Usage: usage.md
   - Components: component.md
   - Development: development.md
-
