@@ -14,7 +14,7 @@ Selkies-GStreamer is designed for researchers, including people in the graphical
 
 While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance issue that would be problematic in cloud gaming platforms is also considered a bug.
 
-**[Read the Documentation](/docs/index.md) to get started.**
+**[Read the Documentation](/docs/README.md) to get started.**
 
 ## Citations in Academic Publications
 
