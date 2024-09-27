@@ -181,7 +181,7 @@ Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/
 
 ### Deploy coTURN with Docker®
 
-The [coTURN Container](/addons/coturn) is a reference container which provides the [coTURN](https://github.com/coturn/coturn) TURN server. Other than options including `-e TURN_SHARED_SECRET=`, `-e TURN_REALM=`, `-e TURN_PORT=`, `-e TURN_MIN_PORT=`, and `-e TURN_MAX_PORT=`, add more command-line options in `-e TURN_EXTRA_ARGS=`.
+The [coTURN Container](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/coturn) is a reference container which provides the [coTURN](https://github.com/coturn/coturn) TURN server. Other than options including `-e TURN_SHARED_SECRET=`, `-e TURN_REALM=`, `-e TURN_PORT=`, `-e TURN_MIN_PORT=`, and `-e TURN_MAX_PORT=`, add more command-line options in `-e TURN_EXTRA_ARGS=`.
 
 **Read the [coTURN](component.md#coturn) section to get started.**
 
@@ -213,7 +213,7 @@ Consult the [coTURN Documentation](https://github.com/coturn/coturn/blob/master/
 
 In both types of containers, the `--cert=` and `--pkey=` options are required for using TURN over TLS/DTLS, but are otherwise optional. They should lead to the certificate and the private key from a legitimate certificate authority such as [ZeroSSL](https://zerossl.com/features/acme/) or [Let's Encrypt](https://letsencrypt.org/getting-started/) with a valid hostname which resolves to the TURN server.
 
-Provide the certificate and private files to the coTURN container with `-v /my_local_path/coturncert.crt:/etc/coturn_tls.crt -v /my_local_path/coturnkey.key:/etc/coturn_tls.key` (specified paths are an example), then add the options `-e TURN_EXTRA_ARGS="--cert=/etc/coturn_tls.crt --pkey=/etc/coturn_tls.key"` for the Selkies [coTURN Container](/addons/coturn) and use the options `--cert=/etc/coturn_tls.crt --pkey=/etc/coturn_tls.key` for the official coTURN container.
+Provide the certificate and private files to the coTURN container with `-v /my_local_path/coturncert.crt:/etc/coturn_tls.crt -v /my_local_path/coturnkey.key:/etc/coturn_tls.key` (specified paths are an example), then add the options `-e TURN_EXTRA_ARGS="--cert=/etc/coturn_tls.crt --pkey=/etc/coturn_tls.key"` for the Selkies [coTURN Container](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons/coturn) and use the options `--cert=/etc/coturn_tls.crt --pkey=/etc/coturn_tls.key` for the official coTURN container.
 
 ### Deploy coTURN With Kubernetes
 
