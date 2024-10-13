@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 {% set name = "selkies-gstreamer" %}
-{% set gstreamer_version = "1.24.7" %}
+{% set gstreamer_version = "1.24.8" %}
 {% set python = "3.12" %}
 {% set posix = 'm2-' if win else '' %}
 
