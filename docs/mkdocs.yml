@@ -2,6 +2,7 @@ site_name: Selkies-GStreamer
 site_url: https://selkies-project.github.io/selkies-gstreamer
 site_description: >-
   Open-Source Low-Latency Accelerated Linux WebRTC HTML5 Remote Desktop Streaming Platform for Self-Hosting, Containers, Kubernetes, or Cloud/HPC
+
 docs_dir: ./
 theme:
   name: material
@@ -76,45 +77,45 @@ theme:
 
 # Plugins
 plugins:
-- search:
-    separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
 
 # Additional configuration
 extra:
   generator: false
   social:
-  - icon: fontawesome/brands/github
-    link: https://github.com/selkies-project/selkies-gstreamer
-  - icon: fontawesome/brands/discord
-    link: https://discord.gg/wDNGDeSW5F
+    - icon: fontawesome/brands/github
+      link: https://github.com/selkies-project/selkies-gstreamer
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/wDNGDeSW5F
 
 # Extensions
 markdown_extensions:
-- toc:
-    permalink: true
-- abbr
-- admonition
-- attr_list
-- def_list
-- footnotes
-- md_in_html
-- tables
-# - pymdownx.details
-- pymdownx.highlight:
-  anchor_linenums: true
-  line_spans: __span
-  pygments_lang_class: true
-- pymdownx.inlinehilite
-- pymdownx.snippets
-- pymdownx.superfences
+  - toc:
+      permalink: true
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  # - pymdownx.details
+  - pymdownx.highlight:
+    anchor_linenums: true
+    line_spans: __span
+    pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 
 # Navigation
 nav:
-- Home: README.md
-- 'What is Selkies-GStreamer?': design.md
-- 'Getting Started': start.md
-- 'Troubleshooting and FAQs': usage.md#troubleshooting-and-faqs
-- 'WebRTC and Firewall Issues': firewall.md
-- Usage: usage.md#usage
-- Components: component.md
-- 'Development and Contributions': development.md
+  - Home: README.md
+  - 'What is Selkies-GStreamer?': design.md
+  - 'Getting Started': start.md
+  - 'Troubleshooting and FAQs': usage.md#troubleshooting-and-faqs
+  - 'WebRTC and Firewall Issues': firewall.md
+  - Usage: usage.md#usage
+  - Components: component.md
+  - 'Development and Contributions': development.md
