@@ -22,8 +22,7 @@ jobs:
 
       - name: Generate MkDocs static files
         run: |
-          cd ./docs
-          pip install --no-cache-dir --force-reinstall -r requirements.txt
+          pip install --no-cache-dir --force-reinstall mkdocs-material
           mkdir -pm755 /opt/mkdocs
           mkdocs build --strict --verbose --site-dir /opt/mkdocs
 
