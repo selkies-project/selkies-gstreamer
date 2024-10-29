@@ -1,0 +1,45 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+name: Build and publish documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: docs
+      - name: Setup python for mkdocs
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Generate MkDocs static files
+        run: |
+          pip install --no-cache-dir --force-reinstall mkdocs-material
+          mkdir -pm755 /opt/mkdocs
+          mkdocs build --strict --verbose --site-dir /opt/mkdocs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: /opt/mkdocs/
+          retention-days: 1
+
+  publish:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

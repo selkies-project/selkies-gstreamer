@@ -1,0 +1,120 @@
+site_name: Selkies-GStreamer
+site_url: https://selkies-project.github.io/selkies-gstreamer
+site_description: >-
+  Open-Source Low-Latency Accelerated Linux WebRTC HTML5 Remote Desktop Streaming Platform for Self-Hosting, Containers, Kubernetes, or Cloud/HPC
+docs_dir: ./
+theme:
+  name: material
+
+# Repository
+repo_name: selkies-gstreamer
+repo_url: https://github.com/selkies-project/selkies-gstreamer
+
+# Copyright
+copyright: Copyright &copy; 2024 Selkies Project, <a href="https://github.com/selkies-project/selkies-gstreamer" target="_blank" rel="noopener">Selkies-GStreamer</a>
+
+# Configuration
+theme:
+  name: material
+  # custom_dir: overrides
+  features:
+    # - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    # - content.footnote.tooltips
+    # - content.tabs.link
+    - content.tooltips
+    # - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    # - navigation.instant
+    # - navigation.instant.prefetch
+    # - navigation.instant.progress
+    # - navigation.prune
+    # - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/link
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to system preference
+  font:
+    text: Roboto
+    code: Roboto Mono
+  favicon: assets/logo/favicon.ico
+  logo: assets/logo/icon-512x512.png
+  icon:
+    admonition:
+      quote: octicons/quote-16
+
+# Plugins
+plugins:
+- search:
+    separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+
+# Additional configuration
+extra:
+  generator: false
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/selkies-project/selkies-gstreamer
+  - icon: fontawesome/brands/discord
+    link: https://discord.gg/wDNGDeSW5F
+
+# Extensions
+markdown_extensions:
+- abbr
+- admonition
+- attr_list
+- def_list
+- footnotes
+- md_in_html
+- tables
+- toc:
+    permalink: true
+# - pymdownx.details
+- pymdownx.highlight:
+  anchor_linenums: true
+  line_spans: __span
+  pygments_lang_class: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.superfences
+
+# Navigation
+nav:
+- Home: README.md
+- 'What is Selkies-GStreamer?': design.md
+- 'Getting Started': start.md
+- 'Troubleshooting and FAQs': usage.md#troubleshooting-and-faqs
+- 'WebRTC and Firewall Issues': firewall.md
+- Usage: usage.md#usage
+- Components: component.md
+- 'Development and Contributions': development.md

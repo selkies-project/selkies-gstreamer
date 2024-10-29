@@ -26,13 +26,13 @@ Environment variables for command-line options are available as capitalizations 
 
 ## CI/CD Build
 
-We use Docker® containers for building every commit. The root directory [`Dockerfile`](/Dockerfile) and Dockerfiles within the [`addons`](/addons) directory provide directions for building each component, so that you may replicate the procedures in your own setup even without Docker® by copying the commands to your own shell.
+We use Docker® containers for building every commit. The root directory [`Dockerfile`](https://github.com/selkies-project/selkies-gstreamer/tree/main/Dockerfile) and Dockerfiles within the [`addons`](https://github.com/selkies-project/selkies-gstreamer/tree/main/addons) directory provide directions for building each component, so that you may replicate the procedures in your own setup even without Docker® by copying the commands to your own shell.
 
 # Troubleshooting and FAQs
 
 ## The HTML5 web interface loads and the signaling connection works, but the WebRTC connection fails or the remote desktop does not start.
 
-<details>
+<details markdown>
   <summary>Open Answer</summary>
 
 First of all, ensure that there is a running PulseAudio or PipeWire-Pulse session as the interface does not establish without an audio server.
@@ -53,7 +53,7 @@ Make sure to also check that you enabled automatic login with your display manag
 
 ## The HTML5 web interface is slow, lagging, or stuttering.
 
-<details>
+<details markdown>
   <summary>Open Answer</summary>
 
 **First, check if the TURN server is shown as `staticauth.openrelay.metered.ca` with a `relay` connection, and if so, please read [WebRTC and Firewall Issues](firewall.md).**
@@ -80,7 +80,7 @@ However, it might be that the parameters for the WebRTC interface, video encoder
 
 ## The clipboard does not work.
 
-<details>
+<details markdown>
   <summary>Open Answer</summary>
 
 This is very likely a web browser constraint that is applied because you are using HTTP for an address to the web interface that is not localhost. The clipboard only works when you use HTTPS (with a valid or self-signed certificate), or when accessing localhost (some browsers do not support this as well). You could use port forwarding to access through localhost or obtain an HTTPS certificate.
@@ -89,7 +89,7 @@ This is very likely a web browser constraint that is applied because you are usi
 
 ## The web interface refuses to start up in the terminal after rebooting my computer or restarting my desktop in a standalone instance.
 
-<details>
+<details markdown>
   <summary>Open Answer</summary>
 
 This is because the desktop session starts as `root` when the user is not logged in. Next time, set up automatic login in the settings with the user you want to use.
@@ -100,7 +100,7 @@ In order to use the web interface when this is not possible (or when you are usi
 
 ## My touchpad does not move while pressing a key with the keyboard.
 
-<details>
+<details markdown>
   <summary>Open Answer</summary>
 
 This is a setting from the client operating system and will show the same behavior with any other application. In Windows, go to `Settings > Bluetooth & devices > Touchpad > Taps` to increase your touchpad sensitivity. In Linux or Mac, turn off the setting `Touchpad > Disable while typing`.
@@ -109,7 +109,7 @@ This is a setting from the client operating system and will show the same behavi
 
 ## I want to pass multiple screens within a server to another client using the WebRTC HTML5 web interface.
 
-<details>
+<details markdown>
   <summary>Open Answer</summary>
 
 You can start a new instance of Selkies-GStreamer by changing the `DISPLAY` environment variable (or even use the same one for multiple instances) and setting a different web interface port in a different terminal to pass a different screen simultaneously to your current screen. Reverse proxy server/web servers supporting WebSocket such as `nginx` can be utilized to expose the interfaces to multiple users in different paths.
@@ -118,7 +118,7 @@ You can start a new instance of Selkies-GStreamer by changing the `DISPLAY` envi
 
 ## I want to test a shared secret TURN server by manually generating a TURN credential from a shared secret.
 
-<details>
+<details markdown>
   <summary>Open Answer</summary>
 
 Try the [TURN-REST Container](component.md#turn-rest) or its underlying turn-rest `app.py` Flask web application. This will output TURN credentials automatically when the Docker®/Podman options `-e TURN_SHARED_SECRET=`, `-e TURN_HOST=`, `-e TURN_PORT=`, `-e TURN_PROTOCOL=`, `-e TURN_TLS=` or environment variables `export TURN_SHARED_SECRET=`, `export TURN_HOST=`, `export TURN_PORT=`, `export TURN_PROTOCOL=`, `export TURN_TLS=` are set.
