@@ -11,7 +11,7 @@ repo_name: Selkies-GStreamer
 repo_url: https://github.com/selkies-project/selkies-gstreamer
 
 # Copyright
-copyright: Copyright &copy; 2024 <a href="https://github.com/selkies-project/selkies-gstreamer" target="_blank" rel="noopener">Selkies Project</a>. All rights reserved.
+copyright: Copyright &copy; {{ build_date_utc.strftime('%Y') }} <a href="https://github.com/selkies-project/selkies-gstreamer" target="_blank" rel="noopener">Selkies Project</a>. All rights reserved.
 
 # Configuration
 theme:
