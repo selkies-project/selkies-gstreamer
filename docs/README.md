@@ -19,7 +19,7 @@ Selkies-GStreamer is designed for researchers, including people in the graphical
 
 While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance issue that would be problematic in cloud gaming platforms is also considered a bug.
 
-**Please read [Troubleshooting](usage.md#troubleshooting-and-faqs) first, then use [Discord](https://discord.gg/wDNGDeSW5F) or [GitHub Discussions](https://github.com/selkies-project/selkies-gstreamer/discussions) for support questions. Please only use [Issues](https://github.com/selkies-project/selkies-gstreamer/issues) for technical inquiries or bug reports.**
+**Please read [Troubleshooting and FAQs](faq.md) first, then use [Discord](https://discord.gg/wDNGDeSW5F) or [GitHub Discussions](https://github.com/selkies-project/selkies-gstreamer/discussions) for support questions. Please only use [Issues](https://github.com/selkies-project/selkies-gstreamer/issues) for technical inquiries or bug reports.**
 
 **NOTE: this project is licensed under the [Mozilla Public License, version 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/), which obliges to share modified code files licensed by MPL-2.0 when distributed externally, but does not apply for any larger work outside this project, which might be open-source or proprietary under any license of choice. Externally originated components outside this project may contain works licensed over more restrictive copyleft/proprietary licenses, as well as other terms of intellectual property, including but not limited to patents, which users or developers are obliged to adhere to.**
 
@@ -27,11 +27,11 @@ While designed for clustered or unprivileged containerized environments, Selkies
 
 [**Getting Started**](start.md)
 
-[**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs)
+[**Usage**](usage.md)
+
+[**Troubleshooting and FAQs**](faq.md)
 
 [**WebRTC and Firewall Issues (cannot connect)**](firewall.md)
-
-[**Usage**](usage.md#usage)
 
 [**Components including Encoders and Interfaces**](component.md)
 

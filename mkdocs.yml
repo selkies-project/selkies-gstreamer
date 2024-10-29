@@ -113,8 +113,8 @@ nav:
   - Home: README.md
   - 'What is Selkies-GStreamer?': design.md
   - 'Getting Started': start.md
-  - 'Troubleshooting and FAQs': usage.md#troubleshooting-and-faqs
+  - Usage: usage.md
+  - 'Troubleshooting and FAQs': faq.md
   - 'WebRTC and Firewall Issues': firewall.md
-  - Usage: usage.md#usage
   - Components: component.md
   - 'Development and Contributions': development.md

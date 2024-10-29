@@ -66,7 +66,7 @@ You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root pat
 
 Please read [**WebRTC and Firewall Issues**](firewall.md).
 
-**8. Read [**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.**
+**8. Read [**Troubleshooting and FAQs**](faq.md) if something is not as intended and [**Usage**](usage.md) for more information on customizing.**
 
 ## Desktop Container
 
@@ -242,7 +242,7 @@ The default username (set with `--basic_auth_user=` or `SELKIES_BASIC_AUTH_USER`
 
 Please read [**WebRTC and Firewall Issues**](firewall.md).
 
-**8. Read [**Troubleshooting and FAQs**](usage.md#troubleshooting-and-faqs) if something is not as intended and [**Usage**](usage.md#usage) for more information on customizing.**
+**8. Read [**Troubleshooting and FAQs**](faq.md) if something is not as intended and [**Usage**](usage.md) for more information on customizing.**
 
 ### Install the latest build on self-hosted standalone machines, cloud instances, or virtual machines
 
