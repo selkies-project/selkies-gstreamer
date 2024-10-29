@@ -14,18 +14,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: docs
-      - name: Setup python for mkdocs
+
+      - name: Setup Python for MkDocs
         uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
       - name: Generate MkDocs static files
         run: |
-          pip install --no-cache-dir --force-reinstall mkdocs-material
+          cd ./docs
+          pip install --no-cache-dir --force-reinstall -r requirements.txt
           mkdir -pm755 /opt/mkdocs
           mkdocs build --strict --verbose --site-dir /opt/mkdocs
-      - uses: actions/upload-pages-artifact@v3
+
+      - name: Upload MkDocs artifacts
+        uses: actions/upload-pages-artifact@v3
         with:
           path: /opt/mkdocs/
           retention-days: 1
