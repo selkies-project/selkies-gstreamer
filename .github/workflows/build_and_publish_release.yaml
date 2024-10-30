@@ -93,49 +93,55 @@ jobs:
         - name: gstreamer
           version_suffix: -ubuntu20.04
           build_args: |
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=20.04
           context: addons/gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu22.04
           build_args: |
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=22.04
           context: addons/gstreamer
 
         - name: gstreamer
           version_suffix: -ubuntu24.04
           build_args: |
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=24.04
           context: addons/gstreamer
 
         - name: js-interposer
           version_suffix: -ubuntu20.04
           build_args: |
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=20.04
             PKG_NAME=selkies-js-interposer
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
-          dockerfile: Dockerfile.ubuntu_debpkg
+          dockerfile: Dockerfile.debpkg
           platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           build_args: |
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=22.04
             PKG_NAME=selkies-js-interposer
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
-          dockerfile: Dockerfile.ubuntu_debpkg
+          dockerfile: Dockerfile.debpkg
           platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           build_args: |
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=24.04
             PKG_NAME=selkies-js-interposer
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
-          dockerfile: Dockerfile.ubuntu_debpkg
+          dockerfile: Dockerfile.debpkg
           platforms: linux/amd64,linux/arm64
 
         - name: turn-rest
@@ -177,6 +183,7 @@ jobs:
           version_suffix: -ubuntu20.04
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=20.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
@@ -189,6 +196,7 @@ jobs:
           version_suffix: -ubuntu22.04
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=22.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
@@ -201,6 +209,7 @@ jobs:
           version_suffix: -ubuntu24.04
           build_args: |
             PACKAGE_VERSION=${{ needs.get_semver.outputs.semver }}
+            DISTRIB_IMAGE=ubuntu
             DISTRIB_RELEASE=24.04
             GSTREAMER_BASE_IMAGE_RELEASE=${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}
             PY_BUILD_IMAGE=ghcr.io/${{ github.repository }}/py-build:${{ github.event_name != 'pull_request' && github.event.inputs.tag || 'main' }}

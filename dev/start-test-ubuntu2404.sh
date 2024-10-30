@@ -2,10 +2,11 @@
 
 SCRIPT_DIR=$(readlink -f $(dirname $0))
 
-# Change this to set the ubuntu version
-UBUNTU_VERSION=24.04
+# Change this to set the Linux distribution and version
+DISTRIB_IMAGE=ubuntu
+DISTRIB_RELEASE=24.04
 
 (
     cd ${SCRIPT_DIR?}/.. && \
-    PYTHON_BASE=/usr/local/lib/python3.10 GSTREAMER_BASE_IMAGE=gstreamer TEST_IMAGE=selkies-gstreamer-example:latest-ubuntu${UBUNTU_VERSION} DISTRIB_RELEASE=${UBUNTU_VERSION} docker-compose run --service-ports test
+    GSTREAMER_BASE_IMAGE=gstreamer TEST_IMAGE=selkies-gstreamer-example:latest-${DISTRIB_IMAGE}${DISTRIB_RELEASE} DISTRIB_IMAGE=${DISTRIB_IMAGE} DISTRIB_RELEASE=${DISTRIB_RELEASE} docker-compose run --service-ports test
 )
