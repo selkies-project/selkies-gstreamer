@@ -59,7 +59,7 @@ RUN if { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "ubuntu
 
 # Download and extract latest GStreamer component
 RUN cd /opt && SELKIES_VERSION=$(curl -fsSL "https://api.github.com/repos/selkies-project/selkies-gstreamer/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g') && \
-    curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-ubuntu$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"').tar.gz" | sudo tar -xzf -
+    curl -fsSL "https://github.com/selkies-project/selkies-gstreamer/releases/download/v${SELKIES_VERSION}/selkies-gstreamer-v${SELKIES_VERSION}-$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"').tar.gz" | sudo tar -xzf -
 
 # Install development dependencies
 ARG PIP_BREAK_SYSTEM_PACKAGES=1

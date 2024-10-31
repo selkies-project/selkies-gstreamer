@@ -11,10 +11,10 @@ ARG PY_BUILD_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/py-build:main
 ARG WEB_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/gst-web:main
 ARG JS_BASE_IMAGE=ghcr.io/selkies-project/selkies-gstreamer/js-interposer
 ARG JS_BASE_IMAGE_RELEASE=main
-FROM ${GSTREAMER_BASE_IMAGE}:${GSTREAMER_BASE_IMAGE_RELEASE}-ubuntu${DISTRIB_RELEASE} AS selkies-gstreamer
+FROM ${GSTREAMER_BASE_IMAGE}:${GSTREAMER_BASE_IMAGE_RELEASE}-${DISTRIB_IMAGE}${DISTRIB_RELEASE} AS selkies-gstreamer
 FROM ${PY_BUILD_IMAGE} AS selkies-build
 FROM ${WEB_IMAGE} AS selkies-web
-FROM ${JS_BASE_IMAGE}:${JS_BASE_IMAGE_RELEASE}-ubuntu${DISTRIB_RELEASE} AS selkies-js-interposer
+FROM ${JS_BASE_IMAGE}:${JS_BASE_IMAGE_RELEASE}-${DISTRIB_IMAGE}${DISTRIB_RELEASE} AS selkies-js-interposer
 FROM ${DISTRIB_IMAGE}:${DISTRIB_RELEASE}
 ARG DISTRIB_IMAGE
 ARG DISTRIB_RELEASE
