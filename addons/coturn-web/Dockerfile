@@ -22,7 +22,7 @@
 FROM golang:alpine AS build
 WORKDIR /go/src/coturn-web
 COPY *.go ./
-RUN go mod init github.com/selkies-project/selkies-gstreamer/coturn-web && go get -u -d ./... && go build -a -mod=mod
+RUN go mod init github.com/selkies-project/selkies-gstreamer/coturn-web && go get -u ./... && go mod tidy -v && go build -a -x -mod=mod
 
 FROM alpine
 
