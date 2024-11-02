@@ -369,7 +369,7 @@ def main():
     parser.add_argument('--turn_host',
                         default=os.environ.get(
                             'SELKIES_TURN_HOST', 'staticauth.openrelay.metered.ca'),
-                        help='TURN host when generating RTC config from shared secret or using long-term credentials')
+                        help='TURN host when generating RTC config from shared secret or using long-term credentials, IPv6 addresses must be enclosed with square brackets such as [::1]')
     parser.add_argument('--turn_port',
                         default=os.environ.get(
                             'SELKIES_TURN_PORT', '443'),
