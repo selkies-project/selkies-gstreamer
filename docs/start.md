@@ -84,7 +84,7 @@ Instructions are available in the [Example Container](component.md#example-conta
 
 **(MANDATORY) Follow the instructions from [WebRTC and Firewall Issues](firewall.md) in order to make the container or self-hosted standalone instance using an external TURN server.**
 
-A TURN server is required if trying to use this project inside a Docker® or Kubernetes container without `--network=host`, or in other cases where the HTML5 web interface loads but the connection fails. This is required for all WebRTC applications, especially since Selkies-GStreamer is self-hosted, unlike other proprietary services which provide a TURN server for you.
+A TURN server is required if trying to use this project inside a Docker® or Kubernetes container without `--network=host` or `hostNetwork: true`, or in other cases where the HTML5 web interface loads but the connection fails. This is required for all WebRTC applications, especially since Selkies-GStreamer is self-hosted, unlike other proprietary services which provide a TURN server for you.
 
 ## Advanced Install 
 
