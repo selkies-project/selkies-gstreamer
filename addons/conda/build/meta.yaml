@@ -33,7 +33,6 @@ build:
 
 outputs:
   - name: "{{ name|lower }}"
-    type: conda_v2
 
 requirements:
   build:
