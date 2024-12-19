@@ -82,7 +82,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
-ARG GSTREAMER_VERSION=1.24.9
+ARG GSTREAMER_VERSION=1.24.10
 RUN if { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "ubuntu" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; } || { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "debian" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "11" ]; }; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:aom=enabled ${GSTREAMER_EXTRA_ARGS}"; else export GSTREAMER_EXTRA_ARGS="${GSTREAMER_EXTRA_ARGS}"; fi && \
     if { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "ubuntu" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "22.04" ]; } || { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "debian" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "12" ]; }; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:svtav1=enabled ${GSTREAMER_EXTRA_ARGS}"; fi && \
     curl --proto '=https' --tlsv1.2 -fsSL "https://sh.rustup.rs" | sh -s -- -y && \
