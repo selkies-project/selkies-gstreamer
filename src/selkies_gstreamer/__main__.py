@@ -471,6 +471,12 @@ def main():
     parser.add_argument('--metrics_http_port',
                         default=os.environ.get('SELKIES_METRICS_HTTP_PORT', '8000'),
                         help='Port to start the Prometheus metrics server on')
+    parser.add_argument('--start-after-connect',
+                        default=os.environ.get('SELKIES_START_AFTER_CONNECT', ''),
+                        help='Program or command to run on server after the first client has connected')
+    parser.add_argument('--start-after-disconnect',
+                        default=os.environ.get('SELKIES_START_AFTER_DISCONNECT', ''),
+                        help='Program or command to run on server after the last client has disconnected')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug logging')
     args = parser.parse_args()
@@ -515,6 +521,12 @@ def main():
     using_metrics_http = args.enable_metrics_http.lower() == 'true'
     using_webrtc_csv = args.enable_webrtc_statistics.lower() == 'true'
     metrics = Metrics(int(args.metrics_http_port), using_webrtc_csv)
+
+    # Setup commands to run on connect and disconnect
+    if args.start_after_connect != '':
+        os.environ['SELKIES_START_AFTER_CONNECT'] = args.start_after_connect
+    if args.start_after_disconnect != '':
+        os.environ['SELKIES_START_AFTER_DISCONNECT'] = args.start_after_disconnect
 
     # Initialize the signalling client
     using_https = args.enable_https.lower() == 'true'
