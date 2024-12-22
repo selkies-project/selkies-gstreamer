@@ -471,6 +471,9 @@ def main():
     parser.add_argument('--metrics_http_port',
                         default=os.environ.get('SELKIES_METRICS_HTTP_PORT', '8000'),
                         help='Port to start the Prometheus metrics server on')
+    parser.add_argument('--websockets_log_level',
+                        default=os.environ.get('SELKIES_WEBSOCKETS_LOG_LEVEL', "CRITICAL"),
+                        help='By default websockets log level is set to "CRITICAL", allowed values: https://docs.python.org/3/library/logging.html#levels')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug logging')
     args = parser.parse_args()

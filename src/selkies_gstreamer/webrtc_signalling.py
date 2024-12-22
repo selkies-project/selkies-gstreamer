@@ -108,7 +108,7 @@ class WebRTCSignalling:
             
             while True:
                 try:
-                    self.conn = await websockets.connect(self.server, extra_headers=headers, ssl=sslctx)
+                    self.conn = await websockets.connect(self.server, additional_headers=headers, ssl=sslctx)
                     break
                 except ConnectionRefusedError:
                     logger.info("Connecting to signal server...")
