@@ -35,6 +35,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 #include <arpa/inet.h>
 #include <sys/un.h>
 #include <sys/ioctl.h>
+#include <sys/epoll.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
@@ -58,10 +59,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 // Define the function signature for the original open and ioctl syscalls
 typedef int (*open_func_t)(const char *pathname, int flags, ...);
+typedef int (*open64_func_t)(const char *pathname, int flags, ...);
 typedef int (*ioctl_func_t)(int fd, unsigned long request, ...);
+
+static int (*real_epoll_ctl)(int epfd, int op, int fd, struct epoll_event *event) = NULL;
 
 // Function pointers to the original open and ioctl syscalls
 static open_func_t real_open = NULL;
+static open64_func_t real_open64 = NULL;
 static ioctl_func_t real_ioctl = NULL;
 
 // type definition for correction struct
@@ -155,6 +160,41 @@ void init_real_open()
     real_open = (open_func_t)dlsym(RTLD_NEXT, "open");
 }
 
+void init_real_open64()
+{
+    if (real_open64 != NULL)
+        return;
+    real_open64 = (open64_func_t)dlsym(RTLD_NEXT, "open64");
+}
+
+void init_real_epoll_ctl()
+{
+    if (real_epoll_ctl != NULL)
+        return;
+    real_epoll_ctl = dlsym(RTLD_NEXT, "epoll_ctl");
+}
+
+int make_nonblocking(int sockfd)
+{
+    // Get the current file descriptor flags
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1)
+    {
+        interposer_log(LOG_ERROR, "Failed to get current flags on socket fd to make non-blocking");
+        return -1;
+    }
+
+    // Set the non-blocking flag
+    flags |= O_NONBLOCK;
+    if (fcntl(sockfd, F_SETFL, flags) == -1)
+    {
+        interposer_log(LOG_ERROR, "Failed to set flags on socket fd to make non-blocking");
+        return -1;
+    }
+
+    return 0; // Success
+}
+
 int read_config(int fd, js_config_t *js_config)
 {
     ssize_t bytesRead;
@@ -182,44 +222,13 @@ int read_config(int fd, js_config_t *js_config)
     return 0;
 }
 
-// Interposer function for open syscall
-int open(const char *pathname, int flags, ...)
+int interposer_open_socket(js_interposer_t *interposer)
 {
-    init_real_open();
-    if (real_open == NULL)
-    {
-        interposer_log("Error getting original open function: %s", dlerror());
-        return -1;
-    }
-
-    // Find matching device in interposer list
-    js_interposer_t *interposer = NULL;
-    for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
-    {
-        if (strcmp(pathname, interposers[i].open_dev_name) == 0)
-        {
-            interposer = &interposers[i];
-            break;
-        }
-    }
-
-    // Call real open function if interposer was not found.
-    if (interposer == NULL)
-    {
-        va_list args;
-        va_start(args, flags);
-        mode_t mode = va_arg(args, mode_t);
-        va_end(args);
-        return real_open(pathname, flags, mode);
-    }
-
-    interposer_log(LOG_INFO, "Intercepted open call for %s", interposer->open_dev_name);
-
     // Open the existing Unix socket
     interposer->sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (interposer->sockfd == -1)
     {
-        interposer_log(LOG_ERROR, "Failed to create socket file descriptor when opening devcie: %s", interposer->open_dev_name);
+        interposer_log(LOG_ERROR, "Failed to create socket file descriptor when opening device: %s", interposer->open_dev_name);
         return -1;
     }
 
@@ -254,6 +263,110 @@ int open(const char *pathname, int flags, ...)
         close(interposer->sockfd);
         return -1;
     }
+
+    return 0;
+}
+
+// Interpose epoll_ctl to make joystck socket fd non-blocking.
+int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
+{
+    init_real_epoll_ctl();
+
+    if (op == EPOLL_CTL_ADD)
+    {
+        // Find matching device in interposer list
+        for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
+        {
+            if (fd == interposers[i].sockfd)
+            {
+                interposer_log(LOG_INFO, "Socket %s (%d) was added to epoll (%d), set non-blocking", interposers[i].socket_path, fd, epfd);
+                if (make_nonblocking(fd) == -1)
+                {
+                    interposer_log(LOG_ERROR, "Failed to make socket non-blocking");
+                }
+                break;
+            }
+        }
+    }
+
+    return real_epoll_ctl(epfd, op, fd, event);
+}
+
+// Interposer function for open syscall
+int open(const char *pathname, int flags, ...)
+{
+    init_real_open();
+    if (real_open == NULL)
+    {
+        interposer_log(LOG_ERROR, "Error getting original open function: %s", dlerror());
+        return -1;
+    }
+
+    // Find matching device in interposer list
+    js_interposer_t *interposer = NULL;
+    for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
+    {
+        if (strcmp(pathname, interposers[i].open_dev_name) == 0)
+        {
+            interposer = &interposers[i];
+            break;
+        }
+    }
+
+    // Call real open function if interposer was not found.
+    if (interposer == NULL)
+    {
+        va_list args;
+        va_start(args, flags);
+        void *arg = va_arg(args, void *);
+        va_end(args);
+        return real_open(pathname, flags, arg);
+    }
+
+    if (interposer_open_socket(interposer) == -1)
+        return -1;
+
+    interposer_log(LOG_INFO, "Started interposer for 'open' call on %s with fd: %d", interposer->open_dev_name, interposer->sockfd);
+
+    // Return the file descriptor of the unix socket.
+    return interposer->sockfd;
+}
+
+// Interposer function for open64
+int open64(const char *pathname, int flags, ...)
+{
+    init_real_open64();
+    if (real_open64 == NULL)
+    {
+        interposer_log(LOG_ERROR, "Error getting original open64 function: %s", dlerror());
+        return -1;
+    }
+
+    // Find matching device in interposer list
+    js_interposer_t *interposer = NULL;
+    for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
+    {
+        if (strcmp(pathname, interposers[i].open_dev_name) == 0)
+        {
+            interposer = &interposers[i];
+            break;
+        }
+    }
+
+    // Call real open64
+    if (interposer == NULL)
+    {
+        va_list args;
+        va_start(args, flags);
+        void *arg = va_arg(args, void *);
+        va_end(args);
+        return real_open64(pathname, flags, arg);
+    }
+
+    if (interposer_open_socket(interposer) == -1)
+        return -1;
+
+    interposer_log(LOG_INFO, "Started interposer for 'open64' call on %s with fd: %d", interposer->open_dev_name, interposer->sockfd);
 
     // Return the file descriptor of the unix socket.
     return interposer->sockfd;
@@ -305,7 +418,7 @@ int ioctl(int fd, unsigned long request, ...)
     switch (request & 0xFF)
     {
     case 0x01: /* JSIOCGVERSION get driver version */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCGVERSION", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGVERSION(0x%08x) request for: %s", request, interposer->socket_path);
         uint32_t *version = va_arg(args, uint32_t *);
         *version = JS_VERSION;
 
@@ -313,7 +426,7 @@ int ioctl(int fd, unsigned long request, ...)
         return 0; // 0 indicates success
 
     case 0x11: /* JSIOCGAXES get number of axes */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCGAXES", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGAXES(0x%08x) request for: %s", request, interposer->socket_path);
         uint8_t *num_axes = va_arg(args, uint8_t *);
         *num_axes = interposer->js_config.num_axes;
 
@@ -321,7 +434,7 @@ int ioctl(int fd, unsigned long request, ...)
         return 0; // 0 indicates success
 
     case 0x12: /* JSIOCGBUTTONS get number of buttons */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCGBUTTONS", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGBUTTONS(0x%08x) request for: %s", request, interposer->socket_path);
         uint8_t *btn_count = va_arg(args, uint8_t *);
         *btn_count = interposer->js_config.num_btns;
 
@@ -329,22 +442,20 @@ int ioctl(int fd, unsigned long request, ...)
         return 0; // 0 indicates success
 
     case 0x13: /* JSIOCGNAME(len) get identifier string */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCGNAME", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGNAME(0x%08x) request for: %s", request, interposer->socket_path);
         char *name = va_arg(args, char *);
-        size_t *len = va_arg(args, size_t *);
-        strncpy(name, interposer->js_config.name, strlen(interposer->js_config.name));
         name[strlen(interposer->js_config.name)] = '\0';
-
+        strncpy(name, interposer->js_config.name, strlen(interposer->js_config.name));
         va_end(args);
         return 0; // 0 indicates success
 
     case 0x21: /* JSIOCSCORR set correction values */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCSCORR", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSCORR(0x%08x) request for: %s", request, interposer->socket_path);
         va_end(args);
         return 0;
 
     case 0x22: /* JSIOCGCORR get correction values */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCGCORR", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGCORR(0x%08x) request for: %s", request, interposer->socket_path);
         js_corr_t *corr = va_arg(args, js_corr_t *);
         memcpy(corr, &interposer->corr, sizeof(interposer->corr));
 
@@ -352,31 +463,31 @@ int ioctl(int fd, unsigned long request, ...)
         return 0; // 0 indicates success
 
     case 0x31: /*  JSIOCSAXMAP set axis mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCSAXMAP", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSAXMAP(0x%08x) request for: %s", request, interposer->socket_path);
         va_end(args);
         return 0; // 0 indicates success
 
     case 0x32: /* JSIOCGAXMAP get axis mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCGAXMAP", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGAXMAP(0x%08x) request for: %s", request, interposer->socket_path);
         uint8_t *axmap = va_arg(args, uint8_t *);
         memcpy(axmap, interposer->js_config.axes_map, interposer->js_config.num_axes * sizeof(uint8_t));
         va_end(args);
         return 0; // 0 indicates success
 
     case 0x33: /* JSIOCSBTNMAP set button mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCSBTNMAP", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSBTNMAP(0x%08x) request for: %s", request, interposer->socket_path);
         va_end(args);
         return 0; // 0 indicates success
 
     case 0x34: /* JSIOCGBTNMAP get button mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl request %lu -> JSIOCGBTNMAP", request);
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGBTNMAP(0x%08x) request for: %s", request, interposer->socket_path);
         uint16_t *btn_map = va_arg(args, uint16_t *);
         memcpy(btn_map, interposer->js_config.btn_map, interposer->js_config.num_btns * sizeof(uint16_t));
         va_end(args);
         return 0; // 0 indicates success
 
     default:
-        interposer_log(LOG_WARN, "Unhandled Intercepted ioctl request %lu", request);
+        interposer_log(LOG_WARN, "Unhandled Intercepted ioctl request %lu", request, interposer->socket_path);
         void *arg = va_arg(args, void *);
         va_end(args);
         return real_ioctl(fd, request, arg);
