@@ -16,11 +16,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
     Note that some applications list the /dev/input/* directory to discover JS devices, to solve for this, create empty files at the following paths:
         sudo mkdir -pm1777 /dev/input
-        sudo touch /dev/input/{js0,js1,js2,js3}
-        sudo chmod 777 /dev/input/js*
-
-    For SDL2 support, only 1 interposed joystick device is supported at a time and the following env var must be set:
-        export SDL_JOYSTICK_DEVICE=/dev/input/js0
+        sudo touch /dev/input/{js0,js1,js2,js3,event1000,event1001,event1002,event1003}
+        sudo chmod 777 /dev/input/js* /dev/input/event*
 */
 
 #define _GNU_SOURCE // Required for RTLD_NEXT
@@ -47,6 +44,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 // Timeout to wait for unix domain socket to exist and connect.
 #define SOCKET_CONNECT_TIMEOUT_MS 250
 
+// Raw joystick interposer constants.
 #define JS0_DEVICE_PATH "/dev/input/js0"
 #define JS0_SOCKET_PATH "/tmp/selkies_js0.sock"
 #define JS1_DEVICE_PATH "/dev/input/js1"
@@ -57,70 +55,19 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 #define JS3_SOCKET_PATH "/tmp/selkies_js3.sock"
 #define NUM_JS_INTERPOSERS 4
 
-// Define the function signature for the original open and ioctl syscalls
-typedef int (*open_func_t)(const char *pathname, int flags, ...);
-typedef int (*open64_func_t)(const char *pathname, int flags, ...);
-typedef int (*ioctl_func_t)(int fd, unsigned long request, ...);
+// Event type joystick interposer constant.
+#define EV0_DEVICE_PATH "/dev/input/event1000"
+#define EV0_SOCKET_PATH "/tmp/selkies_event1000.sock"
+#define EV1_DEVICE_PATH "/dev/input/event1001"
+#define EV1_SOCKET_PATH "/tmp/selkies_event1001.sock"
+#define EV2_DEVICE_PATH "/dev/input/event1002"
+#define EV2_SOCKET_PATH "/tmp/selkies_event1002.sock"
+#define EV3_DEVICE_PATH "/dev/input/event1003"
+#define EV3_SOCKET_PATH "/tmp/selkies_event1003.sock"
+#define NUM_EV_INTERPOSERS 4
 
-static int (*real_epoll_ctl)(int epfd, int op, int fd, struct epoll_event *event) = NULL;
-
-// Function pointers to the original open and ioctl syscalls
-static open_func_t real_open = NULL;
-static open64_func_t real_open64 = NULL;
-static ioctl_func_t real_ioctl = NULL;
-
-// type definition for correction struct
-typedef struct js_corr js_corr_t;
-
-typedef struct
-{
-    char name[255];        // Name of the controller
-    uint16_t num_btns;     // Number of buttons
-    uint16_t num_axes;     // Number of axes
-    uint16_t btn_map[512]; // Button map
-    uint8_t axes_map[64];  // axes map
-} js_config_t;
-
-// Struct for storing information about each interposed joystick device.
-typedef struct
-{
-    char open_dev_name[255];
-    char socket_path[255];
-    int sockfd;
-    js_corr_t corr;
-    js_config_t js_config;
-} js_interposer_t;
-
-static js_interposer_t interposers[NUM_JS_INTERPOSERS] = {
-    {
-        open_dev_name : JS0_DEVICE_PATH,
-        socket_path : JS0_SOCKET_PATH,
-        sockfd : -1,
-        corr : {},
-        js_config : {},
-    },
-    {
-        open_dev_name : JS1_DEVICE_PATH,
-        socket_path : JS1_SOCKET_PATH,
-        sockfd : -1,
-        corr : {},
-        js_config : {},
-    },
-    {
-        open_dev_name : JS2_DEVICE_PATH,
-        socket_path : JS2_SOCKET_PATH,
-        sockfd : -1,
-        corr : {},
-        js_config : {},
-    },
-    {
-        open_dev_name : JS3_DEVICE_PATH,
-        socket_path : JS3_SOCKET_PATH,
-        sockfd : -1,
-        corr : {},
-        js_config : {},
-    },
-};
+// Macros for working with interposer count and indexing.
+#define NUM_INTERPOSERS() NUM_JS_INTERPOSERS + NUM_EV_INTERPOSERS
 
 static FILE *log_file_fd = NULL;
 void init_log_file()
@@ -146,33 +93,129 @@ static void interposer_log(const char *level, const char *msg, ...)
     va_end(argp);
 }
 
-void init_real_ioctl()
+// Function that takes the address of a function pointer and uses dlsym to load the system function into it
+static void load_real_func(void (**target)(void), const char *name)
 {
-    if (real_ioctl != NULL)
-        return;
-    real_ioctl = (ioctl_func_t)dlsym(RTLD_NEXT, "ioctl");
+    *target = dlsym(RTLD_NEXT, name);
+    if (target == NULL)
+    {
+        interposer_log(LOG_ERROR, "Error getting original '%s' function: %s", name, dlerror());
+    }
 }
 
-void init_real_open()
+// Function pointers to original calls
+static int (*real_open)(const char *pathname, int flags, ...) = NULL;
+static int (*real_open64)(const char *pathname, int flags, ...) = NULL;
+static int (*real_ioctl)(int fd, unsigned long request, ...) = NULL;
+static int (*real_epoll_ctl)(int epfd, int op, int fd, struct epoll_event *event) = NULL;
+
+// Initialization function to load the real functions
+__attribute__((constructor)) void init_interposer()
 {
-    if (real_open != NULL)
-        return;
-    real_open = (open_func_t)dlsym(RTLD_NEXT, "open");
+    load_real_func((void *)&real_open, "open");
+    load_real_func((void *)&real_open64, "open64");
+    load_real_func((void *)&real_ioctl, "ioctl");
+    load_real_func((void *)&real_epoll_ctl, "epoll_ctl");
 }
 
-void init_real_open64()
-{
-    if (real_open64 != NULL)
-        return;
-    real_open64 = (open64_func_t)dlsym(RTLD_NEXT, "open64");
-}
+// Type definition for correction struct
+typedef struct js_corr js_corr_t;
 
-void init_real_epoll_ctl()
+typedef struct
 {
-    if (real_epoll_ctl != NULL)
-        return;
-    real_epoll_ctl = dlsym(RTLD_NEXT, "epoll_ctl");
-}
+    char name[255];        // Name of the controller
+    uint16_t num_btns;     // Number of buttons
+    uint16_t num_axes;     // Number of axes
+    uint16_t btn_map[512]; // Button map
+    uint8_t axes_map[64];  // axes map
+} js_config_t;
+
+// Struct for storing information about each interposed joystick device.
+typedef struct
+{
+    uint8_t type;
+    char open_dev_name[255];
+    char socket_path[255];
+    int sockfd;
+    js_corr_t corr;
+    js_config_t js_config;
+} js_interposer_t;
+
+#define DEV_TYPE_JS 0
+#define DEV_TYPE_EV 1
+
+// Min/max values for ABS axes
+#define ABS_AXIS_MIN -32767
+#define ABS_AXIS_MAX 32767
+#define ABS_HAT_MIN -1
+#define ABS_HAT_MAX 1
+
+static js_interposer_t interposers[NUM_INTERPOSERS()] = {
+    {
+        type : DEV_TYPE_JS,
+        open_dev_name : JS0_DEVICE_PATH,
+        socket_path : JS0_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+    {
+        type : DEV_TYPE_JS,
+        open_dev_name : JS1_DEVICE_PATH,
+        socket_path : JS1_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+    {
+        type : DEV_TYPE_JS,
+        open_dev_name : JS2_DEVICE_PATH,
+        socket_path : JS2_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+    {
+        type : DEV_TYPE_JS,
+        open_dev_name : JS3_DEVICE_PATH,
+        socket_path : JS3_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+    {
+        type : DEV_TYPE_EV,
+        open_dev_name : EV0_DEVICE_PATH,
+        socket_path : EV0_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+    {
+        type : DEV_TYPE_EV,
+        open_dev_name : EV1_DEVICE_PATH,
+        socket_path : EV1_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+    {
+        type : DEV_TYPE_EV,
+        open_dev_name : EV2_DEVICE_PATH,
+        socket_path : EV2_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+    {
+        type : DEV_TYPE_EV,
+        open_dev_name : EV3_DEVICE_PATH,
+        socket_path : EV3_SOCKET_PATH,
+        sockfd : -1,
+        corr : {},
+        js_config : {},
+    },
+};
 
 int make_nonblocking(int sockfd)
 {
@@ -270,12 +313,10 @@ int interposer_open_socket(js_interposer_t *interposer)
 // Interpose epoll_ctl to make joystck socket fd non-blocking.
 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
 {
-    init_real_epoll_ctl();
-
     if (op == EPOLL_CTL_ADD)
     {
         // Find matching device in interposer list
-        for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
+        for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
         {
             if (fd == interposers[i].sockfd)
             {
@@ -295,16 +336,9 @@ int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
 // Interposer function for open syscall
 int open(const char *pathname, int flags, ...)
 {
-    init_real_open();
-    if (real_open == NULL)
-    {
-        interposer_log(LOG_ERROR, "Error getting original open function: %s", dlerror());
-        return -1;
-    }
-
     // Find matching device in interposer list
     js_interposer_t *interposer = NULL;
-    for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
+    for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
     {
         if (strcmp(pathname, interposers[i].open_dev_name) == 0)
         {
@@ -335,16 +369,9 @@ int open(const char *pathname, int flags, ...)
 // Interposer function for open64
 int open64(const char *pathname, int flags, ...)
 {
-    init_real_open64();
-    if (real_open64 == NULL)
-    {
-        interposer_log(LOG_ERROR, "Error getting original open64 function: %s", dlerror());
-        return -1;
-    }
-
     // Find matching device in interposer list
     js_interposer_t *interposer = NULL;
-    for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
+    for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
     {
         if (strcmp(pathname, interposers[i].open_dev_name) == 0)
         {
@@ -372,22 +399,233 @@ int open64(const char *pathname, int flags, ...)
     return interposer->sockfd;
 }
 
-// Interposer function for ioctl syscall on joystick device
-int ioctl(int fd, unsigned long request, ...)
+// Handler for joystick type ioctl calls
+int intercept_js_ioctl(js_interposer_t *interposer, int fd, unsigned long request, ...)
 {
-    init_real_ioctl();
-    if (real_ioctl == NULL)
-    {
-        interposer_log(LOG_ERROR, "Error getting original ioctl function: %s", dlerror());
-        return -1;
-    }
-
     va_list args;
     va_start(args, request);
+    void *arg = va_arg(args, void *);
+    va_end(args);
+
+    // Handle the spoofed behavior for the character device
+    // Cases are the second argument to the _IOR and _IOW macro call found in linux/joystick.h
+    // The type of joystick ioctl is the first byte in the request.
+    switch (_IOC_NR(request))
+    {
+    case 0x01: /* JSIOCGVERSION get driver version */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGVERSION(0x%08x) request for: %s", request, interposer->socket_path);
+        uint32_t *version = (uint32_t *)arg;
+        *version = JS_VERSION;
+        return 0;
+
+    case 0x11: /* JSIOCGAXES get number of axes */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGAXES(0x%08x) request for: %s", request, interposer->socket_path);
+        uint8_t *num_axes = (uint8_t *)arg;
+        *num_axes = interposer->js_config.num_axes;
+        return 0;
+
+    case 0x12: /* JSIOCGBUTTONS get number of buttons */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGBUTTONS(0x%08x) request for: %s", request, interposer->socket_path);
+        uint8_t *btn_count = (uint8_t *)arg;
+        *btn_count = interposer->js_config.num_btns;
+        return 0;
+
+    case 0x13: /* JSIOCGNAME(len) get identifier string */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGNAME(0x%08x) request for: %s", request, interposer->socket_path);
+        char *name = (char *)arg;
+        size_t len = strlen(interposer->js_config.name);
+        name[len] = '\0';
+        strncpy(name, interposer->js_config.name, len);
+        return len;
+
+    case 0x21: /* JSIOCSCORR set correction values */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSCORR(0x%08x) request for: %s", request, interposer->socket_path);
+        return 0;
+
+    case 0x22: /* JSIOCGCORR get correction values */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGCORR(0x%08x) request for: %s", request, interposer->socket_path);
+        js_corr_t *corr = (js_corr_t *)arg;
+        memcpy(corr, &interposer->corr, sizeof(interposer->corr));
+
+        return 0;
+
+    case 0x31: /*  JSIOCSAXMAP set axis mapping */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSAXMAP(0x%08x) request for: %s", request, interposer->socket_path);
+        return 0;
+
+    case 0x32: /* JSIOCGAXMAP get axis mapping */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGAXMAP(0x%08x) request for: %s", request, interposer->socket_path);
+        uint8_t *axmap = (uint8_t *)arg;
+        memcpy(axmap, interposer->js_config.axes_map, interposer->js_config.num_axes * sizeof(uint8_t));
+        return 0;
+
+    case 0x33: /* JSIOCSBTNMAP set button mapping */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSBTNMAP(0x%08x) request for: %s", request, interposer->socket_path);
+        return 0;
+
+    case 0x34: /* JSIOCGBTNMAP get button mapping */
+        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGBTNMAP(0x%08x) request for: %s", request, interposer->socket_path);
+        uint16_t *btn_map = (uint16_t *)arg;
+        memcpy(btn_map, interposer->js_config.btn_map, interposer->js_config.num_btns * sizeof(uint16_t));
+        return 0;
+
+    default:
+        interposer_log(LOG_WARN, "Unhandled 'joystick' ioctl intercept request 0x%08x", request, interposer->socket_path);
+        return real_ioctl(fd, request, arg);
+    }
+
+    // Not a valid ioctl request for this character device emulation
+    return -ENOTTY;
+}
+
+// Handler for event type ioctl calls
+int intercept_ev_ioctl(js_interposer_t *interposer, int fd, unsigned long request, ...)
+{
+    va_list args;
+    va_start(args, request);
+    void *arg = va_arg(args, void *);
+    va_end(args);
+
+    struct input_absinfo *absinfo;
+    int fake_version = 0x010100;
+    char name[256] = "JS Interposer";
+    int len;
+
+    /* The EVIOCGABS(key) is a request to get the calibration values for the ABS type axes.
+     * Each axes returned by the ioctl EVIOCGBIT(EV_ABS) request is evaluated.
+     * since there is no need to emulate calibration values, the target value is zero.
+     */
+    if ((request >= EVIOCGABS(ABS_X) && request <= EVIOCGABS(ABS_MAX)))
+    {
+        // The actual ABS axis is offset by the ioctl request, 0x40.
+        // https://github.com/libsdl-org/SDL/blob/cf249b0cb28336d14bbd6cb0bd4f711f6ad4db87/src/joystick/linux/SDL_sysjoystick.c#L1237
+        uint8_t abs = (request & 0xFF) - 0x40;
+        absinfo = (struct input_absinfo *)arg;
+        absinfo->value = 0;
+        if (request <= EVIOCGABS(ABS_BRAKE))
+        {
+            absinfo->minimum = ABS_AXIS_MIN;
+            absinfo->maximum = ABS_AXIS_MAX;
+        }
+        else if (request >= EVIOCGABS(ABS_HAT0X) && request <= EVIOCGABS(ABS_HAT3Y))
+        {
+            absinfo->minimum = ABS_HAT_MIN;
+            absinfo->maximum = ABS_HAT_MAX;
+        }
+
+        interposer_log(LOG_INFO, "Matched ioctl EVIOCGABS(0x%x)(0x%08x), request for %s", abs, request, interposer->socket_path);
+        return 0;
+    }
+
+    switch (_IOC_NR(request))
+    {
+    case (0x20 + EV_SYN): /* Handle EVIOCGBIT for EV_SYN: sync event */
+        len = _IOC_SIZE(request);
+        memset(arg, 0, len);
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGBIT(EV_SYN, %d)(0x%x), request for %s", len, request, interposer->socket_path);
+        return 0;
+
+    case (0x20 + EV_ABS): /* Handle EVIOCGBIT for EV_ABS: report supported axes. */
+        len = _IOC_SIZE(request);
+        memset(arg, 0, len);
+        // set the bit corresponding to each supported axis.
+        for (size_t i = 0; i < interposer->js_config.num_axes; i++)
+        {
+            int bit = interposer->js_config.axes_map[i];
+            int index = bit / 8;
+            if (index < len)
+            {
+                ((unsigned char *)arg)[index] |= (1 << (bit % 8));
+            }
+        }
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGBIT(EV_ABS, %d)(0x%x), request for %s", len, request, interposer->socket_path);
+
+        return 0;
+
+    case (0x20 + EV_REL): /* Handle EVIOCGBIT for EV_REL: report supported relative events. */
+        len = _IOC_SIZE(request);
+        memset(arg, 0, len);
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGBIT(EV_REL, %d)(0x%x), request for %s", len, request, interposer->socket_path);
+        return 0;
+
+    case (0x20 + EV_KEY): /* Handle EVIOCGBIT for EV_KEY: report supported keys. */
+        len = _IOC_SIZE(request);
+        memset(arg, 0, len);
+        // set the bit corresponding to each supported key.
+        for (size_t i = 0; i < interposer->js_config.num_btns; i++)
+        {
+            int bit = interposer->js_config.btn_map[i];
+            int index = bit / 8;
+            if (index < len)
+            {
+                ((unsigned char *)arg)[index] |= (1 << (bit % 8));
+            }
+        }
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGBIT(EV_KEY, %d)(0x%x), request for %s", len, request, interposer->socket_path);
+        return 0;
+
+    case (0x20 + EV_FF): /* Handle EVIOCGBIT for EV_FF: report supported force feedback. */
+        // TODO: Support force feedback
+        len = _IOC_SIZE(request);
+        memset(arg, 0, len);
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGBIT(EV_FF, %d)(0x%x), request for %s", len, request, interposer->socket_path);
+        return 0;
+
+    case 0x06: /* Handle EVIOCGNAME: Get device name. */
+        len = _IOC_SIZE(request);
+        memcpy(arg, interposer->js_config.name, sizeof(interposer->js_config.name) + 1);
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGNAME(%d)(0x%08x) for %s", len, request, interposer->socket_path);
+        return 0;
+
+    case 0x01: /* Handle EVIOCGVERSION: device version request. */
+        memcpy(arg, &fake_version, sizeof(fake_version));
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGVERSION(0x%08x) for %s", request, interposer->socket_path);
+        return 0;
+
+    case 0x02: /* Handle EVIOCGID: device ID request. */
+        struct input_id *id = (struct input_id *)arg;
+        // Populate the fake input_id for a joystick device
+        id->bustype = BUS_VIRTUAL; // Example bus type (Virtual)
+        id->vendor = 0x045E;       // Fake vendor ID (e.g., Microsoft)
+        id->product = 0x028E;      // Fake product ID (e.g., Xbox Controller)
+        id->version = 0x0114;      // Fake version
+
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGID(0x%08x) for %s", request, interposer->socket_path);
+        return 0;
+
+    case 0x09: /* Handle EVIOCGPROP(len): report device properties */
+        len = _IOC_SIZE(request);
+        memset(arg, 0, len);
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGPROP(%d)(0x%x), request for %s", len, request, interposer->socket_path);
+        return 0;
+
+    case 0x18: /* Handle EVIOCGKEY(len): report state of all buttons */
+        len = _IOC_SIZE(request);
+        memset(arg, 0, len);
+        interposer_log(LOG_INFO, "Intercepted ioctl EVIOCGKEY(%d)(0x%x), request for %s", len, request, interposer->socket_path);
+        return 0;
+
+    case 0x90: /* Handle EVIOCGRAB: grab device for exclusive access */
+        interposer_log(LOG_INFO, "Matched ioctl EVIOCGRAB(0x%08x), request for %s", request, interposer->socket_path);
+        return 0;
+
+    default:
+        interposer_log(LOG_WARN, "Unhandled EV ioctl request (0x%08x) for %s", request, interposer->socket_path);
+        return 0;
+    }
+}
+
+// Interposer function for ioctl syscall
+int ioctl(int fd, unsigned long request, ...)
+{
+    va_list args;
+    va_start(args, request);
+    void *arg = va_arg(args, void *);
+    va_end(args);
 
     // Get interposer for fd
     js_interposer_t *interposer = NULL;
-    for (size_t i = 0; i < NUM_JS_INTERPOSERS; i++)
+    for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
     {
         if (fd == interposers[i].sockfd)
         {
@@ -399,100 +637,19 @@ int ioctl(int fd, unsigned long request, ...)
     if (interposer == NULL)
     {
         // Not an ioctl on an interposed device, return real ioctl() call.
-        void *arg = va_arg(args, void *);
-        va_end(args);
         return real_ioctl(fd, request, arg);
     }
-
-    if (((request >> 8) & 0xFF) != (('j')))
+    else if ((_IOC_TYPE(request) == 'j'))
     {
-        // Not a joystick type ioctl call, return real ioctl() call.
-        void *arg = va_arg(args, void *);
-        va_end(args);
-        return real_ioctl(fd, request, arg);
+        return intercept_js_ioctl(interposer, fd, request, arg);
     }
-
-    // Handle the spoofed behavior for the character device
-    // Cases are the second argument to the _IOR and _IOW macro call found in linux/joystick.h
-    // The type of joystick ioctl is the first byte in the request.
-    switch (request & 0xFF)
+    else if ((_IOC_TYPE(request) == 'E'))
     {
-    case 0x01: /* JSIOCGVERSION get driver version */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGVERSION(0x%08x) request for: %s", request, interposer->socket_path);
-        uint32_t *version = va_arg(args, uint32_t *);
-        *version = JS_VERSION;
-
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x11: /* JSIOCGAXES get number of axes */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGAXES(0x%08x) request for: %s", request, interposer->socket_path);
-        uint8_t *num_axes = va_arg(args, uint8_t *);
-        *num_axes = interposer->js_config.num_axes;
-
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x12: /* JSIOCGBUTTONS get number of buttons */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGBUTTONS(0x%08x) request for: %s", request, interposer->socket_path);
-        uint8_t *btn_count = va_arg(args, uint8_t *);
-        *btn_count = interposer->js_config.num_btns;
-
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x13: /* JSIOCGNAME(len) get identifier string */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGNAME(0x%08x) request for: %s", request, interposer->socket_path);
-        char *name = va_arg(args, char *);
-        name[strlen(interposer->js_config.name)] = '\0';
-        strncpy(name, interposer->js_config.name, strlen(interposer->js_config.name));
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x21: /* JSIOCSCORR set correction values */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSCORR(0x%08x) request for: %s", request, interposer->socket_path);
-        va_end(args);
-        return 0;
-
-    case 0x22: /* JSIOCGCORR get correction values */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGCORR(0x%08x) request for: %s", request, interposer->socket_path);
-        js_corr_t *corr = va_arg(args, js_corr_t *);
-        memcpy(corr, &interposer->corr, sizeof(interposer->corr));
-
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x31: /*  JSIOCSAXMAP set axis mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSAXMAP(0x%08x) request for: %s", request, interposer->socket_path);
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x32: /* JSIOCGAXMAP get axis mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGAXMAP(0x%08x) request for: %s", request, interposer->socket_path);
-        uint8_t *axmap = va_arg(args, uint8_t *);
-        memcpy(axmap, interposer->js_config.axes_map, interposer->js_config.num_axes * sizeof(uint8_t));
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x33: /* JSIOCSBTNMAP set button mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCSBTNMAP(0x%08x) request for: %s", request, interposer->socket_path);
-        va_end(args);
-        return 0; // 0 indicates success
-
-    case 0x34: /* JSIOCGBTNMAP get button mapping */
-        interposer_log(LOG_INFO, "Intercepted ioctl JSIOCGBTNMAP(0x%08x) request for: %s", request, interposer->socket_path);
-        uint16_t *btn_map = va_arg(args, uint16_t *);
-        memcpy(btn_map, interposer->js_config.btn_map, interposer->js_config.num_btns * sizeof(uint16_t));
-        va_end(args);
-        return 0; // 0 indicates success
-
-    default:
-        interposer_log(LOG_WARN, "Unhandled Intercepted ioctl request %lu", request, interposer->socket_path);
-        void *arg = va_arg(args, void *);
-        va_end(args);
+        return intercept_ev_ioctl(interposer, fd, request, arg);
+    }
+    else
+    {
+        interposer_log(LOG_WARN, "No ioctl interceptor for request 0x%08x on %s", request, interposer->socket_path);
         return real_ioctl(fd, request, arg);
     }
-
-    // Handle other ioctl requests as needed
-    return -ENOTTY; // Not a valid ioctl request for this character device emulation
 }

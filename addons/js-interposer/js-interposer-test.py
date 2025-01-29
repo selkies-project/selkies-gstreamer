@@ -6,10 +6,22 @@
 
 # import ctypes
 import os
+import sys
 import struct
 import time
 import asyncio
 import socket
+
+DEFAULT_SOCKET_PATH = "/tmp/selkies_js0.sock"
+
+# Event types
+EV_SYN = 0x00
+EV_KEY = 0x01
+EV_REL = 0x02
+EV_ABS = 0x03
+
+# Sync events
+SYN_REPORT = 0
 
 # Types from https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/input-event-codes.h#n380
 BTN_MISC = 0x100
@@ -97,8 +109,6 @@ ABS_TOOL_WIDTH = 0x1c
 ABS_VOLUME = 0x20
 ABS_PROFILE = 0x21
 
-SOCKET_PATH = "/tmp/selkies_js0.sock"
-
 # From /usr/include/linux/joystick.h
 JS_EVENT_BUTTON = 0x01
 JS_EVENT_AXIS = 0x02
@@ -147,7 +157,7 @@ XPAD_CONFIG = {
 }
 
 
-def get_btn_event(btn_num, btn_val):
+def get_js_btn_event(btn_num, btn_val):
     ts = int((time.time() * 1000) % 1000000000)
 
     # see js_event struct definition above.
@@ -160,8 +170,26 @@ def get_btn_event(btn_num, btn_val):
 
     return event
 
+def get_ev_btn_event(btn_num, btn_val):
+    now = time.time()
+    ts_sec = int(now)
+    ts_usec = int((now *1e6) % 1e6)
 
-def get_axis_event(axis_num, axis_val):
+    ev_btn = XPAD_CONFIG["btn_map"][btn_num]
+
+    # timestamp_sec, timestamp_usec, type, code, value
+    struct_format = 'llHHIllHHI'
+    event = struct.pack(struct_format,
+        ts_sec, ts_usec, EV_KEY, ev_btn, btn_val,
+        ts_sec, ts_usec, EV_SYN, SYN_REPORT, 0
+    )
+
+    # debug
+    print(struct.unpack(struct_format, event))
+
+    return event
+
+def get_js_axis_event(axis_num, axis_val):
     ts = int((time.time() * 1000) % 1000000000)
 
     # see js_event struct definition above.
@@ -174,6 +202,22 @@ def get_axis_event(axis_num, axis_val):
 
     return event
 
+def get_ev_axis_event(axis_num, axis_val):
+    now = time.time()
+    ts_sec = int(now)
+    ts_usec = int((now *1e6) % 1e6)
+
+    # evdev expects ev key codes, not axis numbers
+    ev_axis = XPAD_CONFIG["axes_map"][axis_num]
+
+    # timestamp_sec, timestamp_usec, type, code, value
+    struct_format = 'llHHillHHi'
+    event = struct.pack(struct_format,
+        ts_sec, ts_usec, EV_ABS, ev_axis, axis_val,
+        ts_sec, ts_usec, EV_SYN, SYN_REPORT, 0
+    )
+
+    return event
 
 def make_config():
     cfg = XPAD_CONFIG
@@ -197,11 +241,21 @@ def make_config():
                        )
     return data
 
+def get_axis_cylon(curr, minval, maxval, step):
+    new_step = step
+    if curr + step > maxval or curr + step < minval:
+        new_step = step * -1
+    return new_step, curr + new_step
 
-async def send_events():
+async def send_events(ev_type="JS"):
     loop = asyncio.get_event_loop()
     btn_num = 0
     btn_val = 0
+    axis_num = 0
+    axis_val = 0
+    axis_step = 4000
+    hat_val = 0
+    hat_step = 1
     while True:
         if len(clients) < 1:
             await asyncio.sleep(0.1)
@@ -211,8 +265,29 @@ async def send_events():
         for fd in clients:
             try:
                 client = clients[fd]
-                print("Sending event to client: %d" % fd)
+
+                if ev_type == "JS":
+                    get_btn_event = get_js_btn_event
+                    get_axis_event = get_js_axis_event
+                elif ev_type == "EV":
+                    get_btn_event = get_ev_btn_event
+                    get_axis_event = get_ev_axis_event
+                else:
+                    print(f"ERROR: unsupported ev_type: '{ev_type}'")
+
+                print(f"Sending button {btn_num} value={btn_val} event to client: {fd}")
                 await loop.sock_sendall(client, get_btn_event(btn_num, btn_val))
+
+                hat_step, hat_val = get_axis_cylon(hat_val, -1, 1, hat_step)
+                axis_step, axis_val = get_axis_cylon(axis_val, -32767, 32768, axis_step)
+                for axis_num in range(len(XPAD_CONFIG["axes_map"])):
+                    if XPAD_CONFIG["axes_map"][axis_num] in [ABS_HAT0X, ABS_HAT0Y]:
+                        print(f"Sending hat axis {axis_num} value={hat_val} event to client: {fd}")
+                        await loop.sock_sendall(client, get_axis_event(axis_num, hat_val))
+                    else:
+                        print(f"Sending axis {axis_num} value={axis_val} event to client: {fd}")
+                        await loop.sock_sendall(client, get_axis_event(axis_num, axis_val))
+
             except BrokenPipeError:
                 print("Client %d disconnected" % fd)
                 closed_clients.append(fd)
@@ -225,21 +300,24 @@ async def send_events():
         btn_val = 0 if btn_val == 1 else 1
 
         if btn_val == 1:
-            btn_num = (btn_num + 1) % 11
+            btn_num = (btn_num + 1) % len(XPAD_CONFIG["btn_map"])
 
 
-async def run_server():
+async def run_server(socket_path):
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    server.bind(SOCKET_PATH)
+    server.bind(socket_path)
     server.listen(1)
     server.setblocking(False)
 
     loop = asyncio.get_event_loop()
 
-    print('Listening for connections on %s' % SOCKET_PATH)
+    print('Listening for connections on %s' % socket_path)
 
     # Create task that sends events to all connected clients.
-    loop.create_task(send_events())
+    event_type = "JS"
+    if "event" in socket_path:
+        event_type = "EV"
+    loop.create_task(send_events(event_type))
 
     try:
         while True:
@@ -257,11 +335,20 @@ async def run_server():
         server.close()
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "-h":
+        print(f"USAGE: {sys.argv[0]} [<socket path|{DEFAULT_SOCKET_PATH}>]")
+        sys.exit(-1)
+
+    if len(sys.argv) > 1:
+        socket_path = sys.argv[1]
+    else:
+        socket_path = DEFAULT_SOCKET_PATH
+
     # remove the socket file if it already exists
     try:
-        os.unlink(SOCKET_PATH)
+        os.unlink(socket_path)
     except OSError:
-        if os.path.exists(SOCKET_PATH):
+        if os.path.exists(socket_path):
             raise
 
-    asyncio.run(run_server())
+    asyncio.run(run_server(socket_path))
