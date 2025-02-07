@@ -92,6 +92,7 @@ class WebRTCInput:
 
         # Map of gamepad numbers to socket paths
         self.js_socket_path_map = {i: os.path.join(js_socket_path, "selkies_js%d.sock" % i) for i in range(4)}
+        self.ev_socket_path_map = {i: os.path.join(js_socket_path, "selkies_event%d.sock" % (1000 + i)) for i in range(4)}
 
         # Map of gamepad number to SelkiesGamepad objects
         self.js_map = {}
@@ -172,16 +173,20 @@ class WebRTCInput:
 
         logger.info("creating selkies gamepad for js%d, name: '%s', buttons: %d, axes: %d" % (js_num, name, num_btns, num_axes))
 
-        socket_path = self.js_socket_path_map.get(js_num, None)
-        if socket_path is None:
+        js_socket_path = self.js_socket_path_map.get(js_num, None)
+        if js_socket_path is None:
             logger.error("failed to connect js%d because socket_path was not found" % js_num)
             return
 
-        # Create the gamepad and button config.
-        js = SelkiesGamepad(socket_path, self.loop)
-        js.set_config(name, num_btns, num_axes)
+        ev_socket_path = self.ev_socket_path_map.get(js_num, None)
+        if ev_socket_path is None:
+            logger.error("failed to connect EV joystick %d because socket_path was not found" % js_num)
+            return
 
-        asyncio.ensure_future(js.run_server(), loop=self.loop)
+        # Create the gamepad and button config.
+        js = SelkiesGamepad(js_socket_path, ev_socket_path, self.loop)
+        js.set_config(name, num_btns, num_axes)
+        js.run_server()
 
         self.js_map[js_num] = js
 

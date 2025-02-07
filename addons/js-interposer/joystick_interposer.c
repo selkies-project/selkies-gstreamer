@@ -14,7 +14,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     The ioctl() SYSCALL is interposed to fake the behavior of a input event character device.
     These ioctl requests were mostly reverse engineered from the joystick.h source and using the jstest command to test.
 
-    Note that some applications list the /dev/input/* directory to discover JS devices, to solve for this, create empty files at the following paths:
+    Note that some applications list the /dev/input/ directory to discover JS devices, to solve for this, create empty files at the following paths:
         sudo mkdir -pm1777 /dev/input
         sudo touch /dev/input/{js0,js1,js2,js3,event1000,event1001,event1002,event1003}
         sudo chmod 777 /dev/input/js* /dev/input/event*
@@ -487,8 +487,8 @@ int intercept_ev_ioctl(js_interposer_t *interposer, int fd, unsigned long reques
     va_end(args);
 
     struct input_absinfo *absinfo;
+    struct input_id *id;
     int fake_version = 0x010100;
-    char name[256] = "JS Interposer";
     int len;
 
     /* The EVIOCGABS(key) is a request to get the calibration values for the ABS type axes.
@@ -583,7 +583,7 @@ int intercept_ev_ioctl(js_interposer_t *interposer, int fd, unsigned long reques
         return 0;
 
     case 0x02: /* Handle EVIOCGID: device ID request. */
-        struct input_id *id = (struct input_id *)arg;
+        id = (struct input_id *)arg;
         // Populate the fake input_id for a joystick device
         id->bustype = BUS_VIRTUAL; // Example bus type (Virtual)
         id->vendor = 0x045E;       // Fake vendor ID (e.g., Microsoft)

@@ -7,10 +7,10 @@ deps:
 	@sudo apt-get install -y build-essential evtest strace joystick libsdl2-dev gcc-multilib libevdev-dev
 
 build:
-	gcc -shared -fPIC -o selkies_joystick_interposer.so joystick_interposer.c -ldl
+	gcc -shared -fPIC -o selkies_joystick_interposer.so joystick_interposer.c -ldl -Wall
 
 build32:
-	gcc -m32 -shared -fPIC -o selkies_joystick_interposer_i386.so joystick_interposer.c -ldl
+	gcc -m32 -shared -fPIC -o selkies_joystick_interposer_i386.so joystick_interposer.c -ldl -Wall
 
 install: build
 	mkdir -p $(PREFIX)/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')
