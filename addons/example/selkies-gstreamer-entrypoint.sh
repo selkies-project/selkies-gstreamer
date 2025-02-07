@@ -12,7 +12,6 @@ until [ -d "${XDG_RUNTIME_DIR}" ]; do sleep 0.5; done
 # Configure joystick interposer
 export SELKIES_INTERPOSER='/usr/$LIB/selkies_joystick_interposer.so'
 export LD_PRELOAD="${SELKIES_INTERPOSER}${LD_PRELOAD:+:${LD_PRELOAD}}"
-export SDL_JOYSTICK_DEVICE=/dev/input/js0
 
 # Set default display
 export DISPLAY="${DISPLAY:-:20}"

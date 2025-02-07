@@ -44,7 +44,6 @@ sudo chmod 777 /dev/input/js*
 if [ -e "/usr/lib/x86_64-linux-gnu/selkies_joystick_interposer.so" ]; then
     export SELKIES_INTERPOSER='/usr/$LIB/selkies_joystick_interposer.so'
     export LD_PRELOAD="${SELKIES_INTERPOSER}${LD_PRELOAD:+:${LD_PRELOAD}}"
-    export SDL_JOYSTICK_DEVICE=/dev/input/js0
 fi
 
 # Start desktop environment

@@ -186,7 +186,8 @@ The following paths are required to exist for the Joystick Interposer to pass th
 ```bash
 sudo mkdir -pm1777 /dev/input
 sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
-sudo chmod 777 /dev/input/js*
+sudo touch /dev/input/event1000 /dev/input/event1001 /dev/input/event1002 /dev/input/event1003
+sudo chmod 777 /dev/input/js* /dev/input/event*
 ```
 
 The following environment variables are required to be set in the environment each application is being run in to receive the joystick/gamepad input.
@@ -194,7 +195,6 @@ The following environment variables are required to be set in the environment ea
 ```bash
 export SELKIES_INTERPOSER='/usr/$LIB/selkies_joystick_interposer.so'
 export LD_PRELOAD="${SELKIES_INTERPOSER}${LD_PRELOAD:+:${LD_PRELOAD}}"
-export SDL_JOYSTICK_DEVICE=/dev/input/js0
 ```
 
 You can replace `/usr/$LIB/selkies_joystick_interposer.so` with any non-root path of your choice if using the `.tar.gz` tarball.
