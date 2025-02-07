@@ -57,11 +57,11 @@ jobs:
     strategy:
       matrix:
         include:
-        - name: conda
-          build_args: |
-            PACKAGE_VERSION=0.0.0.dev0
-            PKG_VERSION=0.0.0
-          context: addons/conda
+        # - name: conda
+        #   build_args: |
+        #     PACKAGE_VERSION=0.0.0.dev0
+        #     PKG_VERSION=0.0.0
+        #   context: addons/conda
 
         - name: coturn
           context: addons/coturn
@@ -237,9 +237,9 @@ jobs:
     strategy:
       matrix:
         include:
-        - name: conda
-          source: /opt/selkies-gstreamer-conda.tar.gz
-          target: selkies-gstreamer-portable.tar.gz
+        # - name: conda
+        #   source: /opt/selkies-gstreamer-conda.tar.gz
+        #   target: selkies-gstreamer-portable.tar.gz
 
         - name: gst-web
           source: /opt/gst-web.tar.gz
