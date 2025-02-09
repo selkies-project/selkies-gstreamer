@@ -94,13 +94,16 @@ static void interposer_log(const char *level, const char *msg, ...)
 }
 
 // Function that takes the address of a function pointer and uses dlsym to load the system function into it
-static void load_real_func(void (**target)(void), const char *name)
+static int load_real_func(void (**target)(void), const char *name)
 {
+    if (*target != NULL) return 0;
     *target = dlsym(RTLD_NEXT, name);
     if (target == NULL)
     {
         interposer_log(LOG_ERROR, "Error getting original '%s' function: %s", name, dlerror());
+        return -1;
     }
+    return 0;
 }
 
 // Function pointers to original calls
@@ -313,6 +316,7 @@ int interposer_open_socket(js_interposer_t *interposer)
 // Interpose epoll_ctl to make joystck socket fd non-blocking.
 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
 {
+    if (load_real_func((void *)&real_epoll_ctl, "epoll_ctl") < 0) return -1;
     if (op == EPOLL_CTL_ADD)
     {
         // Find matching device in interposer list
@@ -336,6 +340,7 @@ int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
 // Interposer function for open syscall
 int open(const char *pathname, int flags, ...)
 {
+    if (load_real_func((void *)&real_open, "open") < 0) return -1;
     // Find matching device in interposer list
     js_interposer_t *interposer = NULL;
     for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
@@ -369,6 +374,7 @@ int open(const char *pathname, int flags, ...)
 // Interposer function for open64
 int open64(const char *pathname, int flags, ...)
 {
+    if (load_real_func((void *)&real_open64, "open64") < 0) return -1;
     // Find matching device in interposer list
     js_interposer_t *interposer = NULL;
     for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
@@ -618,6 +624,7 @@ int intercept_ev_ioctl(js_interposer_t *interposer, int fd, unsigned long reques
 // Interposer function for ioctl syscall
 int ioctl(int fd, unsigned long request, ...)
 {
+    if (load_real_func((void *)&real_ioctl, "ioctl") < 0) return -1;
     va_list args;
     va_start(args, request);
     void *arg = va_arg(args, void *);

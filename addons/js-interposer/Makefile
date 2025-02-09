@@ -41,3 +41,6 @@ sdltest: build fake-devices
 
 winetest: build build32 fake-devices
 	LD_PRELOAD=$(PWD)/selkies_joystick_interposer.so wine control
+
+xvfbtest: build
+	LD_PRELOAD=$(PWD)/selkies_joystick_interposer.so Xvfb
