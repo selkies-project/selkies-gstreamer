@@ -260,6 +260,26 @@ def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp
         raise Exception("data from REST API service was empty")
     return parse_rtc_config(data)
 
+def fetch_cloudflare_turn(turn_token_id, api_token, ttl=86400):
+    # Obtain TURN credentials from Cloudflare Calls API.
+    # https://developers.cloudflare.com/calls/turn/generate-credentials/
+    auth_headers = {
+        "authorization": f"Bearer {api_token}",
+        "content-type": "application/json"
+    }
+    uri = f"https://rtc.live.cloudflare.com/v1/turn/keys/{turn_token_id}/credentials/generate"
+    data = {
+        "ttl": ttl
+    }
+    parsed_uri = urllib.parse.urlparse(uri)
+    conn = http.client.HTTPConnection(parsed_uri.netloc)
+    conn.request("POST", parsed_uri.path, json.dumps(data), headers=auth_headers)
+    resp = conn.getresponse()
+    if resp.status < 400:
+        return json.load(resp)
+    else:
+        raise Exception(f"could not obtain Cloudflare TURN credentials, status was: {resp.status}")
+
 def wait_for_app_ready(ready_file, app_wait_ready = False):
     """Wait for streaming app ready signal.
 
@@ -402,6 +422,18 @@ def main():
                         default=os.environ.get(
                             'SELKIES_STUN_PORT', '19302'),
                         help='STUN port for NAT hole punching with WebRTC, change to your internal STUN/TURN server for local networks without internet, defaults to "19302"')
+    parser.add_argument('--enable_cloudflare_turn',
+                        default=os.environ.get(
+                            'SELKIES_ENABLE_CLOUDFLARE_TURN', 'false'),
+                        help='Enable Cloudflare TURN service, requires SELKIES_CLOUDFLARE_TURN_TOKEN_ID, and SELKIES_CLOUDFLARE_TURN_API_TOKEN')
+    parser.add_argument('--cloudflare_turn_token_id',
+                        default=os.environ.get(
+                            'SELKIES_CLOUDFLARE_TURN_TOKEN_ID', ''),
+                        help='The Cloudflare TURN App token ID.')
+    parser.add_argument('--cloudflare_turn_api_token',
+                        default=os.environ.get(
+                            'SELKIES_CLOUDFLARE_TURN_API_TOKEN', ''),
+                        help='The Cloudflare TURN API token.')
     parser.add_argument('--app_wait_ready',
                         default=os.environ.get('SELKIES_APP_WAIT_READY', 'false'),
                         help='Waits for --app_ready_file to exist before starting stream if set to "true"')
@@ -569,7 +601,19 @@ def main():
     using_turn_rest = False
     using_hmac_turn = False
     using_rtc_config_json = False
-    if os.path.exists(args.rtc_config_json):
+    if args.enable_cloudflare_turn == 'true':
+        if args.cloudflare_turn_token_id and args.cloudflare_turn_api_token:
+            try:
+                json_config = fetch_cloudflare_turn(args.cloudflare_turn_token_id, args.cloudflare_turn_api_token)
+                logger.info(f"Got Cloudflare TURN config: {json_config}")
+                stun_servers, turn_servers, rtc_config = parse_rtc_config(json.dumps({
+                    "iceServers": [json_config["iceServers"]]
+                }))
+            except Exception as e:
+                logger.warning(f"failed to fetch TURN config from Cloudflare: {e}")
+        else:
+            logger.error("missing cloudflare TURN Token ID and TURN API token")
+    elif os.path.exists(args.rtc_config_json):
         logger.warning("using JSON file from argument for RTC config, overrides all other STUN/TURN configuration")
         with open(args.rtc_config_json, 'r') as f:
             stun_servers, turn_servers, rtc_config = parse_rtc_config(f.read())
