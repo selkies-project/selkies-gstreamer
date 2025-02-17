@@ -111,6 +111,7 @@ static int (*real_open)(const char *pathname, int flags, ...) = NULL;
 static int (*real_open64)(const char *pathname, int flags, ...) = NULL;
 static int (*real_ioctl)(int fd, unsigned long request, ...) = NULL;
 static int (*real_epoll_ctl)(int epfd, int op, int fd, struct epoll_event *event) = NULL;
+static int (*real_close)(int fd) = NULL;
 
 // Initialization function to load the real functions
 __attribute__((constructor)) void init_interposer()
@@ -119,6 +120,7 @@ __attribute__((constructor)) void init_interposer()
     load_real_func((void *)&real_open64, "open64");
     load_real_func((void *)&real_ioctl, "ioctl");
     load_real_func((void *)&real_epoll_ctl, "epoll_ctl");
+    load_real_func((void *)&real_close, "close");
 }
 
 // Type definition for correction struct
@@ -403,6 +405,31 @@ int open64(const char *pathname, int flags, ...)
 
     // Return the file descriptor of the unix socket.
     return interposer->sockfd;
+}
+
+// Interposer function for close
+int close( int fd )
+{
+    if (load_real_func((void *)&real_close, "close") < 0) return -1;
+    // Get interposer for fd
+    js_interposer_t *interposer = NULL;
+    for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
+    {
+        if (fd == interposers[i].sockfd)
+        {
+            interposer = &interposers[i];
+            break;
+        }
+    }
+
+    // Clear the interposer.
+    if (interposer != NULL)
+    {
+        interposer_log(LOG_INFO, "Saw 'close' for socket %s with fd: %d, stopping interposer", interposer->socket_path, interposer->sockfd);
+        interposer->sockfd = -1;
+    }
+
+    return real_close(fd);
 }
 
 // Handler for joystick type ioctl calls

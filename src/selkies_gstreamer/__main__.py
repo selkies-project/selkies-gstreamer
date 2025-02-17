@@ -881,7 +881,6 @@ def main():
         asyncio.ensure_future(server.run(), loop=loop)
         if using_metrics_http:
             metrics.start_http()
-        loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
         loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
         loop.run_in_executor(None, lambda: gpu_mon.start(gpu_id))
@@ -895,7 +894,7 @@ def main():
                 metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
-
+            loop.run_until_complete(webrtc_input.connect())
             loop.run_until_complete(signalling.connect())
             loop.run_until_complete(audio_signalling.connect())
 

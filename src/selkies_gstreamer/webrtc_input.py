@@ -166,34 +166,37 @@ class WebRTCInput:
             self.uinput_mouse_socket.sendto(
                 data, self.uinput_mouse_socket_path)
 
-    def __js_connect(self, js_num, name, num_btns, num_axes):
+    def __js_connect(self):
         """Connect virtual joystick using Selkies Joystick Interposer
         """
         assert self.loop is not None
 
-        logger.info("creating selkies gamepad for js%d, name: '%s', buttons: %d, axes: %d" % (js_num, name, num_btns, num_axes))
+        for js_index in range(4):
+            logger.info("creating selkies gamepad for js%d" % js_index)
 
-        js_socket_path = self.js_socket_path_map.get(js_num, None)
-        if js_socket_path is None:
-            logger.error("failed to connect js%d because socket_path was not found" % js_num)
-            return
+            js_socket_path = self.js_socket_path_map.get(js_index, None)
+            if js_socket_path is None:
+                logger.error("failed to connect js%d because socket_path was not found" % js_index)
+                return
 
-        ev_socket_path = self.ev_socket_path_map.get(js_num, None)
-        if ev_socket_path is None:
-            logger.error("failed to connect EV joystick %d because socket_path was not found" % js_num)
-            return
+            ev_socket_path = self.ev_socket_path_map.get(js_index, None)
+            if ev_socket_path is None:
+                logger.error("failed to connect EV joystick %d because socket_path was not found" % js_index)
+                return
 
-        # Create the gamepad and button config.
-        js = SelkiesGamepad(js_socket_path, ev_socket_path, self.loop)
-        js.set_config(name, num_btns, num_axes)
-        js.run_server()
+            # Create the gamepad and button config.
+            js = SelkiesGamepad(js_index, js_socket_path, ev_socket_path, self.loop)
+            js.run_server()
 
-        self.js_map[js_num] = js
+            logger.info("started gamepad %d" % js_index)
+
+            self.js_map[js_index] = js
 
     def __js_disconnect(self, js_num=None):
         if js_num is None:
             # stop all gamepads.
-            for js in self.js_map.values():
+            for js_num, js in self.js_map.items():
+                logger.info("stopping gamepad %d" % js_num)
                 js.stop_server()
             self.js_map = {}
             return
@@ -205,6 +208,7 @@ class WebRTCInput:
             del self.js_map[js_num]
 
     def __js_emit_btn(self, js_num, btn_num, btn_val):
+        logger.info(f"sending js{js_num} button {btn_num} with value {btn_val}, map: {self.js_map}")
         js = self.js_map.get(js_num, None)
         if js is None:
             logger.error("cannot send button because js%d is not connected" % js_num)
@@ -232,8 +236,10 @@ class WebRTCInput:
 
         # Clear any stuck modifier keys
         self.reset_keyboard()
-
+        logger.info("Connecting mouse")
         self.__mouse_connect()
+        logger.info("Connecting joysticks")
+        self.__js_connect()
 
     def disconnect(self):
         self.__js_disconnect()
@@ -639,7 +645,7 @@ class WebRTCInput:
                 name = base64.b64decode(toks[3]).decode()[:255]
                 num_axes = int(toks[4])
                 num_btns = int(toks[5])
-                self.__js_connect(js_num, name, num_btns, num_axes)
+                logger.info(f"joystick {js_num}: '{name}' connected with {num_axes} axes and {num_btns} buttons")
             elif toks[1] == 'd':
                 js_num = int(toks[2])
                 self.__js_disconnect(js_num)
