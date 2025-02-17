@@ -12,6 +12,11 @@ build:
 build32:
 	gcc -m32 -shared -fPIC -o selkies_joystick_interposer_i386.so joystick_interposer.c -ldl -Wall
 
+build-docker-ubuntu-%:
+	docker build --platform=linux/amd64 --build-arg=PKG_NAME=selkies-js-interposer --build-arg PKG_VERSION=0.0.0 --build-arg DISTRIB_IMAGE=ubuntu --build-arg DISTRIB_RELEASE=$* -f Dockerfile.debpkg -t selkies-js-interposer:ubuntu-$* .
+
+build-docker: build-docker-ubuntu-24.04 build-docker-ubuntu-22.04 build-docker-ubuntu-20.04
+
 install: build
 	mkdir -p $(PREFIX)/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')
 	cp *.so $(PREFIX)/lib/$(gcc -print-multiarch | sed -e 's/i.*86/i386/')/
