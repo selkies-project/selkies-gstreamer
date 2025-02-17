@@ -208,7 +208,6 @@ class WebRTCInput:
             del self.js_map[js_num]
 
     def __js_emit_btn(self, js_num, btn_num, btn_val):
-        logger.info(f"sending js{js_num} button {btn_num} with value {btn_val}, map: {self.js_map}")
         js = self.js_map.get(js_num, None)
         if js is None:
             logger.error("cannot send button because js%d is not connected" % js_num)
@@ -449,6 +448,8 @@ class WebRTCInput:
         self.clipboard_running = False
 
     def start_cursor_monitor(self):
+        while self.xdisplay is None:
+            time.sleep(0.5)
         if not self.xdisplay.has_extension('XFIXES'):
             if self.xdisplay.query_extension('XFIXES') is None:
                 logger.error(
@@ -648,7 +649,7 @@ class WebRTCInput:
                 logger.info(f"joystick {js_num}: '{name}' connected with {num_axes} axes and {num_btns} buttons")
             elif toks[1] == 'd':
                 js_num = int(toks[2])
-                self.__js_disconnect(js_num)
+                logger.info(f"joystick {js_num}: disconnected")
             elif toks[1] == 'b':
                 js_num = int(toks[2])
                 btn_num = int(toks[3])
