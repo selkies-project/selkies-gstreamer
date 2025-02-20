@@ -57,3 +57,77 @@ This creates a new unix domain socket at `/tmp/selkies_js0.sock` and simulates j
 ```bash
 LD_PRELOAD='/usr/$LIB/selkies_joystick_interposer.so' jstest /dev/input/js0
 ```
+
+# Unix Domain Socket API
+
+The interposer uses a Unix Domain Socket to pass virtual Joystick events from the Socket Server to the Linux application. The Socket Server is responsible for creating the Unix Domain Socket and listening for connections to `/tmp/selkies_js*.sock` or `/tmp/selkies_event*.sock` for raw joystick or evdev joystick devices respectively.
+Note that both types of joysticks are supported and they have different message structures, so separate sockets are required.
+
+When an application attempts to open a joystick device at either `/dev/input/js*` or `/dev/input/event*` the interposer intercepts the `open()` syscall and instead opens the Unix Domain Socket paired with the device and returns the file descriptor for the socket to the application.
+
+When the Socket Server receives a new socket connection it must send the joystick configuration to the interposer before writing any other data. After that, any data written to the socket is read directly by the application that opened the joystick device.
+
+Note that the Socket Server serving the Unix Domain Socket must be started first, before any applications try to use the joystick device.
+
+```mermaid
+sequenceDiagram
+    Socket Server->>Unix Domain Socket: bind("/tmp/selkies_js0.sock")<br/> and listen()
+    Linux Application->>LD_PRELOAD Interposer: open("/dev/input/js0")
+    LD_PRELOAD Interposer->>Unix Domain Socket: open("/tmp/selkies_js0.sock")
+    Socket Server->>Unix Domain Socket: write(Joystick Config)
+    Unix Domain Socket->>LD_PRELOAD Interposer: read(Joystick Config)
+    LD_PRELOAD Interposer->>Linux Application: Unix Domain Socket File Descriptor
+    Linux Application->>LD_PRELOAD Interposer: ioctl() calls to enumerate device
+    LD_PRELOAD Interposer->>Linux Application: ioctl() responses per Joystick Config
+    Linux Application->>Unix Domain Socket: read(js_event)
+    Socket Server->>Unix Domain Socket: write(js_event)
+    Unix Domain Socket->>Linux Application: js_event
+    Linux Application->>LD_PRELOAD Interposer: close(fd)
+    LD_PRELOAD Interposer->>LD_PRELOAD Interposer: reset socket fd
+    LD_PRELOAD Interposer->>Socket Server: close(fd)
+```
+
+## Joystick Configuration Message
+
+The Joystick Config data structure that the Socket Server sends to the Interposer on first connect is defined below.
+
+```C
+typedef struct
+{
+    char name[255];        // Name of the controller
+    uint16_t num_btns;     // Number of buttons
+    uint16_t num_axes;     // Number of axes
+    uint16_t btn_map[512]; // Button map
+    uint8_t axes_map[64];  // axes map
+} js_config_t;
+```
+
+## Socket `js_event` Message
+
+After the configuration is written to the `/tmp/selkies_js*` socket, standard linux `js_event` data structures should be written to the socket.
+These structures are defined here: https://www.kernel.org/doc/Documentation/input/joystick-api.txt
+
+```C
+struct js_event {
+  __u32 time;     /* event timestamp in milliseconds */
+  __s16 value;    /* value */
+  __u8 type;      /* event type */
+  __u8 number;    /* axis/button number */
+};
+```
+
+## Socket `input_event` Message
+
+After the configuration is written to the `/tmp/selkies_event*.sock` socket, standard linux `input_event` data structures should be written to the socket.
+
+The `input_event` structures are defined here:
+https://www.kernel.org/doc/Documentation/input/joystick-api.txt
+
+```C
+struct input_event {
+  struct timeval time;
+  unsigned short type;
+  unsigned short code;
+  unsigned int value;
+};
+```
