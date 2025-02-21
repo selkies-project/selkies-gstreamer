@@ -166,7 +166,7 @@ class WebRTCInput:
             self.uinput_mouse_socket.sendto(
                 data, self.uinput_mouse_socket_path)
 
-    def __js_connect(self):
+    def start_joystick(self):
         """Connect virtual joystick using Selkies Joystick Interposer
         """
         assert self.loop is not None
@@ -192,7 +192,7 @@ class WebRTCInput:
 
             self.js_map[js_index] = js
 
-    def __js_disconnect(self, js_num=None):
+    def stop_joystick(self, js_num=None):
         if js_num is None:
             # stop all gamepads.
             for js_num, js in self.js_map.items():
@@ -238,10 +238,8 @@ class WebRTCInput:
         logger.info("Connecting mouse")
         self.__mouse_connect()
         logger.info("Connecting joysticks")
-        self.__js_connect()
 
     def disconnect(self):
-        self.__js_disconnect()
         self.__mouse_disconnect()
 
     def reset_keyboard(self):
@@ -566,9 +564,6 @@ class WebRTCInput:
                 with open("/tmp/cursor_%d.png" % cursor.cursor_serial, 'wb') as debugf:
                     debugf.write(data)
             return data
-
-    def stop_js_server(self):
-        self.__js_disconnect()
 
     def on_message(self, msg):
         """Handles incoming input messages

@@ -883,6 +883,7 @@ def main():
             metrics.start_http()
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
         loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
+        loop.run_in_executor(None, lambda: webrtc_input.start_joystick())
         loop.run_in_executor(None, lambda: gpu_mon.start(gpu_id))
         loop.run_in_executor(None, lambda: hmac_turn_mon.start())
         loop.run_in_executor(None, lambda: turn_rest_mon.start())
@@ -898,13 +899,11 @@ def main():
             loop.run_until_complete(signalling.connect())
             loop.run_until_complete(audio_signalling.connect())
 
-            # asyncio.ensure_future(signalling.start(), loop=loop)
             asyncio.ensure_future(audio_signalling.start(), loop=loop)
             loop.run_until_complete(signalling.start())
 
             app.stop_pipeline()
             audio_app.stop_pipeline()
-            webrtc_input.stop_js_server()
     except Exception as e:
         logger.error("Caught exception: %s" % e)
         traceback.print_exc()
