@@ -415,7 +415,7 @@ int close( int fd )
     js_interposer_t *interposer = NULL;
     for (size_t i = 0; i < NUM_INTERPOSERS(); i++)
     {
-        if (fd == interposers[i].sockfd)
+        if (fd >= 0 && fd == interposers[i].sockfd)
         {
             interposer = &interposers[i];
             break;
