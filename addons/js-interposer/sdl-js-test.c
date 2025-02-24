@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <linux/input.h>
 
 void check_error(int result, const char *message)
 {
@@ -14,6 +15,20 @@ void check_error(int result, const char *message)
 
 int main(int argc, char *argv[])
 {
+    printf("Architecture sizeof input_event: %d bytes\n", sizeof(struct input_event));
+    SDL_version compiled;
+    SDL_version linked;
+
+    // Get the version against which the program was compiled.
+    SDL_VERSION(&compiled);
+    // Get the version of the linked SDL library at runtime.
+    SDL_GetVersion(&linked);
+
+    printf("Compiled with SDL version %d.%d.%d\n",
+           compiled.major, compiled.minor, compiled.patch);
+    printf("Running with SDL version %d.%d.%d\n",
+           linked.major, linked.minor, linked.patch);
+
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
     {
         fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
@@ -42,6 +57,19 @@ int main(int argc, char *argv[])
     }
 
     printf("Joystick opened: %s\n", SDL_JoystickName(joystick));
+
+    // Get the joystick GUID.
+    SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
+    char guidStr[33];  // 32 hex digits plus null terminator.
+    SDL_JoystickGetGUIDString(guid, guidStr, sizeof(guidStr));
+    printf("Joystick GUID: %s\n", guidStr);
+    
+    // Print the vendor and product IDs in hexadecimal format.
+    Uint16 vendor = SDL_JoystickGetVendor(joystick);
+    Uint16 product = SDL_JoystickGetProduct(joystick);
+    printf("Joystick Vendor ID: 0x%04X\n", vendor);
+    printf("Joystick Product ID: 0x%04X\n", product);
+
 
     printf("Axes: %d\n", SDL_JoystickNumAxes(joystick));
     printf("Buttons: %d\n", SDL_JoystickNumButtons(joystick));

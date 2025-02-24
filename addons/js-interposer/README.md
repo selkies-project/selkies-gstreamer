@@ -58,6 +58,11 @@ This creates a new unix domain socket at `/tmp/selkies_js0.sock` and simulates j
 LD_PRELOAD='/usr/$LIB/selkies_joystick_interposer.so' jstest /dev/input/js0
 ```
 
+# Tested SDL versions
+
+- `2.30.0`: Ubuntu 24.04 - Working
+- `2.0.20`: Ubuntu 22.04 - Works when `SDL_JOYSTICK_DISABLE_UDEV=1`
+
 # Unix Domain Socket API
 
 The interposer uses a Unix Domain Socket to pass virtual Joystick events from the Socket Server to the Linux application. The Socket Server is responsible for creating the Unix Domain Socket and listening for connections to `/tmp/selkies_js*.sock` or `/tmp/selkies_event*.sock` for raw joystick or evdev joystick devices respectively.

@@ -130,7 +130,14 @@ MAX_AXES = 64
 clients = {}
 
 XPAD_CONFIG = {
-    "name": "Xbox 360 Controller",
+    "name": "Selkies Controller",
+    # "name": "Xbox 360 Controller",
+    "vendor": 0x045e,  # Microsoft
+    "product": 0x028e, # Xbox360 Wired Controller
+    # "name": "Steam Virtual Gamepad pad 1",
+    # "vendor": 0x28de,  # Valve
+    # "product": 0x11ff, # Steam Virtual Gamepad
+    "version": 1,
     "btn_map": [
         BTN_A,
         BTN_B,
@@ -231,9 +238,12 @@ def make_config():
     btn_map[num_btns:MAX_BTNS] = [0 for i in range(num_btns, MAX_BTNS)]
     axes_map[num_axes:MAX_AXES] = [0 for i in range(num_axes, MAX_AXES)]
 
-    struct_fmt = "255sHH%dH%dB" % (MAX_BTNS, MAX_AXES)
+    struct_fmt = "255sHHHHH%dH%dB" % (MAX_BTNS, MAX_AXES)
     data = struct.pack(struct_fmt,
                        cfg["name"].encode(),
+                       cfg["vendor"],
+                       cfg["product"],
+                       cfg["version"],
                        num_btns,
                        num_axes,
                        *btn_map,

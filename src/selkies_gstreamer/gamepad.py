@@ -23,6 +23,9 @@ STANDARD_XPAD_CONFIG = {
     # Linux xpad has 11 buttons and 8 axes.
 
     "name": "Selkies Controller",
+    "vendor": 0x045e,  # Microsoft
+    "product": 0x028e, # Xbox360 Wired Controller
+    "version": 1,
     "btn_map": [
         BTN_A,      # 0
         BTN_B,      # 1
@@ -161,6 +164,9 @@ class SelkiesGamepadBase:
             return None
 
         name = f"{self.config["name"]} {self.js_index + 1}"
+        vendor = self.config["vendor"]
+        product = self.config["product"]
+        version = self.config["version"]
         num_btns = len(self.config["btn_map"])
         num_axes = len(self.config["axes_map"])
 
@@ -171,9 +177,12 @@ class SelkiesGamepadBase:
         btn_map[num_btns:MAX_BTNS] = [0 for i in range(num_btns, MAX_BTNS)]
         axes_map[num_axes:MAX_AXES] = [0 for i in range(num_axes, MAX_AXES)]
 
-        struct_fmt = "255sHH%dH%dB" % (MAX_BTNS, MAX_AXES)
+        struct_fmt = "255sHHHHH%dH%dB" % (MAX_BTNS, MAX_AXES)
         data = struct.pack(struct_fmt,
                            name.encode(),
+                           vendor,
+                           product,
+                           version,
                            num_btns,
                            num_axes,
                            *btn_map,
