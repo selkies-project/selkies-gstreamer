@@ -36,6 +36,9 @@ py-js-test:
 py-ev-test:
 	python3 js-interposer-test.py /tmp/selkies_event1000.sock
 
+py-selkies-test:
+	python3 ../../src/selkies_gstreamer/gamepad.py
+
 jstest: build
 	LD_PRELOAD=$(PWD)/selkies_joystick_interposer.so jstest /dev/input/js0
 

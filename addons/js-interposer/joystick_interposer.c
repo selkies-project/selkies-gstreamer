@@ -316,6 +316,10 @@ int interposer_open_socket(js_interposer_t *interposer)
         return -1;
     }
 
+    // Send architecture word length to tell client to send 64 vs 32bit wide messages.
+    unsigned char arch[1] = {sizeof(unsigned long)};
+    write(interposer->sockfd, arch, sizeof(arch));
+
     return 0;
 }
 

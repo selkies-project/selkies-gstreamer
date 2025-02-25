@@ -164,7 +164,7 @@ XPAD_CONFIG = {
 }
 
 
-def get_js_btn_event(btn_num, btn_val):
+def get_js_btn_event(btn_num, btn_val, word_len=8):
     ts = int((time.time() * 1000) % 1000000000)
 
     # see js_event struct definition above.
@@ -177,7 +177,7 @@ def get_js_btn_event(btn_num, btn_val):
 
     return event
 
-def get_ev_btn_event(btn_num, btn_val):
+def get_ev_btn_event(btn_num, btn_val, word_len=8):
     now = time.time()
     ts_sec = int(now)
     ts_usec = int((now *1e6) % 1e6)
@@ -185,7 +185,13 @@ def get_ev_btn_event(btn_num, btn_val):
     ev_btn = XPAD_CONFIG["btn_map"][btn_num]
 
     # timestamp_sec, timestamp_usec, type, code, value
-    struct_format = 'llHHIllHHI'
+    if word_len == 8:
+        print("Using 64bit word length")
+        struct_format = 'llHHIllHHI'
+    else:
+        print("Using 32bit word length")
+        struct_format = 'iiHHIiiHHI'
+
     event = struct.pack(struct_format,
         ts_sec, ts_usec, EV_KEY, ev_btn, btn_val,
         ts_sec, ts_usec, EV_SYN, SYN_REPORT, 0
@@ -196,7 +202,7 @@ def get_ev_btn_event(btn_num, btn_val):
 
     return event
 
-def get_js_axis_event(axis_num, axis_val):
+def get_js_axis_event(axis_num, axis_val, word_len=8):
     ts = int((time.time() * 1000) % 1000000000)
 
     # see js_event struct definition above.
@@ -209,7 +215,7 @@ def get_js_axis_event(axis_num, axis_val):
 
     return event
 
-def get_ev_axis_event(axis_num, axis_val):
+def get_ev_axis_event(axis_num, axis_val, word_len=8):
     now = time.time()
     ts_sec = int(now)
     ts_usec = int((now *1e6) % 1e6)
@@ -218,7 +224,13 @@ def get_ev_axis_event(axis_num, axis_val):
     ev_axis = XPAD_CONFIG["axes_map"][axis_num]
 
     # timestamp_sec, timestamp_usec, type, code, value
-    struct_format = 'llHHillHHi'
+    if word_len == 8:
+        print("Using 64bit word length")
+        struct_format = 'llHHillHHi'
+    else:
+        print("Using 32bit word length")
+        struct_format = 'iiHHiiiHHi'
+
     event = struct.pack(struct_format,
         ts_sec, ts_usec, EV_ABS, ev_axis, axis_val,
         ts_sec, ts_usec, EV_SYN, SYN_REPORT, 0
@@ -286,17 +298,17 @@ async def send_events(ev_type="JS"):
                     print(f"ERROR: unsupported ev_type: '{ev_type}'")
 
                 print(f"Sending button {btn_num} value={btn_val} event to client: {fd}")
-                await loop.sock_sendall(client, get_btn_event(btn_num, btn_val))
+                await loop.sock_sendall(client, get_btn_event(btn_num, btn_val, client.get_word_length()))
 
                 hat_step, hat_val = get_axis_cylon(hat_val, -1, 1, hat_step)
                 axis_step, axis_val = get_axis_cylon(axis_val, -32767, 32768, axis_step)
                 for axis_num in range(len(XPAD_CONFIG["axes_map"])):
                     if XPAD_CONFIG["axes_map"][axis_num] in [ABS_HAT0X, ABS_HAT0Y]:
                         print(f"Sending hat axis {axis_num} value={hat_val} event to client: {fd}")
-                        await loop.sock_sendall(client, get_axis_event(axis_num, hat_val))
+                        await loop.sock_sendall(client, get_axis_event(axis_num, hat_val, client.get_word_length()))
                     else:
                         print(f"Sending axis {axis_num} value={axis_val} event to client: {fd}")
-                        await loop.sock_sendall(client, get_axis_event(axis_num, axis_val))
+                        await loop.sock_sendall(client, get_axis_event(axis_num, axis_val, client.get_word_length()))
 
             except BrokenPipeError:
                 print("Client %d disconnected" % fd)
@@ -312,9 +324,29 @@ async def send_events(ev_type="JS"):
         if btn_val == 1:
             btn_num = (btn_num + 1) % len(XPAD_CONFIG["btn_map"])
 
+class MySocket(socket.socket):
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, fileno=None):
+        # Initialize the parent socket
+        super().__init__(family, type, proto, fileno)
+        # Add a new field; for example, a field to hold a custom name.
+        self.word_length = None
+
+    # You can also add new methods to manipulate the new field
+    def set_word_length(self, length):
+        self.word_length = length
+
+    def get_word_length(self):
+        return self.word_length
+
+    def accept(self):
+        # Call the original accept() to get a new connection and its address.
+        newsock, addr = super().accept()
+        # Use detach() to take over the file descriptor and create a new MySocket.
+        newmysock = MySocket(newsock.family, newsock.type, newsock.proto, fileno=newsock.detach())
+        return newmysock, addr
 
 async def run_server(socket_path):
-    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server = MySocket(socket.AF_UNIX, socket.SOCK_STREAM)
     server.bind(socket_path)
     server.listen(1)
     server.setblocking(False)
@@ -337,6 +369,10 @@ async def run_server(socket_path):
 
             # Send client the joystick configuration
             await loop.sock_sendall(client, make_config())
+
+            interposer_cfg = await loop.sock_recv(client, 1)
+            client.set_word_length(interposer_cfg[0])
+            print(f"Interposer word length: {client.get_word_length()}")
 
             # Add client to dictionary to receive events.
             clients[fd] = client
