@@ -1,0 +1,22 @@
+[package]
+name = "selkies_gamepad_rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dan Isla <dan.isla@gmail.com>"]
+description = "A Rust port of the Python gamepad interposer using Tokio for async I/O."
+license = "MPL-2.0"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+bytes = "1"
+lazy_static = "1"
+log = "0.4"
+env_logger = "0.9"
+crossterm = { version = "0.25", optional = true }
+input-event-codes = "0.2.2"
+serde = { version = "1.0", features = ["derive"] }
+serde-big-array = { version = "0.3", features = ["const-generics"] }
+
+[features]
+default = ["curses"]
+curses = ["crossterm"]
