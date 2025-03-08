@@ -7,7 +7,7 @@ deps:
 	@sudo apt-get install -y build-essential evtest strace joystick libsdl2-dev gcc-multilib libevdev-dev
 
 build:
-	gcc -shared -fPIC -o selkies_joystick_interposer.so joystick_interposer.c -ldl -Wall
+	gcc -shared -fPIC -o selkies_joystick_interposer.so joystick_interposer.c dev/input-dir-interposer.c -ldl -Wall
 
 build32:
 	gcc -m32 -shared -fPIC -o selkies_joystick_interposer_i386.so joystick_interposer.c -ldl -Wall
@@ -45,7 +45,7 @@ jstest: build
 evtest: build fake-devices
 	LD_PRELOAD=$(PWD)/selkies_joystick_interposer.so evtest /dev/input/event1000
 
-sdltest: build fake-devices
+sdltest: build
 	gcc -o sdl_joystick_reader sdl-js-test.c -lSDL2
 	LD_PRELOAD=$(PWD)/selkies_joystick_interposer.so SDL_JOYSTICK_DEVICE=/dev/input/event1000 ./sdl_joystick_reader
 
