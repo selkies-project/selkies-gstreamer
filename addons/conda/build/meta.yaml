@@ -56,9 +56,8 @@ requirements:
     - gmp
     - gobject-introspection
     - gsl
-    - libcap
     - libtool
-    - libgcrypt
+    - libgcrypt-tools
     - nasm
     - yasm
     - meson
