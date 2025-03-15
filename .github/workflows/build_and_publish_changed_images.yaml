@@ -34,9 +34,51 @@ jobs:
 
     - name: Check for changes to ${{ matrix.name }} image source
       id: check
-      uses: tj-actions/changed-files@v41
-      with:
-        files: ${{ matrix.diff || matrix.context }}
+      shell: bash
+      run: |
+        # Preserve exact paths from matrix input
+        PATHS=(${{ toJSON(matrix.diff || matrix.context) }})
+        # For PR and push events, check for relevant changes
+        if [ "${{ github.event_name }}" == "pull_request" ] || [ "${{ github.event_name }}" == "push" ]; then
+          # For PR events, fetch and use PR base
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+          else
+            # For push events, use previous commit
+            BASE_SHA=HEAD~1
+          fi
+          # Parse JSON array from GitHub Actions
+          MODIFIED=false
+          if [[ ${PATHS} == \"* ]]; then
+            # Single string case
+            PATH_VALUE=${PATHS//\"/}
+            if git diff --name-only $BASE_SHA HEAD -- "$PATH_VALUE" | grep -q .; then
+              echo "any_modified=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          else
+            # Array case - parse the JSON array properly
+            echo ${PATHS} | jq -r '.[]?' 2>/dev/null | while read -r path; do
+              if [ -n "$path" ] && git diff --name-only $BASE_SHA HEAD -- "$path" | grep -q .; then
+                echo "any_modified=true" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+            # If we got here without setting modified=true, nothing changed
+            if [ -z "$(grep any_modified $GITHUB_OUTPUT)" ]; then
+              MODIFIED=false
+            else
+              MODIFIED=true
+            fi
+          fi
+          if [ "$MODIFIED" != "true" ]; then
+            echo "any_modified=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          # For workflow_dispatch and any other events, always rebuild
+          echo "any_modified=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: Build & publish ${{ matrix.name }} image
       if: ${{ steps.check.outputs.any_modified }}
@@ -141,9 +183,51 @@ jobs:
 
     - name: Check for changes to ${{ matrix.name }} image source
       id: check
-      uses: tj-actions/changed-files@v41
-      with:
-        files: ${{ matrix.diff || matrix.context }}
+      shell: bash
+      run: |
+        # Preserve exact paths from matrix input
+        PATHS=(${{ toJSON(matrix.diff || matrix.context) }})
+        # For PR and push events, check for relevant changes
+        if [ "${{ github.event_name }}" == "pull_request" ] || [ "${{ github.event_name }}" == "push" ]; then
+          # For PR events, fetch and use PR base
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+          else
+            # For push events, use previous commit
+            BASE_SHA=HEAD~1
+          fi
+          # Parse JSON array from GitHub Actions
+          MODIFIED=false
+          if [[ ${PATHS} == \"* ]]; then
+            # Single string case
+            PATH_VALUE=${PATHS//\"/}
+            if git diff --name-only $BASE_SHA HEAD -- "$PATH_VALUE" | grep -q .; then
+              echo "any_modified=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          else
+            # Array case - parse the JSON array properly
+            echo ${PATHS} | jq -r '.[]?' 2>/dev/null | while read -r path; do
+              if [ -n "$path" ] && git diff --name-only $BASE_SHA HEAD -- "$path" | grep -q .; then
+                echo "any_modified=true" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+            # If we got here without setting modified=true, nothing changed
+            if [ -z "$(grep any_modified $GITHUB_OUTPUT)" ]; then
+              MODIFIED=false
+            else
+              MODIFIED=true
+            fi
+          fi
+          if [ "$MODIFIED" != "true" ]; then
+            echo "any_modified=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          # For workflow_dispatch and any other events, always rebuild
+          echo "any_modified=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: Build & publish ${{ matrix.name }} image
       if: ${{ steps.check.outputs.any_modified }}
@@ -211,9 +295,51 @@ jobs:
 
     - name: Check for changes to ${{ matrix.name }} image source
       id: check
-      uses: tj-actions/changed-files@v41
-      with:
-        files: ${{ matrix.diff || matrix.context }}
+      shell: bash
+      run: |
+        # Preserve exact paths from matrix input
+        PATHS=(${{ toJSON(matrix.diff || matrix.context) }})
+        # For PR and push events, check for relevant changes
+        if [ "${{ github.event_name }}" == "pull_request" ] || [ "${{ github.event_name }}" == "push" ]; then
+          # For PR events, fetch and use PR base
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+          else
+            # For push events, use previous commit
+            BASE_SHA=HEAD~1
+          fi
+          # Parse JSON array from GitHub Actions
+          MODIFIED=false
+          if [[ ${PATHS} == \"* ]]; then
+            # Single string case
+            PATH_VALUE=${PATHS//\"/}
+            if git diff --name-only $BASE_SHA HEAD -- "$PATH_VALUE" | grep -q .; then
+              echo "any_modified=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          else
+            # Array case - parse the JSON array properly
+            echo ${PATHS} | jq -r '.[]?' 2>/dev/null | while read -r path; do
+              if [ -n "$path" ] && git diff --name-only $BASE_SHA HEAD -- "$path" | grep -q .; then
+                echo "any_modified=true" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            done
+            # If we got here without setting modified=true, nothing changed
+            if [ -z "$(grep any_modified $GITHUB_OUTPUT)" ]; then
+              MODIFIED=false
+            else
+              MODIFIED=true
+            fi
+          fi
+          if [ "$MODIFIED" != "true" ]; then
+            echo "any_modified=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          # For workflow_dispatch and any other events, always rebuild
+          echo "any_modified=true" >> $GITHUB_OUTPUT
+        fi
 
     - name: Build & publish ${{ matrix.name }} image
       if: ${{ steps.check.outputs.any_modified }}
