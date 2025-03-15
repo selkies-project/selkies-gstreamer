@@ -89,7 +89,7 @@ requirements:
     - libglx-devel                       # [linux]
     - libopengl-devel                    # [linux]
     - libva                              # [linux]
-    - libudev                            # [linux]
+    - libudev 256.7                      # [linux]
     - jack                               # [linux]
     - pthread-stubs                      # [linux]
     - pulseaudio-client                  # [linux]
