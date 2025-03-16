@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 {% set name = "selkies-gstreamer" %}
-{% set gstreamer_version = "1.24.10" %}
+{% set gstreamer_version = "1.26.0" %}
 {% set python = "3.12" %}
 {% set posix = 'm2-' if win else '' %}
 
@@ -54,7 +54,6 @@ requirements:
     - git
     - git-lfs
     - gmp
-    - gobject-introspection
     - gsl
     - libtool
     - libgcrypt-tools
@@ -73,6 +72,7 @@ requirements:
     - libzlib
     - glib
     - glib-networking
+    - gobject-introspection
     - gnutls
     - pygobject
     - setuptools
