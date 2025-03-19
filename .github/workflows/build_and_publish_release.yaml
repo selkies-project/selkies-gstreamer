@@ -120,7 +120,7 @@ jobs:
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.debpkg
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
@@ -131,7 +131,7 @@ jobs:
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.debpkg
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
@@ -142,7 +142,7 @@ jobs:
             PKG_VERSION=${{ needs.get_semver.outputs.semver }}
           context: addons/js-interposer
           dockerfile: Dockerfile.debpkg
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
         - name: turn-rest
           context: addons/turn-rest

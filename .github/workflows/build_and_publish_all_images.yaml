@@ -46,11 +46,11 @@ jobs:
     strategy:
       matrix:
         include:
-        # - name: conda
-        #   build_args: |
-        #     PACKAGE_VERSION=0.0.0.dev0
-        #     PKG_VERSION=0.0.0
-        #   context: addons/conda
+        - name: conda
+          build_args: |
+            PACKAGE_VERSION=0.0.0.dev0
+            PKG_VERSION=0.0.0
+          context: addons/conda
 
         - name: coturn
           context: addons/coturn
@@ -90,7 +90,7 @@ jobs:
             PKG_VERSION=0.0.0
           context: addons/js-interposer
           dockerfile: Dockerfile.debpkg
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
@@ -101,7 +101,7 @@ jobs:
             PKG_VERSION=0.0.0
           context: addons/js-interposer
           dockerfile: Dockerfile.debpkg
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
@@ -112,7 +112,7 @@ jobs:
             PKG_VERSION=0.0.0
           context: addons/js-interposer
           dockerfile: Dockerfile.debpkg
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
 
         - name: turn-rest
           context: addons/turn-rest
@@ -208,9 +208,9 @@ jobs:
     strategy:
       matrix:
         include:
-        # - name: conda
-        #   source: /opt/selkies-gstreamer-conda.tar.gz
-        #   target: selkies-gstreamer-portable.tar.gz
+        - name: conda
+          source: /opt/selkies-gstreamer-conda.tar.gz
+          target: selkies-gstreamer-portable.tar.gz
 
         - name: gst-web
           source: /opt/gst-web.tar.gz
@@ -236,21 +236,78 @@ jobs:
           suffix: -deb
           source: /opt/selkies-js-interposer_0.0.0.deb
           target: selkies-js-interposer.deb
-          platforms: linux/amd64
 
         - name: js-interposer
           version_suffix: -ubuntu22.04
           suffix: -deb
           source: /opt/selkies-js-interposer_0.0.0.deb
           target: selkies-js-interposer.deb
-          platforms: linux/amd64
 
         - name: js-interposer
           version_suffix: -ubuntu24.04
           suffix: -deb
           source: /opt/selkies-js-interposer_0.0.0.deb
           target: selkies-js-interposer.deb
-          platforms: linux/amd64
+
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          suffix: -deb
+          source: /opt/selkies-js-interposer_0.0.0.deb
+          target: selkies-js-interposer.deb
+          platforms: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          suffix: -deb
+          source: /opt/selkies-js-interposer_0.0.0.deb
+          target: selkies-js-interposer.deb
+          platforms: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu24.04
+          suffix: -deb
+          source: /opt/selkies-js-interposer_0.0.0.deb
+          target: selkies-js-interposer.deb
+          platforms: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          suffix: -tar.gz
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          suffix: -tar.gz
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+
+        - name: js-interposer
+          version_suffix: -ubuntu24.04
+          suffix: -tar.gz
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+
+        - name: js-interposer
+          version_suffix: -ubuntu20.04
+          suffix: -tar.gz
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+          platforms: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu22.04
+          suffix: -tar.gz
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+          platforms: linux/arm64
+
+        - name: js-interposer
+          version_suffix: -ubuntu24.04
+          suffix: -tar.gz
+          source: /opt/selkies-js-interposer_0.0.0.tar.gz
+          target: selkies-js-interposer.tar.gz
+          platforms: linux/arm64
 
         - name: py-build
           source: /opt/pypi/dist/selkies_gstreamer-0.0.0.dev0-py3-none-any.whl
