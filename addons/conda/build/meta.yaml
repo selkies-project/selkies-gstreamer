@@ -54,7 +54,6 @@ requirements:
     - gettext-tools
     - git
     - git-lfs
-    - gobject-introspection
     - nasm
     - yasm
     - meson
@@ -67,6 +66,7 @@ requirements:
     - setuptools
     - glib
     - glib-networking
+    - gobject-introspection
     - pygobject
     - gmp
     - gnutls
