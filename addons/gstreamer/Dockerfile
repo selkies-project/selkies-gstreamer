@@ -82,7 +82,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 # GStreamer monorepo build with prefix for standalone install
 WORKDIR /src
-ARG GSTREAMER_VERSION=1.26.0
+ARG GSTREAMER_VERSION="1.24.12"
 RUN if { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "ubuntu" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "20.04" ]; } || { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "debian" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "11" ]; }; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:aom=enabled ${GSTREAMER_EXTRA_ARGS}"; else export GSTREAMER_EXTRA_ARGS="${GSTREAMER_EXTRA_ARGS}"; fi && \
     if { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "ubuntu" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "22.04" ]; } || { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "debian" ] && [ "$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" \> "12" ]; }; then export GSTREAMER_EXTRA_ARGS="-Dgst-plugins-bad:svtav1=enabled ${GSTREAMER_EXTRA_ARGS}"; fi && \
     curl --proto '=https' --tlsv1.2 -fsSL "https://sh.rustup.rs" | sh -s -- -y && \
@@ -96,7 +96,7 @@ RUN if { [ "$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')" = "ubuntu
     rm -rf builddir && rustup self uninstall -y
 
 # Extract NVRTC dependency, https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt
-RUN NVRTC_VERSION="11.4.152" && \
+RUN NVRTC_VERSION="11.8.89" && \
     NVRTC_ARCH="$(dpkg --print-architecture | sed -e 's/arm64/sbsa/' -e 's/ppc64el/ppc64le/' -e 's/i.*86/x86/' -e 's/amd64/x86_64/' -e 's/unknown/x86_64/')" && \
     cd /tmp && curl -fsSL "https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/linux-${NVRTC_ARCH}/cuda_nvrtc-linux-${NVRTC_ARCH}-${NVRTC_VERSION}-archive.tar.xz" | tar -xJf - -C /tmp && mv -f cuda_nvrtc* cuda_nvrtc && cd cuda_nvrtc/lib && chmod -f 755 libnvrtc* && mv -f libnvrtc* /opt/gstreamer/lib/$(dpkg --print-architecture | sed -e 's/arm64/aarch64-linux-gnu/' -e 's/armhf/arm-linux-gnueabihf/' -e 's/riscv64/riscv64-linux-gnu/' -e 's/ppc64el/powerpc64le-linux-gnu/' -e 's/s390x/s390x-linux-gnu/' -e 's/i.*86/i386-linux-gnu/' -e 's/amd64/x86_64-linux-gnu/' -e 's/unknown/x86_64-linux-gnu/')/ && cd /tmp && rm -rf /tmp/cuda_nvrtc
 

@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 {% set name = "selkies-gstreamer" %}
-{% set gstreamer_version = "1.26.0" %}
+{% set gstreamer_version = "1.24.12" %}
 {% set python = "3.12" %}
 {% set posix = 'm2-' if win else '' %}
 
@@ -144,5 +144,5 @@ requirements:
     - xdotool                            # [linux]
     - xsel                               # [linux]
     # NVIDIA NVRTC/nvJPEG dependency, https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt
-    - cuda-nvrtc 11.3.*
-    - libnvjpeg 11.4.*
+    - cuda-nvrtc 11.8
+    - libnvjpeg 11.9
