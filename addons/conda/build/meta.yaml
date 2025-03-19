@@ -67,7 +67,6 @@ requirements:
     - setuptools
     - glib
     - glib-networking
-    - gobject-introspection
     - pygobject
     - gmp
     - gnutls
