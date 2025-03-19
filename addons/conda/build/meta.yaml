@@ -63,19 +63,19 @@ requirements:
   host:
     - python {{ python }}
     - pip
-    - libdrm
-    - openssl
-    - libzlib
+    - setuptools
     - glib
     - glib-networking
     - gobject-introspection
+    - pygobject
     - gmp
     - gnutls
     - gsl
+    - libdrm
     - libtool
     - libgcrypt-tools
-    - pygobject
-    - setuptools
+    - openssl
+    - zlib
     - libvpx
     - openh264
     - x264
