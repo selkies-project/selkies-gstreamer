@@ -53,17 +53,12 @@ requirements:
     - gettext-tools
     - git
     - git-lfs
-    - gmp
-    - gsl
-    - libtool
-    - libgcrypt-tools
     - nasm
     - yasm
     - meson
     - ninja
     - tomli
     - perl
-    - openssl
   host:
     - python {{ python }}
     - pip
@@ -73,8 +68,12 @@ requirements:
     - glib
     - glib-networking
     - gobject-introspection
+    - gmp
     - gnutls
-    - pygobject
+    - gsl
+    - libtool
+    - libgcrypt-tools
+    - pygobjectg
     - setuptools
     - libvpx
     - openh264
