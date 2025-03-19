@@ -81,7 +81,7 @@ requirements:
     - x264
     - x265
     - aom
-    - svt-av1
+    - svt-av1 <3  # Unset constraint when GStreamer 1.26 used
     - libopus
     - libegl-devel                       # [linux]
     - libgl-devel                        # [linux]
