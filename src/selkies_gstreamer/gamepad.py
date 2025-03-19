@@ -23,6 +23,9 @@ STANDARD_XPAD_CONFIG = {
     # Linux xpad has 11 buttons and 8 axes.
 
     "name": "Selkies Controller",
+    "vendor": 0x045e,  # Microsoft
+    "product": 0x028e, # Xbox360 Wired Controller
+    "version": 1,
     "btn_map": [
         BTN_A,      # 0
         BTN_B,      # 1
@@ -116,56 +119,6 @@ MAX_AXES = 64
 ABS_MIN = -32767
 ABS_MAX = 32767
 
-# Joystick event struct
-# https://www.kernel.org/doc/Documentation/input/joystick-api.txt
-# struct js_event {
-#    __u32 time;     /* event timestamp in milliseconds */
-#    __s16 value;    /* value */
-#    __u8 type;      /* event type */
-#    __u8 number;    /* axis/button number */
-# };
-
-def get_btn_event(btn_num, btn_val):
-    ts = int((time.time() * 1000) % 1000000000)
-
-    # see js_event struct definition above.
-    # https://docs.python.org/3/library/struct.html
-    struct_format = 'IhBB'
-    event = struct.pack(struct_format, ts, btn_val,
-                        JS_EVENT_BUTTON, btn_num)
-
-    logger.debug(struct.unpack(struct_format, event))
-
-    return event
-
-
-def get_axis_event(axis_num, axis_val):
-    ts = int((time.time() * 1000) % 1000000000)
-
-    # see js_event struct definition above.
-    # https://docs.python.org/3/library/struct.html
-    struct_format = 'IhBB'
-    event = struct.pack(struct_format, ts, axis_val,
-                        JS_EVENT_AXIS, axis_num)
-
-    logger.debug(struct.unpack(struct_format, event))
-
-    return event
-
-def detect_gamepad_config(name):
-    # TODO switch mapping based on name.
-    return STANDARD_XPAD_CONFIG
-
-def get_num_btns_for_mapping(cfg):
-    num_mapped_btns = len(
-        [i for j in cfg["axes_to_btn_map"].values() for i in j])
-    return len(cfg["btn_map"]) + num_mapped_btns
-
-
-def get_num_axes_for_mapping(cfg):
-    return len(cfg["axes_map"])
-
-
 def normalize_axis_val(val):
     return round(ABS_MIN + ((val+1) * (ABS_MAX - ABS_MIN)) / 2)
 
@@ -173,21 +126,37 @@ def normalize_axis_val(val):
 def normalize_trigger_val(val):
     return round(val * (ABS_MAX - ABS_MIN)) + ABS_MIN
 
-class SelkiesGamepad:
-    def __init__(self, socket_path, loop):
+class SelkiesInterposerSocket(socket.socket):
+    '''Subclass of socket to add interposer client config and support dynamic word length for 64bit vs 32bit clients.'''
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, fileno=None):
+        super().__init__(family, type, proto, fileno)
+        self.word_length = 8
+
+    def set_word_length(self, length):
+        self.word_length = length
+
+    def get_word_length(self):
+        return self.word_length
+
+    def accept(self):
+        '''Override accept so that new clients are also instnaces of InterposerSocket'''
+        newsock, addr = super().accept()
+        # Use detach() to take over the file descriptor and create a new instance of the subclass.
+        mysock = SelkiesInterposerSocket(newsock.family, newsock.type, newsock.proto, fileno=newsock.detach())
+        return mysock, addr
+
+class SelkiesGamepadBase:
+    def __init__(self, js_index, socket_path, loop, gamepad_mapper_class):
+        self.js_index = js_index
         self.socket_path = socket_path
         self.loop = loop
 
-        # Gamepad input mapper instance
-        # created when calling set_config()
-        self.mapper = None
-        self.name = None
-
         # socket server
         self.server = None
+        self.send_event_task = None
 
-        # Joystick config, set dynamically.
-        self.config = None
+        # Use default joystick config.
+        self.config = STANDARD_XPAD_CONFIG
 
         # Map of client file descriptors to sockets.
         self.clients = {}
@@ -197,11 +166,12 @@ class SelkiesGamepad:
 
         # flag indicating that loop is running.
         self.running = False
-    
-    def set_config(self, name, num_btns, num_axes):
-        self.name = name
-        self.config = detect_gamepad_config(name)
-        self.mapper = GamepadMapper(self.config, name, num_btns, num_axes)
+
+        # class used for mapping gamepad events
+        self.gamepad_mapper_class = gamepad_mapper_class
+
+        # Gamepad input mapper instance
+        self.mapper = self.gamepad_mapper_class(self.config)
 
     def __make_config(self):
         '''
@@ -212,6 +182,10 @@ class SelkiesGamepad:
             logger.error("could not make js config because it has not yet been set.")
             return None
 
+        name = f"{self.config["name"]} {self.js_index + 1}"
+        vendor = self.config["vendor"]
+        product = self.config["product"]
+        version = self.config["version"]
         num_btns = len(self.config["btn_map"])
         num_axes = len(self.config["axes_map"])
 
@@ -222,9 +196,12 @@ class SelkiesGamepad:
         btn_map[num_btns:MAX_BTNS] = [0 for i in range(num_btns, MAX_BTNS)]
         axes_map[num_axes:MAX_AXES] = [0 for i in range(num_axes, MAX_AXES)]
 
-        struct_fmt = "255sHH%dH%dB" % (MAX_BTNS, MAX_AXES)
+        struct_fmt = "255sHHHHH%dH%dB" % (MAX_BTNS, MAX_AXES)
         data = struct.pack(struct_fmt,
-                           self.config["name"].encode(),
+                           name.encode(),
+                           vendor,
+                           product,
+                           version,
                            num_btns,
                            num_axes,
                            *btn_map,
@@ -238,7 +215,7 @@ class SelkiesGamepad:
                 await asyncio.sleep(0.001)
                 continue
             while self.running and not self.events.empty():
-                await self.send_event(self.events.get())
+                await self.__send_event(self.events.get())
 
     def send_btn(self, btn_num, btn_val):
         if not self.mapper:
@@ -256,7 +233,7 @@ class SelkiesGamepad:
         if event is not None:
             self.events.put(event)
 
-    async def send_event(self, event):
+    async def __send_event(self, event):
         if len(self.clients) < 1:
             return
 
@@ -265,7 +242,7 @@ class SelkiesGamepad:
             try:
                 client = self.clients[fd]
                 logger.debug("Sending event to client with fd: %d" % fd)
-                await self.loop.sock_sendall(client, event)
+                await self.loop.sock_sendall(client, event.get_data(client.get_word_length()))
             except BrokenPipeError:
                 logger.info("Client %d disconnected" % fd)
                 closed_clients.append(fd)
@@ -274,19 +251,18 @@ class SelkiesGamepad:
         for fd in closed_clients:
             del self.clients[fd]
 
-    async def setup_client(self, client):
-        logger.info("Sending config to client with fd: %d" % client.fileno())
+    async def __setup_client(self, client):
+        logger.info("Sending config to client with fd: %d, socket_path: %s, js_index=%d" % (client.fileno(), self.socket_path, self.js_index))
         try:
             config_data = self.__make_config()
             if not config_data:
                 return
             await self.loop.sock_sendall(client, config_data)
-            await asyncio.sleep(0.5)
-            # Send zero values for all buttons and axis.
-            for btn_num in range(len(self.config["btn_map"])):
-                self.send_btn(btn_num, 0)
-            for axis_num in range(len(self.config["axes_map"])):
-                self.send_axis(axis_num, 0)
+
+            # Read the interposer config back.
+            interposer_cfg = await self.loop.sock_recv(client, 1)
+            logger.info(f"Got interposer config: {interposer_cfg[0]}")
+            client.set_word_length(interposer_cfg[0])
 
         except BrokenPipeError:
             client.close()
@@ -298,22 +274,22 @@ class SelkiesGamepad:
         except OSError:
             if os.path.exists(self.socket_path):
                 raise
+        self.clients = {}
+        with SelkiesInterposerSocket(socket.AF_UNIX, socket.SOCK_STREAM) as server:
+            logger.info('Listening for connections on %s' % self.socket_path)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(self.socket_path)
+            server.listen(8)
+            server.setblocking(False)
 
-        self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.server.bind(self.socket_path)
-        self.server.listen(1)
-        self.server.setblocking(False)
+            self.running = True
 
-        logger.info('Listening for connections on %s' % self.socket_path)
+            # start loop to process event queue.
+            self.send_event_task = self.loop.create_task(self.__send_events())
 
-        # start loop to process event queue.
-        self.loop.create_task(self.__send_events())
-
-        self.running = True
-        try:
             while self.running:
                 try:
-                    client, _ = await asyncio.wait_for(self.loop.sock_accept(self.server), timeout=1)
+                    client, _ = await asyncio.wait_for(self.loop.sock_accept(server), timeout=0.5)
                 except asyncio.TimeoutError:
                     continue
 
@@ -321,34 +297,53 @@ class SelkiesGamepad:
                 logger.info("Client connected with fd: %d" % fd)
 
                 # Send client the joystick configuration
-                await self.setup_client(client)
+                await self.__setup_client(client)
 
                 # Add client to dictionary to receive events.
                 self.clients[fd] = client
-        finally:
-            self.server.close()
-            try:
-                os.unlink(self.socket_path)
-            except:
-                pass
         
         logger.info("Stopped gamepad socket server for %s" % self.socket_path)
 
     def stop_server(self):
+        logger.info("Stopping gamepad socket server for %s" % self.socket_path)
         self.running = False
-        self.server.close()
-        try:
-            os.unlink(self.socket_path)
-        except:
-            pass
 
-class GamepadMapper:
-    def __init__(self, config, name, num_btns, num_axes):
+class SelkiesGamepad:
+    def __init__(self, js_index, js_socket_path, ev_socket_path, loop):
+        self.js_index = js_index
+        self.js_socket_path = js_socket_path
+        self.ev_socket_path = ev_socket_path
+        self.loop = loop
+
+        self.js_gamepad = SelkiesJSGamepad(js_index, js_socket_path, loop)
+        self.ev_gamepad = SelkiesEVGamepad(js_index, ev_socket_path, loop)
+
+    def send_btn(self, btn_num, btn_val):
+        self.js_gamepad.send_btn(btn_num, btn_val)
+        self.ev_gamepad.send_btn(btn_num, btn_val)
+
+    def send_axis(self, axis_num, axis_val):
+        self.js_gamepad.send_axis(axis_num, axis_val)
+        self.ev_gamepad.send_axis(axis_num, axis_val)
+
+    def run_server(self):
+        asyncio.ensure_future(self.js_gamepad.run_server(), loop=self.loop)
+        asyncio.ensure_future(self.ev_gamepad.run_server(), loop=self.loop)
+
+    def stop_server(self):
+        self.js_gamepad.stop_server()
+        self.ev_gamepad.stop_server()
+
+class GamepadMapperBase:
+    def __init__(self, config):
         self.config = config
-        self.input_name = name
-        self.input_num_btns = num_btns
-        self.input_num_axes = num_axes
-    
+
+    def get_btn_event(self, btn_num, btn_val):
+        raise Exception("get_btn_event not implemented")
+
+    def get_axis_event(self, axis_num, axis_val):
+        raise Exception("get_axis_event not implemented")
+
     def get_mapped_btn(self, btn_num, btn_val):
         '''
         return either a button or axis event based on mapping. 
@@ -373,7 +368,7 @@ class GamepadMapper:
                 # Normalize to full range for input between 0 and 1.
                 axis_val = normalize_trigger_val(btn_val)
             
-            return get_axis_event(axis_num, axis_val)
+            return self.get_axis_event(axis_num, axis_val)
 
         # Perform button mapping.
         mapped_btn = self.config["mapping"]["btns"].get(btn_num, btn_num)
@@ -382,7 +377,7 @@ class GamepadMapper:
                 mapped_btn, len(self.config["btn_map"]) - 1))
             return None
         
-        return get_btn_event(mapped_btn, int(btn_val))
+        return self.get_btn_event(mapped_btn, int(btn_val))
 
     def get_mapped_axis(self, axis_num, axis_val):
         mapped_axis = self.config["mapping"]["axes"].get(axis_num, axis_num)
@@ -392,4 +387,223 @@ class GamepadMapper:
             return None
 
         # Normalize axis value to be within range.
-        return get_axis_event(mapped_axis, normalize_axis_val(axis_val))
+        return self.get_axis_event(mapped_axis, normalize_axis_val(axis_val))
+
+class EventBase:
+    def __init__(self):
+        self.struct_format_64 = None
+        self.struct_format_32 = None
+
+    def get_struct_fmt(self, word_len=8):
+        assert self.struct_format_64 is not None
+        assert self.struct_format_32 is not None
+        if word_len == 8:
+            return self.struct_format_64
+        return self.struct_format_32
+
+class JSEvent(EventBase):
+    # https://www.kernel.org/doc/Documentation/input/joystick-api.txt
+    # struct js_event {
+    #    __u32 time;     /* event timestamp in milliseconds */
+    #    __s16 value;    /* value */
+    #    __u8 type;      /* event type */
+    #    __u8 number;    /* axis/button number */
+    # };
+    def __init__(self):
+        super().__init__()
+        self.struct_format_64 = 'IhBB'
+        self.struct_format_32 = self.struct_format_64
+        self.ts = None
+        self.value = None
+        self.event_type = None
+        self.number = None
+
+    def get_data(self, word_len=8):
+        event = struct.pack(self.get_struct_fmt(word_len),
+                           self.ts,
+                           self.value,
+                           self.event_type,
+                           self.number)
+        logger.debug(struct.unpack(self.get_struct_fmt(word_len), event))
+        return event
+
+class JSButtonEvent(JSEvent):
+    def __init__(self, btn_num, btn_val):
+        super().__init__()
+        self.ts = int((time.time() * 1000) % 1000000000)
+        self.event_type = JS_EVENT_BUTTON
+        self.value = btn_val
+        self.number = btn_num
+
+class JSAxisEvent(JSEvent):
+    def __init__(self, axis_num, axis_val):
+        super().__init__()
+        self.ts = int((time.time() * 1000) % 1000000000)
+        self.event_type = JS_EVENT_AXIS
+        self.value = axis_val
+        self.number = axis_num
+
+class JSGamepadMapper(GamepadMapperBase):
+    def __init__(self, config):
+        super().__init__(config)
+
+    def get_btn_event(self, btn_num, btn_val):
+        return JSButtonEvent(btn_num, btn_val)
+
+    def get_axis_event(self, axis_num, axis_val):
+        return JSAxisEvent(axis_num, axis_val)
+
+class EVEvent(EventBase):
+    # https://www.kernel.org/doc/Documentation/input/joystick-api.txt
+    # struct input_event {
+    # 	struct timeval time;
+    # 	unsigned short type;
+    # 	unsigned short code;
+    # 	unsigned int value;
+    # };
+    def __init__(self):
+        super().__init__()
+        now = time.time()
+        self.ts_sec = int(now)
+        self.ts_usec = int((now *1e6) % 1e6)
+
+        # Double the input_event to include sycn, EV_SYN event.
+        self.struct_format_64 = 'llHHillHHi'
+        self.struct_format_32 = 'iiHHiiiHHi'
+
+        self.event_type = None
+        self.code = None
+        self.value = None
+
+    def get_data(self, word_len=8):
+        event = struct.pack(self.get_struct_fmt(word_len),
+            self.ts_sec, self.ts_usec, self.event_type, self.code, self.value,
+            self.ts_sec, self.ts_usec, EV_SYN, SYN_REPORT, 0)
+        logger.debug(struct.unpack(self.get_struct_fmt(word_len), event))
+        return event
+
+class EVButtonEvent(EVEvent):
+    def __init__(self, ev_code, btn_val):
+        super().__init__()
+        self.code = ev_code
+        self.event_type = EV_KEY
+        self.value = btn_val
+
+class EVAxisEvent(EVEvent):
+    def __init__(self, ev_code, axis_val):
+        super().__init__()
+        self.code = ev_code
+        self.event_type = EV_ABS
+        self.value = axis_val
+
+class EVGamepadMapper(GamepadMapperBase):
+    def __init__(self, config):
+        super().__init__(config)
+
+    def get_btn_event(self, btn_num, btn_val):
+        # evdev expects ev key codes, not button numbers
+        ev_code = self.config["btn_map"][btn_num]
+        return EVButtonEvent(ev_code, btn_val)
+
+    def get_axis_event(self, axis_num, axis_val):
+        # evdev expects ev key codes, not axis numbers
+        ev_code = self.config["axes_map"][axis_num]
+        return EVAxisEvent(ev_code, axis_val)
+
+class SelkiesJSGamepad(SelkiesGamepadBase):
+    def __init__(self, js_index, socket_path, loop):
+        super().__init__(js_index, socket_path, loop, JSGamepadMapper)
+
+class SelkiesEVGamepad(SelkiesGamepadBase):
+    def __init__(self, js_index, socket_path, loop):
+        super().__init__(js_index, socket_path, loop, EVGamepadMapper)
+
+if __name__ == "__main__":
+    '''Starts gamepad test program that uses keyboard presses as buttons and axes
+    Keyboard shortcuts:
+        z -> button 0
+        x -> button 1
+        a -> button 2
+        s -> button 3
+        up/down/left/right -> HAT0 (d-pad)
+    '''
+    import curses
+
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s\r")
+    logger = logging.getLogger("Selkies Gamepad")
+
+    logger.info(f"Starting standalone gamepad test")
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    js_index = 0
+    js_socket_path = "/tmp/selkies_js0.sock"
+    ev_socket_path = "/tmp/selkies_event1000.sock"
+    js = SelkiesGamepad(js_index, js_socket_path, ev_socket_path, loop)
+
+    logger.info("Starting server")
+    js.run_server()
+
+    btn_keymap = {
+        "z": 0,
+        "x": 1,
+        "a": 2,
+        "s": 3,
+    }
+    axis_keymap = {
+        259: (7, -1), # Up arrow HAT0 up
+        258: (7, 1),  # Down arrow HAT0 down
+        260: (6, -1), # Left arrao HAT0 left
+        261: (6, 1),  # Right arrow HAT0 left
+    }
+
+    async def read_keys(stdscr, key_press_handler, key_release_handler):
+        # Configure curses to not wait for input and not echo keys
+        stdscr.nodelay(True)
+        curses.noecho()
+        curses.cbreak()
+        while True:
+            key = stdscr.getch()
+            if key != -1:
+                key_press_handler(key)
+                await asyncio.sleep(0.05)
+                key_release_handler(key)
+            await asyncio.sleep(0.01)
+
+    def key_press_handler(key):
+        if key in axis_keymap:
+            axis_num, axis_value = axis_keymap[key]
+            js.send_axis(axis_num, axis_value)
+            logger.info(f"Axis Pressed: {key} -> axis {axis_num}")
+        else:
+            try:
+                ch = chr(key)
+                btn_num = btn_keymap.get(ch, 0)
+                js.send_btn(btn_num, 1)
+                logger.info(f"Key Pressed: {key}({ch}) -> button {btn_num}")
+            except ValueError:
+                pass
+
+    def key_release_handler(key):
+        if key in axis_keymap:
+            axis_num, _ = axis_keymap[key]
+            js.send_axis(axis_num, 0)
+            logger.info(f"Axis Released: {key} -> axis {axis_num}")
+        else:
+            try:
+                ch = chr(key)
+                btn_num = btn_keymap.get(ch, 0)
+                js.send_btn(btn_num, 0)
+                logger.info(f"Key Released: {ch} -> button {btn_num}")
+            except ValueError:
+                pass
+
+    async def main(stdscr):
+        while True:
+            await read_keys(stdscr, key_press_handler, key_release_handler)
+
+    def curses_main(stdscr):
+        asyncio.run(main(stdscr))
+
+    loop.run_in_executor(None, lambda: curses.wrapper(curses_main))
+
+    loop.run_forever()

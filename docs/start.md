@@ -185,10 +185,10 @@ export DISPLAY="${DISPLAY:-:0}"
 # Configure the Joystick Interposer
 export SELKIES_INTERPOSER='/usr/$LIB/selkies_joystick_interposer.so'
 export LD_PRELOAD="${SELKIES_INTERPOSER}${LD_PRELOAD:+:${LD_PRELOAD}}"
-export SDL_JOYSTICK_DEVICE=/dev/input/js0
 sudo mkdir -pm1777 /dev/input
 sudo touch /dev/input/js0 /dev/input/js1 /dev/input/js2 /dev/input/js3
-sudo chmod 777 /dev/input/js*
+sudo touch /dev/input/event1000 /dev/input/event1001 /dev/input/event1002 /dev/input/event1003
+sudo chmod 777 /dev/input/js* /dev/input/event*
 
 # Commented sections are optional but may be mandatory based on setup
 

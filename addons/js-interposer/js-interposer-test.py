@@ -6,10 +6,22 @@
 
 # import ctypes
 import os
+import sys
 import struct
 import time
 import asyncio
 import socket
+
+DEFAULT_SOCKET_PATH = "/tmp/selkies_js0.sock"
+
+# Event types
+EV_SYN = 0x00
+EV_KEY = 0x01
+EV_REL = 0x02
+EV_ABS = 0x03
+
+# Sync events
+SYN_REPORT = 0
 
 # Types from https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/input-event-codes.h#n380
 BTN_MISC = 0x100
@@ -97,8 +109,6 @@ ABS_TOOL_WIDTH = 0x1c
 ABS_VOLUME = 0x20
 ABS_PROFILE = 0x21
 
-SOCKET_PATH = "/tmp/selkies_js0.sock"
-
 # From /usr/include/linux/joystick.h
 JS_EVENT_BUTTON = 0x01
 JS_EVENT_AXIS = 0x02
@@ -120,7 +130,14 @@ MAX_AXES = 64
 clients = {}
 
 XPAD_CONFIG = {
-    "name": "Xbox 360 Controller",
+    "name": "Selkies Controller",
+    # "name": "Xbox 360 Controller",
+    "vendor": 0x045e,  # Microsoft
+    "product": 0x028e, # Xbox360 Wired Controller
+    # "name": "Steam Virtual Gamepad pad 1",
+    # "vendor": 0x28de,  # Valve
+    # "product": 0x11ff, # Steam Virtual Gamepad
+    "version": 1,
     "btn_map": [
         BTN_A,
         BTN_B,
@@ -147,7 +164,7 @@ XPAD_CONFIG = {
 }
 
 
-def get_btn_event(btn_num, btn_val):
+def get_js_btn_event(btn_num, btn_val, word_len=8):
     ts = int((time.time() * 1000) % 1000000000)
 
     # see js_event struct definition above.
@@ -160,8 +177,32 @@ def get_btn_event(btn_num, btn_val):
 
     return event
 
+def get_ev_btn_event(btn_num, btn_val, word_len=8):
+    now = time.time()
+    ts_sec = int(now)
+    ts_usec = int((now *1e6) % 1e6)
 
-def get_axis_event(axis_num, axis_val):
+    ev_btn = XPAD_CONFIG["btn_map"][btn_num]
+
+    # timestamp_sec, timestamp_usec, type, code, value
+    if word_len == 8:
+        print("Using 64bit word length")
+        struct_format = 'llHHIllHHI'
+    else:
+        print("Using 32bit word length")
+        struct_format = 'iiHHIiiHHI'
+
+    event = struct.pack(struct_format,
+        ts_sec, ts_usec, EV_KEY, ev_btn, btn_val,
+        ts_sec, ts_usec, EV_SYN, SYN_REPORT, 0
+    )
+
+    # debug
+    print(struct.unpack(struct_format, event))
+
+    return event
+
+def get_js_axis_event(axis_num, axis_val, word_len=8):
     ts = int((time.time() * 1000) % 1000000000)
 
     # see js_event struct definition above.
@@ -174,6 +215,28 @@ def get_axis_event(axis_num, axis_val):
 
     return event
 
+def get_ev_axis_event(axis_num, axis_val, word_len=8):
+    now = time.time()
+    ts_sec = int(now)
+    ts_usec = int((now *1e6) % 1e6)
+
+    # evdev expects ev key codes, not axis numbers
+    ev_axis = XPAD_CONFIG["axes_map"][axis_num]
+
+    # timestamp_sec, timestamp_usec, type, code, value
+    if word_len == 8:
+        print("Using 64bit word length")
+        struct_format = 'llHHillHHi'
+    else:
+        print("Using 32bit word length")
+        struct_format = 'iiHHiiiHHi'
+
+    event = struct.pack(struct_format,
+        ts_sec, ts_usec, EV_ABS, ev_axis, axis_val,
+        ts_sec, ts_usec, EV_SYN, SYN_REPORT, 0
+    )
+
+    return event
 
 def make_config():
     cfg = XPAD_CONFIG
@@ -187,9 +250,12 @@ def make_config():
     btn_map[num_btns:MAX_BTNS] = [0 for i in range(num_btns, MAX_BTNS)]
     axes_map[num_axes:MAX_AXES] = [0 for i in range(num_axes, MAX_AXES)]
 
-    struct_fmt = "255sHH%dH%dB" % (MAX_BTNS, MAX_AXES)
+    struct_fmt = "255sHHHHH%dH%dB" % (MAX_BTNS, MAX_AXES)
     data = struct.pack(struct_fmt,
                        cfg["name"].encode(),
+                       cfg["vendor"],
+                       cfg["product"],
+                       cfg["version"],
                        num_btns,
                        num_axes,
                        *btn_map,
@@ -197,11 +263,21 @@ def make_config():
                        )
     return data
 
+def get_axis_cylon(curr, minval, maxval, step):
+    new_step = step
+    if curr + step > maxval or curr + step < minval:
+        new_step = step * -1
+    return new_step, curr + new_step
 
-async def send_events():
+async def send_events(ev_type="JS"):
     loop = asyncio.get_event_loop()
     btn_num = 0
     btn_val = 0
+    axis_num = 0
+    axis_val = 0
+    axis_step = 4000
+    hat_val = 0
+    hat_step = 1
     while True:
         if len(clients) < 1:
             await asyncio.sleep(0.1)
@@ -211,8 +287,29 @@ async def send_events():
         for fd in clients:
             try:
                 client = clients[fd]
-                print("Sending event to client: %d" % fd)
-                await loop.sock_sendall(client, get_btn_event(btn_num, btn_val))
+
+                if ev_type == "JS":
+                    get_btn_event = get_js_btn_event
+                    get_axis_event = get_js_axis_event
+                elif ev_type == "EV":
+                    get_btn_event = get_ev_btn_event
+                    get_axis_event = get_ev_axis_event
+                else:
+                    print(f"ERROR: unsupported ev_type: '{ev_type}'")
+
+                print(f"Sending button {btn_num} value={btn_val} event to client: {fd}")
+                await loop.sock_sendall(client, get_btn_event(btn_num, btn_val, client.get_word_length()))
+
+                hat_step, hat_val = get_axis_cylon(hat_val, -1, 1, hat_step)
+                axis_step, axis_val = get_axis_cylon(axis_val, -32767, 32768, axis_step)
+                for axis_num in range(len(XPAD_CONFIG["axes_map"])):
+                    if XPAD_CONFIG["axes_map"][axis_num] in [ABS_HAT0X, ABS_HAT0Y]:
+                        print(f"Sending hat axis {axis_num} value={hat_val} event to client: {fd}")
+                        await loop.sock_sendall(client, get_axis_event(axis_num, hat_val, client.get_word_length()))
+                    else:
+                        print(f"Sending axis {axis_num} value={axis_val} event to client: {fd}")
+                        await loop.sock_sendall(client, get_axis_event(axis_num, axis_val, client.get_word_length()))
+
             except BrokenPipeError:
                 print("Client %d disconnected" % fd)
                 closed_clients.append(fd)
@@ -225,21 +322,44 @@ async def send_events():
         btn_val = 0 if btn_val == 1 else 1
 
         if btn_val == 1:
-            btn_num = (btn_num + 1) % 11
+            btn_num = (btn_num + 1) % len(XPAD_CONFIG["btn_map"])
 
+class MySocket(socket.socket):
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, fileno=None):
+        # Initialize the parent socket
+        super().__init__(family, type, proto, fileno)
+        # Add a new field; for example, a field to hold a custom name.
+        self.word_length = None
 
-async def run_server():
-    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    server.bind(SOCKET_PATH)
+    # You can also add new methods to manipulate the new field
+    def set_word_length(self, length):
+        self.word_length = length
+
+    def get_word_length(self):
+        return self.word_length
+
+    def accept(self):
+        # Call the original accept() to get a new connection and its address.
+        newsock, addr = super().accept()
+        # Use detach() to take over the file descriptor and create a new MySocket.
+        newmysock = MySocket(newsock.family, newsock.type, newsock.proto, fileno=newsock.detach())
+        return newmysock, addr
+
+async def run_server(socket_path):
+    server = MySocket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server.bind(socket_path)
     server.listen(1)
     server.setblocking(False)
 
     loop = asyncio.get_event_loop()
 
-    print('Listening for connections on %s' % SOCKET_PATH)
+    print('Listening for connections on %s' % socket_path)
 
     # Create task that sends events to all connected clients.
-    loop.create_task(send_events())
+    event_type = "JS"
+    if "event" in socket_path:
+        event_type = "EV"
+    loop.create_task(send_events(event_type))
 
     try:
         while True:
@@ -250,6 +370,10 @@ async def run_server():
             # Send client the joystick configuration
             await loop.sock_sendall(client, make_config())
 
+            interposer_cfg = await loop.sock_recv(client, 1)
+            client.set_word_length(interposer_cfg[0])
+            print(f"Interposer word length: {client.get_word_length()}")
+
             # Add client to dictionary to receive events.
             clients[fd] = client
     finally:
@@ -257,11 +381,20 @@ async def run_server():
         server.close()
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "-h":
+        print(f"USAGE: {sys.argv[0]} [<socket path|{DEFAULT_SOCKET_PATH}>]")
+        sys.exit(-1)
+
+    if len(sys.argv) > 1:
+        socket_path = sys.argv[1]
+    else:
+        socket_path = DEFAULT_SOCKET_PATH
+
     # remove the socket file if it already exists
     try:
-        os.unlink(SOCKET_PATH)
+        os.unlink(socket_path)
     except OSError:
-        if os.path.exists(SOCKET_PATH):
+        if os.path.exists(socket_path):
             raise
 
-    asyncio.run(run_server())
+    asyncio.run(run_server(socket_path))

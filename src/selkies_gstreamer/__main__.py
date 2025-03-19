@@ -881,9 +881,9 @@ def main():
         asyncio.ensure_future(server.run(), loop=loop)
         if using_metrics_http:
             metrics.start_http()
-        loop.run_until_complete(webrtc_input.connect())
         loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
         loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
+        loop.run_in_executor(None, lambda: webrtc_input.start_joystick())
         loop.run_in_executor(None, lambda: gpu_mon.start(gpu_id))
         loop.run_in_executor(None, lambda: hmac_turn_mon.start())
         loop.run_in_executor(None, lambda: turn_rest_mon.start())
@@ -895,17 +895,15 @@ def main():
                 metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
             asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
             asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
-
+            loop.run_until_complete(webrtc_input.connect())
             loop.run_until_complete(signalling.connect())
             loop.run_until_complete(audio_signalling.connect())
 
-            # asyncio.ensure_future(signalling.start(), loop=loop)
             asyncio.ensure_future(audio_signalling.start(), loop=loop)
             loop.run_until_complete(signalling.start())
 
             app.stop_pipeline()
             audio_app.stop_pipeline()
-            webrtc_input.stop_js_server()
     except Exception as e:
         logger.error("Caught exception: %s" % e)
         traceback.print_exc()

@@ -92,6 +92,7 @@ class WebRTCInput:
 
         # Map of gamepad numbers to socket paths
         self.js_socket_path_map = {i: os.path.join(js_socket_path, "selkies_js%d.sock" % i) for i in range(4)}
+        self.ev_socket_path_map = {i: os.path.join(js_socket_path, "selkies_event%d.sock" % (1000 + i)) for i in range(4)}
 
         # Map of gamepad number to SelkiesGamepad objects
         self.js_map = {}
@@ -165,30 +166,37 @@ class WebRTCInput:
             self.uinput_mouse_socket.sendto(
                 data, self.uinput_mouse_socket_path)
 
-    def __js_connect(self, js_num, name, num_btns, num_axes):
+    def start_joystick(self):
         """Connect virtual joystick using Selkies Joystick Interposer
         """
         assert self.loop is not None
 
-        logger.info("creating selkies gamepad for js%d, name: '%s', buttons: %d, axes: %d" % (js_num, name, num_btns, num_axes))
+        for js_index in range(4):
+            logger.info("creating selkies gamepad for js%d" % js_index)
 
-        socket_path = self.js_socket_path_map.get(js_num, None)
-        if socket_path is None:
-            logger.error("failed to connect js%d because socket_path was not found" % js_num)
-            return
+            js_socket_path = self.js_socket_path_map.get(js_index, None)
+            if js_socket_path is None:
+                logger.error("failed to connect js%d because socket_path was not found" % js_index)
+                return
 
-        # Create the gamepad and button config.
-        js = SelkiesGamepad(socket_path, self.loop)
-        js.set_config(name, num_btns, num_axes)
+            ev_socket_path = self.ev_socket_path_map.get(js_index, None)
+            if ev_socket_path is None:
+                logger.error("failed to connect EV joystick %d because socket_path was not found" % js_index)
+                return
 
-        asyncio.ensure_future(js.run_server(), loop=self.loop)
+            # Create the gamepad and button config.
+            js = SelkiesGamepad(js_index, js_socket_path, ev_socket_path, self.loop)
+            js.run_server()
 
-        self.js_map[js_num] = js
+            logger.info("started gamepad %d" % js_index)
 
-    def __js_disconnect(self, js_num=None):
+            self.js_map[js_index] = js
+
+    def stop_joystick(self, js_num=None):
         if js_num is None:
             # stop all gamepads.
-            for js in self.js_map.values():
+            for js_num, js in self.js_map.items():
+                logger.info("stopping gamepad %d" % js_num)
                 js.stop_server()
             self.js_map = {}
             return
@@ -227,11 +235,11 @@ class WebRTCInput:
 
         # Clear any stuck modifier keys
         self.reset_keyboard()
-
+        logger.info("Connecting mouse")
         self.__mouse_connect()
+        logger.info("Connecting joysticks")
 
     def disconnect(self):
-        self.__js_disconnect()
         self.__mouse_disconnect()
 
     def reset_keyboard(self):
@@ -438,6 +446,8 @@ class WebRTCInput:
         self.clipboard_running = False
 
     def start_cursor_monitor(self):
+        while self.xdisplay is None:
+            time.sleep(0.5)
         if not self.xdisplay.has_extension('XFIXES'):
             if self.xdisplay.query_extension('XFIXES') is None:
                 logger.error(
@@ -555,9 +565,6 @@ class WebRTCInput:
                     debugf.write(data)
             return data
 
-    def stop_js_server(self):
-        self.__js_disconnect()
-
     def on_message(self, msg):
         """Handles incoming input messages
 
@@ -634,10 +641,10 @@ class WebRTCInput:
                 name = base64.b64decode(toks[3]).decode()[:255]
                 num_axes = int(toks[4])
                 num_btns = int(toks[5])
-                self.__js_connect(js_num, name, num_btns, num_axes)
+                logger.info(f"joystick {js_num}: '{name}' connected with {num_axes} axes and {num_btns} buttons")
             elif toks[1] == 'd':
                 js_num = int(toks[2])
-                self.__js_disconnect(js_num)
+                logger.info(f"joystick {js_num}: disconnected")
             elif toks[1] == 'b':
                 js_num = int(toks[2])
                 btn_num = int(toks[3])
