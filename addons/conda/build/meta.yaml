@@ -74,7 +74,7 @@ requirements:
     - gsl
     - libtool
     - libgcrypt-tools
-    - pygobjectg
+    - pygobject
     - setuptools
     - libvpx
     - openh264
