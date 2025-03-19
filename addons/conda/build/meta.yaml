@@ -54,6 +54,7 @@ requirements:
     - gettext-tools
     - git
     - git-lfs
+    - gobject-introspection
     - nasm
     - yasm
     - meson
@@ -144,5 +145,5 @@ requirements:
     - xdotool                            # [linux]
     - xsel                               # [linux]
     # NVIDIA NVRTC/nvJPEG dependency, https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/LICENSE.txt
-    - cuda-nvrtc 11.8
-    - libnvjpeg 11.9
+    - cuda-nvrtc 11.8.*
+    - libnvjpeg 11.9.*
