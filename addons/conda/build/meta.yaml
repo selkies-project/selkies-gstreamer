@@ -49,6 +49,7 @@ requirements:
     - file
     - {{ posix }}flex
     - ca-certificates
+    - cmake
     - curl
     - gettext-tools
     - git
