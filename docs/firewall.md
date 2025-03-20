@@ -40,9 +40,9 @@ In most cases when either of your server or client does not have a restrictive f
 
 **While the [Open Relay](https://www.metered.ca/tools/openrelay) TURN server is the default when no TURN server is set, because there is only one server location, any connection with the type `relay` will add substantial latency as well as stutters to your connections.**
 
-For self-hosting with restricted host networks, the [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free) Arm Compute Instance provides up to 10 TB Outbound Data Transfer every month, which accounts to a total of nearly 30 mbps bandwidth even when Selkies-GStreamer is utilized 24/7. You may configure coTURN with any computer, server, cloud service, or virtual machine you want. Make sure to use a location that is as close as possible to the web client or the host server.
+For self-hosting with restricted host networks, [Cloudflare Calls TURN](https://developers.cloudflare.com/calls/turn/overview/) provides free geodistributed TURN servers for the first 1000 GB per month (0.05 USD per GB afterwards), using the `--enable_cloudflare_turn=`, `--cloudflare_turn_token_id=`, and `--cloudflare_turn_api_token=` options. Other cloud TURN server services also exist.
 
-Otherwise, [Cloudflare](https://developers.cloudflare.com/calls/turn/overview/) and [Twilio](https://www.twilio.com/docs/stun-turn) also provide paid TURN server services.
+For higher data transfer quotas, using coTURN with the [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free) Arm Compute Instance provides up to 10 TB Outbound Data Transfer every month, which accounts to a total of nearly 30 mbps bandwidth even when Selkies-GStreamer is utilized 24/7. You may also configure coTURN with any computer, server, cloud service, or virtual machine you want. Make sure to use a location that is as close as possible to the web client or the host server.
 
 ### Selkies-GStreamer with TURN Server Credentials
 
