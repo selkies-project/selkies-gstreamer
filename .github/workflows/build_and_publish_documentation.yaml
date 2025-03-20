@@ -8,6 +8,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -42,6 +44,7 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    if: ${{ github.event_name != 'pull_request' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
