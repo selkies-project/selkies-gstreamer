@@ -7,15 +7,13 @@ name: Release devcontainer features
 on:
   workflow_dispatch:
 
-env:
-  PR_PERMISSIONS: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: ${{ env.PR_PERMISSIONS }}
-      pull-requests: ${{ env.PR_PERMISSIONS }}
-      packages: ${{ env.PR_PERMISSIONS }}
+      contents: write
+      pull-requests: write
+      packages: write
     steps:
     - uses: actions/checkout@v4
 
