@@ -9,6 +9,8 @@ on:
   push:
     branches: [ main ]
 
+env:
+  PR_PERMISSIONS: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
 jobs:
   build:
     name: Build documentation
@@ -40,8 +42,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      pages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
-      id-token: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      pages: ${{ env.PR_PERMISSIONS }}
+      id-token: ${{ env.PR_PERMISSIONS }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

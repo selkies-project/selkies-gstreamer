@@ -12,6 +12,8 @@ on:
         required: true
         type: string
 
+env:
+  PR_PERMISSIONS: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
 jobs:
   get_semver:
     name: Get Semantic Version
@@ -39,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      packages: ${{ env.PR_PERMISSIONS }}
     strategy:
       matrix:
         include:
@@ -76,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      packages: ${{ env.PR_PERMISSIONS }}
     strategy:
       matrix:
         include:
@@ -184,7 +186,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      packages: ${{ env.PR_PERMISSIONS }}
     strategy:
       matrix:
         include:
@@ -410,7 +412,7 @@ jobs:
     - upload_artifacts
     runs-on: ubuntu-latest
     permissions:
-      contents: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      contents: ${{ env.PR_PERMISSIONS }}
     if: ${{ github.event_name != 'pull_request' }}
     env:
       TMPDIR: /tmp

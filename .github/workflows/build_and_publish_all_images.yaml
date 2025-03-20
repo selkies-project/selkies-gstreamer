@@ -11,13 +11,15 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  PR_PERMISSIONS: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   core_images:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      packages: ${{ env.PR_PERMISSIONS }}
     strategy:
       matrix:
         include:
@@ -50,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      packages: ${{ env.PR_PERMISSIONS }}
     strategy:
       matrix:
         include:
@@ -151,7 +153,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      packages: ${{ env.PR_PERMISSIONS }}
     strategy:
       matrix:
         include:

@@ -7,13 +7,15 @@ name: Release devcontainer features
 on:
   workflow_dispatch:
 
+env:
+  PR_PERMISSIONS: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
-      pull-requests: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
-      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      contents: ${{ env.PR_PERMISSIONS }}
+      pull-requests: ${{ env.PR_PERMISSIONS }}
+      packages: ${{ env.PR_PERMISSIONS }}
     steps:
     - uses: actions/checkout@v4
 
@@ -23,5 +25,3 @@ jobs:
         publish-features: "true"
         base-path-to-features: ".devcontainer/features/desktop-selkies"
         generate-docs: "false"
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
