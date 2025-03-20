@@ -39,7 +39,7 @@ jobs:
         files: ${{ matrix.diff || matrix.context }}
 
     - name: Build & publish ${{ matrix.name }} image
-      if: ${{ steps.check.outputs.any_modified }}
+      if: ${{ steps.check.outputs.any_modified == 'true' }}
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}
@@ -146,7 +146,7 @@ jobs:
         files: ${{ matrix.diff || matrix.context }}
 
     - name: Build & publish ${{ matrix.name }} image
-      if: ${{ steps.check.outputs.any_modified }}
+      if: ${{ steps.check.outputs.any_modified == 'true' }}
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}
@@ -216,7 +216,7 @@ jobs:
         files: ${{ matrix.diff || matrix.context }}
 
     - name: Build & publish ${{ matrix.name }} image
-      if: ${{ steps.check.outputs.any_modified }}
+      if: ${{ steps.check.outputs.any_modified == 'true' }}
       uses: ./.github/actions/build_and_publish_image
       with:
         build_args: ${{ matrix.build_args }}
