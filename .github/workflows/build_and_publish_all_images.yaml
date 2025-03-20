@@ -8,11 +8,16 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   # Note: When modifying this job, copy modifications to all other workflow image jobs
   core_images:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
     strategy:
       matrix:
         include:
@@ -43,6 +48,9 @@ jobs:
   component_images:
     needs: core_images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
     strategy:
       matrix:
         include:
@@ -141,6 +149,9 @@ jobs:
   example_images:
     needs: component_images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
     strategy:
       matrix:
         include:
@@ -202,6 +213,9 @@ jobs:
   upload_artifacts:
     needs: component_images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     if: ${{ github.event_name != 'pull_request' }}
     env:
       TMPDIR: /tmp

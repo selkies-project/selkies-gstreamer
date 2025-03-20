@@ -11,7 +11,10 @@ on:
 
 jobs:
   build:
+    name: Build documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -33,14 +36,15 @@ jobs:
           retention-days: 1
 
   publish:
+    name: Publish documentation
     needs: build
+    runs-on: ubuntu-latest
     permissions:
-      pages: write
-      id-token: write
+      pages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      id-token: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

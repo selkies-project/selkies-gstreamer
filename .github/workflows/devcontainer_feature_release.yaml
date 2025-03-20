@@ -11,9 +11,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-      packages: write
+      contents: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      pull-requests: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
+      packages: ${{ github.event_name != 'pull_request' && 'write' || 'read' }}
     steps:
     - uses: actions/checkout@v4
 
