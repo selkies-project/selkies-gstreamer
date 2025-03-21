@@ -24,9 +24,14 @@ import base64
 import json
 import logging
 import ssl
-import websockets
+import websockets.asyncio.client
+import websockets.exceptions
 
 logger = logging.getLogger("signalling")
+
+# websockets logs an error if a connection is opened and closed before any data is sent.
+# The client seems to do same thing, causing an inital handshake error.
+logging.getLogger("websockets").setLevel(logging.CRITICAL)
 
 """Signalling API for Gstreamer WebRTC demo
 
@@ -104,17 +109,17 @@ class WebRTCSignalling:
             if self.enable_basic_auth:
                 auth64 = base64.b64encode(bytes("{}:{}".format(self.basic_auth_user, self.basic_auth_password), "ascii")).decode("ascii")
                 headers = [("Authorization", "Basic {}".format(auth64))]
-            
+
             while True:
                 try:
-                    self.conn = await websockets.connect(self.server, additional_headers=headers, ssl=sslctx)
+                    self.conn = await websockets.asyncio.client.connect(self.server, additional_headers=headers, ssl=sslctx)
                     break
                 except ConnectionRefusedError:
                     logger.info("Connecting to signal server...")
                     await asyncio.sleep(2)
 
             await self.conn.send('HELLO %d' % self.id)
-        except websockets.ConnectionClosed:
+        except websockets.exceptions.ConnectionClosed:
             self.on_disconnect()
 
     async def send_ice(self, mlineindex, candidate):

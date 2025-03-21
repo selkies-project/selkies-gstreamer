@@ -503,9 +503,6 @@ def main():
     parser.add_argument('--metrics_http_port',
                         default=os.environ.get('SELKIES_METRICS_HTTP_PORT', '8000'),
                         help='Port to start the Prometheus metrics server on')
-    parser.add_argument('--websockets_log_level',
-                        default=os.environ.get('SELKIES_WEBSOCKETS_LOG_LEVEL', "CRITICAL"),
-                        help='By default websockets log level is set to "CRITICAL", allowed values: https://docs.python.org/3/library/logging.html#levels')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debug logging')
     args = parser.parse_args()
@@ -878,7 +875,7 @@ def main():
     options.turn_auth_header_name = args.turn_rest_username_auth_header
     options.stun_host = args.stun_host
     options.stun_port = args.stun_port
-    server = WebRTCSimpleServer(loop, options)
+    server = WebRTCSimpleServer(options)
 
     # Callback method to update TURN servers of a running pipeline.
     def mon_rtc_config(stun_servers, turn_servers, rtc_config):

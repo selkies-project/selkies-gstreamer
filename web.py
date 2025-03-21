@@ -5,13 +5,11 @@ import argparse
 async def websocket_handler(request):
     ws = web.WebSocketResponse()
     await ws.prepare(request)
-
     async for msg in ws:
         if msg.type == web.WSMsgType.TEXT:
             await ws.send_str("Echo: " + msg.data)
         elif msg.type == web.WSMsgType.CLOSED:
             break
-
     return ws
 
 app = web.Application()
@@ -29,5 +27,4 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=8080, 
                         help='Port to run the server on (default: 8080)')
     args = parser.parse_args()
-    
     web.run_app(app, port=args.port)
