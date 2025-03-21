@@ -20,7 +20,8 @@ import ssl
 import logging
 import glob
 import asyncio
-import websockets
+import websockets.legacy.server
+import websockets.exceptions
 import basicauth
 import time
 import argparse
@@ -459,7 +460,7 @@ class WebRTCSimpleServer(object):
             peer_id, meta = await self.hello_peer(ws)
             try:
                 await self.connection_handler(ws, peer_id, meta)
-            except websockets.ConnectionClosed:
+            except websockets.exceptions.ConnectionClosed:
                 logger.info("Connection to peer {!r} closed, exiting handler".format(raddr))
             finally:
                 await self.remove_peer(peer_id)
@@ -475,7 +476,7 @@ class WebRTCSimpleServer(object):
         # Websocket and HTTP server
         http_handler = functools.partial(self.process_request, self.web_root)
         self.stop_server = self.loop.create_future()
-        async with websockets.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler, loop=self.loop,
+        async with websockets.legacy.server.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,
                                # Maximum number of messages that websockets will pop
                                # off the asyncio and OS buffers per connection. See:
                                # https://websockets.readthedocs.io/en/stable/api.html#websockets.protocol.WebSocketCommonProtocol

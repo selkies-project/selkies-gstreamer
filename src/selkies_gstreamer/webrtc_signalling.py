@@ -25,7 +25,8 @@ import json
 import logging
 import re
 import ssl
-import websockets
+import websockets.legacy.client
+import websockets.exceptions
 
 logger = logging.getLogger("signalling")
 
@@ -108,14 +109,14 @@ class WebRTCSignalling:
             
             while True:
                 try:
-                    self.conn = await websockets.connect(self.server, extra_headers=headers, ssl=sslctx)
+                    self.conn = await websockets.legacy.client.connect(self.server, extra_headers=headers, ssl=sslctx)
                     break
                 except ConnectionRefusedError:
                     logger.info("Connecting to signal server...")
                     await asyncio.sleep(2)
 
             await self.conn.send('HELLO %d' % self.id)
-        except websockets.ConnectionClosed:
+        except websockets.exceptions.ConnectionClosed:
             self.on_disconnect()
 
     async def send_ice(self, mlineindex, candidate):
