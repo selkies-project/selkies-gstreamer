@@ -18,7 +18,6 @@ import base64
 import sys
 import ssl
 import logging
-import glob
 import asyncio
 import websockets
 import basicauth
