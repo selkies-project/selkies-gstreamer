@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 cdt_name:                  # [linux]
-  - cos7                   # [linux]
+  - conda                  # [linux]
 c_stdlib:                  # [linux]
   - sysroot                # [linux]
 c_stdlib_version:          # [linux]
