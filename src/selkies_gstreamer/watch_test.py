@@ -13,6 +13,10 @@ def on_modified_handler(event):
         print("File changed: {}".format(event.src_path))
 
 async def main():
+    logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
     path = sys.argv[1] if len(sys.argv) > 1 else '.'
     event_handler = FileSystemEventHandler()
     event_handler.on_modified = on_modified_handler
@@ -26,8 +30,8 @@ async def main():
         observer.stop()
     observer.join()
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
+def entrypoint():
     asyncio.run(main())
+
+if __name__ == "__main__":
+    entrypoint()

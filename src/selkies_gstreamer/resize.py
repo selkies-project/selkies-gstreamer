@@ -185,5 +185,8 @@ async def main():
     res = sys.argv[1]
     print(await asyncio.to_thread(resize_display, res))
 
-if __name__ == "__main__":
+def entrypoint():
     asyncio.run(main())
+
+if __name__ == "__main__":
+    entrypoint()

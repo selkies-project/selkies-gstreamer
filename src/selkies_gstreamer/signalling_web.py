@@ -532,7 +532,7 @@ class WebRTCSimpleServer(object):
                 await self.stop()
                 return
 
-def main():
+def entrypoint():
     default_web_root = os.path.join(os.getcwd(), "../../addons/gst-web/src")
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -567,4 +567,4 @@ def main():
     asyncio.run(r.run())
 
 if __name__ == "__main__":
-    main()
+    entrypoint()

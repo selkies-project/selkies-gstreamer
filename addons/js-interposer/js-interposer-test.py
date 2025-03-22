@@ -229,6 +229,13 @@ async def send_events():
 
 
 async def run_server():
+    # remove the socket file if it already exists
+    try:
+        os.unlink(SOCKET_PATH)
+    except OSError:
+        if os.path.exists(SOCKET_PATH):
+            raise
+
     server = await asyncio.to_thread(socket.socket, socket.AF_UNIX, socket.SOCK_STREAM)
     await asyncio.to_thread(server.bind, SOCKET_PATH)
     await asyncio.to_thread(server.listen, 1)
@@ -255,12 +262,8 @@ async def run_server():
         await asyncio.to_thread(server.shutdown, 1)
         await asyncio.to_thread(server.close)
 
-if __name__ == "__main__":
-    # remove the socket file if it already exists
-    try:
-        os.unlink(SOCKET_PATH)
-    except OSError:
-        if os.path.exists(SOCKET_PATH):
-            raise
-
+def entrypoint():
     asyncio.run(run_server())
+
+if __name__ == "__main__":
+    entrypoint()

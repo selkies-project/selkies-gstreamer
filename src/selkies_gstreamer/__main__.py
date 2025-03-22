@@ -963,5 +963,8 @@ async def main():
         await server.stop()
         sys.exit(0)
 
-if __name__ == '__main__':
+def entrypoint():
     asyncio.run(main())
+
+if __name__ == '__main__':
+    entrypoint()

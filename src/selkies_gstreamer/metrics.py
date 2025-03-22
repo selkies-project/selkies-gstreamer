@@ -230,9 +230,13 @@ class Metrics:
         self.prev_stats_video_header_len = None
         self.prev_stats_audio_header_len = None
 
-async def main(port):
+async def main():
+    parser = argparse.ArgumentParser(description='Metrics server')
+    parser.add_argument('--port', type=int, default=8000, help='Port to start metrics server on')
+    args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    m = Metrics(port)
+
+    m = Metrics(args.port)
     await m.start_http()
     logger.info("Started metrics server on port %d" % port)
     await asyncio.to_thread(m.initialize_webrtc_csv_file())
@@ -242,8 +246,8 @@ async def main(port):
         m.set_gpu_utilization(int(random.random() * 100))
         await asyncio.sleep(1)
 
+def entrypoint():
+    asyncio.run(main())
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Metrics server')
-    parser.add_argument('--port', type=int, default=8000, help='Port to start metrics server on')
-    args = parser.parse_args()
-    asyncio.run(main(args.port))
+    entrypoint()
