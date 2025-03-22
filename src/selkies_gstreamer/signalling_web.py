@@ -505,7 +505,8 @@ class WebRTCSimpleServer(object):
 
     async def stop(self):
         logger.info('Stopping server... ')
-        self.stop_server.set_result(True)
+        if self.stop_server is not None:
+            self.stop_server.set_result(True)
         self.server.close()
         await self.server.wait_closed()
         logger.info('Stopped.')
