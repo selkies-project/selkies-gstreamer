@@ -199,7 +199,6 @@ def make_config():
 
 
 async def send_events():
-    loop = asyncio.get_event_loop()
     btn_num = 0
     btn_val = 0
     while True:
@@ -212,11 +211,12 @@ async def send_events():
             try:
                 client = clients[fd]
                 print("Sending event to client: %d" % fd)
-                await loop.sock_sendall(client, get_btn_event(btn_num, btn_val))
+                button_event = await asyncio.to_thread(get_btn_event, btn_num, btn_val)
+                await asyncio.to_thread(socket.sendall, client, button_event)
             except BrokenPipeError:
                 print("Client %d disconnected" % fd)
-                closed_clients.append(fd)
-                client.close()
+                await asyncio.to_thread(closed_clients.append, fd)
+                await asyncio.to_thread(client.close)
 
         for fd in closed_clients:
             del clients[fd]
@@ -229,34 +229,6 @@ async def send_events():
 
 
 async def run_server():
-    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    server.bind(SOCKET_PATH)
-    server.listen(1)
-    server.setblocking(False)
-
-    loop = asyncio.get_event_loop()
-
-    print('Listening for connections on %s' % SOCKET_PATH)
-
-    # Create task that sends events to all connected clients.
-    loop.create_task(send_events())
-
-    try:
-        while True:
-            client, _ = await loop.sock_accept(server)
-            fd = client.fileno()
-            print("Client connected with fd: %d" % fd)
-
-            # Send client the joystick configuration
-            await loop.sock_sendall(client, make_config())
-
-            # Add client to dictionary to receive events.
-            clients[fd] = client
-    finally:
-        server.shutdown(1)
-        server.close()
-
-if __name__ == "__main__":
     # remove the socket file if it already exists
     try:
         os.unlink(SOCKET_PATH)
@@ -264,4 +236,34 @@ if __name__ == "__main__":
         if os.path.exists(SOCKET_PATH):
             raise
 
+    server = await asyncio.to_thread(socket.socket, socket.AF_UNIX, socket.SOCK_STREAM)
+    await asyncio.to_thread(server.bind, SOCKET_PATH)
+    await asyncio.to_thread(server.listen, 1)
+    await asyncio.to_thread(server.setblocking, False)
+
+    print('Listening for connections on %s' % SOCKET_PATH)
+
+    # Create task that sends events to all connected clients.
+    asyncio.create_task(send_events())
+
+    try:
+        while True:
+            client, _ = await asyncio.to_thread(socket.sendall, server)
+            fd = client.fileno()
+            print("Client connected with fd: %d" % fd)
+
+            # Send client the joystick configuration
+            joystick_config = await asyncio.to_thread(make_config)
+            await asyncio.to_thread(socket.sendall, client, joystick_config)
+
+            # Add client to dictionary to receive events.
+            clients[fd] = client
+    finally:
+        await asyncio.to_thread(server.shutdown, 1)
+        await asyncio.to_thread(server.close)
+
+def entrypoint():
     asyncio.run(run_server())
+
+if __name__ == "__main__":
+    entrypoint()

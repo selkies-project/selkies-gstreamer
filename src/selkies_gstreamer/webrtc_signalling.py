@@ -23,12 +23,15 @@ import asyncio
 import base64
 import json
 import logging
-import re
 import ssl
-import websockets.legacy.client
+import websockets.asyncio.client
 import websockets.exceptions
 
 logger = logging.getLogger("signalling")
+
+# websockets logs an error if a connection is opened and closed before any data is sent.
+# The client seems to do same thing, causing an inital handshake error.
+logging.getLogger("websockets").setLevel(logging.CRITICAL)
 
 """Signalling API for Gstreamer WebRTC demo
 
@@ -72,13 +75,13 @@ class WebRTCSignalling:
         self.basic_auth_password = basic_auth_password
         self.conn = None
 
-        self.on_ice = lambda mlineindex, candidate: logger.warn(
+        self.on_ice = lambda mlineindex, candidate: logger.warning(
             'unhandled ice event')
-        self.on_sdp = lambda sdp_type, sdp: logger.warn('unhandled sdp event')
-        self.on_connect = lambda res, scale: logger.warn('unhandled on_connect callback')
-        self.on_disconnect = lambda: logger.warn('unhandled on_disconnect callback')
-        self.on_session = lambda peer_id, meta: logger.warn('unhandled on_session callback')
-        self.on_error = lambda v: logger.warn(
+        self.on_sdp = lambda sdp_type, sdp: logger.warning('unhandled sdp event')
+        self.on_connect = lambda res, scale: logger.warning('unhandled on_connect callback')
+        self.on_disconnect = lambda: logger.warning('unhandled on_disconnect callback')
+        self.on_session = lambda peer_id, meta: logger.warning('unhandled on_session callback')
+        self.on_error = lambda v: logger.warning(
             'unhandled on_error callback: %s', v)
 
     async def setup_call(self):
@@ -106,18 +109,18 @@ class WebRTCSignalling:
             if self.enable_basic_auth:
                 auth64 = base64.b64encode(bytes("{}:{}".format(self.basic_auth_user, self.basic_auth_password), "ascii")).decode("ascii")
                 headers = [("Authorization", "Basic {}".format(auth64))]
-            
+
             while True:
                 try:
-                    self.conn = await websockets.legacy.client.connect(self.server, extra_headers=headers, ssl=sslctx)
+                    self.conn = await websockets.asyncio.client.connect(self.server, additional_headers=headers, ssl=sslctx)
                     break
                 except ConnectionRefusedError:
                     logger.info("Connecting to signal server...")
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(2.0)
 
             await self.conn.send('HELLO %d' % self.id)
         except websockets.exceptions.ConnectionClosed:
-            self.on_disconnect()
+            await self.on_disconnect()
 
     async def send_ice(self, mlineindex, candidate):
         """Sends the ice candidate to peer

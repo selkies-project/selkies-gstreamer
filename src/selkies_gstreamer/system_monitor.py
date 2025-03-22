@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import asyncio
 import time
 import psutil
 
@@ -20,10 +21,10 @@ class SystemMonitor:
         self.mem_total = 0
         self.mem_used = 0
 
-        self.on_timer = lambda: logger.warn(
+        self.on_timer = lambda: logger.warning(
             "unhandled on_timer")
 
-    def start(self):
+    async def start(self):
         self.running = True
         while self.running:
             if self.enabled and int(time.time()) % self.period == 0:
@@ -32,7 +33,7 @@ class SystemMonitor:
                 self.mem_total = mem.total
                 self.mem_used = mem.used
                 self.on_timer(time.time())
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
         logger.info("system monitor stopped")
 
     def stop(self):

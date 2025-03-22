@@ -19,16 +19,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from prometheus_client import start_http_server, Summary
+from prometheus_client import start_http_server
 from prometheus_client import Gauge, Histogram, Info
 from datetime import datetime
+import asyncio
 import csv
 import json
 import logging
 import random
-import time
 import os
 from collections import OrderedDict
+import argparse
 
 logger = logging.getLogger("metrics")
 logger.setLevel(logging.INFO)
@@ -60,19 +61,18 @@ class Metrics:
     def set_latency(self, latency_ms):
         self.latency.set(latency_ms)
 
-    def start_http(self):
-        start_http_server(self.port)
+    async def start_http(self):
+        await asyncio.to_thread(start_http_server, self.port)
 
-    def set_webrtc_stats(self, webrtc_stat_type, webrtc_stats):
-        webrtc_stats_obj = json.loads(webrtc_stats)
-        sanitized_stats = self.sanitize_json_stats(webrtc_stats_obj)
+    async def set_webrtc_stats(self, webrtc_stat_type, webrtc_stats):
+        webrtc_stats_obj = await asyncio.to_thread(json.loads, webrtc_stats)
+        sanitized_stats = await asyncio.to_thread(self.sanitize_json_stats, webrtc_stats_obj)
         if self.using_webrtc_csv:
             if webrtc_stat_type == "_stats_audio":
-                self.write_webrtc_stats_csv(sanitized_stats, self.stats_audio_file_path)
+                asyncio.create_task(asyncio.to_thread(self.write_webrtc_stats_csv, sanitized_stats, self.stats_audio_file_path))
             else:
-                self.write_webrtc_stats_csv(sanitized_stats, self.stats_video_file_path)
-
-        self.webrtc_statistics.info(sanitized_stats)
+                asyncio.create_task(asyncio.to_thread(self.write_webrtc_stats_csv, sanitized_stats, self.stats_video_file_path))
+        await asyncio.to_thread(self.webrtc_statistics.info, sanitized_stats)
 
     def sanitize_json_stats(self, obj_list):
         """A helper function to process data to a structure
@@ -125,7 +125,7 @@ class Metrics:
 
                 if 'audio' in file_path:
                     # Audio stats
-                    if self.prev_stats_audio_header_len == None:
+                    if self.prev_stats_audio_header_len is None:
                         csv_writer.writerow(headers)
                         csv_writer.writerow(values)
                         self.prev_stats_audio_header_len = len(headers)
@@ -136,7 +136,7 @@ class Metrics:
                         self.prev_stats_audio_header_len = self.update_webrtc_stats_csv(file_path, headers, values)
                 else:
                     # Video stats
-                    if self.prev_stats_video_header_len == None:
+                    if self.prev_stats_video_header_len is None:
                         csv_writer.writerow(headers)
                         csv_writer.writerow(values)
                         self.prev_stats_video_header_len = len(headers)
@@ -196,13 +196,13 @@ class Metrics:
 
                 # Validation check to confirm modified rows are of same length
                 if len(prev_values[0]) != len(values):
-                    logger.warn("There's a mismatch; columns could be misaligned with headers")
+                    logger.warning("There's a mismatch; columns could be misaligned with headers")
 
             # Purge existing file
             if os.path.exists(file_path):
                 os.remove(file_path)
             else:
-                logger.warn("File {} doesn't exist to purge".format(file_path))
+                logger.warning("File {} doesn't exist to purge".format(file_path))
 
             # Create a new file with updated data
             with open(file_path, "a") as stats_file:
@@ -230,18 +230,24 @@ class Metrics:
         self.prev_stats_video_header_len = None
         self.prev_stats_audio_header_len = None
 
-if __name__ == '__main__':
+async def main():
+    parser = argparse.ArgumentParser(description='Metrics server')
+    parser.add_argument('--port', type=int, default=8000, help='Port to start metrics server on')
+    args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
 
-    port = 8000
-
-    m = Metrics(port)
-    m.start()
-
+    m = Metrics(args.port)
+    await m.start_http()
     logger.info("Started metrics server on port %d" % port)
-
+    await asyncio.to_thread(m.initialize_webrtc_csv_file())
     # Generate random metrics
     while True:
         m.set_fps(int(random.random() * 100 % 60))
         m.set_gpu_utilization(int(random.random() * 100))
-        time.sleep(1)
+        await asyncio.sleep(1.0)
+
+def entrypoint():
+    asyncio.run(main())
+
+if __name__ == '__main__':
+    entrypoint()

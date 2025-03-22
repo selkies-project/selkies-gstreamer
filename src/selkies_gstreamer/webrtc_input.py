@@ -31,7 +31,6 @@ import re
 import os
 import subprocess
 import socket
-import struct
 import time
 from PIL import Image
 from gamepad import SelkiesGamepad
@@ -84,7 +83,6 @@ class WebRTCInput:
     def __init__(self, uinput_mouse_socket_path="", js_socket_path="", enable_clipboard="", enable_cursors=True, cursor_size=16, cursor_scale=1.0, cursor_debug=False):
         """Initializes WebRTC input instance
         """
-        self.loop = None
 
         self.clipboard_running = False
         self.uinput_mouse_socket_path = uinput_mouse_socket_path
@@ -113,31 +111,31 @@ class WebRTCInput:
 
         self.ping_start = None
 
-        self.on_video_encoder_bit_rate = lambda bitrate: logger.warn(
+        self.on_video_encoder_bit_rate = lambda bitrate: logger.warning(
             'unhandled on_video_encoder_bit_rate')
-        self.on_audio_encoder_bit_rate = lambda bitrate: logger.warn(
+        self.on_audio_encoder_bit_rate = lambda bitrate: logger.warning(
             'unhandled on_audio_encoder_bit_rate')
-        self.on_mouse_pointer_visible = lambda visible: logger.warn(
+        self.on_mouse_pointer_visible = lambda visible: logger.warning(
             'unhandled on_mouse_pointer_visible')
-        self.on_clipboard_read = lambda data: logger.warn(
+        self.on_clipboard_read = lambda data: logger.warning(
             'unhandled on_clipboard_read')
-        self.on_set_fps = lambda fps: logger.warn(
+        self.on_set_fps = lambda fps: logger.warning(
             'unhandled on_set_fps')
-        self.on_set_enable_resize = lambda enable_resize, res: logger.warn(
+        self.on_set_enable_resize = lambda enable_resize, res: logger.warning(
             'unhandled on_set_enable_resize')
-        self.on_client_fps = lambda fps: logger.warn(
+        self.on_client_fps = lambda fps: logger.warning(
             'unhandled on_client_fps')
-        self.on_client_latency = lambda latency: logger.warn(
+        self.on_client_latency = lambda latency: logger.warning(
             'unhandled on_client_latency')
-        self.on_resize = lambda res: logger.warn(
+        self.on_resize = lambda res: logger.warning(
             'unhandled on_resize')
-        self.on_scaling_ratio = lambda res: logger.warn(
+        self.on_scaling_ratio = lambda res: logger.warning(
             'unhandled on_scaling_ratio')
-        self.on_ping_response = lambda latency: logger.warn(
+        self.on_ping_response = lambda latency: logger.warning(
             'unhandled on_ping_response')
-        self.on_cursor_change = lambda msg: logger.warn(
+        self.on_cursor_change = lambda msg: logger.warning(
             'unhandled on_cursor_change')
-        self.on_client_webrtc_stats = lambda webrtc_stat_type, webrtc_stats: logger.warn(
+        self.on_client_webrtc_stats = lambda webrtc_stat_type, webrtc_stats: logger.warning(
             'unhandled on_client_webrtc_stats')
 
     def __keyboard_connect(self):
@@ -168,7 +166,6 @@ class WebRTCInput:
     def __js_connect(self, js_num, name, num_btns, num_axes):
         """Connect virtual joystick using Selkies Joystick Interposer
         """
-        assert self.loop is not None
 
         logger.info("creating selkies gamepad for js%d, name: '%s', buttons: %d, axes: %d" % (js_num, name, num_btns, num_axes))
 
@@ -178,25 +175,25 @@ class WebRTCInput:
             return
 
         # Create the gamepad and button config.
-        js = SelkiesGamepad(socket_path, self.loop)
+        js = SelkiesGamepad(socket_path)
         js.set_config(name, num_btns, num_axes)
 
-        asyncio.ensure_future(js.run_server(), loop=self.loop)
+        asyncio.create_task(js.run_server())
 
         self.js_map[js_num] = js
 
-    def __js_disconnect(self, js_num=None):
+    async def __js_disconnect(self, js_num=None):
         if js_num is None:
             # stop all gamepads.
             for js in self.js_map.values():
-                js.stop_server()
+                await asyncio.to_thread(js.stop_server)
             self.js_map = {}
             return
         
-        js = self.js_map.get(js_num, None)
+        js = await asyncio.to_thread(self.js_map.get, js_num, None)
         if js is not None:
             logger.info("stopping gamepad %d" % js_num)
-            js.stop_server()
+            await asyncio.to_thread(js.stop_server)
             del self.js_map[js_num]
 
     def __js_emit_btn(self, js_num, btn_num, btn_val):
@@ -230,8 +227,8 @@ class WebRTCInput:
 
         self.__mouse_connect()
 
-    def disconnect(self):
-        self.__js_disconnect()
+    async def disconnect(self):
+        await self.__js_disconnect()
         self.__mouse_disconnect()
 
     def reset_keyboard(self):
@@ -416,7 +413,7 @@ class WebRTCInput:
             logger.warning(f"Error while writing to clipboard: {e}")
             return False
 
-    def start_clipboard(self):
+    async def start_clipboard(self):
         if self.enable_clipboard in ["true", "out"]:
             logger.info("starting clipboard monitor")
             self.clipboard_running = True
@@ -428,7 +425,7 @@ class WebRTCInput:
                         "sending clipboard content, length: %d" % len(curr_data))
                     self.on_clipboard_read(curr_data)
                     last_data = curr_data
-                time.sleep(0.5)
+                await asyncio.sleep(0.5)
             logger.info("clipboard monitor stopped")
         else:
             logger.info("skipping outbound clipboard service.")
@@ -437,7 +434,7 @@ class WebRTCInput:
         logger.info("stopping clipboard monitor")
         self.clipboard_running = False
 
-    def start_cursor_monitor(self):
+    async def start_cursor_monitor(self):
         if not self.xdisplay.has_extension('XFIXES'):
             if self.xdisplay.query_extension('XFIXES') is None:
                 logger.error(
@@ -469,7 +466,7 @@ class WebRTCInput:
 
         while self.cursors_running:
             if self.xdisplay.pending_events() == 0:
-                time.sleep(0.1)
+                await asyncio.sleep(0.1)
                 continue
             event = self.xdisplay.next_event()
             if (event.type, 0) == self.xdisplay.extension_event.DisplayCursorNotify:
@@ -555,10 +552,10 @@ class WebRTCInput:
                     debugf.write(data)
             return data
 
-    def stop_js_server(self):
-        self.__js_disconnect()
+    async def stop_js_server(self):
+        await self.__js_disconnect()
 
-    def on_message(self, msg):
+    async def on_message(self, msg):
         """Handles incoming input messages
 
         Bound to a data channel, handles input messages.
@@ -637,7 +634,7 @@ class WebRTCInput:
                 self.__js_connect(js_num, name, num_btns, num_axes)
             elif toks[1] == 'd':
                 js_num = int(toks[2])
-                self.__js_disconnect(js_num)
+                await self.__js_disconnect(js_num)
             elif toks[1] == 'b':
                 js_num = int(toks[2])
                 btn_num = int(toks[3])
@@ -732,7 +729,7 @@ class WebRTCInput:
         elif toks[0] == "_stats_video" or toks[0] == "_stats_audio":
             # WebRTC Statistics API data from client
             try:
-                self.on_client_webrtc_stats(toks[0], ",".join(toks[1:]))
+                await self.on_client_webrtc_stats(toks[0], ",".join(toks[1:]))
             except:
                 logger.error("failed to parse WebRTC Statistics JSON object")
         else:

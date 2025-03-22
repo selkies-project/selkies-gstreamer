@@ -174,9 +174,8 @@ def normalize_trigger_val(val):
     return round(val * (ABS_MAX - ABS_MIN)) + ABS_MIN
 
 class SelkiesGamepad:
-    def __init__(self, socket_path, loop):
+    def __init__(self, socket_path):
         self.socket_path = socket_path
-        self.loop = loop
 
         # Gamepad input mapper instance
         # created when calling set_config()
@@ -195,7 +194,7 @@ class SelkiesGamepad:
         # queue of events to send.
         self.events = Queue()
 
-        # flag indicating that loop is running.
+        # flag indicating instance running.
         self.running = False
     
     def set_config(self, name, num_btns, num_axes):
@@ -265,7 +264,7 @@ class SelkiesGamepad:
             try:
                 client = self.clients[fd]
                 logger.debug("Sending event to client with fd: %d" % fd)
-                await self.loop.sock_sendall(client, event)
+                await asyncio.to_thread(socket.sendall, client, event)
             except BrokenPipeError:
                 logger.info("Client %d disconnected" % fd)
                 closed_clients.append(fd)
@@ -280,7 +279,7 @@ class SelkiesGamepad:
             config_data = self.__make_config()
             if not config_data:
                 return
-            await self.loop.sock_sendall(client, config_data)
+            await asyncio.to_thread(socket.sendall, client, config_data)
             await asyncio.sleep(0.5)
             # Send zero values for all buttons and axis.
             for btn_num in range(len(self.config["btn_map"])):
@@ -306,14 +305,14 @@ class SelkiesGamepad:
 
         logger.info('Listening for connections on %s' % self.socket_path)
 
-        # start loop to process event queue.
-        self.loop.create_task(self.__send_events())
+        # start task to process event queue.
+        asyncio.create_task(self.__send_events())
 
         self.running = True
         try:
             while self.running:
                 try:
-                    client, _ = await asyncio.wait_for(self.loop.sock_accept(self.server), timeout=1)
+                    client, _ = await asyncio.wait_for(socket.accept(self.server), timeout=1)
                 except asyncio.TimeoutError:
                     continue
 
