@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import asyncio
 import logging
 import os
 import re
@@ -174,7 +175,7 @@ def set_cursor_size(size):
 
     return True
 
-def main():
+async def main():
     import sys
     logging.basicConfig(level=logging.INFO)
 
@@ -182,7 +183,7 @@ def main():
         print("USAGE: %s WxH" % sys.argv[0])
         sys.exit(1)
     res = sys.argv[1]
-    print(resize_display(res))
+    print(await asyncio.to_thread(resize_display, res))
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

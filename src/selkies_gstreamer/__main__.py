@@ -585,8 +585,8 @@ async def main():
     signalling.on_error = on_signalling_error
     audio_signalling.on_error = on_audio_signalling_error
 
-    signalling.on_disconnect = app.stop_pipeline
-    audio_signalling.on_disconnect = audio_app.stop_pipeline
+    signalling.on_disconnect = lambda: app.stop_pipeline()
+    audio_signalling.on_disconnect = lambda: audio_app.stop_pipeline()
 
     # After connecting, attempt to setup call to peer
     signalling.on_connect = signalling.setup_call
