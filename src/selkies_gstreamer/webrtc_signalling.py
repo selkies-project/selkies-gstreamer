@@ -75,13 +75,13 @@ class WebRTCSignalling:
         self.basic_auth_password = basic_auth_password
         self.conn = None
 
-        self.on_ice = lambda mlineindex, candidate: logger.warn(
+        self.on_ice = lambda mlineindex, candidate: logger.warning(
             'unhandled ice event')
-        self.on_sdp = lambda sdp_type, sdp: logger.warn('unhandled sdp event')
-        self.on_connect = lambda res, scale: logger.warn('unhandled on_connect callback')
-        self.on_disconnect = lambda: logger.warn('unhandled on_disconnect callback')
-        self.on_session = lambda peer_id, meta: logger.warn('unhandled on_session callback')
-        self.on_error = lambda v: logger.warn(
+        self.on_sdp = lambda sdp_type, sdp: logger.warning('unhandled sdp event')
+        self.on_connect = lambda res, scale: logger.warning('unhandled on_connect callback')
+        self.on_disconnect = lambda: logger.warning('unhandled on_disconnect callback')
+        self.on_session = lambda peer_id, meta: logger.warning('unhandled on_session callback')
+        self.on_error = lambda v: logger.warning(
             'unhandled on_error callback: %s', v)
 
     async def setup_call(self):
@@ -120,7 +120,7 @@ class WebRTCSignalling:
 
             await self.conn.send('HELLO %d' % self.id)
         except websockets.exceptions.ConnectionClosed:
-            self.on_disconnect()
+            await self.on_disconnect()
 
     async def send_ice(self, mlineindex, candidate):
         """Sends the ice candidate to peer

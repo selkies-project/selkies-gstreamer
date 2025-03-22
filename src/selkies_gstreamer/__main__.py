@@ -76,21 +76,21 @@ class HMACRTCMonitor:
 
         self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning("unhandled on_rtc_config")
 
-    def start(self):
+    async def start(self):
         if self.enabled:
             self.running = True
             while self.running:
                 if self.enabled and int(time.time()) % self.period == 0:
                     try:
-                        hmac_data = generate_rtc_config(self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls, self.stun_host, self.stun_port)
-                        stun_servers, turn_servers, rtc_config = parse_rtc_config(hmac_data)
-                        self.on_rtc_config(stun_servers, turn_servers, rtc_config)
+                        hmac_data = await asyncio.to_thread(generate_rtc_config, self.turn_host, self.turn_port, self.turn_shared_secret, self.turn_username, self.turn_protocol, self.turn_tls, self.stun_host, self.stun_port)
+                        stun_servers, turn_servers, rtc_config = await asyncio.to_thread(parse_rtc_config, hmac_data)
+                        await asyncio.to_thread(self.on_rtc_config, stun_servers, turn_servers, rtc_config)
                     except Exception as e:
                         logger.warning("could not fetch TURN HMAC config in periodic monitor: {}".format(e))
-                time.sleep(0.5)
+                await asyncio.sleep(0.5)
             logger.info("HMAC RTC monitor stopped")
 
-    def stop(self):
+    async def stop(self):
         self.running = False
 
 class RESTRTCMonitor:
@@ -109,20 +109,20 @@ class RESTRTCMonitor:
 
         self.on_rtc_config = lambda stun_servers, turn_servers, rtc_config: logger.warning("unhandled on_rtc_config")
 
-    def start(self):
+    async def start(self):
         if self.enabled:
             self.running = True
             while self.running:
                 if self.enabled and int(time.time()) % self.period == 0:
                     try:
-                        stun_servers, turn_servers, rtc_config = fetch_turn_rest(self.turn_rest_uri, self.turn_rest_username, self.turn_rest_username_auth_header, self.turn_protocol, self.turn_rest_protocol_header, self.turn_tls, self.turn_rest_tls_header)
-                        self.on_rtc_config(stun_servers, turn_servers, rtc_config)
+                        stun_servers, turn_servers, rtc_config = await asyncio.to_thread(fetch_turn_rest, self.turn_rest_uri, self.turn_rest_username, self.turn_rest_username_auth_header, self.turn_protocol, self.turn_rest_protocol_header, self.turn_tls, self.turn_rest_tls_header)
+                        await asyncio.to_thread(self.on_rtc_config, stun_servers, turn_servers, rtc_config)
                     except Exception as e:
                         logger.warning("could not fetch TURN REST config in periodic monitor: {}".format(e))
-                time.sleep(0.5)
+                await asyncio.sleep(0.5)
             logger.info("TURN REST RTC monitor stopped")
 
-    def stop(self):
+    async def stop(self):
         self.running = False
 
 class RTCConfigFileMonitor:
@@ -148,14 +148,14 @@ class RTCConfigFileMonitor:
                     self.on_rtc_config(stun_servers, turn_servers, rtc_config)
             except Exception as e:
                 logger.warning("could not read RTC JSON file: {}: {}".format(self.rtc_file, e))
-            
-    def start(self):
+
+    async def start(self):
         if self.enabled:
-            self.observer.start()
+            await asyncio.to_thread(self.observer.start)
             self.running = True
 
-    def stop(self):
-        self.observer.stop()
+    async def stop(self):
+        await asyncio.to_thread(self.observer.stop)
         logger.info("RTC config file monitor stopped")
         self.running = False
 
@@ -280,7 +280,7 @@ def fetch_cloudflare_turn(turn_token_id, api_token, ttl=86400):
     else:
         raise Exception(f"could not obtain Cloudflare TURN credentials, status was: {resp.status}")
 
-def wait_for_app_ready(ready_file, app_wait_ready = False):
+async def wait_for_app_ready(ready_file, app_wait_ready = False):
     """Wait for streaming app ready signal.
 
     returns when either app_wait_ready is True OR the file at ready_file exists.
@@ -293,7 +293,7 @@ def wait_for_app_ready(ready_file, app_wait_ready = False):
     logging.debug("app_wait_ready=%s, ready_file=%s" % (app_wait_ready, ready_file))
 
     while app_wait_ready and not os.path.exists(ready_file):
-        time.sleep(0.2)
+        await asyncio.sleep(0.2)
 
 def set_json_app_argument(config_path, key, value):
     """Writes kv pair to json argument file
@@ -320,7 +320,7 @@ def set_json_app_argument(config_path, key, value):
 
     return True
 
-def main():
+async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--json_config',
                         default=os.environ.get(
@@ -526,7 +526,7 @@ def main():
         except Exception as e:
             logger.error("failed to load json config from {}: {}".format(args.json_config, str(e)))
 
-    logging.warn(args)
+    logging.warning(args)
 
     # Set log level
     if args.debug:
@@ -535,7 +535,7 @@ def main():
         logging.basicConfig(level=logging.INFO)
 
     # Wait for streaming app to initialize
-    wait_for_app_ready(args.app_ready_file, args.app_wait_ready.lower() == "true")
+    await wait_for_app_ready(args.app_ready_file, args.app_wait_ready.lower() == "true")
 
     # Peer id for this app, default is 0, expecting remote peer id to be 1
     my_id = 0
@@ -567,26 +567,26 @@ def main():
 
     # Handle errors from the signalling server
     async def on_signalling_error(e):
-       if isinstance(e, WebRTCSignallingErrorNoPeer):
-           # Waiting for peer to connect, retry in 2 seconds.
-           time.sleep(2)
-           await signalling.setup_call()
-       else:
-           logger.error("signalling error: %s", str(e))
-           app.stop_pipeline()
+        if isinstance(e, WebRTCSignallingErrorNoPeer):
+            # Waiting for peer to connect, retry in 1 second.
+            await asyncio.sleep(1)
+            await signalling.setup_call()
+        else:
+            logger.error("signalling error: %s", str(e))
+            await app.stop_pipeline()
     async def on_audio_signalling_error(e):
-       if isinstance(e, WebRTCSignallingErrorNoPeer):
-           # Waiting for peer to connect, retry in 2 seconds.
-           time.sleep(2)
-           await audio_signalling.setup_call()
-       else:
-           logger.error("signalling error: %s", str(e))
-           audio_app.stop_pipeline()
+        if isinstance(e, WebRTCSignallingErrorNoPeer):
+            # Waiting for peer to connect, retry in 1 second.
+            await asyncio.sleep(1)
+            await audio_signalling.setup_call()
+        else:
+            logger.error("signalling error: %s", str(e))
+            await audio_app.stop_pipeline()
     signalling.on_error = on_signalling_error
     audio_signalling.on_error = on_audio_signalling_error
 
-    signalling.on_disconnect = lambda: app.stop_pipeline()
-    audio_signalling.on_disconnect = lambda: audio_app.stop_pipeline()
+    signalling.on_disconnect = app.stop_pipeline
+    audio_signalling.on_disconnect = audio_app.stop_pipeline
 
     # After connecting, attempt to setup call to peer
     signalling.on_connect = signalling.setup_call
@@ -705,7 +705,7 @@ def main():
     signalling.on_session = on_session_handler
     audio_signalling.on_session = on_session_handler
 
-    # Initialize the Xinput instance
+    # Initialize the X11 input instance
     cursor_scale = 1.0
     webrtc_input = WebRTCInput(
         args.uinput_mouse_socket,
@@ -772,6 +772,7 @@ def main():
     if enable_resize:
         webrtc_input.on_resize = on_resize_handler
     else:
+        logger.info("removing handler for on_resize")
         webrtc_input.on_resize = lambda res: logger.warning("remote resize is disabled, skipping resize to %s" % res)
 
     # Handle for DPI events.
@@ -845,11 +846,9 @@ def main():
 
     # [START main_start]
     # Connect to the signalling server and process messages.
-    loop = asyncio.get_event_loop()
     # Handle SIGINT and SIGTERM where KeyboardInterrupt has issues with asyncio
-    loop.add_signal_handler(signal.SIGINT, lambda: sys.exit(1))
-    loop.add_signal_handler(signal.SIGTERM, lambda: sys.exit(1))
-    webrtc_input.loop = loop
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        signal.signal(sig, lambda sig, f: sys.exit(1))
 
     # Initialize the signaling and web server
     options = argparse.Namespace()
@@ -922,53 +921,47 @@ def main():
     rtc_file_mon.on_rtc_config = mon_rtc_config
 
     try:
-        asyncio.ensure_future(server.run(), loop=loop)
+        asyncio.create_task(server.run())
         if using_metrics_http:
-            metrics.start_http()
-        loop.run_until_complete(webrtc_input.connect())
-        loop.run_in_executor(None, lambda: webrtc_input.start_clipboard())
-        loop.run_in_executor(None, lambda: webrtc_input.start_cursor_monitor())
-        loop.run_in_executor(None, lambda: gpu_mon.start(gpu_id))
-        loop.run_in_executor(None, lambda: hmac_turn_mon.start())
-        loop.run_in_executor(None, lambda: turn_rest_mon.start())
-        loop.run_in_executor(None, lambda: rtc_file_mon.start())
-        loop.run_in_executor(None, lambda: system_mon.start())
-
+            asyncio.create_task(metrics.start_http())
+        await webrtc_input.connect()
+        asyncio.create_task(webrtc_input.start_clipboard())
+        asyncio.create_task(webrtc_input.start_cursor_monitor())
+        asyncio.create_task(gpu_mon.start(gpu_id))
+        asyncio.create_task(hmac_turn_mon.start())
+        asyncio.create_task(turn_rest_mon.start())
+        asyncio.create_task(rtc_file_mon.start())
+        asyncio.create_task(system_mon.start())
         while True:
             if using_webrtc_csv:
-                metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
-            asyncio.ensure_future(app.handle_bus_calls(), loop=loop)
-            asyncio.ensure_future(audio_app.handle_bus_calls(), loop=loop)
-
-            loop.run_until_complete(signalling.connect())
-            loop.run_until_complete(audio_signalling.connect())
-
-            # asyncio.ensure_future(signalling.start(), loop=loop)
-            asyncio.ensure_future(audio_signalling.start(), loop=loop)
-            loop.run_until_complete(signalling.start())
-
-            app.stop_pipeline()
-            audio_app.stop_pipeline()
-            webrtc_input.stop_js_server()
+                await metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
+            asyncio.create_task(app.handle_bus_calls())
+            asyncio.create_task(audio_app.handle_bus_calls())
+            await signalling.connect()
+            await audio_signalling.connect()
+            asyncio.create_task(audio_signalling.start())
+            await signalling.start()
+            await app.stop_pipeline()
+            await audio_app.stop_pipeline()
+            await webrtc_input.stop_js_server()
     except Exception as e:
         logger.error("Caught exception: %s" % e)
         traceback.print_exc()
         sys.exit(1)
     finally:
-        app.stop_pipeline()
-        audio_app.stop_pipeline()
+        await app.stop_pipeline()
+        await audio_app.stop_pipeline()
         webrtc_input.stop_clipboard()
         webrtc_input.stop_cursor_monitor()
-        webrtc_input.stop_js_server()
-        webrtc_input.disconnect()
+        await webrtc_input.stop_js_server()
+        await webrtc_input.disconnect()
         gpu_mon.stop()
-        hmac_turn_mon.stop()
-        turn_rest_mon.stop()
-        rtc_file_mon.stop()
+        await hmac_turn_mon.stop()
+        await turn_rest_mon.stop()
+        await rtc_file_mon.stop()
         system_mon.stop()
-        loop.run_until_complete(server.stop())
+        await server.stop()
         sys.exit(0)
-    # [END main_start]
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

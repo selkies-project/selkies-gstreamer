@@ -478,7 +478,7 @@ class WebRTCSimpleServer(object):
             finally:
                 await self.remove_peer(peer_id)
 
-        # Perform initial cache of web_root files
+        # Initial cache of web_root files
         await asyncio.gather(*[self.cache_file(os.path.realpath(f)) for f in Path(self.web_root).rglob('*.*')])
 
         sslctx = self.get_ssl_ctx(https_server=True)
@@ -491,7 +491,7 @@ class WebRTCSimpleServer(object):
         logger.info("Listening on {}//{}:{}".format(http_protocol, self.addr, self.port))
         # Websocket and HTTP server
         http_handler = functools.partial(self.process_request, self.web_root)
-        self.stop_server = self.loop.create_future()
+        self.stop_server = asyncio.Future()
         async with websockets.asyncio.server.serve(handler, self.addr, self.port, ssl=sslctx, process_request=http_handler,
                                # Maximum number of messages that websockets will pop
                                # off the asyncio and OS buffers per connection. See:
@@ -500,7 +500,7 @@ class WebRTCSimpleServer(object):
             await self.stop_server
 
         if self.enable_https:
-            asyncio.ensure_future(self.check_server_needs_restart(), loop=self.loop)
+            asyncio.create_task(self.check_server_needs_restart())
 
     async def stop(self):
         logger.info('Stopping server... ')
@@ -535,7 +535,6 @@ def main():
     default_web_root = os.path.join(os.getcwd(), "../../addons/gst-web/src")
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # See: host, port in https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.create_server
     parser.add_argument('--addr', default='', help='Address to listen on (default: all interfaces, both ipv4 and ipv6)')
     parser.add_argument('--port', default=8443, type=int, help='Port to listen on')
     parser.add_argument('--web_root', default=default_web_root, type=str, help='Path to web root')
@@ -561,13 +560,10 @@ def main():
 
     options = parser.parse_args(sys.argv[1:])
 
-    loop = asyncio.get_event_loop()
     r = WebRTCSimpleServer(options)
 
     print('Starting server...')
-    asyncio.ensure_future(r.run())
-    print("Started server")
-    loop.run_forever()
+    asyncio.run(r.run())
 
 if __name__ == "__main__":
     main()

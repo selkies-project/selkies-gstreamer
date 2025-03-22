@@ -111,15 +111,15 @@ class GSTWebRTCApp:
         self.fec_audio_bitrate = int(self.audio_bitrate * (1.0 + (self.audio_packetloss_percent / 100.0)))
 
         # WebRTC ICE and SDP events
-        self.on_ice = lambda mlineindex, candidate: logger.warn(
+        self.on_ice = lambda mlineindex, candidate: logger.warning(
             'unhandled ice event')
-        self.on_sdp = lambda sdp_type, sdp: logger.warn('unhandled sdp event')
+        self.on_sdp = lambda sdp_type, sdp: logger.warning('unhandled sdp event')
 
         # Data channel events
-        self.on_data_open = lambda: logger.warn('unhandled on_data_open')
-        self.on_data_close = lambda: logger.warn('unhandled on_data_close')
-        self.on_data_error = lambda: logger.warn('unhandled on_data_error')
-        self.on_data_message = lambda msg: logger.warn(
+        self.on_data_open = lambda: logger.warning('unhandled on_data_open')
+        self.on_data_close = lambda: logger.warning('unhandled on_data_close')
+        self.on_data_error = lambda: logger.warning('unhandled on_data_error')
+        self.on_data_message = lambda msg: logger.warning(
             'unhandled on_data_message')
 
         Gst.init(None)
@@ -1513,7 +1513,6 @@ class GSTWebRTCApp:
         promise = Gst.Promise.new()
         self.webrtcbin.emit('set-local-description', offer, promise)
         promise.interrupt()
-        loop = asyncio.new_event_loop()
         sdp_text = offer.sdp.as_text()
         # rtx-time needs to be set to 125 milliseconds for optimal performance
         if 'rtx-time' not in sdp_text:
@@ -1550,7 +1549,7 @@ class GSTWebRTCApp:
             # OPUS_FRAME: Add ptime explicitly to SDP offer
             sdp_text = re.sub(r'([^-]sprop-[^\r\n]+)', r'\1\r\na=ptime:10', sdp_text)
         # Set final SDP offer
-        loop.run_until_complete(self.on_sdp('offer', sdp_text))
+        asyncio.run(self.on_sdp('offer', sdp_text))
 
     def __request_aux_sender_gcc(self, webrtcbin, dtls_transport):
         """Handles request-aux-header signal, initializing the rtpgccbwe element for WebRTC
@@ -1649,8 +1648,7 @@ class GSTWebRTCApp:
             candidate {string} -- ice candidate string
         """
         logger.debug("received ICE candidate: %d %s", mlineindex, candidate)
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(self.on_ice(mlineindex, candidate))
+        asyncio.run(self.on_ice(mlineindex, candidate))
 
     def bus_call(self, message):
         t = message.type
@@ -1667,7 +1665,7 @@ class GSTWebRTCApp:
                 logger.info(("Pipeline state changed from %s to %s." %
                     (old_state.value_nick, new_state.value_nick)))
                 if (old_state.value_nick == "paused" and new_state.value_nick == "ready"):
-                    logger.info("stopping bus message loop")
+                    logger.info("stopping bus message task")
                     return False
         elif t == Gst.MessageType.LATENCY:
             if self.webrtcbin:
@@ -1713,32 +1711,32 @@ class GSTWebRTCApp:
         logger.info("{} pipeline started".format("audio" if audio_only else "video"))
 
     async def handle_bus_calls(self):
-        # Start bus call loop
+        # Start bus call task
         running = True
         bus = None
         while running:
             if self.pipeline is not None:
-                bus = self.pipeline.get_bus()
+                bus = await asyncio.to_thread(self.pipeline.get_bus)
             if bus is not None:
-                while bus.have_pending():
+                while await asyncio.to_thread(bus.have_pending):
                     msg = bus.pop()
-                    if not self.bus_call(msg):
+                    if not await asyncio.to_thread(self.bus_call, msg):
                         running = False
             await asyncio.sleep(0.1)
 
-    def stop_pipeline(self):
+    async def stop_pipeline(self):
         logger.info("stopping pipeline")
         if self.data_channel:
-            self.data_channel.emit('close')
+            await asyncio.to_thread(self.data_channel.emit, 'close')
             self.data_channel = None
             logger.info("data channel closed")
         if self.pipeline:
             logger.info("setting pipeline state to NULL")
-            self.pipeline.set_state(Gst.State.NULL)
+            await asyncio.to_thread(self.pipeline.set_state, Gst.State.NULL)
             self.pipeline = None
             logger.info("pipeline set to state NULL")
         if self.webrtcbin:
-            self.webrtcbin.set_state(Gst.State.NULL)
+            await asyncio.to_thread(self.webrtcbin.set_state, Gst.State.NULL)
             self.webrtcbin = None
             logger.info("webrtcbin set to state NULL")
         logger.info("pipeline stopped")
