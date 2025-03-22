@@ -31,9 +31,10 @@ import hmac
 import base64
 
 from pathlib import Path
-import websockets
 import websockets.asyncio.server
+import websockets.datastructures
 import websockets.exceptions
+import websockets.http11
 
 logger = logging.getLogger("signaling")
 web_logger = logging.getLogger("web")
@@ -206,7 +207,7 @@ class WebRTCSimpleServer(object):
                 if not (auth[0] == self.basic_auth_user and auth[1] == self.basic_auth_password):
                     return self.http_response(http.HTTPStatus.UNAUTHORIZED, response_headers, b'Unauthorized')
             else:
-                response_headers.append(('WWW-Authenticate', 'Basic realm="restricted, charset="UTF-8"'))
+                response_headers['WWW-Authenticate'] = 'Basic realm="restricted, charset="UTF-8"'
                 return self.http_response(http.HTTPStatus.UNAUTHORIZED, response_headers, b'Authorization required')
 
         if path == "/ws/" or path == "/ws" or path.endswith("/signalling/") or path.endswith("/signalling"):
@@ -231,7 +232,7 @@ class WebRTCSimpleServer(object):
                 data = self.rtc_config
                 if type(data) == str:
                     data = str.encode(data)
-                response_headers.append(('Content-Type', 'application/json'))
+                response_headers['Content-Type'] = 'application/json'
                 return self.http_response(http.HTTPStatus.OK, response_headers, data)
             else:
                 web_logger.warning("HTTP GET {} 404 NOT FOUND - Missing RTC config".format(path))
@@ -247,18 +248,18 @@ class WebRTCSimpleServer(object):
         # Validate the path
         if os.path.commonpath((server_root, full_path)) != server_root or \
                 not os.path.exists(full_path) or not os.path.isfile(full_path):
-            response_headers.append(('Content-Type', 'text/html'))
+            response_headers['Content-Type'] = 'text/html'
             web_logger.info("HTTP GET {} 404 NOT FOUND".format(path))
             return self.http_response(http.HTTPStatus.NOT_FOUND, response_headers, b'404 NOT FOUND')
 
         # Guess file content type
         extension = full_path.split(".")[-1]
         mime_type = MIME_TYPES.get(extension, "application/octet-stream")
-        response_headers.append(('Content-Type', mime_type))
+        response_headers['Content-Type'] = mime_type
 
         # Read the whole file into memory and send it out
         body = await self.cache_file(full_path)
-        response_headers.append(('Content-Length', str(len(body))))
+        response_headers['Content-Length'] = str(len(body))
         web_logger.info("HTTP GET {} 200 OK".format(path))
         return self.http_response(http.HTTPStatus.OK, response_headers, body)
 

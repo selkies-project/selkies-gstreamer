@@ -62,7 +62,7 @@ class Metrics:
         self.latency.set(latency_ms)
 
     async def start_http(self):
-        await asyncio.create_thread(start_http_server, self.port)
+        await asyncio.to_thread(start_http_server, self.port)
 
     async def set_webrtc_stats(self, webrtc_stat_type, webrtc_stats):
         webrtc_stats_obj = await asyncio.to_thread(json.loads, webrtc_stats)
