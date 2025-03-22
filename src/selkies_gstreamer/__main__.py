@@ -242,9 +242,10 @@ def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp
 
     parsed_uri = urllib.parse.urlparse(uri)
 
-    conn = http.client.HTTPConnection(parsed_uri.netloc)
     if parsed_uri.scheme == "https":
         conn = http.client.HTTPSConnection(parsed_uri.netloc)
+    else:
+        conn = http.client.HTTPConnection(parsed_uri.netloc)
     auth_headers = {
         auth_header_username: user,
         header_protocol: protocol,
@@ -253,8 +254,10 @@ def fetch_turn_rest(uri, user, auth_header_username='x-auth-user', protocol='udp
 
     conn.request("GET", parsed_uri.path, headers=auth_headers)
     resp = conn.getresponse()
+    status = resp.status
     data = resp.read()
-    if resp.status >= 400:
+    conn.close()
+    if status >= 400:
         raise Exception("error fetching REST API config. Status code: {}. {}, {}".format(resp.status, resp.reason, data))
     if not data:
         raise Exception("data from REST API service was empty")
@@ -272,13 +275,15 @@ def fetch_cloudflare_turn(turn_token_id, api_token, ttl=86400):
         "ttl": ttl
     }
     parsed_uri = urllib.parse.urlparse(uri)
-    conn = http.client.HTTPConnection(parsed_uri.netloc)
+    conn = http.client.HTTPSConnection(parsed_uri.netloc)
     conn.request("POST", parsed_uri.path, json.dumps(data), headers=auth_headers)
     resp = conn.getresponse()
-    if resp.status < 400:
-        return json.load(resp)
-    else:
+    status = resp.status
+    data = resp.read()
+    conn.close()
+    if status >= 400:
         raise Exception(f"could not obtain Cloudflare TURN credentials, status was: {resp.status}")
+    return json.load(data)
 
 async def wait_for_app_ready(ready_file, app_wait_ready = False):
     """Wait for streaming app ready signal.
@@ -310,13 +315,15 @@ def set_json_app_argument(config_path, key, value):
             json.dump({}, f)
 
     # Read current config JSON
-    json_data = json.load(open(config_path))
+    with open(config_path, 'w') as f:
+        json_data = json.load(f)
 
     # Set the new value for the argument
     json_data[key] = value
 
     # Save the json file
-    json.dump(json_data, open(config_path, 'w'))
+    with open(config_path, 'w') as f:
+        json.dump(json_data, f)
 
     return True
 
@@ -511,7 +518,8 @@ async def main():
         # Read and overlay arguments from json file
         # Note that these are explicit overrides only.
         try:
-            json_args = json.load(open(args.json_config))
+            with open(args.json_config) as f:
+                json_args = json.load(f)
             for k, v in json_args.items():
                 if k == "framerate":
                     args.framerate = str(int(v))
@@ -660,8 +668,9 @@ async def main():
     audio_packetloss_percent = float(args.audio_packetloss_percent)
 
     # Create instance of app
-    app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
-    audio_app = GSTWebRTCApp(stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
+    coroutine = asyncio.get_running_loop()
+    app = GSTWebRTCApp(coroutine, stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
+    audio_app = GSTWebRTCApp(coroutine, stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
 
     # [END main_setup]
 

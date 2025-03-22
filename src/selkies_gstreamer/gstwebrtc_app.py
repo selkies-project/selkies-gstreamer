@@ -65,7 +65,7 @@ class GSTWebRTCAppError(Exception):
     pass
 
 class GSTWebRTCApp:
-    def __init__(self, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=96000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=0.0):
+    def __init__(self, coroutine, stun_servers=None, turn_servers=None, audio_channels=2, framerate=30, encoder=None, gpu_id=0, video_bitrate=2000, audio_bitrate=96000, keyframe_distance=-1.0, congestion_control=False, video_packetloss_percent=0.0, audio_packetloss_percent=0.0):
         """Initialize GStreamer WebRTC app.
 
         Initializes GObjects and checks for required plugins.
@@ -81,6 +81,7 @@ class GSTWebRTCApp:
         self.turn_servers = turn_servers
         self.audio_channels = audio_channels
         self.pipeline = None
+        self.coroutine = coroutine
         self.webrtcbin = None
         self.data_channel = None
         self.rtpgccbwe = None
@@ -1700,13 +1701,12 @@ class GSTWebRTCApp:
             options.set_value("ordered", True)
             options.set_value("priority", "high")
             options.set_value("max-retransmits", 0)
-            self.data_channel = self.webrtcbin.emit(
-                'create-data-channel', "input", options)
+            self.data_channel = self.webrtcbin.emit('create-data-channel', "input", options)
             self.data_channel.connect('on-open', lambda _: self.on_data_open())
             self.data_channel.connect('on-close', lambda _: self.on_data_close())
             self.data_channel.connect('on-error', lambda _: self.on_data_error())
             self.data_channel.connect(
-                'on-message-string', lambda _, msg: self.on_data_message(msg))
+                'on-message-string', lambda _, msg: asyncio.run_coroutine_threadsafe(self.on_data_message(msg), loop=self.coroutine))
 
         logger.info("{} pipeline started".format("audio" if audio_only else "video"))
 

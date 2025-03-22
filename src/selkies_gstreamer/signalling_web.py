@@ -190,7 +190,7 @@ class WebRTCSimpleServer(object):
             ]
         )
         # Overriding and appending headers if provided
-        for key, value in response_headers:
+        for key, value in response_headers.raw_items():
             if headers.get(key) is not None:
                 del headers[key]
             headers[key] = value
@@ -203,8 +203,8 @@ class WebRTCSimpleServer(object):
         username = ''
         if self.enable_basic_auth:
             if "basic" in request_headers.get("authorization", "").lower():
-                auth = websockets.headers.parse_authorization_basic(request_headers.get("authorization"))
-                if not (auth[0] == self.basic_auth_user and auth[1] == self.basic_auth_password):
+                decoded_username, decoded_password = websockets.headers.parse_authorization_basic(request_headers.get("authorization"))
+                if not (decoded_username == self.basic_auth_user and decoded_password == self.basic_auth_password):
                     return self.http_response(http.HTTPStatus.UNAUTHORIZED, response_headers, b'Unauthorized')
             else:
                 response_headers['WWW-Authenticate'] = 'Basic realm="restricted, charset="UTF-8"'

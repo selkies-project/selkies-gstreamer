@@ -729,7 +729,7 @@ class WebRTCInput:
         elif toks[0] == "_stats_video" or toks[0] == "_stats_audio":
             # WebRTC Statistics API data from client
             try:
-                self.on_client_webrtc_stats(toks[0], ",".join(toks[1:]))
+                await self.on_client_webrtc_stats(toks[0], ",".join(toks[1:]))
             except:
                 logger.error("failed to parse WebRTC Statistics JSON object")
         else:
