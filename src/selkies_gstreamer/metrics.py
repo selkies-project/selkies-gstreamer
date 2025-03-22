@@ -244,7 +244,7 @@ async def main():
     while True:
         m.set_fps(int(random.random() * 100 % 60))
         m.set_gpu_utilization(int(random.random() * 100))
-        await asyncio.sleep(1)
+        await asyncio.sleep(1.0)
 
 def entrypoint():
     asyncio.run(main())

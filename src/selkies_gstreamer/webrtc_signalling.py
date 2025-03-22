@@ -116,7 +116,7 @@ class WebRTCSignalling:
                     break
                 except ConnectionRefusedError:
                     logger.info("Connecting to signal server...")
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(2.0)
 
             await self.conn.send('HELLO %d' % self.id)
         except websockets.exceptions.ConnectionClosed:

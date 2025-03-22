@@ -25,7 +25,7 @@ async def main():
     observer.start()
     try:
         while True:
-            await asyncio.sleep(1)
+            await asyncio.sleep(1.0)
     except KeyboardInterrupt:
         observer.stop()
     observer.join()

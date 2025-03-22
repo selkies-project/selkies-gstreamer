@@ -527,7 +527,7 @@ class WebRTCSimpleServer(object):
         When the certificate changes, we need to restart the server
         '''
         while self.cert_restart:
-            await asyncio.sleep(1)
+            await asyncio.sleep(1.0)
             if self.check_cert_changed():
                 logger.info('Certificate changed, stopping server...')
                 await self.stop()
