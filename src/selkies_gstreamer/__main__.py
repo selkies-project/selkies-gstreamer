@@ -943,7 +943,7 @@ async def main():
         asyncio.create_task(system_mon.start())
         while True:
             if using_webrtc_csv:
-                await metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
+                metrics.initialize_webrtc_csv_file(args.webrtc_statistics_dir)
             asyncio.create_task(app.handle_bus_calls())
             asyncio.create_task(audio_app.handle_bus_calls())
             await signalling.connect()
