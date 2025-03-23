@@ -25,16 +25,14 @@ import http
 import concurrent
 import functools
 import json
+import pathlib
 
 import hashlib
 import hmac
 import base64
 
-from pathlib import Path
+import websockets
 import websockets.asyncio.server
-import websockets.datastructures
-import websockets.exceptions
-import websockets.http11
 
 logger = logging.getLogger("signaling")
 web_logger = logging.getLogger("web")
@@ -480,7 +478,7 @@ class WebRTCSimpleServer(object):
                 await self.remove_peer(peer_id)
 
         # Initial cache of web_root files
-        await asyncio.gather(*[self.cache_file(os.path.realpath(f)) for f in Path(self.web_root).rglob('*.*')])
+        await asyncio.gather(*[self.cache_file(os.path.realpath(f)) for f in pathlib.Path(self.web_root).rglob('*.*')])
 
         sslctx = self.get_ssl_ctx(https_server=True)
 

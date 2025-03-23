@@ -24,8 +24,8 @@ import base64
 import json
 import logging
 import ssl
+import websockets
 import websockets.asyncio.client
-import websockets.exceptions
 
 logger = logging.getLogger("signalling")
 
