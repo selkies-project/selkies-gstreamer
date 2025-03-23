@@ -1,6 +1,48 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=64",
+    "setuptools-scm>=8",
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "selkies-gstreamer"
+version = "0.0.0"
+authors = [
+    {name = "Dan Isla", email = "danisla@users.noreply.github.com"},
+    {name = "Seungmin Kim", email = "8457324+ehfd@users.noreply.github.com"},
+]
+description = "Open-Source Low-Latency Linux WebRTC HTML5 Remote Desktop and 3D Graphics / Game Streaming Platform with GStreamer"
+readme = "README.md"
+license = "MPL-2.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "websockets>=13.0",
+    "gputil",
+    "prometheus_client",
+    "msgpack",
+    "pynput",
+    "psutil",
+    "watchdog",
+    "Pillow",
+    "python-xlib @ https://github.com/selkies-project/python-xlib/archive/master.zip",
+]
+
+[project.urls]
+Homepage = "https://github.com/selkies-project/selkies-gstreamer"
+"Bug Tracker" = "https://github.com/selkies-project/selkies-gstreamer/issues"
+
+[project.scripts]
+selkies-gstreamer = "selkies_gstreamer.__main__:entrypoint"
+selkies-gstreamer-resize = "selkies_gstreamer.resize:entrypoint"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -112,7 +112,6 @@ requirements:
     - pygobject
     # Currently installed with pip because of python-xlib patch
     # - websockets
-    # - basicauth
     # - gputil
     # - prometheus_client
     # - msgpack-python
