@@ -15,7 +15,7 @@ WORKDIR /opt/pypi
 
 # Copy source files
 COPY src ./src
-COPY pyproject.toml ./
+COPY README.md pyproject.toml ./
 
 ARG PYPI_PACKAGE=selkies-gstreamer
 ARG PACKAGE_VERSION=0.0.0.dev0
