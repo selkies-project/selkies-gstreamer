@@ -668,9 +668,10 @@ async def main():
     audio_packetloss_percent = float(args.audio_packetloss_percent)
 
     # Create instance of app
-    coroutine = asyncio.get_running_loop()
-    app = GSTWebRTCApp(coroutine, stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
-    audio_app = GSTWebRTCApp(coroutine, stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
+    # Only use asynchronous event loops directly when synchronous functions are absolutely necessary (such as GStreamer signals)
+    event_loop = asyncio.get_running_loop()
+    app = GSTWebRTCApp(event_loop, stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
+    audio_app = GSTWebRTCApp(event_loop, stun_servers, turn_servers, audio_channels, curr_fps, args.encoder, gpu_id, curr_video_bitrate, curr_audio_bitrate, keyframe_distance, congestion_control, video_packetloss_percent, audio_packetloss_percent)
 
     # [END main_setup]
 
