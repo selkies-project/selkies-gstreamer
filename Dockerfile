@@ -15,15 +15,15 @@ WORKDIR /opt/pypi
 
 # Copy source files
 COPY src ./src
-COPY pyproject.toml setup.cfg ./
+COPY pyproject.toml ./
 
 ARG PYPI_PACKAGE=selkies-gstreamer
 ARG PACKAGE_VERSION=0.0.0.dev0
 
 # Patch the package name and version
 RUN sed -i \
-    -e "s|^name =.*|name = ${PYPI_PACKAGE}|g" \
-    -e "s|^version =.*|version = ${PACKAGE_VERSION}|g" \
-    setup.cfg
+    -e "s|^name =.*|name = \"${PYPI_PACKAGE}\"|g" \
+    -e "s|^version =.*|version = \"${PACKAGE_VERSION}\"|g" \
+    pyproject.toml
 
 RUN python3 -m build
