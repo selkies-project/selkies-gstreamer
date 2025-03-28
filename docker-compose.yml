@@ -5,12 +5,12 @@
 version: "3.9"
 services:
   dist:
-    image: selkies-gstreamer-py-build
+    image: selkies-py-build
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        PYPI_PACKAGE: selkies-gstreamer
+        PYPI_PACKAGE: selkies
         PACKAGE_VERSION: 0.0.0.dev0
   web:
     image: gst-web

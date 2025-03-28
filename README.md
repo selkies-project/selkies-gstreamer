@@ -14,4 +14,4 @@ Selkies-GStreamer is designed for researchers studying Agentic AI, Graphical AI,
 
 While designed for clustered or unprivileged containerized environments, Selkies-GStreamer can also be deployed in desktop computers, and any performance issue that would be problematic in cloud gaming platforms is also considered a bug.
 
-**[Read the Documentation](https://selkies-project.github.io/selkies-gstreamer/) to get started.**
+**[Read the Documentation](https://selkies-project.github.io/selkies/) to get started.**
