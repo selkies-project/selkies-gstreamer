@@ -14,7 +14,6 @@
 #   Author: Nirbheek Chauhan <nirbheek@centricular.com>
 
 import os
-import base64
 import sys
 import ssl
 import logging
@@ -30,6 +29,7 @@ import pathlib
 import hashlib
 import hmac
 import base64
+import subprocess
 
 import websockets
 import websockets.asyncio.server
@@ -290,6 +290,15 @@ class WebRTCSimpleServer(object):
                     wso, oaddr, _, _ = self.peers[other_id]
                     del self.peers[other_id]
                     await wso.close()
+            # Run application after last session disconnected
+            try:
+                if 'SELKIES_START_AFTER_DISCONNECT' in os.environ and len(self.sessions) == 0:
+                    if os.environ['SELKIES_START_AFTER_DISCONNECT'] != '':
+                        command = os.environ['SELKIES_START_AFTER_DISCONNECT'].split(' ')
+                        subprocess.Popen(command, stdout=subprocess.DEVNULL,
+                                         stderr=subprocess.DEVNULL)
+            except Exception as e:
+                logger.error('Failed to run SELKIES_START_AFTER_DISCONNECT: {}'.format(e))
 
     async def cleanup_room(self, uid, room_id):
         room_peers = self.rooms[room_id]
@@ -380,6 +389,15 @@ class WebRTCSimpleServer(object):
                 wsc = self.peers[callee_id][0]
                 logger.info('Session from {!r} ({!r}) to {!r} ({!r})'
                       ''.format(uid, raddr, callee_id, wsc.remote_address))
+                # Run application on first session connection
+                try:
+                    if 'SELKIES_START_AFTER_CONNECT' in os.environ and len(self.sessions) == 0:
+                        if os.environ['SELKIES_START_AFTER_CONNECT'] != '':
+                            command = os.environ['SELKIES_START_AFTER_CONNECT'].split(' ')
+                            subprocess.Popen(command, stdout=subprocess.DEVNULL,
+                                             stderr=subprocess.DEVNULL)
+                except Exception as e:
+                    logger.error('Failed to run SELKIES_START_AFTER_CONNECT: {}'.format(e))
                 # Register session
                 self.peers[uid][2] = peer_status = 'session'
                 self.sessions[uid] = callee_id
