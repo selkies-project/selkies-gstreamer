@@ -328,6 +328,11 @@ def set_json_app_argument(config_path, key, value):
     return True
 
 async def main():
+    # If we are running in dev mode touch a file on init to trigger the UI refresh
+    if "DEV_MODE" in os.environ:
+        with open('../../addons/gst-web-core/selkies-version.txt', 'a'):
+            os.utime('../../addons/gst-web-core/selkies-version.txt', None)
+    # Arg parsing
     parser = argparse.ArgumentParser()
     parser.add_argument('--json_config',
                         default=os.environ.get(
