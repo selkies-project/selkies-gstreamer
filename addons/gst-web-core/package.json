@@ -1,0 +1,22 @@
+{
+  "name": "gst-web-core",
+  "version": "1.0.0",
+  "description": "Core gst-web functionality",
+  "main": "index.html",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "serve": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "author": "Selkies",
+  "license": "GPL-3",
+  "dependencies": {
+    "vite": "^6.2.4",
+    "vite-plugin-env-compatible": "^2.0.1",
+    "vite-plugin-minify": "^2.1.0",
+    "vite-plugin-restart": "^0.4.2"
+  }
+}
