@@ -332,6 +332,9 @@ const initializeUI = () => {
   statusDisplayElement.id = 'status-display';
   statusDisplayElement.className = 'status-bar';
   statusDisplayElement.textContent = 'Connecting...';
+  if (!showStart) {
+    statusDisplayElement.classList.add('hidden');
+  }
   appDiv.appendChild(statusDisplayElement);
 
   const videoContainer = document.createElement('div');
@@ -355,6 +358,9 @@ const initializeUI = () => {
   spinnerElement = document.createElement('div');
   spinnerElement.id = 'spinner';
   spinnerElement.className = 'spinner-container';
+  if (!showStart) {
+    spinnerElement.classList.add('hidden');
+  }
   videoContainer.appendChild(spinnerElement);
 
   playButtonElement = document.createElement('button');
@@ -677,6 +683,11 @@ document.addEventListener('DOMContentLoaded', () => {
   webrtc.onconnectionstatechange = (state) => {
     videoConnected = state;
     if (videoConnected === "connected") {
+      if (!videoElement.paused) {
+        playButtonElement.classList.add('hidden');
+        statusDisplayElement.classList.add('hidden');
+        spinnerElement.classList.add('hidden');
+      }
       webrtc.peerConnection.getReceivers().forEach((receiver) => {
         let intervalLoop = setInterval(async () => {
           if (receiver.track.readyState !== "live" ||
@@ -987,3 +998,64 @@ document.addEventListener('DOMContentLoaded', () => {
       audio_webrtc.connect();
     });
 });
+
+function cleanup() {
+  console.log("Cleaning up before unload");
+
+  if (signalling) {
+    signalling.disconnect();
+    console.log("Signalling disconnected");
+  }
+  if (audio_signalling) {
+    audio_signalling.disconnect();
+    console.log("Audio Signalling disconnected");
+  }
+  if (webrtc) {
+    webrtc.reset();
+    console.log("WebRTC reset");
+  }
+  if (audio_webrtc) {
+    audio_webrtc.reset();
+    console.log("Audio WebRTC reset");
+  }
+
+  status = 'connecting';
+  loadingText = '';
+  showStart = true;
+  statusDisplayElement.textContent = 'Connecting...';
+  statusDisplayElement.classList.remove('hidden');
+  playButtonElement.classList.add('hidden');
+  spinnerElement.classList.remove('hidden');
+
+  connectionStat.connectionStatType = "unknown";
+  connectionStat.connectionLatency = 0;
+  connectionStat.connectionVideoLatency = 0;
+  connectionStat.connectionAudioLatency = 0;
+  connectionStat.connectionAudioCodecName = "NA";
+  connectionStat.connectionAudioBitrate = 0;
+  connectionStat.connectionPacketsReceived = 0;
+  connectionStat.connectionPacketsLost = 0;
+  connectionStat.connectionBytesReceived = 0;
+  connectionStat.connectionBytesSent = 0;
+  connectionStat.connectionCodec = "unknown";
+  connectionStat.connectionVideoDecoder = "unknown";
+  connectionStat.connectionResolution = "";
+  connectionStat.connectionFrameRate = 0;
+  connectionStat.connectionVideoBitrate = 0;
+  connectionStat.connectionAvailableBandwidth = 0;
+  gamepad.gamepadState = 'disconnected';
+  gamepad.gamepadName = 'none';
+  publishingAllowed = false;
+  publishingIdle = false;
+  publishingError = "";
+  publishingAppName = "";
+  publishingAppDisplayName = "";
+  publishingAppDescription = "";
+  publishingAppIcon = "";
+  publishingValid = false;
+  logEntries.length = 0;
+  debugEntries.length = 0;
+  console.log("Cleanup complete");
+}
+
+window.addEventListener('beforeunload', cleanup);

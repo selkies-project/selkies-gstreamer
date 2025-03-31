@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [
     envCompatible(),
     ViteMinifyPlugin(),
-    ViteRestart({restart: ['app.js', 'lib/**','selkies-version.txt']}),
+    ViteRestart({restart: ['selkies-core.js', 'lib/**','selkies-version.txt']}),
   ],
   build: {
     rollupOptions: {

@@ -750,7 +750,9 @@ export class WebRTCDemo {
     reset() {
         // Clear cursor cache.
         this.cursor_cache = new Map();
-
+        if (! this.peerConnection) {
+            return;
+        }
         var signalState = this.peerConnection.signalingState;
         if (this._send_channel !== null && this._send_channel.readyState === "open") {
             this._send_channel.close();
